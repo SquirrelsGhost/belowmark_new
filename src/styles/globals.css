@@ -1,0 +1,189 @@
+@import "tailwindcss";
+
+/* ── Design tokens ───────────────────────────────────────────
+ * Dark-first palette. Light mode is the fallback for users who
+ * explicitly prefer it. All colours are consumed through the
+ * @theme mapping below (e.g. `bg-canvas`, `text-muted`, `border-line`).
+ */
+:root {
+  --canvas: #07070a;
+  --canvas-raised: #0d0d12;
+  --ink: #f5f5f4;
+  --muted: #a1a1aa;
+  --subtle: #71717a;
+  --line: rgb(255 255 255 / 0.08);
+  --line-strong: rgb(255 255 255 / 0.14);
+  --glass: rgb(255 255 255 / 0.035);
+  --glass-strong: rgb(255 255 255 / 0.07);
+  --iris: #9b8cff;
+  --iris-deep: #6d5bff;
+  --ember: #ff9a6b;
+  --lagoon: #5ee1d4;
+  --grain-opacity: 0.07;
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --canvas: #f8f7f4;
+    --canvas-raised: #ffffff;
+    --ink: #0c0a09;
+    --muted: #57534e;
+    --subtle: #78716c;
+    --line: rgb(12 10 9 / 0.08);
+    --line-strong: rgb(12 10 9 / 0.14);
+    --glass: rgb(255 255 255 / 0.55);
+    --glass-strong: rgb(255 255 255 / 0.8);
+    --iris: #6d5bff;
+    --iris-deep: #5440f0;
+    --ember: #f07a45;
+    --lagoon: #14b8a6;
+    --grain-opacity: 0.04;
+    color-scheme: light;
+  }
+}
+
+@theme inline {
+  --color-canvas: var(--canvas);
+  --color-canvas-raised: var(--canvas-raised);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-subtle: var(--subtle);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-glass: var(--glass);
+  --color-glass-strong: var(--glass-strong);
+  --color-iris: var(--iris);
+  --color-iris-deep: var(--iris-deep);
+  --color-ember: var(--ember);
+  --color-lagoon: var(--lagoon);
+
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-serif: var(--font-instrument-serif);
+
+  --animate-marquee: marquee 40s linear infinite;
+  --animate-aurora: aurora 18s ease-in-out infinite alternate;
+  --animate-aurora-slow: aurora 26s ease-in-out infinite alternate-reverse;
+  --animate-shimmer: shimmer 3.2s ease-in-out infinite;
+  --animate-pulse-dot: pulse-dot 2.4s ease-in-out infinite;
+
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+
+  @keyframes aurora {
+    0% { transform: translate3d(0, 0, 0) scale(1); }
+    50% { transform: translate3d(6%, -4%, 0) scale(1.12); }
+    100% { transform: translate3d(-5%, 5%, 0) scale(0.95); }
+  }
+
+  @keyframes shimmer {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.8); }
+  }
+}
+
+/* ── Base ─────────────────────────────────────────────────── */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--canvas);
+  color: var(--ink);
+  font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+  font-feature-settings: "ss01", "cv11";
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: color-mix(in oklab, var(--iris) 35%, transparent);
+}
+
+/* ── Utilities ────────────────────────────────────────────── */
+
+/* Animated gradient text used for headline accents. */
+@utility text-gradient {
+  background-image: linear-gradient(
+    100deg,
+    var(--iris) 0%,
+    var(--ember) 45%,
+    var(--lagoon) 100%
+  );
+  background-size: 200% 200%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+/* Fine film grain over the whole page — pure SVG, no image request. */
+@utility bg-grain {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: var(--grain-opacity);
+}
+
+/* Subtle square grid that fades out towards the edges. */
+@utility bg-grid {
+  background-image:
+    linear-gradient(var(--line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, black 30%, transparent 75%);
+}
+
+/* Hairline gradient border for glass cards. */
+@utility border-sheen {
+  border: 1px solid transparent;
+  background:
+    linear-gradient(var(--canvas-raised), var(--canvas-raised)) padding-box,
+    linear-gradient(160deg, var(--line-strong), var(--line) 40%, transparent 70%, var(--line)) border-box;
+}
+
+/* Horizontal fade mask for marquees. */
+@utility mask-fade-x {
+  mask-image: linear-gradient(90deg, transparent, black 15%, black 85%, transparent);
+}
+
+/* Scroll reveal — toggled by the Reveal client component. */
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(24px);
+  filter: blur(6px);
+  transition:
+    opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.9s cubic-bezier(0.22, 1, 0.36, 1),
+    filter 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+[data-reveal="visible"] {
+  opacity: 1;
+  transform: none;
+  filter: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  [data-reveal] {
+    opacity: 1;
+    transform: none;
+    filter: none;
+    transition: none;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
