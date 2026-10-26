@@ -1,15 +1,14 @@
-import { cookies, headers } from "next/headers";
-import { DEFAULT_LOCALE, LOCALE_COOKIE_NAME } from "@/lib/constants";
+import { DEFAULT_LOCALE, LocaleOption } from "@/lib/constants";
+import { RegionService } from "@/services/RegionService";
 import { ITranslation } from "@/translations/ITranslation";
 import { Locale, Translations } from "@/translations/Translations";
 
 /**
  * TranslationService
  *
- * Reads the user's locale from (in priority order):
- *   1. Cookie  "MANUAL_NEXT_LOCALE"  — set when the user manually switches language
- *   2. Accept-Language header        — the browser's preferred language
- *   3. Fallback: DE
+ * The language follows where the visitor is, not the system language:
+ * Turkey → TR, everywhere else → DE. See RegionService for how the country
+ * is detected (geo header → browser time zone → Accept-Language → DE).
  *
  * Usage in a Server Component:
  *
@@ -18,29 +17,26 @@ import { Locale, Translations } from "@/translations/Translations";
  */
 export class TranslationService {
   static GetUserLocale = async (): Promise<Locale> => {
-    const cookieStore = await cookies();
-    const cookieLocale = cookieStore.get(LOCALE_COOKIE_NAME)?.value;
-
-    const headersList = await headers();
-    const acceptLanguage = headersList.get("accept-language") ?? "";
-    const headerLocale =
-      acceptLanguage.split(",")[0]?.split(";")[0] ?? DEFAULT_LOCALE;
-
-    const userLocale = cookieLocale ?? headerLocale;
-    return TranslationService.NormalizeLocale(userLocale);
+    const region = await RegionService.GetRegion();
+    return TranslationService.NormalizeLocale(region.country === "TR" ? "tr" : DEFAULT_LOCALE);
   };
 
   static NormalizeLocale = (code: string): Locale => {
     switch (code) {
-      case "en-US":
-      case "en":
-        return Locale.EN;
+      case "tr-TR":
+      case "tr":
+        return Locale.TR;
       case "de-DE":
       case "de":
         return Locale.DE;
       default:
         return Locale.DE;
     }
+  };
+
+  /** Lower-case locale code as used by the locale cookie and Intl helpers. */
+  static ToLocaleOption = (locale: Locale): LocaleOption => {
+    return locale === Locale.TR ? "tr" : "de";
   };
 
   static GetTranslations = (locale: Locale): ITranslation => {

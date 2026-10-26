@@ -1,22 +1,25 @@
-import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
+import { Archivo, IBM_Plex_Mono, Newsreader } from "next/font/google";
 import { env } from "@/lib/env";
 import "@/styles/globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+/** Variable width grotesk — condensed for display, normal for body text. */
+const archivo = Archivo({
+  variable: "--font-archivo",
+  subsets: ["latin", "latin-ext"],
+  axes: ["wdth"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+/** Typewriter-like mono for file numbers, amounts and dates. */
+const plexMono = IBM_Plex_Mono({
+  variable: "--font-plex-mono",
+  subsets: ["latin", "latin-ext"],
+  weight: ["400", "500", "600"],
 });
 
-/** Editorial display face for headlines — paired with Geist for UI text. */
-const instrumentSerif = Instrument_Serif({
-  variable: "--font-instrument-serif",
-  subsets: ["latin"],
-  weight: "400",
+/** Editorial serif, used sparingly for the italic "rule" quotes. */
+const newsreader = Newsreader({
+  variable: "--font-newsreader",
+  subsets: ["latin", "latin-ext"],
   style: ["normal", "italic"],
 });
 
@@ -36,9 +39,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="de"
-      className={`${geistSans.variable} ${geistMono.variable} ${instrumentSerif.variable} h-full antialiased`}
+      className={`${archivo.variable} ${plexMono.variable} ${newsreader.variable} h-full antialiased`}
     >
-      <body className="relative min-h-full overflow-x-hidden bg-canvas font-sans text-ink">
+      <body className="relative min-h-full overflow-x-hidden bg-paper font-sans text-ink">
         {children}
       </body>
     </html>

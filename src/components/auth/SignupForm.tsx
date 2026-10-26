@@ -1,0 +1,89 @@
+// Needs useActionState for server-side errors and the success state
+"use client";
+
+import { useActionState, useRef } from "react";
+import AuthBotShield from "@/components/auth/AuthBotShield";
+import AuthErrorSummary from "@/components/auth/AuthErrorSummary";
+import AuthField from "@/components/auth/AuthField";
+import AuthNotice from "@/components/auth/AuthNotice";
+import AuthSubmit from "@/components/auth/AuthSubmit";
+import MarketOption from "@/components/auth/MarketOption";
+import MarketPicker from "@/components/auth/MarketPicker";
+import PasswordField from "@/components/auth/PasswordField";
+import ResendVerificationForm from "@/components/auth/ResendVerificationForm";
+import TermsConsent from "@/components/auth/TermsConsent";
+import { useFocusFirstError } from "@/hooks/useFocusFirstError";
+import { signupAction } from "@/lib/auth/actions/signupAction";
+import { errorMessage } from "@/lib/auth/errorMessage";
+import { MarketCode } from "@/lib/constants";
+import { fill } from "@/translations/auth/AuthTranslations";
+import { IAuthTranslation } from "@/translations/auth/IAuthTranslation";
+import { AuthFieldName, INITIAL_AUTH_STATE } from "@/types/auth.types";
+
+interface SignupFormProps {
+  t: Pick<IAuthTranslation, "Fields" | "Errors" | "Signup">;
+  /** Pre-selected from the visitor's region or pricing choice */
+  defaultMarket: MarketCode;
+}
+
+/** Sign-up: e-mail, password, market, consent — then "check your inbox". */
+export default function SignupForm({ t, defaultMarket }: SignupFormProps) {
+  const [state, formAction] = useActionState(signupAction, INITIAL_AUTH_STATE);
+  const formRef = useRef<HTMLFormElement>(null);
+  useFocusFirstError(formRef, state);
+
+  if (state.status === "success" && state.values?.email) {
+    return (
+      <AuthNotice
+        stamp={t.Signup.SuccessStamp}
+        title={t.Signup.SuccessTitle}
+        body={fill(t.Signup.SuccessBody, { email: state.values.email })}
+        hint={t.Signup.SuccessHint}
+      >
+        <ResendVerificationForm email={state.values.email} label={t.Signup.Resend} sentLabel={t.Signup.ResendSent} errors={t.Errors} />
+      </AuthNotice>
+    );
+  }
+
+  const fieldError = (name: AuthFieldName) => {
+    const code = state.fieldErrors?.[name];
+    return code ? t.Errors[code] : undefined;
+  };
+  const market = state.values?.market ?? defaultMarket;
+
+  return (
+    <form ref={formRef} action={formAction} noValidate className="grid gap-5">
+      <AuthBotShield refreshKey={state} />
+      {state.code && <AuthErrorSummary title={t.Errors.SummaryTitle} message={errorMessage(state.code, t.Errors, state.retryAfterMinutes)} />}
+      <AuthField
+        id="signup-email"
+        name="email"
+        type="email"
+        number="01"
+        label={t.Fields.Email}
+        placeholder={t.Fields.EmailPlaceholder}
+        autoComplete="email"
+        inputMode="email"
+        defaultValue={state.values?.email}
+        error={fieldError("email")}
+      />
+      <PasswordField
+        id="signup-password"
+        name="password"
+        number="02"
+        label={t.Fields.Password}
+        autoComplete="new-password"
+        fields={t.Fields}
+        hint={t.Fields.PasswordHint}
+        error={fieldError("password")}
+        withStrength
+      />
+      <MarketPicker number="03" legend={t.Fields.Market} note={t.Fields.MarketNote} error={fieldError("market")}>
+        <MarketOption value="DE" code="DE" label={t.Fields.MarketDe} hint={t.Fields.MarketDeHint} defaultChecked={market === "DE"} />
+        <MarketOption value="TR" code="TR" label={t.Fields.MarketTr} hint={t.Fields.MarketTrHint} defaultChecked={market === "TR"} />
+      </MarketPicker>
+      <TermsConsent fields={t.Fields} defaultChecked={state.values?.terms} error={fieldError("terms")} />
+      <AuthSubmit label={t.Signup.Submit} pendingLabel={t.Signup.Pending} variant="signal" />
+    </form>
+  );
+}

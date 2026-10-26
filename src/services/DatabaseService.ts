@@ -23,8 +23,9 @@ export class DatabaseService {
         latencyMs,
       };
     } catch (error) {
+      const cause = (error as { cause?: Error })?.cause;
       const message =
-        error instanceof Error ? error.message : "Database connection failed";
+        cause?.message ?? (error instanceof Error ? error.message : "Database connection failed");
       return {
         connected: false,
         latencyMs: null,

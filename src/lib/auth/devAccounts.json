@@ -1,0 +1,10 @@
+{
+  "password": "belowmark-dev-login",
+  "accounts": [
+    { "key": "de", "email": "dev-de@belowmark.local", "market": "DE", "locale": "de", "trial": "active", "plan": null, "permissions": [] },
+    { "key": "tr", "email": "dev-tr@belowmark.local", "market": "TR", "locale": "tr", "trial": "active", "plan": null, "permissions": [] },
+    { "key": "free", "email": "dev-free@belowmark.local", "market": "DE", "locale": "de", "trial": "ended", "plan": null, "permissions": [] },
+    { "key": "full", "email": "dev-full@belowmark.local", "market": "DE", "locale": "de", "trial": "ended", "plan": "investor", "permissions": [] },
+    { "key": "admin", "email": "dev-admin@belowmark.local", "market": "DE", "locale": "de", "trial": "ended", "plan": null, "permissions": ["*"] }
+  ]
+}

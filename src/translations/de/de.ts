@@ -1,130 +1,401 @@
 import { ITranslation } from "../ITranslation";
+import { APP_DE } from "./appDe";
 
 export const DE: ITranslation = {
   Navigation: {
-    HomeLabel: "Startseite",
-    FeaturesLabel: "Funktionen",
-    ProcessLabel: "So geht's",
-    StatsLabel: "Zahlen",
-    ContactLabel: "Kontakt",
-    LoginLabel: "Anmelden",
-    SignupLabel: "Kostenlos starten",
-    LocaleSwitchLabel: "Sprache wechseln",
     MainNavLabel: "Hauptnavigation",
+    SkipToContent: "Zum Inhalt springen",
+    CalculatorLabel: "Rechner",
+    NoticeLabel: "Aushang",
+    MethodLabel: "Rechenweg",
+    StatesLabel: "Bundesländer",
+    PricingLabel: "Preise",
+    FaqLabel: "Fragen",
+    LoginLabel: "Anmelden",
+    SignupLabel: "Zugang testen",
   },
 
   HomePage: {
     MetaTags: {
-      title: "Belowmark — Was unter der Oberfläche zählt",
+      title: "Belowmark — Zwangsversteigerungen unter Marktwert, mit Quelle",
       description:
-        "Belowmark macht sichtbar, was unter der Oberfläche passiert: präzise Einblicke, blitzschnelle Abläufe und ein Design, das Ruhe in komplexe Arbeit bringt.",
+        "Alle ZVG-Termine der Amtsgerichte an einem Ort: Verkehrswert, 5/10- und 7/10-Grenze, Sicherheitsleistung und Grunderwerbsteuer je Verfahren. Belegt, nicht geschätzt.",
       imgUrl: "https://belowmark.com/og/home.png",
-      tags: ["Belowmark", "Plattform", "Insights", "Produktivität", "Software"],
+      tags: ["Zwangsversteigerung", "ZVG", "Immobilien unter Marktwert", "Amtsgericht", "Verkehrswert", "5/10-Grenze"],
       url: "https://belowmark.com",
     },
 
     Hero: {
-      Eyebrow: "Neu: Belowmark 2.0 ist da",
-      HeadlineStart: "Gebaut für das, was",
-      HeadlineAccent: "unter der Oberfläche zählt.",
+      Dateline: "Bekanntmachung · Zwangsversteigerungen in Deutschland",
+      LiveLabel: "Täglich aus den amtlichen Justizportalen",
+      HeadlineTop: "Zwangs­versteigerungen.",
+      HeadlineBelow: "Jetzt unter Marktwert holen.",
+      LineLabel: "Marktniveau",
       Description:
-        "Belowmark bringt Klarheit in komplexe Arbeit. Präzise Einblicke, schnelle Abläufe und ein Interface, das sich anfühlt wie gedacht.",
-      PrimaryCta: "Kostenlos starten",
-      SecondaryCta: "Live-Demo ansehen",
-      Note: "Keine Kreditkarte nötig · In 2 Minuten startklar",
+        "Jeden Tag setzen deutsche Amtsgerichte Immobilien zur Versteigerung an. Belowmark bündelt die amtlichen Aushänge und rechnet je Verfahren aus, was zählt: Verkehrswert, 5/10- und 7/10-Grenze, Sicherheitsleistung und Grunderwerbsteuer.",
+      Principle: "Nichts wird geschätzt. Fehlt der Beleg, steht dort keine Zahl, sondern der Grund.",
+      PrimaryCta: "Zugang kostenlos testen",
+      SecondaryCta: "Rechner ausprobieren",
+      Note: "Kostenlos: Objektliste sichtbar, Werte gesperrt. Vollzugang ab 39 € im Monat.",
     },
 
-    Preview: {
-      WindowTitle: "belowmark.app / übersicht",
-      MetricLabel: "Gesamtleistung",
-      MetricValue: "98,4 %",
-      MetricDelta: "+12,6 % diese Woche",
-      LiveLabel: "Live",
-      RowOne: "Analyse abgeschlossen",
-      RowTwo: "Neuer Bericht bereit",
-      RowThree: "Team synchronisiert",
+    Calculator: {
+      Title: "Gebotsrechner",
+      Subtitle: "Nach §§ 68, 74a, 85a ZVG",
+      ValueLabel: "Verkehrswert laut Amtsgericht",
+      StateLabel: "Bundesland",
+      HearingLabel: "Termin",
+      FirstHearing: "Erster Termin",
+      FollowUpHearing: "Folgetermin",
+      BidLabel: "Ihr Gebot",
+      ScaleMarket: "Verkehrswert",
+      LimitAbsolute: "5/10-Grenze · § 85a",
+      LimitRelative: "7/10-Grenze · § 74a",
+      Deposit: "Sicherheitsleistung · § 68",
+      TransferTax: "Grunderwerbsteuer",
+      EntryTotal: "Einstieg inkl. Steuer",
+      BelowValue: "unter Verkehrswert",
+      VerdictRefused: "Unter 5/10: Der Zuschlag wird im ersten Termin von Amts wegen versagt.",
+      VerdictContestable: "Zwischen 5/10 und 7/10: Ein Berechtigter kann die Versagung beantragen.",
+      VerdictClear: "Ab 7/10: Keine gesetzliche Wertgrenze steht dem Zuschlag entgegen.",
+      VerdictWaived: "Folgetermin: Die Wertgrenzen fallen in der Regel weg.",
+      Footnote: "Zzgl. Gerichtsgebühren für Zuschlag (GKG) und Grundbucheintrag (GNotKG). Keine Makler- und Notarkosten.",
     },
 
-    Marquee: {
-      Label: "Vertraut von Teams, die Wert auf Details legen",
-    },
-
-    Features: {
-      Eyebrow: "Funktionen",
-      Title: "Alles, was du brauchst.",
-      TitleAccent: "Nichts, was stört.",
-      Description:
-        "Jede Funktion ist auf das Wesentliche reduziert, damit du dich auf deine Arbeit konzentrieren kannst und nicht auf das Werkzeug.",
-      Precision: {
-        Title: "Präzision bis ins Detail",
-        Description:
-          "Erkenne Muster, bevor sie zu Problemen werden. Belowmark zeigt dir genau das, was unter der Oberfläche passiert.",
-      },
-      Speed: {
-        Title: "Unter 50 ms",
-        Description: "Jede Interaktion fühlt sich sofort an. Kein Warten, kein Laden.",
-      },
-      Security: {
-        Title: "Sicher ab Werk",
-        Description: "Ende-zu-Ende-verschlüsselt, DSGVO-konform und in der EU gehostet.",
-      },
-      Insights: {
-        Title: "Insights in Echtzeit",
-        Description:
-          "Live-Dashboards, die sich automatisch aktualisieren und nur zeigen, was gerade wirklich wichtig ist.",
-      },
-      Collaboration: {
-        Title: "Gemeinsam statt nebeneinander",
-        Description: "Kommentare, Freigaben und Verlauf an einem Ort, für das ganze Team.",
-      },
-      Integrations: {
-        Title: "Passt zu deinem Stack",
-        Description: "Verbinde deine Tools in wenigen Klicks über unsere offene API.",
-      },
-    },
-
-    Process: {
-      Eyebrow: "So geht's",
-      Title: "Drei Schritte.",
-      TitleAccent: "Volle Klarheit.",
-      Description: "Vom ersten Login bis zum ersten Aha-Moment vergehen nur wenige Minuten.",
-      StepOne: {
-        Title: "Verbinden",
-        Description: "Verknüpfe deine Datenquellen. Belowmark erledigt den Rest automatisch.",
-      },
-      StepTwo: {
-        Title: "Verstehen",
-        Description: "Klare Visualisierungen zeigen dir sofort, wo du stehst und was zählt.",
-      },
-      StepThree: {
-        Title: "Handeln",
-        Description: "Treffe bessere Entscheidungen und teile Ergebnisse mit einem Klick.",
+    Ticker: {
+      Label: "Aktuelle Termine",
+      CourtPrefix: "AG",
+      HearingPrefix: "Termin",
+      ValueHidden: "Wert nur mit Zugang",
+      Segments: {
+        house: "Einfamilienhaus",
+        apartment: "Eigentumswohnung",
+        land: "Grundstück",
+        commercial: "Gewerbe",
+        multiFamily: "Mehrfamilienhaus",
+        farmland: "Land- & Forstwirtschaft",
+        other: "Sonstiges",
       },
     },
 
     Stats: {
-      Uptime: { Value: "99,99 %", Label: "Verfügbarkeit" },
-      Latency: { Value: "< 50 ms", Label: "Antwortzeit" },
-      Teams: { Value: "2.400+", Label: "Teams weltweit" },
-      Rating: { Value: "4,9 / 5", Label: "Bewertung" },
+      AsOf: "Stand",
+      Proceedings: "ZVG-Verfahren aus den Justizportalen",
+      WithAppraisal: "mit gerichtlich festgesetztem Verkehrswert",
+      States: "Bundesländer mit laufenden Terminen",
+      TotalValue: "Verkehrswert aller Verfahren",
+      Median: "Median-Verkehrswert je Verfahren",
     },
 
-    Cta: {
-      Title: "Bereit, tiefer zu blicken?",
-      TitleAccent: "Starte heute.",
-      Description: "Erstelle dein Konto in unter zwei Minuten und erlebe Belowmark 14 Tage kostenlos.",
-      PrimaryCta: "Kostenlos starten",
-      SecondaryCta: "Mit uns sprechen",
+    Notice: {
+      Eyebrow: "Was Sie im Dashboard sehen",
+      Title: "Eine Karte je Verfahren. Mit dem, was im Aushang steht — und dem, was fehlt.",
+      Description: "Dasselbe Kartenelement wie im Dashboard. Auf dieser Seite geschwärzt, damit das Objekt ohne Zugang nicht auffindbar ist.",
+      Paragraphs: [
+        "Der Kern sind zwei Werte: der vom Amtsgericht festgesetzte Verkehrswert und das daraus abgeleitete gesetzliche Mindestgebot. Die Differenz sehen Sie auf einen Blick.",
+        "Die Hinweise sind entscheidend. Fehlt der Verkehrswert oder stammt das Gutachten aus einem früheren Jahr, sagt die Karte das, statt eine Zahl vorzutäuschen.",
+        "Im Dashboard steht alles: Aktenzeichen, Adresse, Termin, der 1-Klick-Link zum Justizportal und das Bekanntmachungs-PDF des Gerichts.",
+      ],
+      Redaction: "geschwärzt",
+      Card: {
+        Example: "Beispielansicht",
+        Court: "Amtsgericht",
+        FileNo: "Aktenzeichen",
+        Kind: "Objektart",
+        KindValue: "Einfamilienhaus mit Garage",
+        State: "Bundesland",
+        StateValue: "Nordrhein-Westfalen",
+        Appraisal: "Verkehrswert",
+        Limit: "5/10-Grenze",
+        Hearing: "Termin",
+        HearingValue: "in 12 Tagen",
+        Stamp: "Nur mit Zugang",
+        HintsTitle: "Hinweise aus dem Aushang",
+        Hints: [
+          "Gutachten zwei Jahre alt — Wertstand prüfen",
+          "Innenbesichtigung nicht erfolgt",
+          "Grunderwerbsteuer NRW: 6,5 %",
+        ],
+        PortalLink: "Justizportal",
+        PdfLink: "Bekanntmachung (PDF)",
+      },
+    },
+
+    Method: {
+      Eyebrow: "Der Rechenweg, ohne Auslassung",
+      Title: "Drei Schritte. Der dritte ist der unbequeme.",
+      Description: "Jede Zahl auf Belowmark lässt sich bis zum amtlichen Original zurückverfolgen.",
+      StepOne: {
+        Kicker: "Aushang",
+        Title: "Amtliche Bekanntmachung der Amtsgerichte",
+        Body: "Gericht, Aktenzeichen, Verkehrswert und Termin werden aus der amtlichen Trefferzeile gelesen. Das Bekanntmachungs-PDF ist je Verfahren verlinkt.",
+      },
+      StepTwo: {
+        Kicker: "Gegenprobe",
+        Title: "Wertgrenzen, Sicherheit und Steuer",
+        Body: "Aus dem festgesetzten Verkehrswert entstehen die 5/10-Grenze (§ 85a), die 7/10-Grenze (§ 74a), die Sicherheitsleistung (§ 68) und die Grunderwerbsteuer des Landes.",
+      },
+      StepThree: {
+        Kicker: "Abzug",
+        Title: "Rechtliche Lasten und Risiken vorab",
+        Body: "Miteigentumsanteil statt Vollbesitz, Denkmalschutz, Erbbaurecht, Wohnungsrechte oder keine Innenbesichtigung stehen als Hinweis auf der Karte. Ein Abschlag mit Lasten ist kein Schnäppchen.",
+      },
+      Disclaimer: {
+        Title: "Was diese Seite nicht ersetzt.",
+        Body: "Gutachten, Grundbuchauszug und Mietsituation liegen in der Versteigerungsakte beim Amtsgericht. Belowmark strukturiert die Chancen bundesweit — die Einsicht in die Akte bleibt unerlässlich.",
+      },
+    },
+
+    States: {
+      Eyebrow: "Datenlage bundesweit",
+      Title: "Alle 16 Länder abgefragt. 14 liefern Termine.",
+      Description: "Offene ZVG-Termine je Bundesland und die Grunderwerbsteuer, die beim Zuschlag fällig wird.",
+      ColState: "Bundesland",
+      ColHearings: "Offene Termine",
+      ColTax: "GrESt",
+      NotPublished: "nicht im Justizportal",
+      Footnote: "Hamburg und Mecklenburg-Vorpommern machen nicht über das gemeinsame Justizportal bekannt, aus Schleswig-Holstein sind nur einzelne Gerichte vertreten.",
+    },
+
+    Limits: {
+      Eyebrow: "Wo unsere Zahlen aufhören",
+      Title: "Was wir nicht wissen, steht auch da.",
+      Description: "Jede Plattform zeigt gern, was für sie spricht. Diese vier Punkte sprechen dagegen — und sind der Grund, den übrigen Zahlen zu glauben.",
+      ItemOne: {
+        Title: "Zwei Länder fehlen",
+        Body: "Hamburg und Mecklenburg-Vorpommern veröffentlichen nicht im gemeinsamen Justizportal. Dort gibt es bei uns keine Termine statt erfundener.",
+      },
+      ItemTwo: {
+        Title: "Kein Verkehrswert, keine Rechnung",
+        Body: "Wurde noch kein Verkehrswert festgesetzt oder liegt eine Aufhebung vor, steht dort der amtliche Status, keine Schätzung.",
+      },
+      ItemThree: {
+        Title: "Alte Gutachten",
+        Body: "Bei älteren Aktenzeichen stammt der Verkehrswert aus früheren Jahren. Wir zeigen das Alter des Gutachtens offen an.",
+      },
+      ItemFour: {
+        Title: "Extreme Abschläge",
+        Body: "Fallen im Folgetermin die Grenzen weg, sind sehr niedrige Gebote möglich. Wir stellen das dar, ohne Versprechen daraus zu machen.",
+      },
+      Rule: {
+        Title: "Die Regel dahinter",
+        Body: "Gibt es nichts zu vergleichen, erfinden wir keine runde Prozentzahl, sondern schreiben hin, warum wir nicht rechnen konnten.",
+      },
+    },
+
+    Compare: {
+      Eyebrow: "Systematische Vorprüfung",
+      Title: "Manuelle Suche gegen Belowmark.",
+      Description: "Was früher Abende in Justizportal-Suchmasken gekostet hat, steht hier in einer Liste.",
+      ColCriterion: "Recherche-Schritt",
+      ColManual: "Manuell",
+      ColBelowmark: "Belowmark",
+      Rows: [
+        {
+          Criterion: "Verkehrswert & 5/10-Grenze",
+          Manual: "Einzelne Bekanntmachungen öffnen und rechnen",
+          Belowmark: "Alle Aushänge in einer durchsuchbaren Liste",
+        },
+        {
+          Criterion: "Grunderwerbsteuer",
+          Manual: "Je Bundesland selbst nachschlagen",
+          Belowmark: "Automatisch je Verfahren (3,5 % bis 6,5 %)",
+        },
+        {
+          Criterion: "Wertgrenzen & Sicherheit",
+          Manual: "5/10, 7/10 und 10 % von Hand prüfen",
+          Belowmark: "Berechnet und auf jeder Karte",
+        },
+        {
+          Criterion: "Alter des Gutachtens",
+          Manual: "Bleibt oft unbemerkt",
+          Belowmark: "Offen gekennzeichnet",
+        },
+        {
+          Criterion: "Weg zum Original",
+          Manual: "Durch Suchmasken navigieren",
+          Belowmark: "1-Klick-Direktlink zum Justizportal",
+        },
+      ],
+    },
+
+    Pricing: {
+      Eyebrow: "Recherchezugang",
+      Title: "Erst die Quelle. Dann das Gebot.",
+      Description: "Belowmark verkauft keine Listen. Es macht die Vorprüfung vor einer Entscheidung nachvollziehbar.",
+      Recommended: "Empfohlen",
+      AltPricePrefix: "oder",
+      MarketLabel: "Markt wählen",
+      MarketDetected: "nach Standort erkannt",
+      MarketHint: "Ein Markt pro Konto. Deutschland und Türkei werden getrennt gebucht.",
+      Markets: {
+        DE: {
+          Label: "Deutschland",
+          Scope: "Zwangsversteigerungen · 16 Bundesländer",
+          Free: {
+            Name: "Free Scout",
+            Tagline: "Für die erste Orientierung.",
+            Price: "0 €",
+            Period: "dauerhaft",
+            Features: [
+              "Objektliste aller Amtsgerichte sichtbar",
+              "Werte und Termine gesperrt",
+              "Keine Zahlungsdaten, keine Verlängerung",
+            ],
+            Cta: "Kostenlos starten",
+            Note: "Vollzugang jederzeit im Dashboard zubuchbar.",
+          },
+          Investor: {
+            Name: "Investor",
+            Tagline: "Der vollständige Recherchezugang für eine Person.",
+            Price: "39 €",
+            Period: "im Monat",
+            AltPrice: "99 €",
+            AltPeriod: "für drei Monate",
+            Features: [
+              "Vollzugang zu allen ZVG-Verfahren, Originaltexten und Quellen",
+              "Urteil „Bieten oder lassen“, Bietlimit-Rechner & Gutachten-Auswertung",
+              "Bankmappe (Finanzierungsunterlage), Zuschlags-Fahrplan & Portfolio",
+              "Suchaufträge per E-Mail, Terminwächter und Live-Kalender-Abo",
+            ],
+            Cta: "Investor werden",
+            Note: "Monatlich kündbar.",
+          },
+          Pro: {
+            Name: "Pro",
+            Tagline: "Für Makler, Berater und gemeinsame Team-Bewertung.",
+            Price: "129 €",
+            Period: "im Monat",
+            AltPrice: "329 €",
+            AltPeriod: "für drei Monate",
+            Features: [
+              "Alles aus Investor inklusive",
+              "Kundenlinks & PDF mit eigenem Briefkopf, Logo und Akzentfarbe",
+              "Gemeinsame Team-Listen (bis 3 Teams à 5 Plätze) mit Rollen & Notizen",
+              "Team-Workflow je Verfahren (Prüfen, Besichtigen, Bieten, Verworfen)",
+            ],
+            Cta: "Pro buchen",
+            Note: "Monatlich kündbar. Größere Teams ab 299 € auf Anfrage.",
+          },
+        },
+        TR: {
+          Label: "Türkei",
+          Scope: "İcra & İhale · 81 Provinzen",
+          Free: {
+            Name: "Free Scout",
+            Tagline: "Für die erste Orientierung.",
+            Price: "0 TL",
+            Period: "dauerhaft",
+            Features: [
+              "Objektliste aller İcra-Aushänge sichtbar",
+              "Werte und Termine gesperrt",
+              "Keine Zahlungsdaten, keine Verlängerung",
+            ],
+            Cta: "Kostenlos starten",
+            Note: "Vollzugang jederzeit im Dashboard zubuchbar.",
+          },
+          Investor: {
+            Name: "Investor",
+            Tagline: "Der vollständige Recherchezugang für eine Person.",
+            Price: "599 TL",
+            Period: "im Monat",
+            AltPrice: "1.490 TL",
+            AltPeriod: "für drei Monate",
+            Features: [
+              "Vollzugang zu allen İcra- und İhale-Aushängen mit Originalquelle",
+              "Urteil „Bieten oder lassen“, Gebotsrechner & Gutachten-Auswertung",
+              "Marktvergleich je m², Erwerbsnebenkosten, Bankmappe & Portfolio",
+              "Suchaufträge per E-Mail, Terminwächter und Live-Kalender-Abo",
+            ],
+            Cta: "Investor werden",
+            Note: "Monatlich kündbar.",
+          },
+          Pro: {
+            Name: "Pro",
+            Tagline: "Für Makler, Berater und gemeinsame Team-Bewertung.",
+            Price: "1.990 TL",
+            Period: "im Monat",
+            AltPrice: "4.990 TL",
+            AltPeriod: "für drei Monate",
+            Features: [
+              "Alles aus Investor inklusive",
+              "Kundenlinks & PDF mit eigenem Briefkopf, Logo und Akzentfarbe",
+              "Gemeinsame Team-Listen (bis 3 Teams à 5 Plätze) mit Rollen & Notizen",
+              "Team-Workflow je Verfahren (Prüfen, Besichtigen, Bieten, Verworfen)",
+            ],
+            Cta: "Pro buchen",
+            Note: "Monatlich kündbar.",
+          },
+        },
+      },
+      Disclaimer: "Belowmark ist Recherche und dokumentierte Vorprüfung, keine Rechts-, Steuer- oder Anlageberatung. Vor einem Gebot zählt immer das amtliche Original.",
+    },
+
+    Faq: {
+      Eyebrow: "Rechtliche Grundlagen",
+      Title: "Häufige Fragen, beantwortet nach Gesetz.",
+      Description: "Jede Antwort nennt die Vorschrift aus ZVG, BGB oder GrEStG. Ohne Spekulation.",
+      SourceLabel: "Quelle",
+      Items: [
+        {
+          Question: "Wer darf bei einer Zwangsversteigerung mitbieten?",
+          Answer: "Jede voll geschäftsfähige natürliche oder juristische Person, unabhängig von der Staatsangehörigkeit. Mitzubringen sind Ausweis oder Reisepass, bei Vertretung eine öffentlich beglaubigte Bietvollmacht.",
+          Sources: ["§ 71 ZVG"],
+        },
+        {
+          Question: "Was bedeuten die 5/10- und 7/10-Grenze?",
+          Answer: "Im ersten Termin muss das Meistgebot samt bestehen bleibender Rechte mindestens 5/10 des Verkehrswerts erreichen, sonst wird der Zuschlag von Amts wegen versagt. Unter 7/10 kann ein Berechtigter die Versagung beantragen. Im zweiten Termin fallen die Grenzen in der Regel weg.",
+          Sources: ["§ 85a ZVG", "§ 74a ZVG"],
+        },
+        {
+          Question: "Wie hoch ist die Sicherheitsleistung?",
+          Answer: "In der Regel 10 % des Verkehrswerts. Barzahlung im Termin ist ausgeschlossen; zulässig sind Bundesbankschecks, Verrechnungsschecks von Kreditinstituten oder eine vorherige Überweisung an die Gerichtskasse.",
+          Sources: ["§ 68 ZVG", "§ 69 ZVG"],
+        },
+        {
+          Question: "Welche Nebenkosten fallen beim Zuschlag an?",
+          Answer: "Die Grunderwerbsteuer des Landes (3,5 % bis 6,5 %) sowie Gerichtsgebühren für Zuschlag und Grundbucheintragung. Makler- und Notarkosten entfallen.",
+          Sources: ["GrEStG", "GKG", "GNotKG"],
+        },
+        {
+          Question: "Was passiert mit bestehenden Mietverträgen?",
+          Answer: "Sie bleiben zunächst bestehen — Kauf bricht nicht Miete. Der Ersteher hat aber ein Sonderkündigungsrecht zum ersten zulässigen Termin nach dem Zuschlag (§ 57a ZVG) — bei Wohnraum nur mit berechtigtem Interesse, und nicht in der Teilungsversteigerung.",
+          Sources: ["§ 57a ZVG", "§ 566 BGB"],
+        },
+        {
+          Question: "Woher stammen Gutachten und Verkehrswert?",
+          Answer: "Das Amtsgericht setzt den Verkehrswert auf Basis eines unabhängigen Sachverständigengutachtens fest. Das Gutachten kann vor dem Termin beim Gericht eingesehen werden.",
+          Sources: ["§ 74a Abs. 5 ZVG"],
+        },
+      ],
+      MoreTitle: "Ihre Frage ist nicht dabei?",
+      MoreCta: "Kontakt aufnehmen",
+    },
+
+    Closing: {
+      TitleTop: "Der Markt zahlt mehr.",
+      TitleBelow: "Sie müssen es nicht.",
+      Description: "Konto in zwei Minuten anlegen, Objektliste sofort sehen. Ohne Zahlungsdaten.",
+      PrimaryCta: "Zugang kostenlos testen",
+      SecondaryCta: "Anmelden",
     },
   },
 
   Footer: {
-    Tagline: "Was unter der Oberfläche zählt.",
+    Tagline: "Was unter der Marke liegt.",
+    SourcesTitle: "Woher die Daten kommen",
+    SourceZvg: "zvg-portal.de",
+    SourceLaw: "ZVG-Gesetzestext",
+    SourceJustiz: "justiz.de",
     ProductTitle: "Produkt",
-    CompanyTitle: "Unternehmen",
     LegalTitle: "Rechtliches",
-    PrivacyLabel: "Datenschutz",
-    ImprintLabel: "Impressum",
+    Imprint: "Impressum",
+    Terms: "AGB",
+    Withdrawal: "Widerruf",
+    Privacy: "Datenschutz",
+    Disclaimer: "Keine Rechts- oder Anlageberatung. Jede Angabe ist am amtlichen Original zu prüfen.",
     Rights: "Alle Rechte vorbehalten.",
   },
+
+  App: APP_DE,
 };

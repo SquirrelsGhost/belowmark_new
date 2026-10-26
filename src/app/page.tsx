@@ -1,32 +1,47 @@
 import { Metadata } from "next";
-import AuroraBackground from "@/components/background/AuroraBackground";
-import GrainOverlay from "@/components/background/GrainOverlay";
-import FeatureBars from "@/components/features/FeatureBars";
-import FeatureCard from "@/components/features/FeatureCard";
-import FeatureGrid from "@/components/features/FeatureGrid";
-import FeatureOrbit from "@/components/features/FeatureOrbit";
+import BrandMark from "@/components/brand/BrandMark";
+import ClosingCta from "@/components/closing/ClosingCta";
+import CompareRow from "@/components/compare/CompareRow";
+import CompareTable from "@/components/compare/CompareTable";
+import ConsumerFooterButtons from "@/components/consumer/ConsumerFooterButtons";
+import FaqItem from "@/components/faq/FaqItem";
+import FaqSection from "@/components/faq/FaqSection";
 import Footer from "@/components/footer/Footer";
 import FooterColumn from "@/components/footer/FooterColumn";
 import FooterLink from "@/components/footer/FooterLink";
-import CtaSection from "@/components/home/CtaSection";
-import HeroPreview from "@/components/home/HeroPreview";
-import HeroSection from "@/components/home/HeroSection";
-import LogoMarquee from "@/components/home/LogoMarquee";
-import LogoMarqueeItem from "@/components/home/LogoMarqueeItem";
+import BidCalculator from "@/components/hero/BidCalculator";
+import HeroSection from "@/components/hero/HeroSection";
+import LimitItem from "@/components/limits/LimitItem";
+import LimitsSection from "@/components/limits/LimitsSection";
+import MethodSection from "@/components/method/MethodSection";
+import MethodStep from "@/components/method/MethodStep";
 import Navigation from "@/components/navigation/Navigation";
 import NavigationItem from "@/components/navigation/NavigationItem";
-import NavigationLocaleSwitch from "@/components/navigation/NavigationLocaleSwitch";
 import NavigationLoginButton from "@/components/navigation/NavigationLoginButton";
-import NavigationLogo from "@/components/navigation/NavigationLogo";
+import NavigationSkipLink from "@/components/navigation/NavigationSkipLink";
+import NavigationSpacer from "@/components/navigation/NavigationSpacer";
 import NavigationVerticalLine from "@/components/navigation/NavigationVerticalLine";
-import ProcessSection from "@/components/process/ProcessSection";
-import ProcessStep from "@/components/process/ProcessStep";
-import StatItem from "@/components/stats/StatItem";
-import StatsBand from "@/components/stats/StatsBand";
-import { ROUTES } from "@/lib/constants";
+import NoticeCard from "@/components/notice/NoticeCard";
+import NoticeShowcase from "@/components/notice/NoticeShowcase";
+import PricingMarketSwitch from "@/components/pricing/PricingMarketSwitch";
+import PricingPlan from "@/components/pricing/PricingPlan";
+import PricingSection from "@/components/pricing/PricingSection";
+import StateIndex from "@/components/states/StateIndex";
+import StateIndexRow from "@/components/states/StateIndexRow";
+import StatsLedger from "@/components/stats/StatsLedger";
+import StatsLedgerItem from "@/components/stats/StatsLedgerItem";
+import NoticeTicker from "@/components/ticker/NoticeTicker";
+import NoticeTickerItem from "@/components/ticker/NoticeTickerItem";
+import RegionDetector from "@/components/region/RegionDetector";
+import PaperTexture from "@/components/ui/PaperTexture";
+import { BILLING_ROUTES, OFFER_PARAM } from "@/lib/billing/billingConfig";
+import { ROUTES, SOURCES } from "@/lib/constants";
+import { formatCompactEuro, formatDate, formatEuro, formatNumber, formatPercent, formatShortDate } from "@/lib/format";
+import { SNAPSHOT_DATE, SNAPSHOT_STATS, STATES, TICKER_ENTRIES } from "@/lib/snapshot";
 import { MetaTagService } from "@/services/MetaTagService";
+import { RegionService } from "@/services/RegionService";
 import { TranslationService } from "@/services/TranslationService";
-import { Locale } from "@/translations/Translations";
+import { IPricingPlan } from "@/translations/ITranslation";
 
 /**
  * This page reads cookies() and headers() via TranslationService for locale
@@ -40,19 +55,9 @@ import { Locale } from "@/translations/Translations";
  */
 export const instant = false;
 
-/** Placeholder customer wordmarks — replace with real logos. */
-const MARQUEE_BRANDS = [
-  { name: "Northwind", style: "sans" },
-  { name: "Lumen", style: "serif" },
-  { name: "ATLAS", style: "mono" },
-  { name: "Halcyon", style: "sans" },
-  { name: "Meridian", style: "serif" },
-  { name: "VERTEX", style: "mono" },
-  { name: "Kinetic", style: "sans" },
-  { name: "Solace", style: "serif" },
-] as const;
-
+const MAIN_ID = "inhalt";
 const STAGGER_MS = 100;
+const MAX_STATE_HEARINGS = Math.max(...STATES.map((state) => state.hearings ?? 0));
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await TranslationService.GetUserTranslations();
@@ -60,98 +65,219 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function HomePage() {
-  const locale = await TranslationService.GetUserLocale();
-  const t = TranslationService.GetTranslations(locale);
-  const { Hero, Preview, Marquee, Features, Process, Stats, Cta } = t.HomePage;
+  const region = await RegionService.GetRegion();
+  const userLocale = await TranslationService.GetUserLocale();
+  const t = TranslationService.GetTranslations(userLocale);
+  const locale = TranslationService.ToLocaleOption(userLocale);
+  const { Hero, Calculator, Ticker, Stats, Notice, Method, States, Limits, Compare, Pricing, Faq, Closing } = t.HomePage;
+  const nav = t.Navigation;
+  const plans = Pricing.Markets[region.market];
 
+  // lang on the wrapper so uppercase display type follows locale rules (İ/I in Turkish)
   return (
-    <>
-      <GrainOverlay />
-      <Navigation label={t.Navigation.MainNavLabel}>
-        <NavigationLogo />
-        <NavigationItem href={ROUTES.features} label={t.Navigation.FeaturesLabel} />
-        <NavigationItem href={ROUTES.process} label={t.Navigation.ProcessLabel} />
-        <NavigationItem href={ROUTES.stats} label={t.Navigation.StatsLabel} />
-        <NavigationItem href={ROUTES.contact} label={t.Navigation.ContactLabel} />
+    <div lang={locale}>
+      <PaperTexture />
+      {!region.isFromGeoHeader && <RegionDetector country={region.country} />}
+      <NavigationSkipLink label={nav.SkipToContent} targetId={MAIN_ID} />
+      <Navigation label={nav.MainNavLabel}>
+        <BrandMark />
+        <NavigationSpacer />
+        <NavigationItem href={ROUTES.calculator} label={nav.CalculatorLabel} />
+        <NavigationItem href={ROUTES.notice} label={nav.NoticeLabel} />
+        <NavigationItem href={ROUTES.method} label={nav.MethodLabel} />
+        <NavigationItem href={ROUTES.states} label={nav.StatesLabel} />
+        <NavigationItem href={ROUTES.pricing} label={nav.PricingLabel} />
+        <NavigationItem href={ROUTES.faq} label={nav.FaqLabel} />
         <NavigationVerticalLine />
-        <NavigationLocaleSwitch current={locale === Locale.EN ? "en" : "de"} label={t.Navigation.LocaleSwitchLabel} />
-        <NavigationLoginButton loginLabel={t.Navigation.LoginLabel} signupLabel={t.Navigation.SignupLabel} />
+        <NavigationLoginButton loginLabel={nav.LoginLabel} signupLabel={nav.SignupLabel} />
       </Navigation>
 
-      <main className="relative isolate">
-        <AuroraBackground />
+      <main id={MAIN_ID}>
         <HeroSection
-          eyebrow={Hero.Eyebrow}
-          headlineStart={Hero.HeadlineStart}
-          headlineAccent={Hero.HeadlineAccent}
+          dateline={Hero.Dateline}
+          liveLabel={Hero.LiveLabel}
+          headlineTop={Hero.HeadlineTop}
+          headlineBelow={Hero.HeadlineBelow}
+          lineLabel={Hero.LineLabel}
           description={Hero.Description}
+          principle={Hero.Principle}
           primaryCta={Hero.PrimaryCta}
           secondaryCta={Hero.SecondaryCta}
           note={Hero.Note}
         >
-          <HeroPreview
-            windowTitle={Preview.WindowTitle}
-            metricLabel={Preview.MetricLabel}
-            metricValue={Preview.MetricValue}
-            metricDelta={Preview.MetricDelta}
-            liveLabel={Preview.LiveLabel}
-            rowOne={Preview.RowOne}
-            rowTwo={Preview.RowTwo}
-            rowThree={Preview.RowThree}
-          />
+          <BidCalculator t={Calculator} locale={locale} />
         </HeroSection>
 
-        <LogoMarquee label={Marquee.Label}>
-          {MARQUEE_BRANDS.map((brand) => (
-            <LogoMarqueeItem key={brand.name} name={brand.name} style={brand.style} />
+        <NoticeTicker label={Ticker.Label}>
+          {TICKER_ENTRIES.map((entry) => (
+            <NoticeTickerItem
+              key={`${entry.court}-${entry.date}`}
+              court={`${Ticker.CourtPrefix} ${entry.court}`}
+              segment={Ticker.Segments[entry.segment]}
+              state={entry.state}
+              date={`${Ticker.HearingPrefix} ${formatShortDate(entry.date, locale)}`}
+              valueLabel={Ticker.ValueHidden}
+            />
           ))}
-        </LogoMarquee>
+        </NoticeTicker>
 
-        <FeatureGrid eyebrow={Features.Eyebrow} title={Features.Title} titleAccent={Features.TitleAccent} description={Features.Description}>
-          <FeatureCard icon="target" span="wide" title={Features.Precision.Title} description={Features.Precision.Description}>
-            <FeatureBars />
-          </FeatureCard>
-          <FeatureCard icon="bolt" delay={STAGGER_MS} title={Features.Speed.Title} description={Features.Speed.Description} />
-          <FeatureCard icon="shield" title={Features.Security.Title} description={Features.Security.Description} />
-          <FeatureCard icon="chart" span="wide" delay={STAGGER_MS} title={Features.Insights.Title} description={Features.Insights.Description}>
-            <FeatureOrbit />
-          </FeatureCard>
-          <FeatureCard icon="users" span="wide" title={Features.Collaboration.Title} description={Features.Collaboration.Description} />
-          <FeatureCard icon="plug" delay={STAGGER_MS} title={Features.Integrations.Title} description={Features.Integrations.Description} />
-        </FeatureGrid>
+        <StatsLedger asOfLabel={Stats.AsOf} asOfDate={formatDate(SNAPSHOT_DATE, locale)} sourceLabel={t.Footer.SourceZvg}>
+          <StatsLedgerItem value={formatNumber(SNAPSHOT_STATS.proceedings, locale)} label={Stats.Proceedings} />
+          <StatsLedgerItem value={formatNumber(SNAPSHOT_STATS.withAppraisal, locale)} label={Stats.WithAppraisal} delay={STAGGER_MS} />
+          <StatsLedgerItem value={formatNumber(SNAPSHOT_STATS.statesWithHearings, locale)} label={Stats.States} delay={STAGGER_MS * 2} />
+          <StatsLedgerItem value={formatCompactEuro(SNAPSHOT_STATS.totalAppraisedEuro, locale)} label={Stats.TotalValue} delay={STAGGER_MS * 3} isAccent />
+          <StatsLedgerItem value={formatEuro(SNAPSHOT_STATS.medianAppraisedEuro, locale)} label={Stats.Median} delay={STAGGER_MS * 4} />
+        </StatsLedger>
 
-        <StatsBand>
-          <StatItem value={Stats.Uptime.Value} label={Stats.Uptime.Label} />
-          <StatItem value={Stats.Latency.Value} label={Stats.Latency.Label} />
-          <StatItem value={Stats.Teams.Value} label={Stats.Teams.Label} />
-          <StatItem value={Stats.Rating.Value} label={Stats.Rating.Label} />
-        </StatsBand>
+        <NoticeShowcase number="01" eyebrow={Notice.Eyebrow} title={Notice.Title} description={Notice.Description} paragraphs={Notice.Paragraphs}>
+          <NoticeCard t={Notice.Card} redaction={Notice.Redaction} />
+        </NoticeShowcase>
 
-        <ProcessSection eyebrow={Process.Eyebrow} title={Process.Title} titleAccent={Process.TitleAccent} description={Process.Description}>
-          <ProcessStep number="01" title={Process.StepOne.Title} description={Process.StepOne.Description} />
-          <ProcessStep number="02" delay={STAGGER_MS} title={Process.StepTwo.Title} description={Process.StepTwo.Description} />
-          <ProcessStep number="03" delay={STAGGER_MS * 2} title={Process.StepThree.Title} description={Process.StepThree.Description} />
-        </ProcessSection>
+        <MethodSection
+          number="02"
+          eyebrow={Method.Eyebrow}
+          title={Method.Title}
+          description={Method.Description}
+          disclaimerTitle={Method.Disclaimer.Title}
+          disclaimerBody={Method.Disclaimer.Body}
+        >
+          <MethodStep number="1" kicker={Method.StepOne.Kicker} title={Method.StepOne.Title} body={Method.StepOne.Body} />
+          <MethodStep number="2" kicker={Method.StepTwo.Kicker} title={Method.StepTwo.Title} body={Method.StepTwo.Body} delay={STAGGER_MS} />
+          <MethodStep number="3" kicker={Method.StepThree.Kicker} title={Method.StepThree.Title} body={Method.StepThree.Body} delay={STAGGER_MS * 2} isHighlighted />
+        </MethodSection>
 
-        <CtaSection title={Cta.Title} titleAccent={Cta.TitleAccent} description={Cta.Description} primaryCta={Cta.PrimaryCta} secondaryCta={Cta.SecondaryCta} />
+        <StateIndex
+          number="03"
+          eyebrow={States.Eyebrow}
+          title={States.Title}
+          description={States.Description}
+          colState={States.ColState}
+          colHearings={States.ColHearings}
+          colTax={States.ColTax}
+          footnote={States.Footnote}
+        >
+          {STATES.map((state) => (
+            <StateIndexRow
+              key={state.code}
+              name={state.name}
+              code={state.code}
+              share={state.hearings === null ? null : (state.hearings / MAX_STATE_HEARINGS) * 100}
+              hearingsLabel={state.hearings === null ? States.NotPublished : formatNumber(state.hearings, locale)}
+              taxLabel={formatPercent(state.transferTaxPct, locale)}
+            />
+          ))}
+        </StateIndex>
+
+        <LimitsSection
+          number="04"
+          eyebrow={Limits.Eyebrow}
+          title={Limits.Title}
+          description={Limits.Description}
+          ruleTitle={Limits.Rule.Title}
+          ruleBody={Limits.Rule.Body}
+        >
+          <LimitItem index="01" title={Limits.ItemOne.Title} body={Limits.ItemOne.Body} />
+          <LimitItem index="02" title={Limits.ItemTwo.Title} body={Limits.ItemTwo.Body} delay={STAGGER_MS} />
+          <LimitItem index="03" title={Limits.ItemThree.Title} body={Limits.ItemThree.Body} />
+          <LimitItem index="04" title={Limits.ItemFour.Title} body={Limits.ItemFour.Body} delay={STAGGER_MS} />
+        </LimitsSection>
+
+        <CompareTable
+          number="05"
+          eyebrow={Compare.Eyebrow}
+          title={Compare.Title}
+          description={Compare.Description}
+          colCriterion={Compare.ColCriterion}
+          colManual={Compare.ColManual}
+          colBelowmark={Compare.ColBelowmark}
+        >
+          {Compare.Rows.map((row) => (
+            <CompareRow key={row.Criterion} criterion={row.Criterion} manual={row.Manual} belowmark={row.Belowmark} />
+          ))}
+        </CompareTable>
+
+        <PricingSection
+          number="06"
+          eyebrow={Pricing.Eyebrow}
+          title={Pricing.Title}
+          description={Pricing.Description}
+          disclaimer={Pricing.Disclaimer}
+          marketSwitch={
+            <PricingMarketSwitch
+              current={region.market}
+              label={Pricing.MarketLabel}
+              detectedLabel={region.isMarketChosen ? undefined : Pricing.MarketDetected}
+              hint={Pricing.MarketHint}
+              options={{
+                DE: { label: Pricing.Markets.DE.Label, scope: Pricing.Markets.DE.Scope },
+                TR: { label: Pricing.Markets.TR.Label, scope: Pricing.Markets.TR.Scope },
+              }}
+            />
+          }
+        >
+          <PricingPlan {...planProps(plans.Free)} href={ROUTES.signup} />
+          <PricingPlan
+            {...planProps(plans.Investor)}
+            href={`${BILLING_ROUTES.order}?${OFFER_PARAM}=investor-monat`}
+            altPrice={`${Pricing.AltPricePrefix} ${plans.Investor.AltPrice} ${plans.Investor.AltPeriod}`}
+            recommendedLabel={Pricing.Recommended}
+            delay={STAGGER_MS}
+          />
+          <PricingPlan
+            {...planProps(plans.Pro)}
+            href={`${BILLING_ROUTES.order}?${OFFER_PARAM}=pro-monat`}
+            altPrice={`${Pricing.AltPricePrefix} ${plans.Pro.AltPrice} ${plans.Pro.AltPeriod}`}
+            delay={STAGGER_MS * 2}
+          />
+        </PricingSection>
+
+        <FaqSection number="07" eyebrow={Faq.Eyebrow} title={Faq.Title} description={Faq.Description} moreTitle={Faq.MoreTitle} moreCta={Faq.MoreCta}>
+          {Faq.Items.map((item, index) => (
+            <FaqItem key={item.Question} index={index + 1} question={item.Question} answer={item.Answer} sources={item.Sources} sourceLabel={Faq.SourceLabel} />
+          ))}
+        </FaqSection>
+
+        <ClosingCta
+          titleTop={Closing.TitleTop}
+          titleBelow={Closing.TitleBelow}
+          description={Closing.Description}
+          primaryCta={Closing.PrimaryCta}
+          secondaryCta={Closing.SecondaryCta}
+        />
       </main>
 
-      <Footer tagline={t.Footer.Tagline} rights={t.Footer.Rights}>
+      <Footer tagline={t.Footer.Tagline} disclaimer={t.Footer.Disclaimer} rights={t.Footer.Rights} actions={<ConsumerFooterButtons tone="paper" />}>
         <FooterColumn title={t.Footer.ProductTitle}>
-          <FooterLink href={ROUTES.features} label={t.Navigation.FeaturesLabel} />
-          <FooterLink href={ROUTES.process} label={t.Navigation.ProcessLabel} />
-          <FooterLink href={ROUTES.stats} label={t.Navigation.StatsLabel} />
+          <FooterLink href={ROUTES.calculator} label={nav.CalculatorLabel} />
+          <FooterLink href={ROUTES.method} label={nav.MethodLabel} />
+          <FooterLink href={ROUTES.pricing} label={nav.PricingLabel} />
+          <FooterLink href={ROUTES.login} label={nav.LoginLabel} />
         </FooterColumn>
-        <FooterColumn title={t.Footer.CompanyTitle}>
-          <FooterLink href={ROUTES.contact} label={t.Navigation.ContactLabel} />
-          <FooterLink href={ROUTES.login} label={t.Navigation.LoginLabel} />
-          <FooterLink href={ROUTES.signup} label={t.Navigation.SignupLabel} />
+        <FooterColumn title={t.Footer.SourcesTitle}>
+          <FooterLink href={SOURCES.zvgPortal} label={t.Footer.SourceZvg} isExternal />
+          <FooterLink href={SOURCES.zvgLaw} label={t.Footer.SourceLaw} isExternal />
+          <FooterLink href={SOURCES.justiz} label={t.Footer.SourceJustiz} isExternal />
         </FooterColumn>
         <FooterColumn title={t.Footer.LegalTitle}>
-          <FooterLink href={ROUTES.privacy} label={t.Footer.PrivacyLabel} />
-          <FooterLink href={ROUTES.imprint} label={t.Footer.ImprintLabel} />
+          <FooterLink href={ROUTES.imprint} label={t.Footer.Imprint} />
+          <FooterLink href={ROUTES.terms} label={t.Footer.Terms} />
+          <FooterLink href={ROUTES.withdrawal} label={t.Footer.Withdrawal} />
+          <FooterLink href={ROUTES.privacy} label={t.Footer.Privacy} />
         </FooterColumn>
       </Footer>
-    </>
+    </div>
   );
+}
+
+/** Maps a translated plan to the shared PricingPlan props. */
+function planProps(plan: IPricingPlan) {
+  return {
+    name: plan.Name,
+    tagline: plan.Tagline,
+    price: plan.Price,
+    period: plan.Period,
+    features: plan.Features,
+    cta: plan.Cta,
+    note: plan.Note,
+  };
 }

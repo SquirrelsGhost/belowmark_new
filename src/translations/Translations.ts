@@ -1,13 +1,13 @@
 import { DE } from "./de/de";
-import { EN } from "./en/en";
 import { ITranslation } from "./ITranslation";
+import { TR } from "./tr/tr";
 
 export enum Locale {
-  EN = "EN",
   DE = "DE",
+  TR = "TR",
 }
 
 export const Translations: Record<Locale, ITranslation> = {
-  [Locale.EN]: EN,
   [Locale.DE]: DE,
+  [Locale.TR]: TR,
 };

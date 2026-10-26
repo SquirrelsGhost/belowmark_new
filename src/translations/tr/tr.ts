@@ -1,0 +1,401 @@
+import { ITranslation } from "../ITranslation";
+import { APP_TR } from "./appTr";
+
+export const TR: ITranslation = {
+  Navigation: {
+    MainNavLabel: "Ana menü",
+    SkipToContent: "İçeriğe geç",
+    CalculatorLabel: "Hesaplayıcı",
+    NoticeLabel: "İlan",
+    MethodLabel: "Hesap yolu",
+    StatesLabel: "Eyaletler",
+    PricingLabel: "Fiyatlar",
+    FaqLabel: "Sorular",
+    LoginLabel: "Giriş yap",
+    SignupLabel: "Ücretsiz dene",
+  },
+
+  HomePage: {
+    MetaTags: {
+      title: "Belowmark — Almanya'da icra ihaleleri, piyasa değerinin altında",
+      description:
+        "Almanya'daki tüm icra ihaleleri (ZVG) tek yerde: mahkeme değeri, 5/10 ve 7/10 sınırı, teminat ve emlak alım vergisi. Her rakam kaynağıyla, tahmin yok.",
+      imgUrl: "https://belowmark.com/og/home.png",
+      tags: ["icra ihalesi", "Almanya emlak", "Zwangsversteigerung", "ZVG", "piyasa altı gayrimenkul"],
+      url: "https://belowmark.com",
+    },
+
+    Hero: {
+      Dateline: "Resmî ilan · Almanya'da icra ihaleleri",
+      LiveLabel: "Her gün resmî adalet portallarından",
+      HeadlineTop: "İcra ihaleleri.",
+      HeadlineBelow: "Şimdi piyasanın altında alın.",
+      LineLabel: "Piyasa seviyesi",
+      Description:
+        "Alman mahkemeleri her gün gayrimenkulleri ihaleye çıkarıyor. Belowmark resmî ilanları tek yerde toplar ve her dosya için önemli olanı hesaplar: mahkeme değeri, 5/10 ve 7/10 sınırı, teminat ve emlak alım vergisi.",
+      Principle: "Hiçbir şey tahmin edilmez. Belge yoksa orada rakam değil, nedeni yazar.",
+      PrimaryCta: "Ücretsiz dene",
+      SecondaryCta: "Hesaplayıcıyı dene",
+      Note: "Ücretsiz: ilan listesi görünür, değerler kilitli. Tam erişim aylık 39 €'dan.",
+    },
+
+    Calculator: {
+      Title: "Teklif hesaplayıcı",
+      Subtitle: "ZVG §§ 68, 74a, 85a uyarınca",
+      ValueLabel: "Mahkemenin belirlediği değer",
+      StateLabel: "Eyalet",
+      HearingLabel: "İhale günü",
+      FirstHearing: "İlk ihale",
+      FollowUpHearing: "Sonraki ihale",
+      BidLabel: "Teklifiniz",
+      ScaleMarket: "Mahkeme değeri",
+      LimitAbsolute: "5/10 sınırı · § 85a",
+      LimitRelative: "7/10 sınırı · § 74a",
+      Deposit: "Teminat · § 68",
+      TransferTax: "Emlak alım vergisi",
+      EntryTotal: "Vergi dahil giriş",
+      BelowValue: "mahkeme değerinin altında",
+      VerdictRefused: "5/10'un altında: İlk ihalede ihale kararı resen reddedilir.",
+      VerdictContestable: "5/10 ile 7/10 arası: Hak sahibi reddi talep edebilir.",
+      VerdictClear: "7/10 ve üzeri: Yasal değer sınırı ihaleye engel değil.",
+      VerdictWaived: "Sonraki ihale: Değer sınırları genellikle kalkar.",
+      Footnote: "İhale kararı (GKG) ve tapu tescili (GNotKG) için mahkeme harçları ayrıca. Emlakçı ve noter masrafı yok.",
+    },
+
+    Ticker: {
+      Label: "Güncel ihaleler",
+      CourtPrefix: "Mahkeme",
+      HearingPrefix: "Tarih",
+      ValueHidden: "Değer yalnızca erişimle",
+      Segments: {
+        house: "Müstakil ev",
+        apartment: "Daire",
+        land: "Arsa",
+        commercial: "Ticari",
+        multiFamily: "Apartman",
+        farmland: "Tarım ve orman",
+        other: "Diğer",
+      },
+    },
+
+    Stats: {
+      AsOf: "Tarih",
+      Proceedings: "adalet portallarından icra dosyası",
+      WithAppraisal: "mahkemece belirlenmiş değerli",
+      States: "ihalesi süren eyalet",
+      TotalValue: "tüm dosyaların toplam değeri",
+      Median: "dosya başına medyan değer",
+    },
+
+    Notice: {
+      Eyebrow: "Panelde ne görürsünüz",
+      Title: "Her dosya için bir kart. İlanda yazanla — ve eksik olanla.",
+      Description: "Paneldeki kartın aynısı. Bu sayfada karartılmış, böylece erişim olmadan taşınmaz bulunamaz.",
+      Paragraphs: [
+        "Özünde iki değer var: mahkemenin belirlediği değer ve bundan çıkan yasal asgari teklif. Aradaki farkı tek bakışta görürsünüz.",
+        "Uyarılar belirleyicidir. Değer belirlenmemişse ya da bilirkişi raporu eskiyse, kart sahte bir rakam yerine bunu söyler.",
+        "Panelde her şey var: dosya numarası, adres, ihale tarihi, adalet portalına tek tık bağlantı ve mahkemenin ilan PDF'i.",
+      ],
+      Redaction: "karartıldı",
+      Card: {
+        Example: "Örnek görünüm",
+        Court: "Mahkeme",
+        FileNo: "Dosya no",
+        Kind: "Taşınmaz türü",
+        KindValue: "Garajlı müstakil ev",
+        State: "Eyalet",
+        StateValue: "Kuzey Ren-Vestfalya",
+        Appraisal: "Mahkeme değeri",
+        Limit: "5/10 sınırı",
+        Hearing: "İhale",
+        HearingValue: "12 gün sonra",
+        Stamp: "Yalnızca erişimle",
+        HintsTitle: "İlandaki uyarılar",
+        Hints: [
+          "Bilirkişi raporu iki yıllık — güncelliğini kontrol edin",
+          "İç mekân incelemesi yapılmamış",
+          "NRW emlak alım vergisi: %6,5",
+        ],
+        PortalLink: "Adalet portalı",
+        PdfLink: "İlan (PDF)",
+      },
+    },
+
+    Method: {
+      Eyebrow: "Hesap yolu, eksiksiz",
+      Title: "Üç adım. Üçüncüsü rahatsız edici olanı.",
+      Description: "Belowmark'taki her rakam resmî asıl belgeye kadar izlenebilir.",
+      StepOne: {
+        Kicker: "İlan",
+        Title: "Mahkemelerin resmî ilanı",
+        Body: "Mahkeme, dosya numarası, değer ve ihale tarihi resmî sonuç satırından okunur. Her dosya için mahkemenin ilan PDF'i bağlantılıdır.",
+      },
+      StepTwo: {
+        Kicker: "Karşı kontrol",
+        Title: "Değer sınırları, teminat ve vergi",
+        Body: "Belirlenen değerden 5/10 sınırı (§ 85a), 7/10 sınırı (§ 74a), teminat (§ 68) ve eyaletin emlak alım vergisi hesaplanır.",
+      },
+      StepThree: {
+        Kicker: "Kesinti",
+        Title: "Hukuki yükler ve riskler önceden",
+        Body: "Tam mülkiyet yerine hisse, tarihi eser koruması, intifa veya oturma hakları ya da yapılmamış iç inceleme kartta uyarı olarak durur. Yüklü bir indirim fırsat değildir.",
+      },
+      Disclaimer: {
+        Title: "Bu sayfanın yerini tutmadığı şey.",
+        Body: "Bilirkişi raporu, tapu kaydı ve kira durumu mahkemedeki ihale dosyasındadır. Belowmark fırsatları ülke çapında düzenler — dosyayı incelemek yine de şarttır.",
+      },
+    },
+
+    States: {
+      Eyebrow: "Ülke genelinde veri durumu",
+      Title: "16 eyaletin hepsi sorgulanıyor. 14'ü ihale veriyor.",
+      Description: "Eyalet başına açık icra ihaleleri ve ihale kararında ödenecek emlak alım vergisi.",
+      ColState: "Eyalet",
+      ColHearings: "Açık ihale",
+      ColTax: "Vergi",
+      NotPublished: "portalda yok",
+      Footnote: "Hamburg ve Mecklenburg-Vorpommern ortak adalet portalında ilan vermiyor, Schleswig-Holstein'dan yalnızca bazı mahkemeler yer alıyor.",
+    },
+
+    Limits: {
+      Eyebrow: "Rakamlarımızın bittiği yer",
+      Title: "Bilmediğimizi de yazıyoruz.",
+      Description: "Her platform lehine olanı göstermeyi sever. Bu dört madde aleyhimize — ve diğer rakamlara güvenmenin nedeni.",
+      ItemOne: {
+        Title: "İki eyalet eksik",
+        Body: "Hamburg ve Mecklenburg-Vorpommern ortak portalda yayın yapmıyor. Orada uydurma ihale değil, hiç ihale göstermiyoruz.",
+      },
+      ItemTwo: {
+        Title: "Değer yoksa hesap yok",
+        Body: "Henüz değer belirlenmemişse ya da iptal kararı varsa, tahmin değil resmî durum yazar.",
+      },
+      ItemThree: {
+        Title: "Eski raporlar",
+        Body: "Eski dosya numaralarında değer önceki yıllardan gelir. Raporun yaşını açıkça gösteriyoruz.",
+      },
+      ItemFour: {
+        Title: "Aşırı indirimler",
+        Body: "Sonraki ihalede sınırlar kalkarsa çok düşük teklifler mümkün olur. Bunu gösteririz ama vaat hâline getirmeyiz.",
+      },
+      Rule: {
+        Title: "Arkasındaki kural",
+        Body: "Karşılaştıracak bir şey yoksa yuvarlak bir yüzde uydurmayız, neden hesaplayamadığımızı yazarız.",
+      },
+    },
+
+    Compare: {
+      Eyebrow: "Sistematik ön inceleme",
+      Title: "Elle arama ile Belowmark.",
+      Description: "Eskiden portal arama formlarında akşamlar harcatan iş, burada tek listede.",
+      ColCriterion: "Araştırma adımı",
+      ColManual: "Elle",
+      ColBelowmark: "Belowmark",
+      Rows: [
+        {
+          Criterion: "Değer ve 5/10 sınırı",
+          Manual: "İlanları tek tek açıp hesaplamak",
+          Belowmark: "Tüm ilanlar aranabilir tek listede",
+        },
+        {
+          Criterion: "Emlak alım vergisi",
+          Manual: "Her eyalet için ayrı bakmak",
+          Belowmark: "Her dosyada otomatik (%3,5 – %6,5)",
+        },
+        {
+          Criterion: "Değer sınırları ve teminat",
+          Manual: "5/10, 7/10 ve %10'u elle kontrol",
+          Belowmark: "Hesaplanmış, her kartta",
+        },
+        {
+          Criterion: "Raporun yaşı",
+          Manual: "Çoğu zaman fark edilmez",
+          Belowmark: "Açıkça işaretli",
+        },
+        {
+          Criterion: "Asıl belgeye yol",
+          Manual: "Arama formlarında dolaşmak",
+          Belowmark: "Adalet portalına tek tık",
+        },
+      ],
+    },
+
+    Pricing: {
+      Eyebrow: "Araştırma erişimi",
+      Title: "Önce kaynak. Sonra teklif.",
+      Description: "Belowmark liste satmaz. Karardan önceki ön incelemeyi izlenebilir kılar.",
+      Recommended: "Önerilen",
+      AltPricePrefix: "veya",
+      MarketLabel: "Pazar seçin",
+      MarketDetected: "konuma göre algılandı",
+      MarketHint: "Hesap başına bir pazar. Türkiye ve Almanya ayrı ayrı satın alınır.",
+      Markets: {
+        DE: {
+          Label: "Almanya",
+          Scope: "Zwangsversteigerung · 16 eyalet",
+          Free: {
+            Name: "Free Scout",
+            Tagline: "İlk bakış için.",
+            Price: "0 €",
+            Period: "süresiz",
+            Features: [
+              "Tüm sulh mahkemelerinin ilan listesi görünür",
+              "Değerler ve tarihler kilitli",
+              "Ödeme bilgisi yok, otomatik yenileme yok",
+            ],
+            Cta: "Ücretsiz başla",
+            Note: "Tam erişim panelden istediğiniz zaman eklenir.",
+          },
+          Investor: {
+            Name: "Investor",
+            Tagline: "Tek kişi için eksiksiz araştırma erişimi.",
+            Price: "39 €",
+            Period: "aylık",
+            AltPrice: "99 €",
+            AltPeriod: "üç aylık",
+            Features: [
+              "Tüm ZVG dosyalarına, asıl metinlere ve kaynaklara tam erişim",
+              "„Teklif ver / vazgeç“ kararı, teklif sınırı ve bilirkişi raporu analizi",
+              "Banka dosyası (finansman özeti), ihale sonrası yol haritası ve portföy",
+              "E-posta alarmları, duruşma takipçisi ve canlı takvim aboneliği",
+            ],
+            Cta: "Investor ol",
+            Note: "Aylık iptal edilebilir.",
+          },
+          Pro: {
+            Name: "Pro",
+            Tagline: "Emlak danışmanları ve ortak ekip değerlendirmesi için.",
+            Price: "129 €",
+            Period: "aylık",
+            AltPrice: "329 €",
+            AltPeriod: "üç aylık",
+            Features: [
+              "Investor paketindeki her şey dahil",
+              "Kendi logonuz ve antetinizle müşteri bağlantıları ve PDF paylaşımı",
+              "Ortak ekip listeleri (5 kişilik 3 ekibe kadar), roller ve ortak notlar",
+              "Dosya bazında ekip durumu (İncele, Yerinde gör, Teklif ver, Ele)",
+            ],
+            Cta: "Pro satın al",
+            Note: "Aylık iptal edilebilir. Büyük ekipler 299 €'dan özel teklifle.",
+          },
+        },
+        TR: {
+          Label: "Türkiye",
+          Scope: "İcra & İhale · 81 il",
+          Free: {
+            Name: "Free Scout",
+            Tagline: "İlk bakış için.",
+            Price: "0 TL",
+            Period: "süresiz",
+            Features: [
+              "Tüm icra ilanlarının listesi görünür",
+              "Değerler ve tarihler kilitli",
+              "Ödeme bilgisi yok, otomatik yenileme yok",
+            ],
+            Cta: "Ücretsiz başla",
+            Note: "Tam erişim panelden istediğiniz zaman eklenir.",
+          },
+          Investor: {
+            Name: "Investor",
+            Tagline: "Bireysel yatırımcı için tam araştırma erişimi.",
+            Price: "599 TL",
+            Period: "aylık",
+            AltPrice: "1.490 TL",
+            AltPeriod: "üç aylık",
+            Features: [
+              "Tüm icra ve ihale ilanlarına resmî kaynağıyla tam erişim",
+              "„Teklif ver / vazgeç“ kararı, teklif hesaplayıcı ve rapor analizi",
+              "Metrekare piyasa karşılaştırması, masraflar, banka dosyası ve portföy",
+              "E-posta alarmları, ihale takipçisi ve canlı takvim aboneliği",
+            ],
+            Cta: "Investor ol",
+            Note: "Aylık iptal edilebilir.",
+          },
+          Pro: {
+            Name: "Pro",
+            Tagline: "Emlak danışmanları ve ortak ekip değerlendirmesi için.",
+            Price: "1.990 TL",
+            Period: "aylık",
+            AltPrice: "4.990 TL",
+            AltPeriod: "üç aylık",
+            Features: [
+              "Investor paketindeki her şey dahil",
+              "Kendi logonuz ve antetinizle müşteri bağlantıları ve PDF paylaşımı",
+              "Ortak ekip listeleri (5 kişilik 3 ekibe kadar), roller ve ortak notlar",
+              "Dosya bazında ekip durumu (İncele, Yerinde gör, Teklif ver, Ele)",
+            ],
+            Cta: "Pro satın al",
+            Note: "Aylık iptal edilebilir.",
+          },
+        },
+      },
+      Disclaimer: "Belowmark araştırma ve belgelenmiş ön incelemedir; hukuki, vergi veya yatırım danışmanlığı değildir. Teklif öncesi her zaman resmî asıl belge geçerlidir.",
+    },
+
+    Faq: {
+      Eyebrow: "Hukuki temeller",
+      Title: "Sık sorulanlar, kanuna göre yanıtlandı.",
+      Description: "Her yanıt ZVG, BGB veya GrEStG'deki hükmü belirtir. Spekülasyon yok.",
+      SourceLabel: "Kaynak",
+      Items: [
+        {
+          Question: "Bir icra ihalesine kimler katılabilir?",
+          Answer: "Vatandaşlığı fark etmeksizin tam ehliyetli her gerçek veya tüzel kişi. Kimlik veya pasaport gerekir; temsilde resmî onaylı bir teklif vekâletnamesi.",
+          Sources: ["§ 71 ZVG"],
+        },
+        {
+          Question: "5/10 ve 7/10 sınırı ne demek?",
+          Answer: "İlk ihalede teklif, devam eden haklarla birlikte mahkeme değerinin en az 5/10'una ulaşmalıdır, aksi hâlde ihale kararı resen reddedilir. 7/10'un altında hak sahibi reddi talep edebilir. İkinci ihalede sınırlar genellikle kalkar.",
+          Sources: ["§ 85a ZVG", "§ 74a ZVG"],
+        },
+        {
+          Question: "Teminat ne kadar?",
+          Answer: "Genellikle mahkeme değerinin %10'u. İhalede nakit ödeme yasaktır; Bundesbank çeki, banka çeki veya mahkeme veznesine önceden havale kabul edilir.",
+          Sources: ["§ 68 ZVG", "§ 69 ZVG"],
+        },
+        {
+          Question: "İhale kararında hangi ek masraflar çıkar?",
+          Answer: "Eyaletin emlak alım vergisi (%3,5 ile %6,5 arası) ile ihale kararı ve tapu tescili için mahkeme harçları. Emlakçı ve noter masrafı yoktur.",
+          Sources: ["GrEStG", "GKG", "GNotKG"],
+        },
+        {
+          Question: "Mevcut kira sözleşmelerine ne olur?",
+          Answer: "Önce devam eder — satış kirayı bozmaz. Ancak alıcının, ihale kararından sonraki ilk geçerli tarihe olağanüstü fesih hakkı vardır (§ 57a ZVG) — konutta yalnızca haklı bir menfaatle, ortaklığın giderilmesi satışında ise hiç yoktur.",
+          Sources: ["§ 57a ZVG", "§ 566 BGB"],
+        },
+        {
+          Question: "Bilirkişi raporu ve değer nereden geliyor?",
+          Answer: "Mahkeme değeri bağımsız bir bilirkişi raporuna dayanarak belirler. Rapor ihaleden önce mahkemede incelenebilir.",
+          Sources: ["§ 74a Abs. 5 ZVG"],
+        },
+      ],
+      MoreTitle: "Sorunuz burada yok mu?",
+      MoreCta: "Bize yazın",
+    },
+
+    Closing: {
+      TitleTop: "Piyasa daha fazla öder.",
+      TitleBelow: "Sizin ödemeniz gerekmez.",
+      Description: "İki dakikada hesap açın, ilan listesini hemen görün. Ödeme bilgisi olmadan.",
+      PrimaryCta: "Ücretsiz dene",
+      SecondaryCta: "Giriş yap",
+    },
+  },
+
+  Footer: {
+    Tagline: "Piyasanın altında kalan.",
+    SourcesTitle: "Veriler nereden geliyor",
+    SourceZvg: "zvg-portal.de",
+    SourceLaw: "ZVG kanun metni",
+    SourceJustiz: "justiz.de",
+    ProductTitle: "Ürün",
+    LegalTitle: "Yasal",
+    Imprint: "Künye",
+    Terms: "Genel şartlar",
+    Withdrawal: "Cayma",
+    Privacy: "Gizlilik",
+    Disclaimer: "Hukuki veya yatırım danışmanlığı değildir. Her bilgi resmî asıl belgeden kontrol edilmelidir.",
+    Rights: "Tüm hakları saklıdır.",
+  },
+
+  App: APP_TR,
+};

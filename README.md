@@ -1,5 +1,11 @@
 # Belowmark
 
+Recherche-Plattform für Zwangsversteigerungen (ZVG): amtliche Aushänge, Verkehrswert, 5/10- und 7/10-Grenze, Sicherheitsleistung und Grunderwerbsteuer je Verfahren. Sprachen: Deutsch und Türkisch.
+
+Sprache und Markt folgen dem Standort: Türkei → Türkisch und Markt TR, sonst Deutsch und Markt DE. Erkannt wird über den Geo-Header des Hosters (Vercel, Cloudflare, CloudFront), ohne ihn über die Zeitzone des Browsers. Den Markt (Deutschland/Türkei) wählt man selbst im Preisbereich; die Wahl wird im Cookie `BELOWMARK_MARKET` gespeichert.
+
+Designsprache „Amtlicher Aushang“: Papier, Tinte und die rote Marktlinie aus dem Logo. Alles Wichtige steht unter der Linie.
+
 A Next.js 16 project with TypeScript, Tailwind CSS 4, and PostgreSQL (Drizzle ORM).
 
 ## Getting Started
@@ -39,7 +45,7 @@ src/
 ├── hooks/                # Custom hooks (use*.ts)
 ├── lib/                  # Utilities, typed env & API helpers
 ├── services/             # Business logic & database services
-├── translations/         # Type-safe i18n translations (DE / EN)
+├── translations/         # Type-safe i18n translations (DE / TR)
 ├── types/                # Shared TypeScript types
 └── styles/               # globals.css only
 ```
@@ -70,3 +76,5 @@ src/
 | Styling | Tailwind CSS 4 |
 | Database | PostgreSQL (`pg` + Drizzle ORM) |
 | Linting | ESLint 9 |
+
+# belowmark_new

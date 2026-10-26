@@ -10,19 +10,31 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "db:seed:dev": "node scripts/seed-dev-users.mjs",
+    "alerts:run": "node scripts/run-alerts.mjs",
+    "termine:run": "node scripts/run-deadlines.mjs",
+    "sync": "node --use-system-ca scripts/sync-live.mjs",
+    "tr:kurs": "node scripts/fetch-tcmb-kurs.mjs",
+    "tr:tufe": "node scripts/fetch-tufe.mjs"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^1.3.0",
+    "@electric-sql/pglite": "^0.5.11",
     "drizzle-orm": "^0.45.4",
     "next": "16.4.3",
+    "nodemailer": "^10.2.1",
     "pg": "^8.23.1",
     "react": "19.3.0",
     "react-dom": "19.3.0",
+    "stripe": "22.6.2",
+    "unpdf": "^1.9.1",
     "zod": "^4.6.7"
   },
   "devDependencies": {
     "@tailwindcss/turbopack": "^4",
     "@types/node": "^20",
+    "@types/nodemailer": "^8.0.2",
     "@types/pg": "^8.23.1",
     "@types/react": "^19",
     "@types/react-dom": "^19",

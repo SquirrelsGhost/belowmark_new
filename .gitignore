@@ -30,6 +30,14 @@ yarn-error.log*
 # Vercel
 .vercel
 
+# Local embedded Postgres data
+/.data/
+
 # TypeScript
 *.tsbuildinfo
 next-env.d.ts
+
+# Temp work directories & migration scripts
+/_tmp_*/
+/.t-migrate.mjs
+

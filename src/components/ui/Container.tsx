@@ -5,7 +5,7 @@ interface ContainerProps {
   className?: string;
 }
 
-/** Centered content column with the site-wide max width and gutters. */
+/** Content column with the site-wide max width and gutters. */
 export default function Container({ children, className = "" }: ContainerProps) {
-  return <div className={`mx-auto w-full max-w-6xl px-5 sm:px-8 ${className}`}>{children}</div>;
+  return <div className={`mx-auto w-full max-w-7xl px-5 sm:px-8 lg:px-12 ${className}`}>{children}</div>;
 }

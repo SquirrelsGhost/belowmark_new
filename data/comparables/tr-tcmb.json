@@ -1,0 +1,481 @@
+{
+ "meta": {
+  "label": "Konut Birim Fiyatları — Median TL/m² brutto, je Provinz und Quartal",
+  "basis": "brutto Nutzfläche (brüt kullanım alanı)",
+  "source": "TCMB EVDS · evds3.tcmb.gov.tr",
+  "sourceUrl": "https://evds3.tcmb.gov.tr/",
+  "dataGroup": "bie_birimfiyat",
+  "fetchedAt": "2026-08-22T17:33:53.350Z",
+  "latestQuarter": "2026-Q2",
+  "gaps": [
+   "Gümüşhane",
+   "Hakkari",
+   "Tunceli",
+   "Bayburt",
+   "Ardahan"
+  ]
+ },
+ "country": {
+  "perM2": 51849.8,
+  "quarter": "2026-Q2",
+  "series": "TP.BIRIMFIYAT.TR"
+ },
+ "provinces": {
+  "istanbul": {
+   "name": "İstanbul",
+   "perM2": 87153.4,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.IST"
+  },
+  "ankara": {
+   "name": "Ankara",
+   "perM2": 47262.7,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.ANK"
+  },
+  "izmir": {
+   "name": "İzmir",
+   "perM2": 56466.2,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.IZM"
+  },
+  "adana": {
+   "name": "Adana",
+   "perM2": 41161.4,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.ADANA"
+  },
+  "adiyaman": {
+   "name": "Adıyaman",
+   "perM2": 25000,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.ADIYAMAN"
+  },
+  "afyonkarahisar": {
+   "name": "Afyonkarahisar",
+   "perM2": 33636,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.AFYON"
+  },
+  "agri": {
+   "name": "Ağrı",
+   "perM2": 21949,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.AGRI"
+  },
+  "amasya": {
+   "name": "Amasya",
+   "perM2": 36245.1,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.AMASYA"
+  },
+  "antalya": {
+   "name": "Antalya",
+   "perM2": 57784.3,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.ANTALYA"
+  },
+  "artvin": {
+   "name": "Artvin",
+   "perM2": 31804,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.ARTVIN"
+  },
+  "aydin": {
+   "name": "Aydın",
+   "perM2": 49848.3,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.AYDIN"
+  },
+  "balikesir": {
+   "name": "Balıkesir",
+   "perM2": 49432.3,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.BALIKESIR"
+  },
+  "bilecik": {
+   "name": "Bilecik",
+   "perM2": 34669.5,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.BILECIK"
+  },
+  "bingol": {
+   "name": "Bingöl",
+   "perM2": 33333,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.BINGOL"
+  },
+  "bitlis": {
+   "name": "Bitlis",
+   "perM2": 25806,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.BITLIS"
+  },
+  "bolu": {
+   "name": "Bolu",
+   "perM2": 44355,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.BOLU"
+  },
+  "burdur": {
+   "name": "Burdur",
+   "perM2": 35989,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.BURDUR"
+  },
+  "bursa": {
+   "name": "Bursa",
+   "perM2": 41263.6,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.BURSA"
+  },
+  "canakkale": {
+   "name": "Çanakkale",
+   "perM2": 52581,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.CANAKKALE"
+  },
+  "cankiri": {
+   "name": "Çankırı",
+   "perM2": 31128,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.CANKIRI"
+  },
+  "corum": {
+   "name": "Çorum",
+   "perM2": 31341,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.CORUM"
+  },
+  "denizli": {
+   "name": "Denizli",
+   "perM2": 42771.9,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.DENIZLI"
+  },
+  "diyarbakir": {
+   "name": "Diyarbakır",
+   "perM2": 35081.3,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.DIYARBAKIR"
+  },
+  "edirne": {
+   "name": "Edirne",
+   "perM2": 45338.1,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.EDIRNE"
+  },
+  "elazig": {
+   "name": "Elazığ",
+   "perM2": 27500,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.ELAZIG"
+  },
+  "erzincan": {
+   "name": "Erzincan",
+   "perM2": 35294,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.ERZINCAN"
+  },
+  "erzurum": {
+   "name": "Erzurum",
+   "perM2": 27483,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.ERZURUM"
+  },
+  "eskisehir": {
+   "name": "Eskişehir",
+   "perM2": 39305.3,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.ESKISEHIR"
+  },
+  "gaziantep": {
+   "name": "Gaziantep",
+   "perM2": 32461.8,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.ANTEP"
+  },
+  "giresun": {
+   "name": "Giresun",
+   "perM2": 31860,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.GIRESUN"
+  },
+  "hatay": {
+   "name": "Hatay",
+   "perM2": 28912,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.HATAY"
+  },
+  "isparta": {
+   "name": "Isparta",
+   "perM2": 40074,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.ISPARTA"
+  },
+  "mersin": {
+   "name": "Mersin",
+   "perM2": 38836.6,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.MERSIN"
+  },
+  "kars": {
+   "name": "Kars",
+   "perM2": 25963,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.KARS"
+  },
+  "kastamonu": {
+   "name": "Kastamonu",
+   "perM2": 37394,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.KASTAMONU"
+  },
+  "kayseri": {
+   "name": "Kayseri",
+   "perM2": 29271.9,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.KAYSERI"
+  },
+  "kirklareli": {
+   "name": "Kırklareli",
+   "perM2": 42011.1,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.KIRKLARELI"
+  },
+  "kirsehir": {
+   "name": "Kırşehir",
+   "perM2": 25586.5,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.KIRSEHIR"
+  },
+  "kocaeli": {
+   "name": "Kocaeli",
+   "perM2": 44144.4,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.KOCAELI"
+  },
+  "konya": {
+   "name": "Konya",
+   "perM2": 36181.5,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.KONYA"
+  },
+  "kutahya": {
+   "name": "Kütahya",
+   "perM2": 33913,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.KUTAHYA"
+  },
+  "malatya": {
+   "name": "Malatya",
+   "perM2": 24425,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.MALATYA"
+  },
+  "manisa": {
+   "name": "Manisa",
+   "perM2": 42079.6,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.MANISA"
+  },
+  "kahramanmaras": {
+   "name": "Kahramanmaraş",
+   "perM2": 28409,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.MARAS"
+  },
+  "mardin": {
+   "name": "Mardin",
+   "perM2": 23101,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.MARDIN"
+  },
+  "mugla": {
+   "name": "Muğla",
+   "perM2": 82290.3,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.MUGLA"
+  },
+  "mus": {
+   "name": "Muş",
+   "perM2": 27632.5,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.MUS"
+  },
+  "nevsehir": {
+   "name": "Nevşehir",
+   "perM2": 37056,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.NEVSEHIR"
+  },
+  "nigde": {
+   "name": "Niğde",
+   "perM2": 31905,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.NIGDE"
+  },
+  "ordu": {
+   "name": "Ordu",
+   "perM2": 40278.7,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.ORDU"
+  },
+  "rize": {
+   "name": "Rize",
+   "perM2": 35599,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.RIZE"
+  },
+  "sakarya": {
+   "name": "Sakarya",
+   "perM2": 41935,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.SAKARYA"
+  },
+  "samsun": {
+   "name": "Samsun",
+   "perM2": 37326,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.SAMSUN"
+  },
+  "siirt": {
+   "name": "Siirt",
+   "perM2": 26596,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.SIIRT"
+  },
+  "sinop": {
+   "name": "Sinop",
+   "perM2": 39510.5,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.SINOP"
+  },
+  "sivas": {
+   "name": "Sivas",
+   "perM2": 29968,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.SIVAS"
+  },
+  "tekirdag": {
+   "name": "Tekirdağ",
+   "perM2": 42048.7,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.TEKIRDAG"
+  },
+  "tokat": {
+   "name": "Tokat",
+   "perM2": 36008.5,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.TOKAT"
+  },
+  "trabzon": {
+   "name": "Trabzon",
+   "perM2": 36870.5,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.TRABZON"
+  },
+  "sanliurfa": {
+   "name": "Şanlıurfa",
+   "perM2": 25298,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.URFA"
+  },
+  "usak": {
+   "name": "Uşak",
+   "perM2": 30526.5,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.USAK"
+  },
+  "van": {
+   "name": "Van",
+   "perM2": 35714,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.VAN"
+  },
+  "yozgat": {
+   "name": "Yozgat",
+   "perM2": 26515,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.YOZGAT"
+  },
+  "zonguldak": {
+   "name": "Zonguldak",
+   "perM2": 41111,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.ZONGULDAK"
+  },
+  "aksaray": {
+   "name": "Aksaray",
+   "perM2": 34066,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.AKSARAY"
+  },
+  "karaman": {
+   "name": "Karaman",
+   "perM2": 34667,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.KARAMAN"
+  },
+  "kirikkale": {
+   "name": "Kırıkkale",
+   "perM2": 28571,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.KIRIKKALE"
+  },
+  "batman": {
+   "name": "Batman",
+   "perM2": 27296,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.BATMAN"
+  },
+  "sirnak": {
+   "name": "Şırnak",
+   "perM2": 24324,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.SIRNAK"
+  },
+  "bartin": {
+   "name": "Bartın",
+   "perM2": 45767,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.BARTIN"
+  },
+  "igdir": {
+   "name": "Iğdır",
+   "perM2": 30410,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.IGDIR"
+  },
+  "yalova": {
+   "name": "Yalova",
+   "perM2": 41196,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.YALOVA"
+  },
+  "karabuk": {
+   "name": "Karabük",
+   "perM2": 35484,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.KARABUK"
+  },
+  "kilis": {
+   "name": "Kilis",
+   "perM2": 24174.5,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.KILIS"
+  },
+  "osmaniye": {
+   "name": "Osmaniye",
+   "perM2": 25417,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.OSMANIYE"
+  },
+  "duzce": {
+   "name": "Düzce",
+   "perM2": 32163.5,
+   "quarter": "2026-Q2",
+   "series": "TP.BIRIMFIYAT.DUZCE"
+  }
+ }
+}

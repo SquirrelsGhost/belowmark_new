@@ -1,92 +1,61 @@
 @import "tailwindcss";
 
-/* ── Design tokens ───────────────────────────────────────────
- * Dark-first palette. Light mode is the fallback for users who
- * explicitly prefer it. All colours are consumed through the
- * @theme mapping below (e.g. `bg-canvas`, `text-muted`, `border-line`).
+/* ── Design tokens: "Amtlicher Aushang" ─────────────────────
+ * Warm notice-board paper, ink black and one signal red — the
+ * market line from the Belowmark mark. Everything that matters
+ * sits *below* that line. Light-only on purpose: paper is the
+ * identity, not a theme option.
  */
 :root {
-  --canvas: #07070a;
-  --canvas-raised: #0d0d12;
-  --ink: #f5f5f4;
-  --muted: #a1a1aa;
-  --subtle: #71717a;
-  --line: rgb(255 255 255 / 0.08);
-  --line-strong: rgb(255 255 255 / 0.14);
-  --glass: rgb(255 255 255 / 0.035);
-  --glass-strong: rgb(255 255 255 / 0.07);
-  --iris: #9b8cff;
-  --iris-deep: #6d5bff;
-  --ember: #ff9a6b;
-  --lagoon: #5ee1d4;
-  --grain-opacity: 0.07;
-  color-scheme: dark;
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    --canvas: #f8f7f4;
-    --canvas-raised: #ffffff;
-    --ink: #0c0a09;
-    --muted: #57534e;
-    --subtle: #78716c;
-    --line: rgb(12 10 9 / 0.08);
-    --line-strong: rgb(12 10 9 / 0.14);
-    --glass: rgb(255 255 255 / 0.55);
-    --glass-strong: rgb(255 255 255 / 0.8);
-    --iris: #6d5bff;
-    --iris-deep: #5440f0;
-    --ember: #f07a45;
-    --lagoon: #14b8a6;
-    --grain-opacity: 0.04;
-    color-scheme: light;
-  }
+  --paper: #eeeae1;
+  --paper-deep: #e4dfd3;
+  --paper-bright: #f7f4ee;
+  --ink: #12110f;
+  --ink-soft: #3b3933;
+  --muted: #6e695e;
+  --rule: rgb(18 17 15 / 0.16);
+  --rule-strong: rgb(18 17 15 / 0.85);
+  --signal: #c8362b;
+  --signal-deep: #a3291f;
+  --verdict: #1f6a45;
+  --caution: #b9771a;
+  color-scheme: light;
 }
 
 @theme inline {
-  --color-canvas: var(--canvas);
-  --color-canvas-raised: var(--canvas-raised);
+  --color-paper: var(--paper);
+  --color-paper-deep: var(--paper-deep);
+  --color-paper-bright: var(--paper-bright);
   --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
   --color-muted: var(--muted);
-  --color-subtle: var(--subtle);
-  --color-line: var(--line);
-  --color-line-strong: var(--line-strong);
-  --color-glass: var(--glass);
-  --color-glass-strong: var(--glass-strong);
-  --color-iris: var(--iris);
-  --color-iris-deep: var(--iris-deep);
-  --color-ember: var(--ember);
-  --color-lagoon: var(--lagoon);
+  --color-rule: var(--rule);
+  --color-rule-strong: var(--rule-strong);
+  --color-signal: var(--signal);
+  --color-signal-deep: var(--signal-deep);
+  --color-verdict: var(--verdict);
+  --color-caution: var(--caution);
 
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-serif: var(--font-instrument-serif);
+  --font-sans: var(--font-archivo);
+  --font-mono: var(--font-plex-mono);
+  --font-serif: var(--font-newsreader);
 
-  --animate-marquee: marquee 40s linear infinite;
-  --animate-aurora: aurora 18s ease-in-out infinite alternate;
-  --animate-aurora-slow: aurora 26s ease-in-out infinite alternate-reverse;
-  --animate-shimmer: shimmer 3.2s ease-in-out infinite;
-  --animate-pulse-dot: pulse-dot 2.4s ease-in-out infinite;
+  --animate-ticker: ticker 70s linear infinite;
+  --animate-blink: blink 1.4s steps(2, start) infinite;
+  --animate-draw: draw 1.4s cubic-bezier(0.65, 0, 0.35, 1) both;
 
-  @keyframes marquee {
+  @keyframes ticker {
     from { transform: translateX(0); }
     to { transform: translateX(-50%); }
   }
 
-  @keyframes aurora {
-    0% { transform: translate3d(0, 0, 0) scale(1); }
-    50% { transform: translate3d(6%, -4%, 0) scale(1.12); }
-    100% { transform: translate3d(-5%, 5%, 0) scale(0.95); }
+  @keyframes blink {
+    to { visibility: hidden; }
   }
 
-  @keyframes shimmer {
-    0%, 100% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-  }
-
-  @keyframes pulse-dot {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.4; transform: scale(0.8); }
+  @keyframes draw {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
   }
 }
 
@@ -96,76 +65,114 @@ html {
 }
 
 body {
-  background: var(--canvas);
+  background: var(--paper);
   color: var(--ink);
-  font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
-  font-feature-settings: "ss01", "cv11";
-  text-rendering: optimizeLegibility;
+  font-family: var(--font-archivo), "Arial Narrow", system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
 }
 
 ::selection {
-  background: color-mix(in oklab, var(--iris) 35%, transparent);
+  background: var(--signal);
+  color: var(--paper-bright);
 }
 
 /* ── Utilities ────────────────────────────────────────────── */
 
-/* Animated gradient text used for headline accents. */
-@utility text-gradient {
-  background-image: linear-gradient(
-    100deg,
-    var(--iris) 0%,
-    var(--ember) 45%,
-    var(--lagoon) 100%
+/* Condensed, loud display face — like the headline of a court notice. */
+@utility font-display {
+  font-family: var(--font-archivo), "Arial Narrow", sans-serif;
+  font-stretch: 62%;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+}
+
+/* Semi-condensed variant for sub-headlines and labels. */
+@utility font-narrow {
+  font-family: var(--font-archivo), "Arial Narrow", sans-serif;
+  font-stretch: 78%;
+}
+
+/* Paper fibre texture — inline SVG noise, multiplied onto the paper. */
+@utility bg-fibre {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.07 0 0 0 0 0.06 0 0 0 0 0.05 0 0 0 0.55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.22;
+  mix-blend-mode: multiply;
+}
+
+/* Lined ledger paper for tables and notices. */
+@utility bg-ledger {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 31px,
+    var(--rule) 31px,
+    var(--rule) 32px
   );
-  background-size: 200% 200%;
-  background-clip: text;
-  -webkit-background-clip: text;
-  color: transparent;
 }
 
-/* Fine film grain over the whole page — pure SVG, no image request. */
-@utility bg-grain {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  opacity: var(--grain-opacity);
+/* Diagonal hatching used for "no data" areas. */
+@utility bg-hatch {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    var(--rule) 0,
+    var(--rule) 1px,
+    transparent 1px,
+    transparent 7px
+  );
 }
 
-/* Subtle square grid that fades out towards the edges. */
-@utility bg-grid {
-  background-image:
-    linear-gradient(var(--line) 1px, transparent 1px),
-    linear-gradient(90deg, var(--line) 1px, transparent 1px);
-  background-size: 64px 64px;
-  mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, black 30%, transparent 75%);
-}
-
-/* Hairline gradient border for glass cards. */
-@utility border-sheen {
-  border: 1px solid transparent;
-  background:
-    linear-gradient(var(--canvas-raised), var(--canvas-raised)) padding-box,
-    linear-gradient(160deg, var(--line-strong), var(--line) 40%, transparent 70%, var(--line)) border-box;
-}
-
-/* Horizontal fade mask for marquees. */
+/* Horizontal fade for the ticker. */
 @utility mask-fade-x {
-  mask-image: linear-gradient(90deg, transparent, black 15%, black 85%, transparent);
+  mask-image: linear-gradient(90deg, transparent, black 8%, black 92%, transparent);
 }
 
 /* Scroll reveal — toggled by the Reveal client component. */
 [data-reveal] {
   opacity: 0;
-  transform: translateY(24px);
-  filter: blur(6px);
+  transform: translateY(18px);
   transition:
-    opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1),
-    transform 0.9s cubic-bezier(0.22, 1, 0.36, 1),
-    filter 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+    opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 [data-reveal="visible"] {
   opacity: 1;
   transform: none;
-  filter: none;
+}
+
+/* Native range input restyled as a hairline with a square ink thumb. */
+input[type="range"].range-ink {
+  appearance: none;
+  height: 2px;
+  background: var(--rule-strong);
+  cursor: pointer;
+}
+
+input[type="range"].range-ink::-webkit-slider-thumb {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  background: var(--signal);
+  border: 2px solid var(--paper-bright);
+  box-shadow: 0 0 0 1px var(--ink);
+}
+
+input[type="range"].range-ink::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 0;
+  background: var(--signal);
+  border: 2px solid var(--paper-bright);
+  box-shadow: 0 0 0 1px var(--ink);
+}
+
+details > summary {
+  list-style: none;
+}
+
+details > summary::-webkit-details-marker {
+  display: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -176,7 +183,6 @@ body {
   [data-reveal] {
     opacity: 1;
     transform: none;
-    filter: none;
     transition: none;
   }
 
