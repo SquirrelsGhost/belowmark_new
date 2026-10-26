@@ -38,6 +38,7 @@ export const ROUTES = {
   compare: "#vergleich",
   pricing: "#preise",
   faq: "#fragen",
+  blog: "/blog",
   login: "/login",
   signup: "/signup",
   contact: "mailto:contact@belowmark.com",

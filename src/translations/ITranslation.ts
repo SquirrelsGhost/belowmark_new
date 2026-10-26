@@ -73,6 +73,7 @@ export interface ITranslation {
     StatesLabel: string;
     PricingLabel: string;
     FaqLabel: string;
+    BlogLabel: string;
     LoginLabel: string;
     SignupLabel: string;
   };

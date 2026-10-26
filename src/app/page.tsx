@@ -88,6 +88,7 @@ export default async function HomePage() {
         <NavigationItem href={ROUTES.states} label={nav.StatesLabel} />
         <NavigationItem href={ROUTES.pricing} label={nav.PricingLabel} />
         <NavigationItem href={ROUTES.faq} label={nav.FaqLabel} />
+        <NavigationItem href={ROUTES.blog} label={nav.BlogLabel} />
         <NavigationVerticalLine />
         <NavigationLoginButton loginLabel={nav.LoginLabel} signupLabel={nav.SignupLabel} />
       </Navigation>
@@ -251,6 +252,7 @@ export default async function HomePage() {
           <FooterLink href={ROUTES.calculator} label={nav.CalculatorLabel} />
           <FooterLink href={ROUTES.method} label={nav.MethodLabel} />
           <FooterLink href={ROUTES.pricing} label={nav.PricingLabel} />
+          <FooterLink href={ROUTES.blog} label={nav.BlogLabel} />
           <FooterLink href={ROUTES.login} label={nav.LoginLabel} />
         </FooterColumn>
         <FooterColumn title={t.Footer.SourcesTitle}>

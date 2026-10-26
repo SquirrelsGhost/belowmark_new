@@ -27,7 +27,9 @@ const PAGE_AUTH: RoutePolicy = { access: "authenticated", kind: "page", loginPat
  */
 const POLICY_RULES: readonly PolicyRule[] = [
   // ─── 1. Public Auth & Marketing Pages ───────────────────────────────────────
-  { methods: ["GET"], pattern: /^\/$/, policy: PAGE_PUBLIC },
+  { methods: ["GET", "POST"], pattern: /^\/$/, policy: PAGE_PUBLIC },
+  { methods: ["GET"], pattern: /^\/(agb|datenschutz|impressum|widerruf)$/, policy: PAGE_PUBLIC },
+  { methods: ["GET", "POST"], pattern: /^\/(widerruf\/erklaeren|kuendigen)$/, policy: PAGE_PUBLIC },
   { methods: ["GET", "POST"], pattern: /^\/login$/, policy: PAGE_PUBLIC },
   { methods: ["GET", "POST"], pattern: /^\/signup$/, policy: PAGE_PUBLIC },
   { methods: ["GET", "POST"], pattern: /^\/passwort-vergessen$/, policy: PAGE_PUBLIC },
@@ -35,10 +37,15 @@ const POLICY_RULES: readonly PolicyRule[] = [
   { methods: ["GET", "POST"], pattern: /^\/email-bestaetigen$/, policy: PAGE_PUBLIC },
   { methods: ["GET", "POST"], pattern: /^\/einladung$/, policy: PAGE_PUBLIC },
   { methods: ["GET"], pattern: /^\/k\/[^/]+$/, policy: PAGE_PUBLIC },
+  { methods: ["GET"], pattern: /^\/blog(\/cover\/[^/]+\/(de|tr|en|ar|ru))?$/, policy: PAGE_PUBLIC },
+  { methods: ["GET"], pattern: /^\/blog\/[^/]+$/, policy: PAGE_PUBLIC },
+  { methods: ["GET"], pattern: /^\/(tr|en|ar|ru)\/blog(\/[^/]+)?$/, policy: PAGE_PUBLIC },
+  { methods: ["GET"], pattern: /^\/(sitemap\.xml|sitemap-blog\.xml|robots\.txt|llms\.txt|llms-full\.txt|pycie2026seoindexnowkey\.txt)$/, policy: API_PUBLIC },
 
   // ─── 2. Protected Account Page ──────────────────────────────────────────────
   { methods: ["GET", "POST"], pattern: /^\/konto$/, policy: PAGE_AUTH },
   { methods: ["GET"], pattern: /^\/konto\/export$/, policy: API_AUTH },
+  { methods: ["GET"], pattern: /^\/konto\/rechnungen\/[0-9a-f-]{36}\/pdf$/i, policy: API_AUTH },
 
   // ─── 2b. Booking (order overview, local test checkout, Stripe success URL) ──
   { methods: ["GET", "POST"], pattern: /^\/buchen$/, policy: PAGE_AUTH },

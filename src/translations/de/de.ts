@@ -11,6 +11,7 @@ export const DE: ITranslation = {
     StatesLabel: "Bundesländer",
     PricingLabel: "Preise",
     FaqLabel: "Fragen",
+    BlogLabel: "Ratgeber",
     LoginLabel: "Anmelden",
     SignupLabel: "Zugang testen",
   },

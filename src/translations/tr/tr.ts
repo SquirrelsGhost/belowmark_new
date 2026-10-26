@@ -11,6 +11,7 @@ export const TR: ITranslation = {
     StatesLabel: "Eyaletler",
     PricingLabel: "Fiyatlar",
     FaqLabel: "Sorular",
+    BlogLabel: "Rehber",
     LoginLabel: "Giriş yap",
     SignupLabel: "Ücretsiz dene",
   },
