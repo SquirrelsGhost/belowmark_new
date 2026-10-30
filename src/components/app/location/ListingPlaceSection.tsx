@@ -23,14 +23,16 @@ const POSTCODE_RADIUS_M = 1500;
 /** The "Lage" block of the Aktenblatt, built from the notice's postcode or province. */
 export default function ListingPlaceSection({ listing, geo, sprite, labels }: ListingPlaceSectionProps) {
   const position = listing.geo;
-  const zooms = position ? MAP_TILES.zooms[position.precision] : null;
-  const precisionLabel = position?.precision === "postcode" ? `${listing.postcode} ${listing.place ?? ""}`.trim() : listing.region ?? "";
+  const precKey: "postcode" | "province" = position?.precision === "province" ? "province" : "postcode";
+  const zooms = position ? MAP_TILES.zooms[precKey] : null;
+  const precisionLabel =
+    position?.precision === "province"
+      ? listing.region ?? ""
+      : [listing.postcode, listing.place].filter(Boolean).join(" ").trim() || listing.place || listing.region || "";
   const useBasemap =
     listing.market === "DE" &&
-    listing.country !== "AT" &&
-    listing.country !== "CH" &&
-    !listing.key.startsWith("edikte-") &&
-    !listing.key.startsWith("shab-");
+    (!listing.country || listing.country === "DE") &&
+    !/^(?:edikte|shab|it-aste|es-boe|fr-licitor|gb-eig)-/.test(listing.key);
 
   return (
     <>
@@ -46,7 +48,7 @@ export default function ListingPlaceSection({ listing, geo, sprite, labels }: Li
               radiusMetres={position.precision === "postcode" ? POSTCODE_RADIUS_M : null}
               scaleLabel={labels.Scale}
               levels={labels.Levels}
-              label={fill(labels.Precision[position.precision], { label: precisionLabel })}
+              label={fill(labels.Precision[precKey], { label: precisionLabel })}
             />
           ) : (
             <LocationMissing message={labels.NoGeo} />
@@ -63,7 +65,7 @@ export default function ListingPlaceSection({ listing, geo, sprite, labels }: Li
             className="w-full"
           />
         }
-        precision={position ? fill(labels.Precision[position.precision], { label: precisionLabel }) : labels.NoGeo}
+        precision={position ? fill(labels.Precision[precKey], { label: precisionLabel }) : labels.NoGeo}
       >
         {position && zooms && (
           <a

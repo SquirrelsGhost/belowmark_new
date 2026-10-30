@@ -27,13 +27,13 @@ export const TR: ITranslation = {
     },
 
     Hero: {
-      Dateline: "Resmî ilan · Almanya, Avusturya ve İsviçre'de (DACH) icra ihaleleri",
-      LiveLabel: "Her gün resmî adalet portallarından (D · A · CH)",
+      Dateline: "Resmî ilan · Almanya, Avusturya, İsviçre, İtalya, İspanya, Fransa ve UK'de icra ihaleleri",
+      LiveLabel: "Her gün resmî adalet portallarından (DE · AT · CH · IT · ES · FR · UK)",
       HeadlineTop: "İcra ihaleleri.",
       HeadlineBelow: "Şimdi piyasanın altında alın.",
       LineLabel: "Piyasa seviyesi",
       Description:
-        "Almanya (ZVG), Avusturya (Ediktsdatei) ve İsviçre (SHAB) mahkeme ve icra daireleri her gün gayrimenkulleri ihaleye çıkarıyor. Belowmark resmî ilanları tek yerde toplar ve her dosya için önemli olanı hesaplar: mahkeme değeri, asgari teklif sınırları, teminat ve emlak alım vergisi.",
+        "Almanya (ZVG), Avusturya (Ediktsdatei), İsviçre (SHAB), İtalya (Aste Giudiziarie), İspanya (Portal BOE), Fransa (Licitor TJ) ve İngiltere / UK mahkemeleri her gün gayrimenkulleri ihaleye çıkarıyor. Belowmark resmî ilanları tek yerde toplar ve her dosya için önemli olanı hesaplar: mahkeme değeri, asgari teklif sınırları, teminat ve emlak alım vergisi.",
       Principle: "Hiçbir şey tahmin edilmez. Belge yoksa orada rakam değil, nedeni yazar.",
       PrimaryCta: "Ücretsiz dene",
       SecondaryCta: "Hesaplayıcıyı dene",
@@ -42,9 +42,9 @@ export const TR: ITranslation = {
 
     Calculator: {
       Title: "Teklif hesaplayıcı",
-      Subtitle: "ZVG §§ 68, 74a, 85a · EO · SchKG uyarınca",
+      Subtitle: "ZVG · EO · SchKG · c.p.c. · LEC uyarınca",
       ValueLabel: "Mahkemenin belirlediği değer",
-      StateLabel: "Eyalet / Kanton",
+      StateLabel: "Eyalet / Kanton / Bölge",
       HearingLabel: "İhale günü",
       FirstHearing: "İlk ihale",
       FollowUpHearing: "Sonraki ihale",

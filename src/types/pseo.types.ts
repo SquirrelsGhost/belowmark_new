@@ -15,7 +15,7 @@ export interface PseoPreviewListing {
   areaM2: number | null;
   rooms: string | null;
   discountPct: number | null;
-  currency: "EUR" | "CHF" | "TRY";
+  currency: "EUR" | "CHF" | "GBP" | "TRY";
 }
 
 export interface CourtPseoEntry {

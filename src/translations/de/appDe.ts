@@ -42,7 +42,7 @@ export const APP_DE: IAppTranslation = {
     Calculator: "Rechner",
     Account: "Konto",
     SignOut: "Abmelden",
-    Market: { DE: "ZVG · D · A · CH", TR: "İcra · Türkei" },
+    Market: { DE: "Europa · 7 Länder", TR: "İcra · Türkei" },
     TrialRunning: "Testzugang: noch {days} Tage voller Zugriff auf alle Werte.",
     TrialLastDay: "Testzugang: heute ist der letzte Tag mit vollem Zugriff.",
     FreePlan: "Kostenloser Zugang: Sie sehen jedes Verfahren, die Beträge bleiben geschwärzt.",
@@ -63,17 +63,17 @@ export const APP_DE: IAppTranslation = {
   },
 
   Search: {
-    Eyebrow: { DE: "Aushangtafel · Deutschland · Österreich · Schweiz", TR: "İlan panosu · İcra satışları" },
+    Eyebrow: { DE: "Aushangtafel · DE · AT · CH · IT · ES · FR · UK", TR: "İlan panosu · İcra satışları" },
     Title: "Aushänge",
     Lead: {
-      DE: "Jeder Termin der Amts- und Bezirksgerichte sowie Betreibungsämter in Deutschland (ZVG), Österreich (Ediktsdatei / EO) und der Schweiz (SHAB / SchKG) — mit Verkehrswert, Mindestgebot, Sicherheitsleistung und Grunderwerbsteuer.",
+      DE: "Amtliche Zwangsversteigerungen und Gerichtsauktionen in Deutschland (ZVG), Österreich (Ediktsdatei), der Schweiz (SHAB), Italien (Aste Giudiziarie / PVP), Spanien (Portal BOE), Frankreich (Licitor TJ) und UK — mit Verkehrswert, Mindestgebot, Sicherheitsleistung und Grunderwerbsteuer.",
       TR: "Türkische Vollstreckungsverfahren mit Startgebot, Sicherheit und Kaufnebenkosten. Rot ist der Schätzwert, darunter liegt das gesetzliche Startgebot.",
     },
     Filters: {
       Title: "Register",
       Query: "Suche",
-      QueryPlaceholder: { DE: "Ort, PLZ, Gericht, Kanton, Aktenzeichen", TR: "İl, İlçe, Mahalle, Ada/Parsel, Dosya" },
-      Region: { DE: "Bundesland / Kanton", TR: "İl" },
+      QueryPlaceholder: { DE: "Ort, PLZ, Gericht, Region, Aktenzeichen", TR: "İl, İlçe, Mahalle, Ada/Parsel, Dosya" },
+      Region: { DE: "Bundesland / Kanton / Region", TR: "İl" },
       AllRegions: "Alle",
       Segment: "Objektart",
       AllSegments: "Alle Arten",

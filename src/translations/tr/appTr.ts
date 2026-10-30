@@ -42,7 +42,7 @@ export const APP_TR: IAppTranslation = {
     Calculator: "Hesap",
     Account: "Hesabım",
     SignOut: "Çıkış",
-    Market: { DE: "ZVG · D · A · CH", TR: "İcra · Türkiye" },
+    Market: { DE: "Avrupa · 7 Ülke", TR: "İcra · Türkiye" },
     TrialRunning: "Deneme erişimi: tüm değerlere {days} gün daha tam erişim.",
     TrialLastDay: "Deneme erişimi: bugün tam erişimin son günü.",
     FreePlan: "Ücretsiz erişim: her dosyayı görürsünüz, tutarlar karartılmış kalır.",
@@ -63,17 +63,17 @@ export const APP_TR: IAppTranslation = {
   },
 
   Search: {
-    Eyebrow: { DE: "İlan panosu · Almanya · Avusturya · İsviçre (DACH)", TR: "İlan panosu · İcra satışları" },
+    Eyebrow: { DE: "İlan panosu · DE · AT · CH · IT · ES · FR · UK", TR: "İlan panosu · İcra satışları" },
     Title: "İlanlar",
     Lead: {
-      DE: "Almanya (ZVG), Avusturya (Ediktsdatei / EO) ve İsviçre (SHAB / SchKG) mahkeme ve icra dairelerinin tüm taşınmaz ihaleleri — ekspertiz değeri, asgari teklif, teminat ve tapu vergisiyle.",
+      DE: "Almanya (ZVG), Avusturya (Ediktsdatei), İsviçre (SHAB), İtalya (Aste Giudiziarie), İspanya (Portal BOE), Fransa (Licitor TJ) ve İngiltere / UK mahkeme ve icra dairelerinin tüm taşınmaz ihaleleri — ekspertiz değeri, asgari teklif, teminat ve tapu vergisiyle.",
       TR: "Başlangıç fiyatı, teminat ve masraflarıyla icra satışları. Kırmızı çizgi muhammen bedel, altında yasal başlangıç fiyatı.",
     },
     Filters: {
       Title: "Süzgeç",
       Query: "Ara",
-      QueryPlaceholder: { DE: "Şehir, posta kodu, mahkeme, kanton, dosya", TR: "İl, ilçe, mahalle, ada/parsel, dosya" },
-      Region: { DE: "Eyalet / Kanton", TR: "İl" },
+      QueryPlaceholder: { DE: "Şehir, posta kodu, mahkeme, bölge, dosya", TR: "İl, ilçe, mahalle, ada/parsel, dosya" },
+      Region: { DE: "Eyalet / Kanton / Bölge", TR: "İl" },
       AllRegions: "Tümü",
       Segment: "Taşınmaz türü",
       AllSegments: "Tüm türler",

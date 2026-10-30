@@ -7,7 +7,7 @@ interface PseoListingPreviewCardProps {
   locale: "de" | "tr";
 }
 
-function formatMoney(amount: number | null, currency: "EUR" | "CHF" | "TRY", locale: "de" | "tr"): string {
+function formatMoney(amount: number | null, currency: "EUR" | "CHF" | "GBP" | "TRY", locale: "de" | "tr"): string {
   if (!amount) return locale === "tr" ? "Belirtilmedi" : "Auf Anfrage";
   return new Intl.NumberFormat(locale === "tr" ? "tr-TR" : "de-DE", {
     style: "currency",

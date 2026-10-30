@@ -113,6 +113,30 @@ export function getBorisPortal(listing: Listing): { name: string; url: string } 
       url: listing.geoportalUrl ?? "https://map.geo.admin.ch/",
     };
   }
+  if (listing.country === "IT" || listing.key.startsWith("it-aste-")) {
+    return {
+      name: listing.geoportalName ?? "Geoportale Catastale · Agenzia delle Entrate (OMI)",
+      url: listing.geoportalUrl ?? "https://geoportale.cartografia.agenziaentrate.gov.it/",
+    };
+  }
+  if (listing.country === "ES" || listing.key.startsWith("es-boe-")) {
+    return {
+      name: listing.geoportalName ?? "Sede Electrónica del Catastro · Valor de Referencia",
+      url: listing.geoportalUrl ?? "https://www1.sedecatastro.gob.es/",
+    };
+  }
+  if (listing.country === "FR" || listing.key.startsWith("fr-licitor-")) {
+    return {
+      name: listing.geoportalName ?? "DVF Etalab · Demandes de Valeurs Foncières & Cadastre",
+      url: listing.geoportalUrl ?? "https://app.dvf.etalab.gouv.fr/",
+    };
+  }
+  if (listing.country === "GB" || listing.key.startsWith("gb-eig-")) {
+    return {
+      name: listing.geoportalName ?? "HM Land Registry · Price Paid Data",
+      url: listing.geoportalUrl ?? "https://landregistry.data.gov.uk/app/ppd/",
+    };
+  }
   const code = (listing.regionCode ?? "").toLowerCase();
   return BORIS_BY_STATE[code] ?? { name: "BORIS-D Bodenrichtwert-Portal", url: "https://www.bodenrichtwerte-boris.de/" };
 }
@@ -192,6 +216,86 @@ export function getMarketComparisonLinks(listing: Listing): ComparisonPortalLink
         name: "Quadratmeterpreise & Kanton",
         sub: `${listing.place ?? listing.region ?? "Gemeinde"}`,
         href: `https://www.google.com/search?q=${encodeURIComponent(`Quadratmeterpreis Immobilien ${loc || listing.region || "Schweiz"}`)}`,
+      },
+    ];
+  }
+
+  if (listing.country === "IT" || listing.key.startsWith("it-aste-")) {
+    return [
+      {
+        name: "Immobiliare.it Vergleich",
+        sub: loc || "Standort-Angebote (IT)",
+        href: `https://www.google.com/search?q=${encodeURIComponent(`site:immobiliare.it vendita ${loc}`)}`,
+      },
+      {
+        name: "Idealista.it Marktpreise",
+        sub: loc || "Prezzo al m² vor Ort",
+        href: `https://www.google.com/search?q=${encodeURIComponent(`site:idealista.it vendita case ${loc}`)}`,
+      },
+      {
+        name: "Borsino Immobiliare / OMI",
+        sub: `${listing.place ?? listing.region ?? "Comune"}`,
+        href: `https://www.google.com/search?q=${encodeURIComponent(`quotazioni immobiliari mq ${loc || listing.region || "Italia"}`)}`,
+      },
+    ];
+  }
+
+  if (listing.country === "ES" || listing.key.startsWith("es-boe-")) {
+    return [
+      {
+        name: "Idealista.com Vergleich",
+        sub: loc || "Standort-Angebote (ES)",
+        href: `https://www.google.com/search?q=${encodeURIComponent(`site:idealista.com venta viviendas ${loc}`)}`,
+      },
+      {
+        name: "Fotocasa.es Marktpreise",
+        sub: loc || "Precio m² vor Ort",
+        href: `https://www.google.com/search?q=${encodeURIComponent(`site:fotocasa.es comprar vivienda ${loc}`)}`,
+      },
+      {
+        name: "Registradores / Catastro",
+        sub: `${listing.place ?? listing.region ?? "Municipio"}`,
+        href: `https://www.google.com/search?q=${encodeURIComponent(`precio metro cuadrado vivienda ${loc || listing.region || "España"}`)}`,
+      },
+    ];
+  }
+
+  if (listing.country === "FR" || listing.key.startsWith("fr-licitor-")) {
+    return [
+      {
+        name: "SeLoger.com Vergleich",
+        sub: loc || "Standort-Angebote (FR)",
+        href: `https://www.google.com/search?q=${encodeURIComponent(`site:seloger.com achat immobilier ${loc}`)}`,
+      },
+      {
+        name: "MeilleursAgents / LeBonCoin",
+        sub: loc || "Prix m² vor Ort",
+        href: `https://www.google.com/search?q=${encodeURIComponent(`prix immobilier m2 ${loc || listing.region || "France"} meilleursagents`)}`,
+      },
+      {
+        name: "DVF Etalab Transaktionen",
+        sub: `${listing.place ?? listing.region ?? "Commune"}`,
+        href: "https://app.dvf.etalab.gouv.fr/",
+      },
+    ];
+  }
+
+  if (listing.country === "GB" || listing.key.startsWith("gb-eig-")) {
+    return [
+      {
+        name: "Rightmove UK",
+        sub: loc || "Standort-Angebote (UK)",
+        href: `https://www.google.com/search?q=${encodeURIComponent(`site:rightmove.co.uk property for sale ${loc}`)}`,
+      },
+      {
+        name: "Zoopla Sold Prices",
+        sub: loc || "Marktpreise vor Ort",
+        href: `https://www.google.com/search?q=${encodeURIComponent(`site:zoopla.co.uk house prices ${loc}`)}`,
+      },
+      {
+        name: "HM Land Registry PPD",
+        sub: `${listing.place ?? listing.region ?? "UK Postcode"}`,
+        href: "https://landregistry.data.gov.uk/app/ppd/",
       },
     ];
   }

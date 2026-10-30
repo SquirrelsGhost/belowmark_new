@@ -16,15 +16,19 @@ export function countryOptions(
   const deCount = countryCounts?.DE ?? 0;
   const atCount = countryCounts?.AT ?? 0;
   const chCount = countryCounts?.CH ?? 0;
-  const total = deCount + atCount + chCount;
+  const itCount = countryCounts?.IT ?? 0;
+  const esCount = countryCounts?.ES ?? 0;
+  const frCount = countryCounts?.FR ?? 0;
+  const gbCount = countryCounts?.GB ?? 0;
+  const total = deCount + atCount + chCount + itCount + esCount + frCount + gbCount;
 
   const isTr = locale === "tr";
   return [
     {
       value: "",
       label: isTr
-        ? `Tüm DACH Ülkeleri (${count.format(total)})`
-        : `Alle Länder · D · A · CH (${count.format(total)})`,
+        ? `Tüm Avrupa Ülkeleri (${count.format(total)})`
+        : `Alle Länder · DACH & Europa (${count.format(total)})`,
     },
     {
       value: "DE",
@@ -44,23 +48,55 @@ export function countryOptions(
         ? `İsviçre · SHAB (${count.format(chCount)})`
         : `Schweiz · SHAB (${count.format(chCount)})`,
     },
+    {
+      value: "IT",
+      label: isTr
+        ? `İtalya · Aste Giudiziarie (${count.format(itCount)})`
+        : `Italien · Aste Giudiziarie (${count.format(itCount)})`,
+    },
+    {
+      value: "ES",
+      label: isTr
+        ? `İspanya · Portal BOE (${count.format(esCount)})`
+        : `Spanien · Portal BOE (${count.format(esCount)})`,
+    },
+    {
+      value: "FR",
+      label: isTr
+        ? `Fransa · Licitor TJ (${count.format(frCount)})`
+        : `Frankreich · Licitor TJ (${count.format(frCount)})`,
+    },
+    {
+      value: "GB",
+      label: isTr
+        ? `İngiltere / UK · Auctions (${count.format(gbCount)})`
+        : `England / UK · Auctions (${count.format(gbCount)})`,
+    },
   ];
 }
 
 export function regionOptions(regions: RegionFacet[], allLabel: string, locale: LocaleOption): FilterOption[] {
   const count = new Intl.NumberFormat(locale);
-  const hasDachSubregions = regions.some((r) => r.code.startsWith("at-") || r.code.startsWith("ch-"));
+  const hasSubregions = regions.some((r) => /^(?:at|ch|it|es|fr|gb)-/.test(r.code));
   const isTr = locale === "tr";
 
   return [
     { value: "", label: allLabel },
     ...regions.map((region) => {
       let group: string | undefined;
-      if (hasDachSubregions) {
+      if (hasSubregions) {
         if (region.code.startsWith("at-")) {
           group = isTr ? "Avusturya (Eyaletler)" : "Österreich (Bundesländer)";
         } else if (region.code.startsWith("ch-")) {
           group = isTr ? "İsviçre (Kantonlar)" : "Schweiz (Kantone)";
+        } else if (region.code.startsWith("it-")) {
+          group = isTr ? "İtalya (Bölgeler)" : "Italien (Regionen)";
+        } else if (region.code.startsWith("es-")) {
+          group = isTr ? "İspanya (Özerk Bölgeler)" : "Spanien (Comunidades)";
+        } else if (region.code.startsWith("fr-")) {
+          group = isTr ? "Fransa (Bölgeler)" : "Frankreich (Regionen)";
+        } else if (region.code.startsWith("gb-")) {
+          group = isTr ? "İngiltere / UK (Bölgeler)" : "England / UK (Regionen)";
         } else {
           group = isTr ? "Almanya (Eyaletler)" : "Deutschland (Bundesländer)";
         }
@@ -181,6 +217,10 @@ export function quickFilters(
           countryChip("DE", "Deutschland", "Almanya"),
           countryChip("AT", "Österreich", "Avusturya"),
           countryChip("CH", "Schweiz", "İsviçre"),
+          countryChip("IT", "Italien", "İtalya"),
+          countryChip("ES", "Spanien", "İspanya"),
+          countryChip("FR", "Frankreich", "Fransa"),
+          countryChip("GB", "UK", "İngiltere"),
         ]
       : [];
   return [

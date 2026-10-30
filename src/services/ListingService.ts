@@ -18,6 +18,10 @@ import {
 export function getListingDachCountry(listing: Listing): DachCountry {
   if (listing.country === "AT" || listing.regionCode?.startsWith("at-") || listing.key.startsWith("edikte-")) return "AT";
   if (listing.country === "CH" || listing.regionCode?.startsWith("ch-") || listing.key.startsWith("shab-")) return "CH";
+  if (listing.country === "IT" || listing.regionCode?.startsWith("it-") || listing.key.startsWith("it-aste-")) return "IT";
+  if (listing.country === "ES" || listing.regionCode?.startsWith("es-") || listing.key.startsWith("es-boe-")) return "ES";
+  if (listing.country === "FR" || listing.regionCode?.startsWith("fr-") || listing.key.startsWith("fr-licitor-")) return "FR";
+  if (listing.country === "GB" || listing.regionCode?.startsWith("gb-") || listing.key.startsWith("gb-eig-")) return "GB";
   return "DE";
 }
 
@@ -58,14 +62,16 @@ export function normalizeText(value: string): string {
 }
 
 function buildHaystack(listing: Listing): string {
-  const countryTag =
-    listing.market === "DE"
-      ? getListingDachCountry(listing) === "AT"
-        ? "österreich austria ediktsdatei"
-        : getListingDachCountry(listing) === "CH"
-          ? "schweiz switzerland shab"
-          : "deutschland"
-      : null;
+  const cMap: Record<DachCountry, string> = {
+    DE: "deutschland germany zvg",
+    AT: "österreich austria ediktsdatei",
+    CH: "schweiz switzerland shab",
+    IT: "italien italy italia aste giudiziarie",
+    ES: "spanien spain espana boe subastas",
+    FR: "frankreich france licitor",
+    GB: "england uk united kingdom grossbritannien",
+  };
+  const countryTag = listing.market === "DE" ? cMap[getListingDachCountry(listing)] : null;
   const parts = [
     listing.title,
     listing.place,
@@ -272,7 +278,7 @@ export class ListingService {
       return terms.every((term) => text.includes(term));
     });
 
-    const countryCounts: Record<DachCountry, number> = { DE: 0, AT: 0, CH: 0 };
+    const countryCounts: Record<DachCountry, number> = { DE: 0, AT: 0, CH: 0, IT: 0, ES: 0, FR: 0, GB: 0 };
     if (market === "DE") {
       for (const listing of withoutCountryAndRegion) {
         if (ListingService.matchesRange(listing, filters, nextOf)) {
@@ -320,7 +326,12 @@ export class ListingService {
     for (const listing of listings) {
       if (!listing.geo) continue;
       const countryPrefix = listing.market === "DE" ? getListingDachCountry(listing) : "TR";
-      const id = listing.geo.precision === "postcode" ? `plz-${countryPrefix}-${listing.postcode}` : `il-${listing.regionCode}`;
+      const id =
+        listing.geo.precision === "exact"
+          ? `pin-${listing.key}`
+          : listing.geo.precision === "postcode"
+            ? `plz-${countryPrefix}-${listing.postcode}`
+            : `il-${listing.regionCode}`;
       const next = nextOf(listing);
       const imminent = next !== null && Date.parse(next) >= now && Date.parse(next) <= soon ? 1 : 0;
       const entry = byPosition.get(id);

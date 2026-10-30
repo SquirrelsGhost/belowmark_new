@@ -35,6 +35,10 @@ import {
   parseZvgComData,
   parseAtEdiktHtml,
   parseChShabXml,
+  parseItAsteItem,
+  parseEsBoeHtml,
+  parseFrLicitorHtml,
+  parseGbAuctionHtml,
   extractTrEnrichedDetails,
 } from "./lib/propertyExtractor.mjs";
 
@@ -131,6 +135,84 @@ const KANTONE_CH = [
   { canton: "JU", code: "ch-ju", name: "Jura (CH)", transferTaxPct: 2.1 },
 ];
 const CANTON_BY_CODE_CH = new Map(KANTONE_CH.map((c) => [c.canton, c]));
+
+const REGIONEN_IT = [
+  { key: "Lombardia", code: "it-lom", name: "Lombardei (IT)", transferTaxPct: 9.0 },
+  { key: "Lazio", code: "it-laz", name: "Latium / Rom (IT)", transferTaxPct: 9.0 },
+  { key: "Veneto", code: "it-ven", name: "Venetien (IT)", transferTaxPct: 9.0 },
+  { key: "Piemonte", code: "it-pie", name: "Piemont (IT)", transferTaxPct: 9.0 },
+  { key: "Emilia-Romagna", code: "it-emr", name: "Emilia-Romagna (IT)", transferTaxPct: 9.0 },
+  { key: "Toscana", code: "it-tos", name: "Toskana (IT)", transferTaxPct: 9.0 },
+  { key: "Campania", code: "it-cam", name: "Kampanien (IT)", transferTaxPct: 9.0 },
+  { key: "Sicilia", code: "it-sic", name: "Sizilien (IT)", transferTaxPct: 9.0 },
+  { key: "Puglia", code: "it-pug", name: "Apulien (IT)", transferTaxPct: 9.0 },
+  { key: "Liguria", code: "it-lig", name: "Ligurien (IT)", transferTaxPct: 9.0 },
+  { key: "Sardegna", code: "it-sar", name: "Sardinien (IT)", transferTaxPct: 9.0 },
+  { key: "Trentino-Alto Adige", code: "it-taa", name: "Südtirol / Trentino (IT)", transferTaxPct: 9.0 },
+  { key: "Friuli-Venezia Giulia", code: "it-fvg", name: "Friaul-Julisch Venetien (IT)", transferTaxPct: 9.0 },
+  { key: "Marche", code: "it-mar", name: "Marken (IT)", transferTaxPct: 9.0 },
+  { key: "Abruzzo", code: "it-abr", name: "Abruzzen (IT)", transferTaxPct: 9.0 },
+  { key: "Umbria", code: "it-umb", name: "Umbrien (IT)", transferTaxPct: 9.0 },
+  { key: "Calabria", code: "it-cal", name: "Kalabrien (IT)", transferTaxPct: 9.0 },
+  { key: "Basilicata", code: "it-bas", name: "Basilikata (IT)", transferTaxPct: 9.0 },
+  { key: "Molise", code: "it-mol", name: "Molise (IT)", transferTaxPct: 9.0 },
+  { key: "Valle d'Aosta", code: "it-vda", name: "Aostatal (IT)", transferTaxPct: 9.0 },
+];
+const REGION_BY_KEY_IT = new Map(REGIONEN_IT.map((r) => [r.key, r]));
+
+const REGIONEN_ES = [
+  { key: "Comunidad de Madrid", code: "es-md", name: "Madrid (ES)", transferTaxPct: 6.0 },
+  { key: "Cataluña", code: "es-ct", name: "Katalonien (ES)", transferTaxPct: 10.0 },
+  { key: "Andalucía", code: "es-an", name: "Andalusien (ES)", transferTaxPct: 7.0 },
+  { key: "Comunitat Valenciana", code: "es-vc", name: "Valencia (ES)", transferTaxPct: 10.0 },
+  { key: "Illes Balears", code: "es-ib", name: "Balearen / Mallorca (ES)", transferTaxPct: 8.0 },
+  { key: "Canarias", code: "es-cn", name: "Kanarische Inseln (ES)", transferTaxPct: 6.5 },
+  { key: "País Vasco", code: "es-pv", name: "Baskenland (ES)", transferTaxPct: 4.0 },
+  { key: "Galicia", code: "es-ga", name: "Galicien (ES)", transferTaxPct: 8.0 },
+  { key: "Castilla y León", code: "es-cl", name: "Kastilien und León (ES)", transferTaxPct: 8.0 },
+  { key: "Castilla-La Mancha", code: "es-cm", name: "Kastilien-La Mancha (ES)", transferTaxPct: 9.0 },
+  { key: "Región de Murcia", code: "es-mc", name: "Murcia (ES)", transferTaxPct: 8.0 },
+  { key: "Aragón", code: "es-ar", name: "Aragonien (ES)", transferTaxPct: 8.0 },
+  { key: "Asturias", code: "es-as", name: "Asturien (ES)", transferTaxPct: 8.0 },
+  { key: "Extremadura", code: "es-ex", name: "Extremadura (ES)", transferTaxPct: 8.0 },
+  { key: "Navarra", code: "es-nc", name: "Navarra (ES)", transferTaxPct: 6.0 },
+  { key: "Cantabria", code: "es-cb", name: "Kantabrien (ES)", transferTaxPct: 9.0 },
+  { key: "La Rioja", code: "es-ri", name: "La Rioja (ES)", transferTaxPct: 7.0 },
+];
+const REGION_BY_KEY_ES = new Map(REGIONEN_ES.map((r) => [r.key, r]));
+
+const REGIONEN_FR = [
+  { key: "Île-de-France", code: "fr-idf", name: "Île-de-France / Paris (FR)", transferTaxPct: 5.8, lat: 48.8566, lng: 2.3522 },
+  { key: "Provence-Alpes-Côte d'Azur", code: "fr-paca", name: "Provence-Alpes-Côte d'Azur (FR)", transferTaxPct: 5.8, lat: 43.2965, lng: 5.3698 },
+  { key: "Auvergne-Rhône-Alpes", code: "fr-ara", name: "Auvergne-Rhône-Alpes (FR)", transferTaxPct: 5.8, lat: 45.764, lng: 4.8357 },
+  { key: "Nouvelle-Aquitaine", code: "fr-naq", name: "Nouvelle-Aquitaine (FR)", transferTaxPct: 5.8, lat: 44.8378, lng: -0.5792 },
+  { key: "Occitanie", code: "fr-occ", name: "Okzitanien (FR)", transferTaxPct: 5.8, lat: 43.6047, lng: 1.4442 },
+  { key: "Hauts-de-France", code: "fr-hdf", name: "Hauts-de-France (FR)", transferTaxPct: 5.8, lat: 50.6292, lng: 3.0573 },
+  { key: "Grand Est", code: "fr-ges", name: "Grand Est / Elsass (FR)", transferTaxPct: 5.8, lat: 48.5734, lng: 7.7521 },
+  { key: "Bretagne", code: "fr-bre", name: "Bretagne (FR)", transferTaxPct: 5.8, lat: 48.1173, lng: -1.6778 },
+  { key: "Normandie", code: "fr-nor", name: "Normandie (FR)", transferTaxPct: 5.8, lat: 49.4432, lng: 1.0999 },
+  { key: "Pays de la Loire", code: "fr-pdl", name: "Pays de la Loire (FR)", transferTaxPct: 5.8, lat: 47.2184, lng: -1.5536 },
+  { key: "Bourgogne-Franche-Comté", code: "fr-bfc", name: "Burgund-Franche-Comté (FR)", transferTaxPct: 5.8, lat: 47.322, lng: 5.0415 },
+  { key: "Centre-Val de Loire", code: "fr-cvl", name: "Centre-Val de Loire (FR)", transferTaxPct: 5.8, lat: 47.9029, lng: 1.9093 },
+  { key: "Corse", code: "fr-cor", name: "Korsika (FR)", transferTaxPct: 5.8, lat: 41.9192, lng: 8.7386 },
+];
+const REGION_BY_KEY_FR = new Map(REGIONEN_FR.map((r) => [r.key, r]));
+
+const REGIONEN_GB = [
+  { key: "Greater London", code: "gb-lon", name: "Greater London (UK)", transferTaxPct: 5.0, lat: 51.5074, lng: -0.1278 },
+  { key: "South East England", code: "gb-see", name: "South East England (UK)", transferTaxPct: 5.0, lat: 51.2787, lng: 0.5217 },
+  { key: "South West England", code: "gb-swe", name: "South West England (UK)", transferTaxPct: 5.0, lat: 51.4545, lng: -2.5879 },
+  { key: "West Midlands", code: "gb-wmd", name: "West Midlands (UK)", transferTaxPct: 5.0, lat: 52.4862, lng: -1.8904 },
+  { key: "East Midlands", code: "gb-emd", name: "East Midlands (UK)", transferTaxPct: 5.0, lat: 52.9548, lng: -1.1581 },
+  { key: "North West England", code: "gb-nwe", name: "North West England (UK)", transferTaxPct: 5.0, lat: 53.4808, lng: -2.2426 },
+  { key: "Yorkshire and the Humber", code: "gb-yrk", name: "Yorkshire & Humber (UK)", transferTaxPct: 5.0, lat: 53.8008, lng: -1.5491 },
+  { key: "East of England", code: "gb-ee", name: "East of England (UK)", transferTaxPct: 5.0, lat: 52.2053, lng: 0.1218 },
+  { key: "North East England", code: "gb-nee", name: "North East England (UK)", transferTaxPct: 5.0, lat: 54.9783, lng: -1.6178 },
+  { key: "Scotland", code: "gb-sct", name: "Schottland (UK)", transferTaxPct: 4.5, lat: 55.9533, lng: -3.1883 },
+  { key: "Wales", code: "gb-wls", name: "Wales (UK)", transferTaxPct: 4.5, lat: 51.4816, lng: -3.1791 },
+  { key: "Northern Ireland", code: "gb-nir", name: "Nordirland (UK)", transferTaxPct: 5.0, lat: 54.5973, lng: -5.9301 },
+];
+const REGION_BY_KEY_GB = new Map(REGIONEN_GB.map((r) => [r.key, r]));
 
 const DE_SEGMENT_RULES = [
   ["apartment", /Eigentumswohnung|Wohnungseigentum|Zimmer-Wohnung|Teileigentum/i],
@@ -858,23 +940,55 @@ async function buildDeLive() {
   const chListings = await fetchChShabAll(postcodes, prevByKey, portalCacheDir, nowIso);
   listings.push(...chListings);
 
-  for (const s of [...BUNDESLAENDER_AT, ...KANTONE_CH]) {
+  // 6. Fetch Italy (astegiudiziarie.it — all 20 Regioni)
+  const itListings = await fetchItAsteAll(prevByKey, portalCacheDir, nowIso);
+  listings.push(...itListings);
+
+  // 7. Fetch Spain (subastas.boe.es — Portal de Subastas BOE)
+  const esListings = await fetchEsBoeAll(prevByKey, portalCacheDir, nowIso);
+  listings.push(...esListings);
+
+  // 8. Fetch France (licitor.com — Ventes Judiciaires Tribunaux Judiciaires)
+  const frListings = await fetchFrLicitorAll(prevByKey, portalCacheDir, nowIso);
+  listings.push(...frListings);
+
+  // 9. Fetch United Kingdom (btgeddisonspropertyauctions.com — UK Property Auctions)
+  const gbListings = await fetchGbAuctionsAll(prevByKey, portalCacheDir, nowIso);
+  listings.push(...gbListings);
+
+  const allStates = [
+    ...BUNDESLAENDER_DE,
+    ...BUNDESLAENDER_AT,
+    ...KANTONE_CH,
+    ...REGIONEN_IT,
+    ...REGIONEN_ES,
+    ...REGIONEN_FR,
+    ...REGIONEN_GB,
+  ];
+  for (const s of allStates) {
     stateCounts.set(s.code, 0);
   }
   for (const l of listings) {
     if (l.regionCode) stateCounts.set(l.regionCode, (stateCounts.get(l.regionCode) ?? 0) + 1);
   }
 
+  const deOnlyCount =
+    listings.length -
+    atListings.length -
+    chListings.length -
+    itListings.length -
+    esListings.length -
+    frListings.length -
+    gbListings.length;
   console.log(
-    `  → DACH Gesamt: ${listings.length} Verfahren (DE: ${listings.length - atListings.length - chListings.length}, AT: ${atListings.length}, CH: ${chListings.length})`,
+    `  → Europa Gesamt: ${listings.length} Verfahren (DE: ${deOnlyCount}, AT: ${atListings.length}, CH: ${chListings.length}, IT: ${itListings.length}, ES: ${esListings.length}, FR: ${frListings.length}, GB: ${gbListings.length})`,
   );
 
-  const allStates = [...BUNDESLAENDER_DE, ...BUNDESLAENDER_AT, ...KANTONE_CH];
   return {
     meta: {
       market: "DE",
       generatedAt: nowIso,
-      source: "zvg-portal.de · zvg.com · edikte.justiz.gv.at · shab.ch",
+      source: "zvg-portal.de · zvg.com · edikte.justiz.gv.at · shab.ch · astegiudiziarie.it · subastas.boe.es · licitor.com · btgeddisonspropertyauctions.com",
       sourceUrl: "https://www.zvg-portal.de/",
       states: allStates.map((s) => ({
         code: s.code,
@@ -1222,6 +1336,652 @@ async function fetchChShabAll(postcodes, prevByKey, portalCacheDir, nowIso) {
   });
 
   console.log(`  → CH Gesamt: ${out.length} Verfahren geladen (shab.ch)`);
+  return out;
+}
+
+// ---------------------------------------------------------------------------
+// 1d. Fetch Italy Live (astegiudiziarie.it — all 20 Regioni)
+// ---------------------------------------------------------------------------
+async function fetchItAsteAll(prevByKey, portalCacheDir, nowIso) {
+  console.log("  ▸ Starte Live-Abruf Italien (astegiudiziarie.it · alle 20 Regionen) ...");
+  const out = [];
+  try {
+    const searchParameters = {
+      tipoRicerca: 1,
+      idGenere: 1,
+      indirizzo: null,
+      latitudine: null,
+      longitudine: null,
+      latitudineNW: null,
+      longitudineNW: null,
+      latitudineSE: null,
+      longitudineSE: null,
+      noGeo: false,
+      idEsperimentoVendita: null,
+      idTipologie: [],
+      tipologia: null,
+      idCategorie: [],
+      categoria: null,
+      descrizione: null,
+      comune: null,
+      provincia: null,
+      regione: null,
+      cap: null,
+      ricercaCap: null,
+      prezzoDa: null,
+      prezzoA: null,
+      priceMax: 0.0,
+      priceSteps: null,
+      tipologie: null,
+      idTribunale: null,
+      tribunale: null,
+      numeroProcedura: null,
+      annoProcedura: null,
+      ruolo: null,
+      idTipologiaProcedura: null,
+      giudice: null,
+      professionista: null,
+      idTipologiaVendita: null,
+      idModalitaVendita: null,
+      idPubblicazione: null,
+      dataVenditaDa: null,
+      dataVenditaA: null,
+      codiceAsta: null,
+      hasFoto: null,
+      hasPlanimetrie: null,
+      hasVirtualTour: null,
+      hasVideo: null,
+      bandita: null,
+      telematica: null,
+      inScadenza: null,
+      lottoUnico: null,
+      venditeAGI: null,
+      storica: false,
+      vetrina: false,
+      sezione: null,
+      searchOnMap: false,
+      tribunali: null,
+      tipologieProcedura: null,
+      tipologieVendita: null,
+      modalitaVendita: null,
+      numeroPubblicazioni: null,
+      listaIdLotto: null,
+      idProcedura: null,
+      orderBy: 6,
+    };
+
+    const rMap = await fetch("https://webapi.astegiudiziarie.it/api/search/map", {
+      method: "POST",
+      headers: {
+        "User-Agent": "Mozilla/5.0 (compatible; BelowmarkBot/1.0; +https://belowmark.com; contact@pycie.com)",
+        "Content-Type": "application/json",
+        Origin: "https://www.astegiudiziarie.it",
+        Referer: "https://www.astegiudiziarie.it/",
+      },
+      body: JSON.stringify(searchParameters),
+    });
+    if (!rMap.ok) return out;
+    const mapRaw = await rMap.json();
+    const mapItems = (Array.isArray(mapRaw) ? mapRaw : Object.values(mapRaw ?? {}))
+      .filter((m) => m && m.idLotto && m.geolocalizzato && m.latitudine && m.longitudine)
+      .slice(0, 300);
+
+    const coordsById = new Map(mapItems.map((m) => [m.idLotto, { lat: Number(m.latitudine), lng: Number(m.longitudine) }]));
+    const chunks = [];
+    for (let i = 0; i < mapItems.length; i += 50) {
+      chunks.push(mapItems.slice(i, i + 50).map((m) => m.idLotto));
+    }
+
+    const detailedLots = [];
+    await mapLimit(chunks, 3, async (idChunk) => {
+      try {
+        const rData = await fetch("https://webapi.astegiudiziarie.it/api/search/Data", {
+          method: "POST",
+          headers: {
+            "User-Agent": "Mozilla/5.0 (compatible; BelowmarkBot/1.0; +https://belowmark.com; contact@pycie.com)",
+            "Content-Type": "application/json",
+            Origin: "https://www.astegiudiziarie.it",
+            Referer: "https://www.astegiudiziarie.it/",
+          },
+          body: JSON.stringify(idChunk),
+        });
+        if (rData.ok) {
+          const items = await rData.json();
+          if (Array.isArray(items)) detailedLots.push(...items);
+        }
+      } catch {
+        // Ignore single batch error
+      }
+    });
+
+    for (const item of detailedLots) {
+      const parsed = parseItAsteItem(item, coordsById.get(item.idLotto));
+      if (!parsed || !parsed.appraisedValue) continue;
+      const key = parsed.key;
+      const cacheFile = join(portalCacheDir, `${key}.json`);
+      try {
+        writeFileSync(cacheFile, JSON.stringify({ key, source: "astegiudiziarie.it", fetchedAt: nowIso, ...parsed }));
+      } catch {
+        // Ignore
+      }
+
+      const reg = REGION_BY_KEY_IT.get(parsed.state) ?? REGIONEN_IT[0];
+      const prev = prevByKey.get(key);
+      const hearingAt = parsed.hearingAt;
+      const endIso = hearingAt ? new Date(Date.parse(hearingAt) + 60 * 60000).toISOString() : null;
+      const livingAreaM2 = parsed.livingAreaM2 ?? null;
+      const landAreaM2 = parsed.landAreaM2 ?? null;
+      const areaM2 = livingAreaM2 ?? landAreaM2 ?? null;
+      const areaKind = livingAreaM2 ? "Wohn-/Nutzfläche" : landAreaM2 ? "Grundstücksfläche" : null;
+      const title = [parsed.segmentLabel, parsed.place, parsed.street].filter(Boolean).join(", ") || `${parsed.authority} · ${parsed.fileNo}`;
+
+      out.push({
+        key,
+        market: "DE",
+        country: "IT",
+        currency: "EUR",
+        sourcePortal: "astegiudiziarie.it",
+        title,
+        segment: parsed.segment ?? "other",
+        segmentLabel: parsed.segmentLabel,
+        region: reg.name,
+        regionCode: reg.code,
+        place: parsed.place,
+        postcode: parsed.postcode,
+        street: parsed.street,
+        authority: parsed.authority,
+        fileNo: parsed.fileNo,
+        fileYear: item.annoProcedura ? Number(item.annoProcedura) : null,
+        rounds: hearingAt ? [{ round: 1, start: hearingAt, end: endIso }] : [],
+        hearingAt,
+        cancelled: false,
+        limitsWaived: false,
+        appraisedValue: parsed.appraisedValue,
+        minimumBid: parsed.minimumBid,
+        depositAmount: parsed.depositAmount,
+        transferTaxPct: reg.transferTaxPct,
+        livingAreaM2,
+        usableAreaM2: null,
+        landAreaM2,
+        areaM2,
+        areaKind,
+        rooms: parsed.rooms,
+        yearBuilt: parsed.yearBuilt,
+        grundbuch: parsed.grundbuch,
+        proceedingKind: parsed.proceedingKind,
+        description: parsed.description,
+        hearingPlace: "Vendita Telematica (PVP Giustizia)",
+        creditor: null,
+        officialUrl: parsed.detailUrl,
+        imageUrl: parsed.attachments?.[0]?.directUrl ?? null,
+        mapUrl: parsed.lat && parsed.lng ? `https://www.openstreetmap.org/?mlat=${parsed.lat}&mlon=${parsed.lng}#map=16/${parsed.lat}/${parsed.lng}` : null,
+        documentUrl: parsed.detailUrl,
+        exposeUrl: null,
+        reportUrl: null,
+        biddingNotesUrl: null,
+        courtUrl: "https://pvp.giustizia.it/pvp/",
+        geoServerUrl: "https://geoportale.cartografia.agenziaentrate.gov.it/",
+        geo: parsed.lat && parsed.lng ? { lat: parsed.lat, lng: parsed.lng, precision: "exact" } : null,
+        history: prev?.history ?? [],
+        geoportalUrl: "https://geoportale.cartografia.agenziaentrate.gov.it/",
+        geoportalName: "Geoportale Catastale · Agenzia delle Entrate",
+        caveats: [],
+        firstSeenAt: parsed.firstSeenAt ?? prev?.firstSeenAt ?? nowIso,
+      });
+    }
+  } catch (err) {
+    console.warn(`    ! astegiudiziarie.it Fehler: ${err.message}`);
+  }
+  console.log(`  → IT Gesamt: ${out.length} Verfahren geladen (astegiudiziarie.it)`);
+  return out;
+}
+
+// ---------------------------------------------------------------------------
+// 1e. Fetch Spain Live (subastas.boe.es — Portal de Subastas BOE)
+// ---------------------------------------------------------------------------
+async function fetchEsBoeAll(prevByKey, portalCacheDir, nowIso) {
+  console.log("  ▸ Starte Live-Abruf Spanien (subastas.boe.es · Portal de Subastas BOE) ...");
+  const out = [];
+  const ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
+
+  try {
+    const rForm = await fetch("https://subastas.boe.es/subastas_ava.php", { headers: { "User-Agent": ua } });
+    const setCookies = rForm.headers.getSetCookie ? rForm.headers.getSetCookie() : [];
+    const cookieHeader = setCookies.map((c) => c.split(";")[0]).join("; ");
+    const htmlForm = await rForm.text();
+
+    const params = new URLSearchParams();
+    for (const m of htmlForm.matchAll(/<input[^>]+type="hidden"[^>]+name="([^"]+)"[^>]+value="([^"]*)"/gi)) {
+      params.set(m[1], m[2]);
+    }
+    params.set("dato[2]", "EJ"); // Celebrándose (active bidding)
+    params.set("dato[3]", "I"); // Inmuebles (real estate)
+    params.set("page_hits", "200");
+    params.set("accion", "Buscar");
+
+    const rSearch = await fetch("https://subastas.boe.es/subastas_ava.php", {
+      method: "POST",
+      headers: {
+        "User-Agent": ua,
+        "Content-Type": "application/x-www-form-urlencoded",
+        Cookie: cookieHeader,
+        Referer: "https://subastas.boe.es/subastas_ava.php",
+      },
+      body: params.toString(),
+    });
+    const htmlSearch = await rSearch.text();
+    const stubs = [];
+    for (const m of htmlSearch.matchAll(/<li class="resultado-busqueda">([\s\S]*?)<\/li>/gi)) {
+      const card = m[1];
+      const idSub = /SUBASTA\s+(SUB-[A-Z0-9-]+)/i.exec(card)?.[1];
+      if (!idSub) continue;
+      const authority = decodeHtmlText(/<h4>([\s\S]*?)<\/h4>/i.exec(card)?.[1] ?? "");
+      const exp = decodeHtmlText(/Expediente:\s*([^<]+)/i.exec(card)?.[1] ?? "");
+      const conclusionText = decodeHtmlText(/Conclusión prevista:\s*([^\]]+)/i.exec(card)?.[1] ?? "");
+      const pTags = [...card.matchAll(/<p[^>]*>([\s\S]*?)<\/p>/gi)].map((x) => decodeHtmlText(x[1]));
+      const summary = pTags[pTags.length - 1] || "";
+      stubs.push({ idSub, authority, expediente: exp, conclusionText, summary });
+    }
+
+    console.log(`    subastas.boe.es · ${stubs.length} aktive Immobilien-Auktionen gefunden, lade Details ...`);
+    await mapLimit(stubs, 12, async (stub) => {
+      const key = `es-boe-${stub.idSub}`;
+      const cacheFile = join(portalCacheDir, `${key}.json`);
+      let parsed = null;
+
+      if (existsSync(cacheFile)) {
+        try {
+          const cached = JSON.parse(readFileSync(cacheFile, "utf8"));
+          if (cached && cached.fileNo) parsed = cached;
+        } catch {
+          parsed = null;
+        }
+      }
+
+      if (!parsed) {
+        try {
+          const [r1, r3] = await Promise.all([
+            fetch(`https://subastas.boe.es/detalleSubasta.php?idSub=${encodeURIComponent(stub.idSub)}&ver=1`, { headers: { "User-Agent": ua } }),
+            fetch(`https://subastas.boe.es/detalleSubasta.php?idSub=${encodeURIComponent(stub.idSub)}&ver=3`, { headers: { "User-Agent": ua } }),
+          ]);
+          if (r1.ok) {
+            const [h1, h3] = await Promise.all([r1.text(), r3.ok ? r3.text() : Promise.resolve("")]);
+            parsed = parseEsBoeHtml(h1, h3, stub);
+            if (parsed) {
+              try {
+                writeFileSync(cacheFile, JSON.stringify({ key, source: "subastas.boe.es", fetchedAt: nowIso, ...parsed }));
+              } catch {
+                // Ignore
+              }
+            }
+          }
+        } catch {
+          parsed = null;
+        }
+      }
+
+      if (!parsed || !parsed.appraisedValue) return;
+      const reg = REGION_BY_KEY_ES.get(parsed.state) ?? REGIONEN_ES[0];
+      const prev = prevByKey.get(key);
+      const hearingAt = parsed.hearingAt;
+      const endIso = hearingAt ? new Date(Date.parse(hearingAt) + 60 * 60000).toISOString() : null;
+      const livingAreaM2 = parsed.livingAreaM2 ?? null;
+      const landAreaM2 = parsed.landAreaM2 ?? null;
+      const areaM2 = livingAreaM2 ?? landAreaM2 ?? null;
+      const areaKind = livingAreaM2 ? "Wohn-/Nutzfläche" : landAreaM2 ? "Grundstücksfläche" : null;
+      const title = [parsed.place, parsed.street || stub.summary?.slice(0, 75)].filter(Boolean).join(", ") || `${parsed.authority} · ${stub.idSub}`;
+
+      out.push({
+        key,
+        market: "DE",
+        country: "ES",
+        currency: "EUR",
+        sourcePortal: "subastas.boe.es",
+        title,
+        segment: parsed.segment ?? "other",
+        segmentLabel: parsed.segmentLabel,
+        region: reg.name,
+        regionCode: reg.code,
+        place: parsed.place,
+        postcode: parsed.postcode,
+        street: parsed.street,
+        authority: parsed.authority,
+        fileNo: parsed.fileNo,
+        fileYear: fileNoYear(stub.expediente) ?? 2026,
+        rounds: hearingAt ? [{ round: 1, start: hearingAt, end: endIso }] : [],
+        hearingAt,
+        cancelled: false,
+        limitsWaived: false,
+        appraisedValue: parsed.appraisedValue,
+        minimumBid: parsed.minimumBid,
+        depositAmount: parsed.depositAmount,
+        transferTaxPct: reg.transferTaxPct,
+        livingAreaM2,
+        usableAreaM2: null,
+        landAreaM2,
+        areaM2,
+        areaKind,
+        rooms: parsed.rooms,
+        yearBuilt: parsed.yearBuilt,
+        grundbuch: parsed.grundbuch,
+        proceedingKind: parsed.proceedingKind,
+        description: parsed.description,
+        hearingPlace: "Portal de Subastas Electrónicas BOE",
+        creditor: null,
+        officialUrl: parsed.detailUrl,
+        mapUrl: [parsed.street, parsed.postcode, parsed.place, "España"].filter(Boolean).length > 1
+          ? `https://www.openstreetmap.org/search?query=${encodeURIComponent([parsed.street, parsed.postcode, parsed.place, "España"].filter(Boolean).join(", "))}`
+          : null,
+        documentUrl: parsed.attachments?.[0]?.directUrl ?? parsed.detailUrl,
+        exposeUrl: null,
+        reportUrl: null,
+        biddingNotesUrl: null,
+        courtUrl: "https://subastas.boe.es/",
+        geoServerUrl: "https://www1.sedecatastro.gob.es/",
+        geo: parsed.lat && parsed.lng ? { lat: parsed.lat, lng: parsed.lng, precision: "postcode" } : null,
+        history: prev?.history ?? [],
+        geoportalUrl: "https://www1.sedecatastro.gob.es/",
+        geoportalName: "Sede Electrónica del Catastro (ES)",
+        caveats: [],
+        firstSeenAt: parsed.firstSeenAt ?? prev?.firstSeenAt ?? nowIso,
+      });
+    });
+  } catch (err) {
+    console.warn(`    ! subastas.boe.es Fehler: ${err.message}`);
+  }
+  console.log(`  → ES Gesamt: ${out.length} Verfahren geladen (subastas.boe.es)`);
+  return out;
+}
+
+// ---------------------------------------------------------------------------
+// 1f. Fetch France Live (licitor.com — Ventes Judiciaires Tribunaux Judiciaires)
+// ---------------------------------------------------------------------------
+async function fetchFrLicitorAll(prevByKey, portalCacheDir, nowIso) {
+  console.log("  ▸ Starte Live-Abruf Frankreich (licitor.com · Tribunaux Judiciaires) ...");
+  const out = [];
+  const ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
+
+  try {
+    const rHome = await fetch("https://www.licitor.com/ventes-aux-encheres-immobilieres/france.html", { headers: { "User-Agent": ua } });
+    if (!rHome.ok) return out;
+    const htmlHome = await rHome.text();
+    const sessionLinks = [...new Set([...htmlHome.matchAll(/href="(\/ventes-judiciaires-immobilieres\/[^"]+)"/gi)].map((m) => m[1]))].slice(0, 48);
+
+    const adStubs = [];
+    const seenAdNos = new Set();
+    await mapLimit(sessionLinks, 8, async (sessHref) => {
+      try {
+        const rSess = await fetch(`https://www.licitor.com${sessHref}`, { headers: { "User-Agent": ua } });
+        if (!rSess.ok) return;
+        const htmlSess = await rSess.text();
+        for (const m of htmlSess.matchAll(/<a class="Ad[^"]*" href="(\/annonce\/[^"]+?\/(\d+)\.html)"[\s\S]*?<\/a>/gi)) {
+          const adHref = m[1];
+          const adNo = m[2];
+          if (seenAdNos.has(adNo)) continue;
+          seenAdNos.add(adNo);
+          const card = m[0];
+          const dept = decodeHtmlText(/<span class="Number">([\s\S]*?)<\/span>/i.exec(card)?.[1] ?? "");
+          const city = decodeHtmlText(/<span class="City">([\s\S]*?)<\/span>/i.exec(card)?.[1] ?? "");
+          const name = decodeHtmlText(/<span class="Name">([\s\S]*?)<\/span>/i.exec(card)?.[1] ?? "");
+          const summary = decodeHtmlText(/<span class="Text">([\s\S]*?)<\/span>/i.exec(card)?.[1] ?? "");
+          adStubs.push({
+            adNo,
+            detailUrl: `https://www.licitor.com${adHref}`,
+            dept,
+            city,
+            name,
+            summary,
+          });
+        }
+      } catch {
+        // Ignore single session error
+      }
+    });
+
+    const targetAds = adStubs.slice(0, 220);
+    console.log(`    licitor.com · ${targetAds.length} gerichtliche Versteigerungen gefunden, lade Details ...`);
+    await mapLimit(targetAds, 12, async (stub) => {
+      const key = `fr-licitor-${stub.adNo}`;
+      const cacheFile = join(portalCacheDir, `${key}.json`);
+      let parsed = null;
+
+      if (existsSync(cacheFile)) {
+        try {
+          const cached = JSON.parse(readFileSync(cacheFile, "utf8"));
+          if (cached && cached.fileNo) parsed = cached;
+        } catch {
+          parsed = null;
+        }
+      }
+
+      if (!parsed) {
+        try {
+          const rAd = await fetch(stub.detailUrl, { headers: { "User-Agent": ua } });
+          if (rAd.ok) {
+            const htmlAd = await rAd.text();
+            parsed = parseFrLicitorHtml(htmlAd, stub);
+            if (parsed) {
+              try {
+                writeFileSync(cacheFile, JSON.stringify({ key, source: "licitor.com", fetchedAt: nowIso, ...parsed }));
+              } catch {
+                // Ignore
+              }
+            }
+          }
+        } catch {
+          parsed = null;
+        }
+      }
+
+      if (!parsed || !parsed.minimumBid) return;
+      const reg = REGION_BY_KEY_FR.get(parsed.state) ?? REGIONEN_FR[0];
+      const prev = prevByKey.get(key);
+      const hearingAt = parsed.hearingAt;
+      const endIso = hearingAt ? new Date(Date.parse(hearingAt) + 60 * 60000).toISOString() : null;
+      const livingAreaM2 = parsed.livingAreaM2 ?? null;
+      const landAreaM2 = parsed.landAreaM2 ?? null;
+      const areaM2 = livingAreaM2 ?? landAreaM2 ?? null;
+      const areaKind = livingAreaM2 ? "Wohn-/Nutzfläche" : landAreaM2 ? "Grundstücksfläche" : null;
+      const title = [parsed.segmentLabel, parsed.place, parsed.street].filter(Boolean).join(", ") || `${parsed.authority} · ${parsed.fileNo}`;
+      const lat = parsed.lat ?? reg.lat;
+      const lng = parsed.lng ?? reg.lng;
+
+      out.push({
+        key,
+        market: "DE",
+        country: "FR",
+        currency: "EUR",
+        sourcePortal: "licitor.com",
+        title,
+        segment: parsed.segment ?? "other",
+        segmentLabel: parsed.segmentLabel,
+        region: reg.name,
+        regionCode: reg.code,
+        place: parsed.place,
+        postcode: parsed.postcode,
+        street: parsed.street,
+        authority: parsed.authority,
+        fileNo: parsed.fileNo,
+        fileYear: 2026,
+        rounds: hearingAt ? [{ round: 1, start: hearingAt, end: endIso }] : [],
+        hearingAt,
+        cancelled: false,
+        limitsWaived: false,
+        appraisedValue: parsed.appraisedValue,
+        minimumBid: parsed.minimumBid,
+        depositAmount: parsed.depositAmount,
+        transferTaxPct: reg.transferTaxPct,
+        livingAreaM2,
+        usableAreaM2: null,
+        landAreaM2,
+        areaM2,
+        areaKind,
+        rooms: parsed.rooms,
+        yearBuilt: parsed.yearBuilt,
+        grundbuch: parsed.grundbuch,
+        proceedingKind: parsed.proceedingKind,
+        description: parsed.description,
+        hearingPlace: parsed.authority,
+        creditor: null,
+        officialUrl: parsed.detailUrl,
+        mapUrl: lat && lng ? `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=15/${lat}/${lng}` : null,
+        documentUrl: `${parsed.detailUrl}?print=1`,
+        exposeUrl: null,
+        reportUrl: null,
+        biddingNotesUrl: null,
+        courtUrl: "https://www.licitor.com/",
+        geoServerUrl: "https://cadastre.gouv.fr/",
+        geo: lat && lng ? { lat, lng, precision: parsed.lat ? "exact" : "province" } : null,
+        history: prev?.history ?? [],
+        geoportalUrl: "https://app.dvf.etalab.gouv.fr/",
+        geoportalName: "Demandes de Valeurs Foncières (DVF · Etalab)",
+        caveats: [],
+        firstSeenAt: parsed.firstSeenAt ?? prev?.firstSeenAt ?? nowIso,
+      });
+    });
+  } catch (err) {
+    console.warn(`    ! licitor.com Fehler: ${err.message}`);
+  }
+  console.log(`  → FR Gesamt: ${out.length} Verfahren geladen (licitor.com)`);
+  return out;
+}
+
+// ---------------------------------------------------------------------------
+// 1g. Fetch UK Live (btgeddisonspropertyauctions.com — UK Property Auctions)
+// ---------------------------------------------------------------------------
+async function fetchGbAuctionsAll(prevByKey, portalCacheDir, nowIso) {
+  console.log("  ▸ Starte Live-Abruf Vereinigtes Königreich (btgeddisonspropertyauctions.com · UK Auctions) ...");
+  const out = [];
+  const ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
+
+  try {
+    const pages = Array.from({ length: 22 }, (_, i) => i + 1);
+    const stubs = [];
+    const seenUrls = new Set();
+
+    await mapLimit(pages, 6, async (page) => {
+      try {
+        const r = await fetch(`https://www.btgeddisonspropertyauctions.com/properties?page=${page}`, { headers: { "User-Agent": ua } });
+        if (!r.ok) return;
+        const html = await r.text();
+        for (const m of html.matchAll(/<a\s+aria-label="([^"]+)"\s+href="(https:\/\/www\.btgeddisonspropertyauctions\.com\/properties\/([^/]+)\/for-auction-[^"]+)"/gi)) {
+          const address = decodeHtmlText(m[1]);
+          const detailUrl = m[2];
+          const eigId = m[3];
+          if (seenUrls.has(detailUrl)) continue;
+          seenUrls.add(detailUrl);
+          stubs.push({ eigId, address, detailUrl });
+        }
+      } catch {
+        // Ignore single page error
+      }
+    });
+
+    console.log(`    btgeddisonspropertyauctions.com · ${stubs.length} UK-Auktionen gefunden, lade Details ...`);
+    await mapLimit(stubs, 10, async (stub) => {
+      const cleanId = stub.eigId.replace(/[^a-zA-Z0-9_-]/g, "");
+      const key = `gb-eig-${cleanId}`;
+      const cacheFile = join(portalCacheDir, `${key}.json`);
+      let parsed = null;
+
+      if (existsSync(cacheFile)) {
+        try {
+          const cached = JSON.parse(readFileSync(cacheFile, "utf8"));
+          if (cached && cached.fileNo) parsed = cached;
+        } catch {
+          parsed = null;
+        }
+      }
+
+      if (!parsed) {
+        try {
+          const rDet = await fetch(stub.detailUrl, { headers: { "User-Agent": ua } });
+          if (rDet.ok) {
+            const htmlDet = await rDet.text();
+            parsed = parseGbAuctionHtml(htmlDet, stub);
+            if (parsed) {
+              try {
+                writeFileSync(cacheFile, JSON.stringify({ key, source: "btgeddisonspropertyauctions.com", fetchedAt: nowIso, ...parsed }));
+              } catch {
+                // Ignore
+              }
+            }
+          }
+        } catch {
+          parsed = null;
+        }
+      }
+
+      if (!parsed || !parsed.minimumBid) return;
+      const reg = REGION_BY_KEY_GB.get(parsed.state) ?? REGIONEN_GB[0];
+      const prev = prevByKey.get(key);
+      const hearingAt = parsed.hearingAt;
+      const endIso = hearingAt ? new Date(Date.parse(hearingAt) + 60 * 60000).toISOString() : null;
+      const livingAreaM2 = parsed.livingAreaM2 ?? null;
+      const areaM2 = livingAreaM2 ?? null;
+      const areaKind = livingAreaM2 ? "Wohn-/Nutzfläche" : null;
+      const title = [parsed.segmentLabel, parsed.place, parsed.street].filter(Boolean).join(", ") || stub.address;
+      const lat = parsed.lat ?? reg.lat;
+      const lng = parsed.lng ?? reg.lng;
+
+      out.push({
+        key,
+        market: "DE",
+        country: "GB",
+        currency: "GBP",
+        sourcePortal: "btgeddisonspropertyauctions.com",
+        title,
+        segment: parsed.segment ?? "other",
+        segmentLabel: parsed.segmentLabel,
+        region: reg.name,
+        regionCode: reg.code,
+        place: parsed.place,
+        postcode: parsed.postcode,
+        street: parsed.street,
+        authority: parsed.authority,
+        fileNo: parsed.fileNo,
+        fileYear: 2026,
+        rounds: hearingAt ? [{ round: 1, start: hearingAt, end: endIso }] : [],
+        hearingAt,
+        cancelled: false,
+        limitsWaived: false,
+        appraisedValue: parsed.appraisedValue,
+        minimumBid: parsed.minimumBid,
+        depositAmount: parsed.depositAmount,
+        transferTaxPct: reg.transferTaxPct,
+        livingAreaM2,
+        usableAreaM2: null,
+        landAreaM2: null,
+        areaM2,
+        areaKind,
+        rooms: parsed.rooms,
+        yearBuilt: parsed.yearBuilt,
+        grundbuch: parsed.grundbuch,
+        proceedingKind: parsed.proceedingKind,
+        description: parsed.description,
+        hearingPlace: "Online Timed / Livestream Property Auction (UK)",
+        creditor: null,
+        officialUrl: parsed.detailUrl,
+        imageUrl: parsed.attachments?.[0]?.directUrl ?? null,
+        mapUrl: lat && lng ? `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=16/${lat}/${lng}` : null,
+        documentUrl: "https://www.btgeddisonspropertyauctions.com/files/terms-policies/pw000776-1-btg-eddisons-common-auction-conditions-jan26.pdf",
+        exposeUrl: null,
+        reportUrl: null,
+        biddingNotesUrl: null,
+        courtUrl: "https://www.btgeddisonspropertyauctions.com/",
+        geoServerUrl: "https://search-property-information.service.gov.uk/",
+        geo: lat && lng ? { lat, lng, precision: parsed.lat ? "exact" : "province" } : null,
+        history: prev?.history ?? [],
+        geoportalUrl: "https://landregistry.data.gov.uk/app/ppd/",
+        geoportalName: "HM Land Registry · Price Paid Data",
+        caveats: [],
+        firstSeenAt: prev?.firstSeenAt ?? nowIso,
+      });
+    });
+  } catch (err) {
+    console.warn(`    ! btgeddisonspropertyauctions.com Fehler: ${err.message}`);
+  }
+  console.log(`  → GB Gesamt: ${out.length} Verfahren geladen (btgeddisonspropertyauctions.com)`);
   return out;
 }
 

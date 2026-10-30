@@ -922,25 +922,41 @@ function mergeListingFallback(details: OfficialPortalDetails, listing: Listing):
   const tr = listing.tr;
   const isAt = listing.country === "AT" || listing.key.startsWith("edikte-");
   const isCh = listing.country === "CH" || listing.key.startsWith("shab-");
-  const isZvgCom = listing.key.startsWith("zvgcom-");
+  const isIt = listing.country === "IT" || listing.key.startsWith("it-aste-");
+  const isEs = listing.country === "ES" || listing.key.startsWith("es-boe-");
+  const isFr = listing.country === "FR" || listing.key.startsWith("fr-licitor-");
+  const isGb = listing.country === "GB" || listing.key.startsWith("gb-eig-");
+  const isNonZvgPortal = isAt || isCh || isIt || isEs || isFr || isGb || listing.key.startsWith("zvgcom-");
   const sourcePortal =
     details.sourcePortal ||
+    listing.sourcePortal ||
     (listing.market === "TR"
       ? tr?.source ?? "ilan.gov.tr"
       : isAt
         ? "edikte.justiz.gv.at"
         : isCh
           ? "shab.ch"
-          : isZvgCom
-            ? "zvg.com"
-            : "zvg-portal.de");
+          : isIt
+            ? "astegiudiziarie.it"
+            : isEs
+              ? "subastas.boe.es"
+              : isFr
+                ? "licitor.com"
+                : isGb
+                  ? "btgeddisonspropertyauctions.com"
+                  : listing.key.startsWith("zvgcom-")
+                    ? "zvg.com"
+                    : "zvg-portal.de");
   const rawCourtUrl = details.courtUrl ?? listing.courtUrl ?? null;
+  const photoAttachments = Array.isArray(details.attachments)
+    ? details.attachments.filter((a) => a.kind === "photos" && a.directUrl).map((a) => a.directUrl)
+    : [];
   return {
     ...details,
     sourcePortal,
     portalEntryUrl:
       details.portalEntryUrl ||
-      (listing.market === "DE" && !isZvgCom && !isAt && !isCh
+      (listing.market === "DE" && !isNonZvgPortal
         ? `/api/quelle/${encodeURIComponent(listing.key)}?mode=portal`
         : listing.officialUrl),
     proceedingKind: details.proceedingKind ?? listing.proceedingKind ?? null,
@@ -970,9 +986,11 @@ function mergeListingFallback(details: OfficialPortalDetails, listing: Listing):
     galleryUrls:
       Array.isArray(details.galleryUrls) && details.galleryUrls.length > 0
         ? details.galleryUrls
-        : listing.imageUrl
-          ? [listing.imageUrl]
-          : [],
+        : photoAttachments.length > 0
+          ? photoAttachments
+          : listing.imageUrl
+            ? [listing.imageUrl]
+            : [],
     tkgmParcelUrl: details.tkgmParcelUrl ?? (listing.market === "TR" ? "https://parselsorgu.tkgm.gov.tr/" : null),
   };
 }

@@ -7,7 +7,7 @@ import Stamp from "@/components/ui/Stamp";
 import { listingHref, SEARCH } from "@/lib/appConstants";
 import { formatMoney, getDateParts } from "@/lib/appFormat";
 import { LocaleOption } from "@/lib/constants";
-import { getAddressLine, getPlaceTitle, getPropertyMetricsChips, getRoundLabel, getStatusLabel } from "@/lib/listingLabels";
+import { getAddressLine, getListingSourceTag, getPlaceTitle, getPropertyMetricsChips, getRoundLabel, getStatusLabel } from "@/lib/listingLabels";
 import { getEntryBid } from "@/lib/listingMath";
 import { getAerialTileUrl } from "@/lib/locationLinks";
 import { IAppTranslation } from "@/translations/app/IAppTranslation";
@@ -47,18 +47,7 @@ export default function ListingRow({ listing, status, labels, segmentLabel, loca
   const thumbUrl = listing.imageUrl ?? (listing.geo ? getAerialTileUrl(listing.geo.lat, listing.geo.lng, listing.geo.precision === "postcode" ? 16 : 14) : null);
   const isDirectPhoto = Boolean(listing.imageUrl);
   const thumbBadge = isDirectPhoto ? "FOTO" : locale === "tr" ? "UYDU" : "LUFTBILD";
-  const sourceTag =
-    listing.market === "TR"
-      ? listing.tr?.adType && listing.tr.adType !== "İCRA"
-        ? listing.tr.adType
-        : null
-      : listing.country === "AT" || listing.key.startsWith("edikte-")
-        ? "AT · Ediktsdatei"
-        : listing.country === "CH" || listing.key.startsWith("shab-")
-          ? "CH · SHAB"
-          : listing.sourcePortal === "zvg.com" || listing.key.startsWith("zvgcom-")
-            ? "zvg.com"
-            : null;
+  const sourceTag = getListingSourceTag(listing);
 
   return (
     <li className="group relative flex gap-4 py-5 transition-colors hover:bg-paper-bright/60 sm:gap-6 sm:px-2">

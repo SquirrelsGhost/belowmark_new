@@ -1,9 +1,9 @@
 import { MarketCode } from "@/lib/constants";
 import { SegmentKey } from "@/lib/snapshot";
 
-export type DachCountry = "DE" | "AT" | "CH";
+export type DachCountry = "DE" | "AT" | "CH" | "IT" | "ES" | "FR" | "GB";
 export type ListingCountry = DachCountry | "TR";
-export type ListingCurrency = "EUR" | "CHF" | "TRY";
+export type ListingCurrency = "EUR" | "CHF" | "GBP" | "TRY";
 
 /** One bidding window. DE: the hearing itself; TR: one e-auction round (1. / 2. Artırma). */
 export interface ListingRound {
@@ -26,7 +26,7 @@ export interface ListingCaveat {
 export interface ListingGeo {
   lat: number;
   lng: number;
-  precision: "postcode" | "province";
+  precision: "exact" | "postcode" | "province";
 }
 
 /** Fields only Turkish notices (ilan.gov.tr) carry. */
