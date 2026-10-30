@@ -25,11 +25,21 @@ export class BlogService {
         const json = (await res.json()) as FeedApiEnvelope;
         if (json.success && json.data && Array.isArray(json.data.clusters) && json.data.clusters.length > 0) {
           const mergedByKey = new Map<string, BlogClusterItem>();
-          for (const c of json.data.clusters) {
+          for (const c of FALLBACK_FEED.clusters) {
             mergedByKey.set(c.clusterKey, c);
           }
-          for (const c of FALLBACK_FEED.clusters) {
-            if (!mergedByKey.has(c.clusterKey)) {
+          for (const c of json.data.clusters) {
+            const prev = mergedByKey.get(c.clusterKey);
+            if (prev) {
+              mergedByKey.set(c.clusterKey, {
+                ...prev,
+                ...c,
+                languages: {
+                  ...prev.languages,
+                  ...c.languages,
+                },
+              });
+            } else {
               mergedByKey.set(c.clusterKey, c);
             }
           }

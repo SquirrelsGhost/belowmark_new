@@ -1,4 +1,4 @@
-export type BlogLang = "de" | "tr" | "en" | "ar" | "ru";
+export type BlogLang = "de" | "tr" | "en" | "it" | "es" | "fr" | "ar" | "ru";
 
 export interface BlogArticleSection {
   heading: string;

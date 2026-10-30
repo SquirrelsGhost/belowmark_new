@@ -19,7 +19,7 @@ import { BlogLang } from "@/types/blog.types";
 // See: https://nextjs.org/docs/messages/blocking-prerender-runtime
 export const instant = false;
 
-const VALID_LANGS = new Set<BlogLang>(["tr", "en", "ar", "ru"]);
+const VALID_LANGS = new Set<BlogLang>(["tr", "en", "it", "es", "fr", "ar", "ru"]);
 
 interface LangBlogProps {
   params: Promise<{ lang: string }>;
@@ -52,7 +52,7 @@ export default async function LangBlogHubPage({ params }: LangBlogProps) {
     <BlogShell lang={cleanLang}>
       <BlogHubSection lang={cleanLang}>
         <BlogLangBar lang={cleanLang} />
-        <BlogHubHero lang={cleanLang} totalArticlesCount={feed.clusters.length * 5} />
+        <BlogHubHero lang={cleanLang} totalArticlesCount={feed.clusters.length * 8} />
         <BlogHubGrid>
           {feed.clusters.map((cluster, idx) => (
             <BlogClusterCard key={cluster.clusterKey} cluster={cluster} lang={cleanLang} index={idx} />

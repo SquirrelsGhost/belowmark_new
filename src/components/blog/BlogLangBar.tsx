@@ -27,7 +27,7 @@ export default function BlogLangBar({ lang, backHref, backLabel, cluster }: Blog
         </Link>
       ) : (
         <span className="font-mono text-xs font-semibold uppercase tracking-wider text-muted">
-          BELOWMARK · DE / TR / EN / AR / RU
+          BELOWMARK · DE / TR / EN / IT / ES / FR / AR / RU
         </span>
       )}
 

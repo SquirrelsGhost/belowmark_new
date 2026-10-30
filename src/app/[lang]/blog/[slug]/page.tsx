@@ -14,7 +14,7 @@ import { BlogLang } from "@/types/blog.types";
 // See: https://nextjs.org/docs/messages/blocking-prerender-runtime
 export const instant = false;
 
-const VALID_LANGS = new Set<BlogLang>(["tr", "en", "ar", "ru"]);
+const VALID_LANGS = new Set<BlogLang>(["tr", "en", "it", "es", "fr", "ar", "ru"]);
 
 interface LangArticleProps {
   params: Promise<{ lang: string; slug: string }>;

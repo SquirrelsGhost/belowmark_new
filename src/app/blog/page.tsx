@@ -40,7 +40,7 @@ export default async function BlogPage() {
     <BlogShell lang="de">
       <BlogHubSection lang="de">
         <BlogLangBar lang="de" />
-        <BlogHubHero lang="de" totalArticlesCount={feed.clusters.length * 5} />
+        <BlogHubHero lang="de" totalArticlesCount={feed.clusters.length * 8} />
         <BlogHubGrid>
           {feed.clusters.map((cluster, idx) => (
             <BlogClusterCard key={cluster.clusterKey} cluster={cluster} lang="de" index={idx} />

@@ -33,6 +33,9 @@ export async function GET(): Promise<Response> {
     addUrl(`${BELOWMARK_ORIGIN}/blog`, "0.9", "daily");
     addUrl(`${BELOWMARK_ORIGIN}/tr/blog`, "0.9", "daily");
     addUrl(`${BELOWMARK_ORIGIN}/en/blog`, "0.85", "daily");
+    addUrl(`${BELOWMARK_ORIGIN}/it/blog`, "0.85", "daily");
+    addUrl(`${BELOWMARK_ORIGIN}/es/blog`, "0.85", "daily");
+    addUrl(`${BELOWMARK_ORIGIN}/fr/blog`, "0.85", "daily");
     addUrl(`${BELOWMARK_ORIGIN}/ar/blog`, "0.85", "daily");
     addUrl(`${BELOWMARK_ORIGIN}/ru/blog`, "0.85", "daily");
     addUrl(`${BELOWMARK_ORIGIN}/login`, "0.5", "monthly");

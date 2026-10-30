@@ -12,6 +12,9 @@ export async function GET(): Promise<Response> {
       `${BELOWMARK_ORIGIN}/blog`,
       `${BELOWMARK_ORIGIN}/tr/blog`,
       `${BELOWMARK_ORIGIN}/en/blog`,
+      `${BELOWMARK_ORIGIN}/it/blog`,
+      `${BELOWMARK_ORIGIN}/es/blog`,
+      `${BELOWMARK_ORIGIN}/fr/blog`,
       `${BELOWMARK_ORIGIN}/ar/blog`,
       `${BELOWMARK_ORIGIN}/ru/blog`,
     ]);

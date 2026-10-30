@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import { BlogArticleLangEntry, BlogClusterItem, BlogLang } from "@/types/blog.types";
 
-export const BLOG_LANGS: readonly BlogLang[] = ["de", "tr", "en", "ar", "ru"];
+export const BLOG_LANGS: readonly BlogLang[] = ["de", "tr", "en", "it", "es", "fr", "ar", "ru"];
 export const BELOWMARK_ORIGIN = "https://belowmark.com";
 export const DEFAULT_BLOG_OG = `${BELOWMARK_ORIGIN}/og/home.png`;
 
