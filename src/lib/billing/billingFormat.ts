@@ -6,23 +6,23 @@ const INTL_LOCALES: Record<LocaleOption, string> = { de: "de-DE", tr: "tr-TR" };
 /** Contract dates are Berlin calendar dates — the provider sits in Germany. */
 export const BILLING_TIME_ZONE = "Europe/Berlin";
 
-/** Price with cents, as the contract states it: "39,00 €", "599,00 ₺". */
+/** Price with cents, as the contract states it: "39,00 €", "49,00 CHF", "35,00 £", "599,00 ₺". */
 export function formatPrice(price: OfferPrice, locale: LocaleOption): string {
   return new Intl.NumberFormat(INTL_LOCALES[locale], {
     style: "currency",
     currency: price.currency.toUpperCase(),
-    currencyDisplay: "narrowSymbol",
+    currencyDisplay: price.currency === "chf" ? "code" : "narrowSymbol",
     minimumFractionDigits: 2,
   }).format(price.amount / 100);
 }
 
-/** Compact price for selection cards: omits ",00" when whole ("39 €", "1.490 ₺"). */
+/** Compact price for selection cards: omits ",00" when whole ("39 €", "49 CHF", "35 £", "1.490 ₺"). */
 export function formatCardPrice(price: OfferPrice, locale: LocaleOption): string {
   const isWhole = price.amount % 100 === 0;
   return new Intl.NumberFormat(INTL_LOCALES[locale], {
     style: "currency",
     currency: price.currency.toUpperCase(),
-    currencyDisplay: "narrowSymbol",
+    currencyDisplay: price.currency === "chf" ? "code" : "narrowSymbol",
     minimumFractionDigits: isWhole ? 0 : 2,
     maximumFractionDigits: isWhole ? 0 : 2,
   }).format(price.amount / 100);

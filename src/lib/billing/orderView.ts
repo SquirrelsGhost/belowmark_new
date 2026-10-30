@@ -1,6 +1,6 @@
 import { BILLING_OFFERS, BillingOfferId, OFFERS, VatMode } from "@/lib/billing/billingConfig";
 import { fill, formatCardPrice, formatContractDate, formatPrice } from "@/lib/billing/billingFormat";
-import { LocaleOption, MarketCode } from "@/lib/constants";
+import { LocaleOption, MarketCode, PRICING_COUNTRIES, PricingCountryCode, pricingCountryToMarket } from "@/lib/constants";
 import { BillingAccess, OrderBlocker } from "@/types/billing.types";
 import { IBillingTranslation } from "@/translations/billing/IBillingTranslation";
 import type { OrderOfferView } from "@/components/billing/OrderForm";
@@ -12,20 +12,21 @@ type OrderBlockerFn = (
   targetMarket?: MarketCode,
 ) => OrderBlocker | null;
 
-/** The offers for one market as the order form shows them, with honest reasons where one cannot be ordered. */
+/** The offers for one country/market as the order form shows them, with honest reasons where one cannot be ordered. */
 export function buildOrderOffers(
   t: IBillingTranslation,
-  market: MarketCode,
+  country: PricingCountryCode,
   lang: LocaleOption,
   access: BillingAccess,
   blockerFor: OrderBlockerFn,
-  currentMarket: MarketCode = market,
+  currentMarket: MarketCode = pricingCountryToMarket(country),
 ): OrderOfferView[] {
+  const targetMarket = pricingCountryToMarket(country);
   return BILLING_OFFERS.map((id) => {
     const text = t.Order.Offers[id];
-    const blocker = blockerFor(access, id, currentMarket, market);
+    const blocker = blockerFor(access, id, currentMarket, targetMarket);
     const date = access.endsAt ? formatContractDate(access.endsAt, lang) : "";
-    const rawPrice = OFFERS[id].prices[market];
+    const rawPrice = OFFERS[id].prices[country];
     return {
       id,
       name: text.Name,
@@ -40,23 +41,22 @@ export function buildOrderOffers(
   });
 }
 
-/** Offers for both DE and TR so the market switch on /buchen updates prices immediately. */
+/** Offers for all 8 countries so the country switch on /buchen updates prices immediately. */
 export function buildOrderOffersByMarket(
   t: IBillingTranslation,
   currentMarket: MarketCode,
   lang: LocaleOption,
   access: BillingAccess,
   blockerFor: OrderBlockerFn,
-): Record<MarketCode, OrderOfferView[]> {
-  return {
-    DE: buildOrderOffers(t, "DE", lang, access, blockerFor, currentMarket),
-    TR: buildOrderOffers(t, "TR", lang, access, blockerFor, currentMarket),
-  };
+): Record<PricingCountryCode, OrderOfferView[]> {
+  return Object.fromEntries(
+    PRICING_COUNTRIES.map((code) => [code, buildOrderOffers(t, code, lang, access, blockerFor, currentMarket)]),
+  ) as Record<PricingCountryCode, OrderOfferView[]>;
 }
 
-/** VAT line under the total, following BILLING_VAT_MODE (Germany) or BILLING_TR_KDV (Türkiye). */
-export function vatNote(t: IBillingTranslation, vatMode: VatMode | null, market: MarketCode = "DE", trKdvIncluded = false): string {
-  if (market === "TR") return trKdvIncluded ? t.Order.VatTrKdv : t.Order.VatTr;
+/** VAT line under the total, following BILLING_VAT_MODE (Europe) or BILLING_TR_KDV (Türkiye). */
+export function vatNote(t: IBillingTranslation, vatMode: VatMode | null, country: PricingCountryCode = "DE", trKdvIncluded = false): string {
+  if (country === "TR") return trKdvIncluded ? t.Order.VatTrKdv : t.Order.VatTr;
   if (vatMode === "inclusive") return t.Order.VatInclusive;
   if (vatMode === "kleinunternehmer") return t.Order.VatSmallBusiness;
   return t.Order.VatOpen;

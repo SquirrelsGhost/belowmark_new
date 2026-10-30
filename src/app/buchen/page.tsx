@@ -8,8 +8,9 @@ import OrderIntro from "@/components/billing/OrderIntro";
 import OrderProNote from "@/components/billing/OrderProNote";
 import PageStack from "@/components/ui/PageStack";
 import { BILLING_ROUTES, BILLING_STATUS, MARKET_PARAM, OFFER_PARAM, UPGRADES } from "@/lib/billing/billingConfig";
+import { OrderMarketView } from "@/lib/billing/billingForm.types";
 import { buildOrderOffersByMarket, pickInitialOffer, vatNote } from "@/lib/billing/orderView";
-import { MarketCode, ROUTES } from "@/lib/constants";
+import { isPricingCountry, PRICING_COUNTRIES, PricingCountryCode, ROUTES } from "@/lib/constants";
 import { env } from "@/lib/env";
 import { getLegalPageContext, legalMetadata } from "@/lib/legal/legalPage";
 import { AppSessionService } from "@/services/AppSessionService";
@@ -32,46 +33,54 @@ export default async function OrderPage({ searchParams }: PageProps<"/buchen">) 
   const params = await searchParams;
   const wanted = typeof params[OFFER_PARAM] === "string" ? params[OFFER_PARAM] : undefined;
   const rawMarket = typeof params[MARKET_PARAM] === "string" ? params[MARKET_PARAM].toUpperCase() : undefined;
-  const returnQuery = [wanted && `${OFFER_PARAM}=${wanted}`, (rawMarket === "DE" || rawMarket === "TR") && `${MARKET_PARAM}=${rawMarket}`]
+  const returnQuery = [wanted && `${OFFER_PARAM}=${wanted}`, isPricingCountry(rawMarket) && `${MARKET_PARAM}=${rawMarket}`]
     .filter(Boolean)
     .join("&");
   const viewer = await AppSessionService.requireViewer(`${BILLING_ROUTES.order}${returnQuery ? `?${returnQuery}` : ""}`);
-  const [{ t, layout, lang }, region, userLocale] = await Promise.all([
+  const [{ t, layout, lang }, region, userLocale, homeTranslations] = await Promise.all([
     getLegalPageContext(),
     RegionService.GetRegion(),
     TranslationService.GetUserLocale(),
+    TranslationService.GetUserTranslations(),
   ]);
   const { Fields } = AuthTranslations[userLocale];
   const { Order } = t;
+  const pricingMarkets = homeTranslations.HomePage.Pricing.Markets;
 
-  const initialMarket: MarketCode =
-    rawMarket === "TR" || rawMarket === "DE" ? rawMarket : region.isMarketChosen ? region.market : viewer.market;
+  const initialMarket: PricingCountryCode =
+    isPricingCountry(rawMarket) ? rawMarket : region.isMarketChosen ? region.pricingCountry : viewer.market;
 
   const availabilityDe = BillingService.availability("DE");
   const availabilityTr = BillingService.availability("TR");
   const availability = initialMarket === "TR" ? availabilityTr : availabilityDe;
   const access = await BillingService.access(viewer.id);
   const offersByMarket = buildOrderOffersByMarket(t, viewer.market, lang, access, BillingService.orderBlocker);
-  const allBlocked = offersByMarket.DE.every((offer) => offer.blockedReason) && offersByMarket.TR.every((offer) => offer.blockedReason);
+  const allBlocked = PRICING_COUNTRIES.every((code) => offersByMarket[code].every((offer) => offer.blockedReason));
   const bothMarketsClosed = Boolean(availabilityDe.blocker && availabilityTr.blocker);
   const canUpgrade = access.isActive && access.plan === "investor" && Boolean(access.offer && UPGRADES[access.offer]);
   const upgrade = canUpgrade ? { href: BILLING_ROUTES.upgrade, label: Order.UpgradeCta } : undefined;
   const gaps = availability.isTest && !env.billingLegalApproved ? openLegalGaps(availability.vatMode) : [];
 
-  const markets = {
-    DE: {
-      code: "DE" as const,
-      label: Fields.MarketDe,
-      hint: Fields.MarketDeHint,
-      blocker: availabilityDe.blocker ? Order.Blockers[availabilityDe.blocker] : undefined,
-    },
-    TR: {
-      code: "TR" as const,
-      label: Fields.MarketTr,
-      hint: Fields.MarketTrHint,
-      blocker: availabilityTr.blocker ? Order.Blockers[availabilityTr.blocker] : undefined,
-    },
-  };
+  const markets = Object.fromEntries(
+    PRICING_COUNTRIES.map((code) => {
+      const avail = code === "TR" ? availabilityTr : availabilityDe;
+      const meta = pricingMarkets[code];
+      const view: OrderMarketView = {
+        code,
+        label: meta.Label,
+        hint: meta.Scope,
+        blocker: avail.blocker ? Order.Blockers[avail.blocker] : undefined,
+      };
+      return [code, view];
+    }),
+  ) as Record<PricingCountryCode, OrderMarketView>;
+
+  const vatNotes = Object.fromEntries(
+    PRICING_COUNTRIES.map((code) => [
+      code,
+      vatNote(t, code === "TR" ? availabilityTr.vatMode : availabilityDe.vatMode, code, env.billingTrKdvIncluded),
+    ]),
+  ) as Record<PricingCountryCode, string>;
 
   const notices = (
     <>
@@ -107,8 +116,8 @@ export default async function OrderPage({ searchParams }: PageProps<"/buchen">) 
             initialOffer={pickInitialOffer(offersByMarket[initialMarket], wanted)}
             email={viewer.email}
             upgrade={upgrade}
-            vatNotes={{ DE: vatNote(t, availabilityDe.vatMode, "DE"), TR: vatNote(t, availabilityTr.vatMode, "TR", env.billingTrKdvIncluded) }}
-            labels={{ ...Order, MarketNote: Fields.MarketNote }}
+            vatNotes={vatNotes}
+            labels={{ ...Order, MarketNote: homeTranslations.HomePage.Pricing.MarketHint || Fields.MarketNote }}
           />
         )}
       </AuthCard>

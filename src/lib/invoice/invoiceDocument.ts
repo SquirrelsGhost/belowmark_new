@@ -1,5 +1,5 @@
 import { BillingInvoice } from "@/db/schema";
-import { BillingOfferId, isOfferId, UPGRADES } from "@/lib/billing/billingConfig";
+import { BillingOfferId, isOfferId, toBillingCurrency, UPGRADES } from "@/lib/billing/billingConfig";
 import { formatContractDate, formatPrice } from "@/lib/billing/billingFormat";
 import { INVOICE_KINDS, SMALL_INVOICE_LIMIT_CENT, TR_VAT_MODES } from "@/lib/invoice/invoiceConfig";
 import { INVOICE_TEXT } from "@/lib/invoice/invoiceText";
@@ -44,7 +44,7 @@ const plain = (text: string): InvoiceText => ({ text });
 const LANG = "de";
 
 const money = (invoice: BillingInvoice, cent: number): string =>
-  formatPrice({ amount: cent, currency: invoice.currency === "try" ? "try" : "eur" }, LANG);
+  formatPrice({ amount: cent, currency: toBillingCurrency(invoice.currency) }, LANG);
 
 function recipientBlock(invoice: BillingInvoice): InvoiceText[] {
   if (invoice.recipientName && invoice.recipientAddress) {

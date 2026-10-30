@@ -13,7 +13,7 @@ import {
   OFFERS,
   TERMS_VERSION,
 } from "@/lib/billing/billingConfig";
-import { MarketCode } from "@/lib/constants";
+import { MarketCode, PricingCountryCode, pricingCountryToMarket } from "@/lib/constants";
 import { env } from "@/lib/env";
 import { isStripeTestKey, stripeClient } from "@/services/billing/StripeClient";
 import { BillingAccess, BillingAvailability, OrderBlocker, OrderResult } from "@/types/billing.types";
@@ -22,12 +22,12 @@ import { BillingAccess, BillingAvailability, OrderBlocker, OrderResult } from "@
 export interface OrderingUser {
   id: string;
   email: string;
-  market: MarketCode;
+  market: PricingCountryCode;
   locale: string;
 }
 
 /** Stripe must sell exactly the price shown on the order page — never a swapped id. */
-function priceMatches(price: Stripe.Price, offer: BillingOffer, market: MarketCode): boolean {
+function priceMatches(price: Stripe.Price, offer: BillingOffer, market: PricingCountryCode): boolean {
   const expected = offer.prices[market];
   const cadence =
     offer.kind === "subscription"
@@ -47,8 +47,8 @@ const absolute = (path: string): string => `${env.appUrl.replace(/\/+$/, "")}${p
  * a local test checkout that walks the same fulfilment path.
  */
 export class BillingService {
-  /** Can this market be booked right now? Says honestly why not. */
-  static availability = (market: MarketCode): BillingAvailability => {
+  /** Can this market/country be booked right now? Says honestly why not. */
+  static availability = (market: PricingCountryCode): BillingAvailability => {
     const vatMode = env.billingVatMode;
     if (!env.stripeSecretKey) {
       return env.billingTestCheckout
@@ -118,15 +118,16 @@ export class BillingService {
     user: OrderingUser,
     offerId: BillingOfferId,
     consentAt: Date,
-    currentMarket: MarketCode = user.market,
+    currentMarket: MarketCode = pricingCountryToMarket(user.market),
   ): Promise<OrderResult> => {
     const availability = BillingService.availability(user.market);
     if (availability.blocker) throw new Error(`billing unavailable: ${availability.blocker}`);
     const access = await BillingService.access(user.id);
-    const blocker = BillingService.orderBlocker(access, offerId, currentMarket, user.market);
+    const targetPlatformMarket = pricingCountryToMarket(user.market);
+    const blocker = BillingService.orderBlocker(access, offerId, currentMarket, targetPlatformMarket);
     if (blocker) throw new Error(`order blocked: ${blocker}`);
-    if (!access.isActive && currentMarket !== user.market) {
-      await db.update(users).set({ market: user.market }).where(eq(users.id, user.id));
+    if (!access.isActive && currentMarket !== targetPlatformMarket) {
+      await db.update(users).set({ market: targetPlatformMarket }).where(eq(users.id, user.id));
     }
 
     const offer = OFFERS[offerId];

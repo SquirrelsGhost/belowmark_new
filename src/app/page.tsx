@@ -73,7 +73,7 @@ export default async function HomePage() {
   const locale = TranslationService.ToLocaleOption(userLocale);
   const { Hero, Calculator, Ticker, Stats, Notice, Method, States, Limits, Compare, Pricing, Faq, Closing } = t.HomePage;
   const nav = t.Navigation;
-  const plans = Pricing.Markets[region.market];
+  const plans = Pricing.Markets[region.pricingCountry];
 
   // lang on the wrapper so uppercase display type follows locale rules (İ/I in Turkish)
   return (
@@ -207,12 +207,18 @@ export default async function HomePage() {
           disclaimer={Pricing.Disclaimer}
           marketSwitch={
             <PricingMarketSwitch
-              current={region.market}
+              current={region.pricingCountry}
               label={Pricing.MarketLabel}
               detectedLabel={region.isMarketChosen ? undefined : Pricing.MarketDetected}
               hint={Pricing.MarketHint}
               options={{
                 DE: { label: Pricing.Markets.DE.Label, scope: Pricing.Markets.DE.Scope },
+                AT: { label: Pricing.Markets.AT.Label, scope: Pricing.Markets.AT.Scope },
+                CH: { label: Pricing.Markets.CH.Label, scope: Pricing.Markets.CH.Scope },
+                IT: { label: Pricing.Markets.IT.Label, scope: Pricing.Markets.IT.Scope },
+                ES: { label: Pricing.Markets.ES.Label, scope: Pricing.Markets.ES.Scope },
+                FR: { label: Pricing.Markets.FR.Label, scope: Pricing.Markets.FR.Scope },
+                GB: { label: Pricing.Markets.GB.Label, scope: Pricing.Markets.GB.Scope },
                 TR: { label: Pricing.Markets.TR.Label, scope: Pricing.Markets.TR.Scope },
               }}
             />
@@ -221,14 +227,14 @@ export default async function HomePage() {
           <PricingPlan {...planProps(plans.Free)} href={ROUTES.signup} />
           <PricingPlan
             {...planProps(plans.Investor)}
-            href={`${BILLING_ROUTES.order}?${OFFER_PARAM}=investor-monat&${MARKET_PARAM}=${region.market}`}
+            href={`${BILLING_ROUTES.order}?${OFFER_PARAM}=investor-monat&${MARKET_PARAM}=${region.pricingCountry}`}
             altPrice={`${Pricing.AltPricePrefix} ${plans.Investor.AltPrice} ${plans.Investor.AltPeriod}`}
             recommendedLabel={Pricing.Recommended}
             delay={STAGGER_MS}
           />
           <PricingPlan
             {...planProps(plans.Pro)}
-            href={`${BILLING_ROUTES.order}?${OFFER_PARAM}=pro-monat&${MARKET_PARAM}=${region.market}`}
+            href={`${BILLING_ROUTES.order}?${OFFER_PARAM}=pro-monat&${MARKET_PARAM}=${region.pricingCountry}`}
             altPrice={`${Pricing.AltPricePrefix} ${plans.Pro.AltPrice} ${plans.Pro.AltPeriod}`}
             delay={STAGGER_MS * 2}
           />

@@ -1,6 +1,6 @@
-import { BillingOfferId, MIN_UPGRADE_CHARGE, OFFERS } from "@/lib/billing/billingConfig";
+import { BillingCurrency, BillingOfferId, MIN_UPGRADE_CHARGE, OFFERS } from "@/lib/billing/billingConfig";
 import { addCalendarMonths } from "@/lib/billing/billingDates";
-import { MarketCode } from "@/lib/constants";
+import { PricingCountryCode } from "@/lib/constants";
 
 /**
  * Price of switching to Pro for the rest of what is already paid:
@@ -13,7 +13,7 @@ import { MarketCode } from "@/lib/constants";
  * Stripe prorates a subscription the same way (by the second); for a running
  * subscription its own preview is the amount charged.
  */
-export function proratedUpgradeAmount(from: BillingOfferId, to: BillingOfferId, market: MarketCode, endsAt: Date, now: Date = new Date()): number {
+export function proratedUpgradeAmount(from: BillingOfferId, to: BillingOfferId, market: PricingCountryCode, endsAt: Date, now: Date = new Date()): number {
   const fromPrice = OFFERS[from].prices[market];
   const toPrice = OFFERS[to].prices[market];
   const difference = toPrice.amount - fromPrice.amount;
@@ -25,4 +25,4 @@ export function proratedUpgradeAmount(from: BillingOfferId, to: BillingOfferId, 
 }
 
 /** Tiny remainders are not charged at all (see MIN_UPGRADE_CHARGE). */
-export const isChargeable = (amount: number, currency: "eur" | "try"): boolean => amount >= MIN_UPGRADE_CHARGE[currency];
+export const isChargeable = (amount: number, currency: BillingCurrency): boolean => amount >= MIN_UPGRADE_CHARGE[currency];

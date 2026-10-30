@@ -1,5 +1,5 @@
 import { IMetaTags } from "../services/MetaTagService";
-import { MarketCode } from "../lib/constants";
+import { PricingCountryCode } from "../lib/constants";
 import { SegmentKey } from "../lib/snapshot";
 import { IAppTranslation } from "./app/IAppTranslation";
 
@@ -193,7 +193,7 @@ export interface ITranslation {
       MarketLabel: string;
       MarketDetected: string;
       MarketHint: string;
-      Markets: Record<MarketCode, IMarketPlans>;
+      Markets: Record<PricingCountryCode, IMarketPlans>;
       Disclaimer: string;
     };
 

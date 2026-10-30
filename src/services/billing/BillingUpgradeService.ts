@@ -1,12 +1,12 @@
 import "server-only";
-import { eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import Stripe from "stripe";
 import { db } from "@/db";
 import { billingOrders, users } from "@/db/schema";
 import { BILLING_ROUTES, BILLING_STATUS, BillingOfferId, MIN_UPGRADE_CHARGE, OFFERS, TERMS_VERSION, UPGRADES } from "@/lib/billing/billingConfig";
 import { BILLING_ACCOUNT_PARAM } from "@/lib/billing/billingRoutes";
 import { isChargeable, proratedUpgradeAmount } from "@/lib/billing/upgradeMath";
-import { MarketCode } from "@/lib/constants";
+import { isPricingCountry, MarketCode, PricingCountryCode } from "@/lib/constants";
 import { env } from "@/lib/env";
 import { BillingFulfillment } from "@/services/billing/BillingFulfillment";
 import { BillingService, OrderingUser } from "@/services/billing/BillingService";
@@ -15,6 +15,18 @@ import { OrderResult, UpgradeQuote } from "@/types/billing.types";
 
 const absolute = (path: string): string => `${env.appUrl.replace(/\/+$/, "")}${path}`;
 const PAID_URL = `/konto?${BILLING_ACCOUNT_PARAM}=${BILLING_STATUS.paid}#tarif`;
+
+/** Resolves the specific pricing country (DE, AT, CH, IT, ES, FR, GB, TR) from the user's latest paid Investor order. */
+async function resolveBookedPricingCountry(userId: string, fallbackMarket: MarketCode | PricingCountryCode): Promise<PricingCountryCode> {
+  const [lastOrder] = await db
+    .select({ market: billingOrders.market })
+    .from(billingOrders)
+    .where(and(eq(billingOrders.userId, userId), eq(billingOrders.status, "paid")))
+    .orderBy(desc(billingOrders.paidAt))
+    .limit(1);
+  if (lastOrder && isPricingCountry(lastOrder.market)) return lastOrder.market;
+  return isPricingCountry(fallbackMarket) ? fallbackMarket : "DE";
+}
 
 /** Fixed Stripe product per offer, so an upgrade never needs a price set up by hand. */
 async function ensureProduct(stripe: Stripe, offerId: BillingOfferId, name: string): Promise<string> {
@@ -48,11 +60,12 @@ async function runningSubscription(userId: string): Promise<Stripe.Subscription 
  */
 export class BillingUpgradeService {
   /** What an upgrade would cost now — null when no upgrade applies. */
-  static quote = async (userId: string, market: MarketCode): Promise<UpgradeQuote | null> => {
+  static quote = async (userId: string, fallbackMarket: MarketCode | PricingCountryCode): Promise<UpgradeQuote | null> => {
     const access = await BillingService.access(userId);
     const from = access.offer;
     const to = from ? UPGRADES[from] : undefined;
     if (!access.isActive || access.plan !== "investor" || !from || !to || !access.endsAt) return null;
+    const market = await resolveBookedPricingCountry(userId, fallbackMarket);
     const currency = OFFERS[to].prices[market].currency;
     const subscription = OFFERS[from].kind === "subscription" ? await runningSubscription(userId) : null;
     const rawAmount = subscription
@@ -75,16 +88,16 @@ export class BillingUpgradeService {
 
   /** Records the upgrade and returns where the browser goes next. */
   static place = async (user: OrderingUser, consentAt: Date): Promise<OrderResult> => {
-    const availability = BillingService.availability(user.market);
-    if (availability.blocker) throw new Error(`billing unavailable: ${availability.blocker}`);
     const quote = await BillingUpgradeService.quote(user.id, user.market);
     if (!quote) throw new Error("order blocked: no upgrade");
+    const availability = BillingService.availability(quote.market);
+    if (availability.blocker) throw new Error(`billing unavailable: ${availability.blocker}`);
 
     const [order] = await db
       .insert(billingOrders)
       .values({
         userId: user.id,
-        market: user.market,
+        market: quote.market,
         offer: quote.to,
         upgradeFrom: quote.from,
         amount: quote.amount,
@@ -107,7 +120,7 @@ export class BillingUpgradeService {
   };
 
   /** Stripe's own number for the switch, to the cent, as it will be invoiced. */
-  private static stripePreview = async (subscription: Stripe.Subscription, to: BillingOfferId, market: MarketCode): Promise<number> => {
+  private static stripePreview = async (subscription: Stripe.Subscription, to: BillingOfferId, market: PricingCountryCode): Promise<number> => {
     const stripe = stripeClient();
     const preview = await stripe.invoices.createPreview({
       customer: typeof subscription.customer === "string" ? subscription.customer : subscription.customer.id,
@@ -122,7 +135,7 @@ export class BillingUpgradeService {
   };
 
   /** A configured Pro price, otherwise the price from the table on a fixed product. */
-  private static priceParam = async (stripe: Stripe, to: BillingOfferId, market: MarketCode) => {
+  private static priceParam = async (stripe: Stripe, to: BillingOfferId, market: PricingCountryCode) => {
     const offer = OFFERS[to];
     const priceId = env.stripePrice(offer.priceEnv[market]);
     if (priceId) return { price: priceId };

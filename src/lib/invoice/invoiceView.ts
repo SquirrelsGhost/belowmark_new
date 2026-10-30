@@ -1,5 +1,5 @@
 import { BillingInvoice } from "@/db/schema";
-import { isOfferId } from "@/lib/billing/billingConfig";
+import { isOfferId, toBillingCurrency } from "@/lib/billing/billingConfig";
 import { formatContractDate, formatPrice } from "@/lib/billing/billingFormat";
 import { INVOICE_KINDS, invoicePdfHref } from "@/lib/invoice/invoiceConfig";
 import { LocaleOption } from "@/lib/constants";
@@ -29,7 +29,7 @@ export function buildInvoiceListView(invoice: BillingInvoice, t: IAccountTransla
     date: formatContractDate(invoice.issuedAt, lang),
     service: invoice.kind === INVOICE_KINDS.renewal ? `${offer} · ${t.Renewal}` : invoice.kind === INVOICE_KINDS.upgrade ? `${offer} · ${t.Upgrade}` : offer,
     period: `${formatContractDate(invoice.serviceFrom, lang)} – ${formatContractDate(invoice.serviceTo, lang)}`,
-    amount: formatPrice({ amount: invoice.amount, currency: invoice.currency === "try" ? "try" : "eur" }, lang),
+    amount: formatPrice({ amount: invoice.amount, currency: toBillingCurrency(invoice.currency) }, lang),
     status: invoice.isTest ? t.Test : t.Paid,
     isTest: invoice.isTest,
     downloadHref: invoicePdfHref(invoice.id),

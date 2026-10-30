@@ -1,4 +1,4 @@
-import { MarketCode } from "@/lib/constants";
+import { PricingCountryCode } from "@/lib/constants";
 
 /**
  * Everything that can be booked, in one place. The visible price on the order
@@ -17,11 +17,19 @@ export type BillingOfferId = (typeof BILLING_OFFERS)[number];
 
 export type BillingKind = "subscription" | "one_time";
 
+export type BillingCurrency = "eur" | "chf" | "gbp" | "try";
+
+export const toBillingCurrency = (value: string | null | undefined): BillingCurrency => {
+  const lower = value?.toLowerCase();
+  if (lower === "try" || lower === "chf" || lower === "gbp") return lower;
+  return "eur";
+};
+
 export interface OfferPrice {
-  /** Gross amount in the smallest unit (cent / kuruş) */
+  /** Gross amount in the smallest unit (cent / Rappen / pence / kuruş) */
   amount: number;
   /** ISO code in lower case, as Stripe writes it */
-  currency: "eur" | "try";
+  currency: BillingCurrency;
 }
 
 export interface BillingOffer {
@@ -30,9 +38,9 @@ export interface BillingOffer {
   kind: BillingKind;
   /** Calendar months of access per payment */
   months: number;
-  prices: Record<MarketCode, OfferPrice>;
-  /** Environment variable holding the Stripe price id, per market */
-  priceEnv: Record<MarketCode, string>;
+  prices: Record<PricingCountryCode, OfferPrice>;
+  /** Environment variable holding the Stripe price id, per country */
+  priceEnv: Record<PricingCountryCode, string>;
 }
 
 export const OFFERS: Record<BillingOfferId, BillingOffer> = {
@@ -41,32 +49,104 @@ export const OFFERS: Record<BillingOfferId, BillingOffer> = {
     plan: "investor",
     kind: "subscription",
     months: 1,
-    prices: { DE: { amount: 3_900, currency: "eur" }, TR: { amount: 59_900, currency: "try" } },
-    priceEnv: { DE: "STRIPE_PRICE_DE_INVESTOR_MONAT", TR: "STRIPE_PRICE_TR_INVESTOR_MONAT" },
+    prices: {
+      DE: { amount: 3_900, currency: "eur" },
+      AT: { amount: 3_900, currency: "eur" },
+      FR: { amount: 3_900, currency: "eur" },
+      IT: { amount: 2_900, currency: "eur" },
+      ES: { amount: 2_900, currency: "eur" },
+      CH: { amount: 4_900, currency: "chf" },
+      GB: { amount: 3_500, currency: "gbp" },
+      TR: { amount: 59_900, currency: "try" },
+    },
+    priceEnv: {
+      DE: "STRIPE_PRICE_DE_INVESTOR_MONAT",
+      AT: "STRIPE_PRICE_AT_INVESTOR_MONAT",
+      FR: "STRIPE_PRICE_FR_INVESTOR_MONAT",
+      IT: "STRIPE_PRICE_IT_INVESTOR_MONAT",
+      ES: "STRIPE_PRICE_ES_INVESTOR_MONAT",
+      CH: "STRIPE_PRICE_CH_INVESTOR_MONAT",
+      GB: "STRIPE_PRICE_GB_INVESTOR_MONAT",
+      TR: "STRIPE_PRICE_TR_INVESTOR_MONAT",
+    },
   },
   "investor-quartal": {
     id: "investor-quartal",
     plan: "investor",
     kind: "one_time",
     months: 3,
-    prices: { DE: { amount: 9_900, currency: "eur" }, TR: { amount: 149_000, currency: "try" } },
-    priceEnv: { DE: "STRIPE_PRICE_DE_INVESTOR_QUARTAL", TR: "STRIPE_PRICE_TR_INVESTOR_QUARTAL" },
+    prices: {
+      DE: { amount: 9_900, currency: "eur" },
+      AT: { amount: 9_900, currency: "eur" },
+      FR: { amount: 9_900, currency: "eur" },
+      IT: { amount: 7_900, currency: "eur" },
+      ES: { amount: 7_900, currency: "eur" },
+      CH: { amount: 12_900, currency: "chf" },
+      GB: { amount: 8_900, currency: "gbp" },
+      TR: { amount: 149_000, currency: "try" },
+    },
+    priceEnv: {
+      DE: "STRIPE_PRICE_DE_INVESTOR_QUARTAL",
+      AT: "STRIPE_PRICE_AT_INVESTOR_QUARTAL",
+      FR: "STRIPE_PRICE_FR_INVESTOR_QUARTAL",
+      IT: "STRIPE_PRICE_IT_INVESTOR_QUARTAL",
+      ES: "STRIPE_PRICE_ES_INVESTOR_QUARTAL",
+      CH: "STRIPE_PRICE_CH_INVESTOR_QUARTAL",
+      GB: "STRIPE_PRICE_GB_INVESTOR_QUARTAL",
+      TR: "STRIPE_PRICE_TR_INVESTOR_QUARTAL",
+    },
   },
   "pro-monat": {
     id: "pro-monat",
     plan: "pro",
     kind: "subscription",
     months: 1,
-    prices: { DE: { amount: 12_900, currency: "eur" }, TR: { amount: 199_000, currency: "try" } },
-    priceEnv: { DE: "STRIPE_PRICE_DE_PRO_MONAT", TR: "STRIPE_PRICE_TR_PRO_MONAT" },
+    prices: {
+      DE: { amount: 12_900, currency: "eur" },
+      AT: { amount: 12_900, currency: "eur" },
+      FR: { amount: 12_900, currency: "eur" },
+      IT: { amount: 9_900, currency: "eur" },
+      ES: { amount: 9_900, currency: "eur" },
+      CH: { amount: 15_900, currency: "chf" },
+      GB: { amount: 11_900, currency: "gbp" },
+      TR: { amount: 199_000, currency: "try" },
+    },
+    priceEnv: {
+      DE: "STRIPE_PRICE_DE_PRO_MONAT",
+      AT: "STRIPE_PRICE_AT_PRO_MONAT",
+      FR: "STRIPE_PRICE_FR_PRO_MONAT",
+      IT: "STRIPE_PRICE_IT_PRO_MONAT",
+      ES: "STRIPE_PRICE_ES_PRO_MONAT",
+      CH: "STRIPE_PRICE_CH_PRO_MONAT",
+      GB: "STRIPE_PRICE_GB_PRO_MONAT",
+      TR: "STRIPE_PRICE_TR_PRO_MONAT",
+    },
   },
   "pro-quartal": {
     id: "pro-quartal",
     plan: "pro",
     kind: "one_time",
     months: 3,
-    prices: { DE: { amount: 32_900, currency: "eur" }, TR: { amount: 499_000, currency: "try" } },
-    priceEnv: { DE: "STRIPE_PRICE_DE_PRO_QUARTAL", TR: "STRIPE_PRICE_TR_PRO_QUARTAL" },
+    prices: {
+      DE: { amount: 32_900, currency: "eur" },
+      AT: { amount: 32_900, currency: "eur" },
+      FR: { amount: 32_900, currency: "eur" },
+      IT: { amount: 24_900, currency: "eur" },
+      ES: { amount: 24_900, currency: "eur" },
+      CH: { amount: 39_900, currency: "chf" },
+      GB: { amount: 29_900, currency: "gbp" },
+      TR: { amount: 499_000, currency: "try" },
+    },
+    priceEnv: {
+      DE: "STRIPE_PRICE_DE_PRO_QUARTAL",
+      AT: "STRIPE_PRICE_AT_PRO_QUARTAL",
+      FR: "STRIPE_PRICE_FR_PRO_QUARTAL",
+      IT: "STRIPE_PRICE_IT_PRO_QUARTAL",
+      ES: "STRIPE_PRICE_ES_PRO_QUARTAL",
+      CH: "STRIPE_PRICE_CH_PRO_QUARTAL",
+      GB: "STRIPE_PRICE_GB_PRO_QUARTAL",
+      TR: "STRIPE_PRICE_TR_PRO_QUARTAL",
+    },
   },
 };
 
@@ -86,7 +166,12 @@ export const UPGRADES: Partial<Record<BillingOfferId, BillingOfferId>> = {
  * Below this an upgrade is not charged (Stripe refuses charges under about
  * 0,50 € after conversion; for TRY a round amount safely above that).
  */
-export const MIN_UPGRADE_CHARGE: Record<OfferPrice["currency"], number> = { eur: 50, try: 5_000 };
+export const MIN_UPGRADE_CHARGE: Record<BillingCurrency, number> = {
+  eur: 50,
+  chf: 50,
+  gbp: 50,
+  try: 5_000,
+};
 
 export const isOfferId = (value: unknown): value is BillingOfferId =>
   typeof value === "string" && (BILLING_OFFERS as readonly string[]).includes(value);

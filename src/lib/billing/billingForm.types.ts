@@ -1,11 +1,11 @@
-import { MarketCode } from "@/lib/constants";
+import { PricingCountryCode } from "@/lib/constants";
 import { DeclarationErrorCode, DeleteErrorCode } from "@/translations/billing/IBillingTranslation";
 
 export interface OrderFormState {
   status: "idle" | "error";
   code?: "consent_required" | "failed" | "blocked";
   offer?: string;
-  market?: MarketCode;
+  market?: PricingCountryCode;
 }
 
 export interface DeclarationFormState {
@@ -37,7 +37,7 @@ export interface OrderOfferView {
 }
 
 export interface OrderMarketView {
-  code: MarketCode;
+  code: PricingCountryCode;
   label: string;
   hint: string;
   blocker?: string;

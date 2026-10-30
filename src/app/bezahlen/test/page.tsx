@@ -7,7 +7,7 @@ import BillingNotice from "@/components/billing/BillingNotice";
 import OrderIntro from "@/components/billing/OrderIntro";
 import TestCheckoutCard from "@/components/billing/TestCheckoutCard";
 import PageStack from "@/components/ui/PageStack";
-import { BILLING_ROUTES, isOfferId } from "@/lib/billing/billingConfig";
+import { BILLING_ROUTES, isOfferId, toBillingCurrency } from "@/lib/billing/billingConfig";
 import { formatPrice } from "@/lib/billing/billingFormat";
 import { env } from "@/lib/env";
 import { getLegalPageContext, legalMetadata } from "@/lib/legal/legalPage";
@@ -40,7 +40,7 @@ export default async function TestCheckoutPage({ searchParams }: PageProps<"/bez
           <TestCheckoutCard
             orderId={order.id}
             offerName={t.Order.Offers[order.offer].Name}
-            price={formatPrice({ amount: order.amount, currency: order.currency === "try" ? "try" : "eur" }, lang)}
+            price={formatPrice({ amount: order.amount, currency: toBillingCurrency(order.currency) }, lang)}
             labels={TestCheckout}
           />
         ) : (

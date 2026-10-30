@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { AUTH_PARAMS, AUTH_ROUTES, RATE_LIMITS } from "@/lib/auth/authConfig";
 import { BILLING_ROUTES, isOfferId, MARKET_PARAM, OFFER_PARAM } from "@/lib/billing/billingConfig";
 import { OrderFormState } from "@/lib/billing/billingForm.types";
-import { MarketCode } from "@/lib/constants";
+import { isPricingCountry, MarketCode, PricingCountryCode } from "@/lib/constants";
 import { RateLimitService } from "@/services/RateLimitService";
 import { BillingService } from "@/services/billing/BillingService";
 import { SessionService } from "@/services/SessionService";
@@ -13,18 +13,18 @@ import { SessionService } from "@/services/SessionService";
 export async function placeOrderAction(_previous: OrderFormState, formData: FormData): Promise<OrderFormState> {
   const rawOffer = String(formData.get("offer") ?? "");
   const rawMarket = String(formData.get("market") ?? "").toUpperCase();
-  const fallbackMarket: MarketCode = rawMarket === "TR" ? "TR" : "DE";
+  const fallbackMarket: PricingCountryCode = isPricingCountry(rawMarket) ? rawMarket : "DE";
   if (!isOfferId(rawOffer)) return { status: "error", code: "failed", market: fallbackMarket };
   const offer = rawOffer;
 
   const user = await SessionService.getCurrentUser();
   if (!user) {
-    const query = `${OFFER_PARAM}=${offer}${rawMarket === "TR" || rawMarket === "DE" ? `&${MARKET_PARAM}=${rawMarket}` : ""}`;
+    const query = `${OFFER_PARAM}=${offer}${isPricingCountry(rawMarket) ? `&${MARKET_PARAM}=${rawMarket}` : ""}`;
     redirect(`${AUTH_ROUTES.login}?${AUTH_PARAMS.next}=${encodeURIComponent(`${BILLING_ROUTES.order}?${query}`)}`);
   }
 
   const currentMarket: MarketCode = user.market === "TR" ? "TR" : "DE";
-  const market: MarketCode = rawMarket === "TR" ? "TR" : rawMarket === "DE" ? "DE" : currentMarket;
+  const market: PricingCountryCode = isPricingCountry(rawMarket) ? rawMarket : currentMarket;
 
   if (formData.get("consent") !== "on") return { status: "error", code: "consent_required", offer, market };
 

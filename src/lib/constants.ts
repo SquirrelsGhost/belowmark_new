@@ -11,10 +11,22 @@ export const DEFAULT_LOCALE = "de";
 export const LOCALE_OPTIONS = ["de", "tr"] as const;
 export type LocaleOption = (typeof LOCALE_OPTIONS)[number];
 
-/** The two separately booked markets: German ZVG and Turkish İcra/İhale. */
+/** The two separately booked markets: German/European ZVG & Turkish İcra/İhale. */
 export const MARKETS = ["DE", "TR"] as const;
 export type MarketCode = (typeof MARKETS)[number];
 export const DEFAULT_MARKET: MarketCode = "DE";
+
+/** All 8 countries selectable in the Pricing & Checkout sections (Option B localized pricing). */
+export const PRICING_COUNTRIES = ["DE", "AT", "CH", "IT", "ES", "FR", "GB", "TR"] as const;
+export type PricingCountryCode = (typeof PRICING_COUNTRIES)[number];
+export const DEFAULT_PRICING_COUNTRY: PricingCountryCode = "DE";
+
+export const isPricingCountry = (value: unknown): value is PricingCountryCode =>
+  typeof value === "string" && (PRICING_COUNTRIES as readonly string[]).includes(value);
+
+/** Maps any of the 8 pricing countries to its platform snapshot market (7 European countries → DE, Turkey → TR). */
+export const pricingCountryToMarket = (country: PricingCountryCode): MarketCode =>
+  country === "TR" ? "TR" : "DE";
 
 /** Country detected from the browser time zone when the host sends no geo header. */
 export const COUNTRY_COOKIE_NAME = "BELOWMARK_COUNTRY";

@@ -1,7 +1,7 @@
-import { MarketCode } from "@/lib/constants";
+import { PricingCountryCode } from "@/lib/constants";
 
 interface OrderMarketOptionProps {
-  code: MarketCode;
+  code: PricingCountryCode;
   label: string;
   hint: string;
   isSelected: boolean;

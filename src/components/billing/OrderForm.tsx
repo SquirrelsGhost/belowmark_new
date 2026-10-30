@@ -14,19 +14,19 @@ import OrderSummaryRow from "@/components/billing/OrderSummaryRow";
 import OrderTermsNote from "@/components/billing/OrderTermsNote";
 import { placeOrderAction } from "@/lib/billing/actions/placeOrderAction";
 import { INITIAL_ORDER_STATE, OrderFormLabels, OrderMarketView, OrderOfferView } from "@/lib/billing/billingForm.types";
-import { MARKETS, MarketCode } from "@/lib/constants";
+import { PRICING_COUNTRIES, PricingCountryCode } from "@/lib/constants";
 import { setMarketAction } from "@/lib/regionActions";
 
 export type { OrderFormLabels, OrderMarketView, OrderOfferView };
 
 interface OrderFormProps {
-  offersByMarket: Record<MarketCode, OrderOfferView[]>;
-  markets: Record<MarketCode, OrderMarketView>;
-  initialMarket: MarketCode;
+  offersByMarket: Record<PricingCountryCode, OrderOfferView[]>;
+  markets: Record<PricingCountryCode, OrderMarketView>;
+  initialMarket: PricingCountryCode;
   initialOffer: string;
   email: string;
-  /** VAT line per market — Germany with USt, Türkiye without German VAT */
-  vatNotes: Record<MarketCode, string>;
+  /** VAT line per country — Europe with USt, Türkiye without German VAT */
+  vatNotes: Record<PricingCountryCode, string>;
   /** Shown under the offers while Investor runs: link to the prorated upgrade */
   upgrade?: { href: string; label: string };
   labels: OrderFormLabels;
@@ -34,11 +34,11 @@ interface OrderFormProps {
 
 const STEP_LEGEND_CLASSES = "mb-3 font-mono text-[11px] font-semibold tracking-[0.14em] text-ink-soft uppercase";
 
-/** Market switch, duration, summary, the one consent, the order button — everything § 312j BGB wants right above it. */
+/** Country switch, duration, summary, the one consent, the order button — everything § 312j BGB wants right above it. */
 export default function OrderForm({ offersByMarket, markets, initialMarket, initialOffer, email, vatNotes, upgrade, labels }: OrderFormProps) {
   const router = useRouter();
   const [state, action] = useActionState(placeOrderAction, INITIAL_ORDER_STATE);
-  const [selectedMarket, setSelectedMarket] = useState<MarketCode>(state.market ?? initialMarket);
+  const [selectedMarket, setSelectedMarket] = useState<PricingCountryCode>(state.market ?? initialMarket);
   const [selected, setSelected] = useState(state.offer ?? initialOffer);
   const [, startTransition] = useTransition();
 
@@ -47,7 +47,7 @@ export default function OrderForm({ offersByMarket, markets, initialMarket, init
   const currentMarket = markets[selectedMarket];
   const formError = state.code === "failed" ? labels.Failed : state.code === "blocked" ? labels.Blocked : undefined;
 
-  const chooseMarket = (next: MarketCode) => {
+  const chooseMarket = (next: PricingCountryCode) => {
     setSelectedMarket(next);
     startTransition(async () => {
       try {
@@ -64,8 +64,8 @@ export default function OrderForm({ offersByMarket, markets, initialMarket, init
         <legend className={STEP_LEGEND_CLASSES}>
           <span className="text-signal">01</span> {labels.Market}
         </legend>
-        <div className="grid gap-3 sm:grid-cols-2">
-          {MARKETS.map((code) => (
+        <div className="grid gap-2.5 sm:grid-cols-2">
+          {PRICING_COUNTRIES.map((code) => (
             <OrderMarketOption key={code} {...markets[code]} isSelected={code === selectedMarket} onSelect={() => chooseMarket(code)} />
           ))}
         </div>

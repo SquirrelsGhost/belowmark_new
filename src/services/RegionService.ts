@@ -2,16 +2,22 @@ import { cookies, headers } from "next/headers";
 import {
   COUNTRY_COOKIE_NAME,
   DEFAULT_MARKET,
+  DEFAULT_PRICING_COUNTRY,
   GEO_COUNTRY_HEADERS,
+  isPricingCountry,
   MARKET_COOKIE_NAME,
   MARKETS,
   MarketCode,
+  PricingCountryCode,
+  pricingCountryToMarket,
 } from "@/lib/constants";
 
 export interface IRegion {
-  /** Market whose plans and prices are shown */
+  /** Market whose snapshot is active (DE = Europe, TR = Türkiye) */
   market: MarketCode;
-  /** true once the visitor picked the market in the pricing section */
+  /** Specific country selected in the pricing/checkout switcher (DE, AT, CH, IT, ES, FR, GB, TR) */
+  pricingCountry: PricingCountryCode;
+  /** true once the visitor picked the market/country in the pricing section */
   isMarketChosen: boolean;
   /** true when the host's geo header decided — then no browser check is needed */
   isFromGeoHeader: boolean;
@@ -39,12 +45,16 @@ export class RegionService {
     const cookieCountry = cookieStore.get(COUNTRY_COOKIE_NAME)?.value;
     const languageCountry = headersList.get("accept-language")?.toLowerCase().startsWith("tr") ? "TR" : undefined;
 
-    const country = RegionService.ToMarket(geoCountry ?? cookieCountry ?? languageCountry);
-    const chosenMarket = cookieStore.get(MARKET_COOKIE_NAME)?.value;
-    const isMarketChosen = RegionService.IsMarket(chosenMarket);
+    const detectedCountryCode = geoCountry ?? cookieCountry ?? languageCountry;
+    const country = RegionService.ToMarket(detectedCountryCode);
+    const detectedPricingCountry = RegionService.ToPricingCountry(detectedCountryCode);
+    const chosenRaw = cookieStore.get(MARKET_COOKIE_NAME)?.value?.toUpperCase();
+    const isMarketChosen = isPricingCountry(chosenRaw);
+    const pricingCountry: PricingCountryCode = isMarketChosen ? chosenRaw : detectedPricingCountry;
 
     return {
-      market: isMarketChosen ? chosenMarket : country,
+      market: pricingCountryToMarket(pricingCountry),
+      pricingCountry,
       isMarketChosen,
       isFromGeoHeader: Boolean(geoCountry),
       country,
@@ -58,5 +68,12 @@ export class RegionService {
   /** Turkey maps to the TR market, every other country to DE. */
   static ToMarket = (country: string | undefined | null): MarketCode => {
     return country?.toUpperCase() === "TR" ? "TR" : DEFAULT_MARKET;
+  };
+
+  /** Maps a 2-letter ISO country code to one of the 8 localized pricing countries. */
+  static ToPricingCountry = (country: string | undefined | null): PricingCountryCode => {
+    const upper = country?.toUpperCase();
+    if (upper === "UK") return "GB";
+    return isPricingCountry(upper) ? upper : DEFAULT_PRICING_COUNTRY;
   };
 }

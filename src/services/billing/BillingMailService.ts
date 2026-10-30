@@ -2,7 +2,7 @@ import "server-only";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { billingOrders, ConsumerDeclaration, users } from "@/db/schema";
-import { isOfferId, OFFERS } from "@/lib/billing/billingConfig";
+import { isOfferId, OFFERS, toBillingCurrency } from "@/lib/billing/billingConfig";
 import { fill, formatContractDate, formatPrice, formatReceiptTime } from "@/lib/billing/billingFormat";
 import { vatNote } from "@/lib/billing/orderView";
 import { LocaleOption } from "@/lib/constants";
@@ -53,7 +53,7 @@ export class BillingMailService {
     const t = textsFor(lang);
     const offer = OFFERS[row.order.offer];
     const offerText = t.Order.Offers[offer.id];
-    const price = formatPrice({ amount: row.order.amount, currency: row.order.currency === "try" ? "try" : "eur" }, lang);
+    const price = formatPrice({ amount: row.order.amount, currency: toBillingCurrency(row.order.currency) }, lang);
     const lines = fill(t.Mail.Order.Lines, {
       offer: offerText.Name,
       price,

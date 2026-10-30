@@ -1,5 +1,5 @@
-import type { BillingBlocker, BillingMode, BillingOfferId, VatMode } from "@/lib/billing/billingConfig";
-import type { MarketCode } from "@/lib/constants";
+import type { BillingBlocker, BillingCurrency, BillingMode, BillingOfferId, VatMode } from "@/lib/billing/billingConfig";
+import type { PricingCountryCode } from "@/lib/constants";
 
 /** Whether the order button can be offered in this market right now, and why not. */
 export interface BillingAvailability {
@@ -31,8 +31,8 @@ export type OrderBlocker = "subscription_running" | "term_running" | "use_upgrad
 export interface UpgradeQuote {
   from: BillingOfferId;
   to: BillingOfferId;
-  market: MarketCode;
-  currency: "eur" | "try";
+  market: PricingCountryCode;
+  currency: BillingCurrency;
   /** Prorated difference due now, smallest unit; 0 = switched without charge */
   amount: number;
   /** Unchanged end of the paid period */
