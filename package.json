@@ -16,6 +16,7 @@
     "alerts:run": "node scripts/run-alerts.mjs",
     "termine:run": "node scripts/run-deadlines.mjs",
     "sync": "node --use-system-ca scripts/sync-live.mjs",
+    "stripe:sync": "node --use-system-ca scripts/sync-stripe-prices.mjs",
     "tr:kurs": "node --use-system-ca scripts/fetch-tcmb-kurs.mjs",
     "tr:tufe": "node --use-system-ca scripts/fetch-tufe.mjs",
     "insta:daily": "node scripts/instagram-daily.mjs",
