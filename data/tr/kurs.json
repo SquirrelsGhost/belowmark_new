@@ -1,0 +1,13 @@
+{
+ "meta": {
+  "source": "TCMB · Gösterge niteliğindeki Merkez Bankası kurları",
+  "url": "https://www.tcmb.gov.tr/kurlar/today.xml",
+  "bulletin": "2026/202",
+  "date": "2026-10-26",
+  "fetchedAt": "2026-10-26T15:22:20.229Z"
+ },
+ "eur": {
+  "buying": 55.6539,
+  "selling": 55.7542
+ }
+}

@@ -25,6 +25,7 @@ const globalForDb = globalThis as unknown as {
   dbInstance: DatabaseInstance | undefined;
   dbInitPromise: Promise<DatabaseInstance> | undefined;
   lastMigratedJournalSignature: string | undefined;
+  isRemotePg: boolean | undefined;
 };
 
 const MIGRATIONS_FOLDER = path.join(process.cwd(), "drizzle");
@@ -59,12 +60,27 @@ function readJournalSignature(): string {
  * module evaluation. Skips statements whose objects already exist (`42P07` duplicate_table,
  * `42701` duplicate_column, `42710` duplicate_object).
  */
-async function ensureSchemaOnDb(dbInst: DatabaseInstance): Promise<void> {
+async function ensureSchemaOnDb(dbInst: DatabaseInstance, isRemotePg = false): Promise<void> {
   if (!fs.existsSync(JOURNAL_FILE)) return;
 
   const signature = readJournalSignature();
   if (globalForDb.lastMigratedJournalSignature === signature && signature !== "") {
     return;
+  }
+
+  if (isRemotePg) {
+    try {
+      const check = await dbInst.execute(
+        sql.raw(`SELECT count(*)::int AS cnt FROM information_schema.columns WHERE table_schema = 'public' AND ((table_name = 'users' AND column_name = 'sitzungs_version') OR (table_name = 'sessions' AND column_name = 'aktives_token_id') OR (table_name = 'billing_invoices' AND column_name = 'seq') OR (table_name = 'closing_cases' AND column_name = 'done') OR (table_name = 'billing_orders' AND column_name = 'upgrade_from')) AND EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname = 'public' AND indexname = 'billing_invoices_order_kind_unique' AND indexdef ILIKE '%upgrade%')`),
+      );
+      const rows = (check as unknown as { rows?: Array<{ cnt: number }> }).rows;
+      if (rows && rows[0]?.cnt === 5) {
+        globalForDb.lastMigratedJournalSignature = signature;
+        return;
+      }
+    } catch {
+      // Fall through to full statement-by-statement migration
+    }
   }
 
   const journal = JSON.parse(fs.readFileSync(JOURNAL_FILE, "utf8")) as JournalFile;
@@ -97,49 +113,38 @@ async function ensureSchemaOnDb(dbInst: DatabaseInstance): Promise<void> {
   globalForDb.lastMigratedJournalSignature = signature;
 }
 
-async function canConnectToPostgres(connectionString: string): Promise<boolean> {
-  if (connectionString.startsWith("pglite://") || connectionString === "pglite") {
-    return false;
-  }
-  const testPool = new Pool({
-    connectionString,
-    max: 1,
-    connectionTimeoutMillis: 1500,
-  });
-  try {
-    await testPool.query("SELECT 1");
-    await testPool.end();
-    return true;
-  } catch {
-    await testPool.end().catch(() => undefined);
-    return false;
-  }
-}
-
 async function initOrSyncDatabase(): Promise<DatabaseInstance> {
   if (globalForDb.dbInstance) {
-    await ensureSchemaOnDb(globalForDb.dbInstance);
+    await ensureSchemaOnDb(globalForDb.dbInstance, Boolean(globalForDb.isRemotePg));
     return globalForDb.dbInstance;
   }
 
   const connectionString = env.databaseUrl;
-  const isReachable = await canConnectToPostgres(connectionString);
+  const isPgliteExplicit = connectionString.startsWith("pglite://") || connectionString === "pglite";
 
-  if (isReachable) {
+  if (!isPgliteExplicit) {
     const pool = new Pool({
       connectionString,
       max: 10,
-      idleTimeoutMillis: 30000,
-      connectionTimeoutMillis: 5000,
+      // A new TLS connection to a hosted Postgres (Neon) costs several round
+      // trips, so idle connections stay open for a while instead of 30 s.
+      idleTimeoutMillis: 5 * 60_000,
+      keepAlive: true,
+      connectionTimeoutMillis: 10000,
     });
-    const pgDb = drizzlePg(pool, { schema });
-    await ensureSchemaOnDb(pgDb);
-    globalForDb.dbInstance = pgDb;
-    return pgDb;
-  }
-
-  if (process.env.NODE_ENV === "production") {
-    throw new Error("[db] Could not connect to PostgreSQL server configured in DATABASE_URL.");
+    try {
+      await pool.query("SELECT 1");
+      const pgDb = drizzlePg(pool, { schema });
+      await ensureSchemaOnDb(pgDb, true);
+      globalForDb.isRemotePg = true;
+      globalForDb.dbInstance = pgDb;
+      return pgDb;
+    } catch (err) {
+      await pool.end().catch(() => undefined);
+      if (process.env.NODE_ENV === "production") {
+        throw new Error(`[db] Could not connect to PostgreSQL server configured in DATABASE_URL: ${(err as Error)?.message}`);
+      }
+    }
   }
 
   fs.mkdirSync(PGLITE_DATA_DIR, { recursive: true });
@@ -148,19 +153,21 @@ async function initOrSyncDatabase(): Promise<DatabaseInstance> {
 
   const pgliteDb: PgliteDatabase<typeof schema> = drizzlePglite(client, { schema });
   const instance = pgliteDb as unknown as DatabaseInstance;
-  await ensureSchemaOnDb(instance);
+  await ensureSchemaOnDb(instance, false);
+  globalForDb.isRemotePg = false;
   globalForDb.dbInstance = instance;
   return instance;
 }
 
 function getDbPromise(): Promise<DatabaseInstance> {
+  if (globalForDb.dbInstance) {
+    return initOrSyncDatabase();
+  }
   if (!globalForDb.dbInitPromise) {
     globalForDb.dbInitPromise = initOrSyncDatabase().catch((err) => {
       globalForDb.dbInitPromise = undefined;
       throw err;
     });
-  } else {
-    return globalForDb.dbInitPromise.then(() => initOrSyncDatabase());
   }
   return globalForDb.dbInitPromise;
 }

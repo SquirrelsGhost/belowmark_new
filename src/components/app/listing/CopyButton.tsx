@@ -1,7 +1,7 @@
 // Uses the Clipboard API and a short "copied" state
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface CopyButtonProps {
   text: string;
@@ -14,12 +14,23 @@ const RESET_MS = 1800;
 /** Copies e.g. the file number — needed on the court portal and when calling the court. */
 export default function CopyButton({ text, label, copiedLabel }: CopyButtonProps) {
   const [copied, setCopied] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current !== null) clearTimeout(timerRef.current);
+    };
+  }, []);
 
   const copy = async () => {
     try {
       await navigator.clipboard.writeText(text);
+      if (timerRef.current !== null) clearTimeout(timerRef.current);
       setCopied(true);
-      setTimeout(() => setCopied(false), RESET_MS);
+      timerRef.current = setTimeout(() => {
+        timerRef.current = null;
+        setCopied(false);
+      }, RESET_MS);
     } catch {
       setCopied(false);
     }

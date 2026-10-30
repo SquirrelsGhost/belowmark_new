@@ -1,4 +1,5 @@
-import { fill } from "@/lib/appFormat";
+import { fill, formatArea, formatMoney } from "@/lib/appFormat";
+import { LocaleOption } from "@/lib/constants";
 import { IAppTranslation } from "@/translations/app/IAppTranslation";
 import { HearingStatus, Listing } from "@/types/listing.types";
 
@@ -44,4 +45,53 @@ export function getPlaceTitle(listing: Listing): string {
 export function getMapQuery(listing: Listing): string {
   if (listing.market === "TR") return [listing.tr?.mahalle, listing.place, listing.region, "Türkiye"].filter(Boolean).join(", ");
   return [getAddressLine(listing), "Deutschland"].filter(Boolean).join(", ");
+}
+
+/** Compact area, €/m², room, and parcel badges for search list rows. */
+export function getPropertyMetricsChips(listing: Listing, locale: LocaleOption): string[] {
+  const chips: string[] = [];
+  const isTr = listing.market === "TR";
+  const tr = listing.tr;
+
+  const living = listing.livingAreaM2 ?? tr?.buildingAreaM2 ?? null;
+  const net = tr?.netAreaM2 ?? null;
+  const usable = listing.usableAreaM2 ?? null;
+  const land = listing.landAreaM2 ?? tr?.landAreaM2 ?? null;
+
+  if (living && living > 0) {
+    const prefix = isTr ? (locale === "tr" ? "Brüt" : "Wohn-/Geb.") : locale === "tr" ? "Konut" : "Wfl.";
+    chips.push(`${prefix} ${formatArea(living, locale)}`);
+  }
+  if (net && net > 0 && net !== living) {
+    chips.push(`Net ${formatArea(net, locale)}`);
+  }
+  if (usable && usable > 0 && usable !== living) {
+    chips.push(`${locale === "tr" ? "Kullanım" : "Nfl."} ${formatArea(usable, locale)}`);
+  }
+  if (land && land > 0 && land !== living) {
+    const prefix = isTr ? (locale === "tr" ? "Arsa" : "Grundst.") : locale === "tr" ? "Arsa" : "Grundst.";
+    chips.push(`${prefix} ${formatArea(land, locale)}`);
+  }
+
+  const primaryArea = living ?? net ?? usable ?? tr?.areaM2 ?? listing.areaM2 ?? land ?? null;
+  if (primaryArea && primaryArea > 0 && listing.appraisedValue && listing.appraisedValue > 0) {
+    const perM2 = Math.round(listing.appraisedValue / primaryArea);
+    if (perM2 > 0) {
+      chips.push(`${formatMoney(perM2, listing.market, locale)}/m²`);
+    }
+  }
+
+  const rooms = listing.rooms ?? tr?.rooms ?? null;
+  if (rooms) chips.push(rooms);
+
+  if (tr?.floor) chips.push(tr.floor);
+
+  const yearBuilt = listing.yearBuilt ?? tr?.yearBuilt ?? null;
+  if (yearBuilt) chips.push(`${locale === "tr" ? "Yapım" : "Bj."} ${yearBuilt}`);
+
+  if (isTr && tr?.ada && tr?.parsel) {
+    chips.push(`Ada ${tr.ada} · Parsel ${tr.parsel}`);
+  }
+
+  return chips;
 }

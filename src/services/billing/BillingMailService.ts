@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { billingOrders, ConsumerDeclaration, users } from "@/db/schema";
 import { isOfferId, OFFERS } from "@/lib/billing/billingConfig";
 import { fill, formatContractDate, formatPrice, formatReceiptTime } from "@/lib/billing/billingFormat";
+import { vatNote } from "@/lib/billing/orderView";
 import { LocaleOption } from "@/lib/constants";
 import { env } from "@/lib/env";
 import { LEGAL_OPERATOR } from "@/lib/legal/legalOperator";
@@ -17,11 +18,7 @@ import { Locale } from "@/translations/Translations";
 const toLang = (locale: string | null | undefined): LocaleOption => (locale === "tr" ? "tr" : "de");
 const textsFor = (lang: LocaleOption): IBillingTranslation => BillingTranslations[lang === "tr" ? Locale.TR : Locale.DE];
 
-function vatLabel(t: IBillingTranslation): string {
-  if (env.billingVatMode === "inclusive") return t.Order.VatInclusive;
-  if (env.billingVatMode === "kleinunternehmer") return t.Order.VatSmallBusiness;
-  return t.Order.VatOpen;
-}
+const vatLabel = (t: IBillingTranslation, market: string): string => vatNote(t, env.billingVatMode, market === "TR" ? "TR" : "DE", env.billingTrKdvIncluded);
 
 /** Plain text of a declaration as received — the same words go on the page, in the mail and to the operator. */
 export function declarationContent(declaration: ConsumerDeclaration, t: IBillingTranslation, lang: LocaleOption): string {
@@ -60,7 +57,7 @@ export class BillingMailService {
     const lines = fill(t.Mail.Order.Lines, {
       offer: offerText.Name,
       price,
-      vat: vatLabel(t),
+      vat: vatLabel(t, row.order.market),
       date: formatReceiptTime(row.order.createdAt, lang),
       end: row.order.accessEndsAt ? formatContractDate(row.order.accessEndsAt, lang) : "—",
       term: offerText.Term,

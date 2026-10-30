@@ -81,20 +81,25 @@ export class Sitzungswachdienst {
     return created;
   }
 
+  /**
+   * `vorgeladen` is the session row when the caller already read it (joined with
+   * the user, one round trip less); `undefined` reads it here.
+   */
   static async pruefeUndAktualisiere(
     sitzungId: string,
     tokenId: string,
     userAgent?: string | null,
     erlaubeRotation = false,
+    vorgeladen?: Session | null,
   ): Promise<SitzungPruefErgebnis> {
-    const [sitzung] = await db.select().from(sessions).where(eq(sessions.id, sitzungId));
-    if (!sitzung || sitzung.widerrufenAm) return { gueltig: false };
+    const sitzung = vorgeladen === undefined ? (await db.select().from(sessions).where(eq(sessions.id, sitzungId)))[0] : vorgeladen;
+    if (!sitzung || !sitzung.id || !sitzung.expiresAt || sitzung.widerrufenAm) return { gueltig: false };
 
     const nowMs = Date.now();
     if (sitzung.expiresAt.getTime() <= nowMs) return { gueltig: false };
 
-    // Device binding check (if User-Agent is present)
-    if (userAgent && sitzung.userAgentHash && sitzung.userAgentHash !== uaFingerprint(userAgent)) {
+    // Device binding check (reject missing or mismatched User-Agent when userAgentHash is bound)
+    if (sitzung.userAgentHash && (!userAgent || sitzung.userAgentHash !== uaFingerprint(userAgent))) {
       await Sitzungswachdienst.widerrufe(sitzung.id, "Geräte-Signatur abweichend");
       return { gueltig: false };
     }
@@ -118,18 +123,43 @@ export class Sitzungswachdienst {
     const neuesTokenId = brauchtRotation ? randomBytes(16).toString("base64url") : undefined;
     const now = new Date(nowMs);
 
-    const [aktualisiert] = await db
+    // Without a rotation only the "last active" time changes. Nothing in this
+    // request depends on it, so the write runs alongside instead of making
+    // every page wait one more database round trip.
+    if (!neuesTokenId) {
+      db.update(sessions)
+        .set({ zuletztAktivAm: now })
+        .where(eq(sessions.id, sitzung.id))
+        .catch((err: unknown) => console.error("[Sitzungswachdienst] zuletztAktivAm:", err));
+      return { gueltig: true, sitzung: { ...sitzung, zuletztAktivAm: now } };
+    }
+
+    const aktualisiert = await db
       .update(sessions)
       .set({
         zuletztAktivAm: now,
-        aktivesTokenId: neuesTokenId ?? sitzung.aktivesTokenId,
-        vorherigesTokenId: neuesTokenId ? sitzung.aktivesTokenId : sitzung.vorherigesTokenId,
-        rotiertAm: neuesTokenId ? now : sitzung.rotiertAm,
+        aktivesTokenId: neuesTokenId,
+        vorherigesTokenId: sitzung.aktivesTokenId,
+        rotiertAm: now,
       })
-      .where(eq(sessions.id, sitzung.id))
-      .returning();
+      .where(and(eq(sessions.id, sitzung.id), eq(sessions.aktivesTokenId, sitzung.aktivesTokenId)))
+      .returning({ id: sessions.id });
 
-    return { gueltig: true, sitzung: aktualisiert ?? sitzung, neuesTokenId };
+    if (aktualisiert.length === 0) {
+      return { gueltig: true, sitzung };
+    }
+
+    return {
+      gueltig: true,
+      sitzung: {
+        ...sitzung,
+        zuletztAktivAm: now,
+        aktivesTokenId: neuesTokenId,
+        vorherigesTokenId: sitzung.aktivesTokenId,
+        rotiertAm: now,
+      },
+      neuesTokenId,
+    };
   }
 
   static async widerrufe(sitzungId: string, grund = "Manuell abgemeldet"): Promise<void> {

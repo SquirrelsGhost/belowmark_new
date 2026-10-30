@@ -26,7 +26,16 @@ export default async function ListingBiddingSection({ listing, labels, locked, l
   const context = getBidContext(listing);
   const comparables = await ComparablesService.getForListing(listing, snapshotDate);
   const tr = listing.tr;
-  const noticeArea = tr?.buildingAreaM2 ?? null;
+  const noticeArea =
+    listing.livingAreaM2 ??
+    listing.usableAreaM2 ??
+    tr?.buildingAreaM2 ??
+    tr?.netAreaM2 ??
+    tr?.areaM2 ??
+    listing.areaM2 ??
+    listing.landAreaM2 ??
+    tr?.landAreaM2 ??
+    null;
 
   return (
     <section id={VERDICT_ANCHORS.limit} aria-label={Section.Title} className="mt-14 scroll-mt-24 flex flex-col gap-8 border-t-2 border-ink pt-8">

@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { connection } from "next/server";
 import BlogArticleView from "@/components/blog/BlogArticleView";
 import BlogShell from "@/components/blog/BlogShell";
 import { BELOWMARK_ORIGIN, blogArticleCoverUrl, blogArticleSeo } from "@/lib/blog/blogSeo";
@@ -33,19 +34,24 @@ export async function generateMetadata({ params }: LangArticleProps): Promise<Me
       title: entry ? `${entry.title} | Belowmark Blog` : "Belowmark Blog",
       description: entry?.excerpt ?? t.HomePage.MetaTags.description,
       imgUrl: cluster ? blogArticleCoverUrl(cluster, cleanLang) : t.HomePage.MetaTags.imgUrl,
-      tags: entry?.focusKeyword ? [entry.focusKeyword, cluster?.category ?? "Belowmark"] : t.HomePage.MetaTags.tags,
-      url: `${BELOWMARK_ORIGIN}/${cleanLang}/blog/${slug}`,
+      tags: entry
+        ? [entry.focusKeyword ?? entry.title, cluster?.category ?? "Belowmark", "Belowmark"]
+        : t.HomePage.MetaTags.tags,
+      url: entry?.url ? `${BELOWMARK_ORIGIN}${entry.url}` : `${BELOWMARK_ORIGIN}/${cleanLang}/blog/${slug}`,
     }),
     ...(cluster ? blogArticleSeo(cluster, cleanLang) : { robots: { index: false, follow: true } }),
   };
 }
 
 export default async function LangBlogArticlePage({ params }: LangArticleProps) {
+  await connection();
   const { lang, slug } = await params;
   if (!VALID_LANGS.has(lang as BlogLang)) redirect("/blog");
   const cleanLang = lang as BlogLang;
   const { cluster } = await BlogService.FindClusterBySlug(cleanLang, slug);
-  if (!cluster) redirect(`/${cleanLang}/blog`);
+  const entry = cluster?.languages[cleanLang];
+  if (!cluster || !entry) redirect(`/${cleanLang}/blog`);
+  if (entry.slug !== slug) redirect(entry.url);
 
   return (
     <BlogShell lang={cleanLang}>

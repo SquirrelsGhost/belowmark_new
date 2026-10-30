@@ -4,6 +4,7 @@ import AppMain from "@/components/app/shell/AppMain";
 import AppPageHeader from "@/components/app/shell/AppPageHeader";
 import TrCalculatorExtras from "@/components/app/tr/TrCalculatorExtras";
 import BidCalculator from "@/components/hero/BidCalculator";
+import PageStack from "@/components/ui/PageStack";
 import { APP_MAIN_ID, APP_ROUTES } from "@/lib/appConstants";
 import { appMetadata, getAppPageContext } from "@/lib/appPage";
 
@@ -26,7 +27,7 @@ export default async function CalculatorPage() {
   return (
     <AppMain id={APP_MAIN_ID}>
       <AppPageHeader eyebrow={Calculator.Eyebrow} title={Calculator.Title} lead={Calculator.Lead[viewer.market]} />
-      <div className="mt-10 max-w-4xl">
+      <PageStack variant="top10Narrow">
         {viewer.market === "TR" ? (
           <>
             <IcraCalculator labels={Calculator.Tr} costLabels={app.Listing.Tr} locale={locale} value={TR_DEFAULTS.value} vatRate={TR_DEFAULTS.vatRate} isFixed={false} />
@@ -35,7 +36,7 @@ export default async function CalculatorPage() {
         ) : (
           <BidCalculator t={t.HomePage.Calculator} locale={locale} />
         )}
-      </div>
+      </PageStack>
     </AppMain>
   );
 }

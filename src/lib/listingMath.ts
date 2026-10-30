@@ -1,6 +1,6 @@
 import { DAY_MS, MARKET_TIME_ZONES, SEARCH, TR_COSTS } from "@/lib/appConstants";
 import { ZVG } from "@/lib/constants";
-import { HearingStatus, Listing } from "@/types/listing.types";
+import { HearingStatus, Listing, ListingRound } from "@/types/listing.types";
 
 /**
  * Pure calculations on a proceeding. Only legal fixed rates are applied —
@@ -9,22 +9,45 @@ import { HearingStatus, Listing } from "@/types/listing.types";
 
 /** Where the proceeding stands at `now`: running, next round ahead, or over. */
 export function getHearingStatus(listing: Listing, now: number): HearingStatus {
+  const { state, round } = getHearingState(listing, now);
+  if (state !== "upcoming" && state !== "running") return { state, round, days: null };
   const zone = MARKET_TIME_ZONES[listing.market];
-  if (listing.cancelled) return { state: "cancelled", round: listing.rounds[0] ?? null, days: null };
+  const target = round ? Date.parse(state === "running" ? round.end : round.start) : now;
+  return { state, round, days: daysBetween(now, target, zone) };
+}
+
+/**
+ * getHearingStatus without the day count. The day count needs a time zone
+ * conversion; the search asks for state and date of every proceeding several
+ * times per request, so it uses this one.
+ */
+export function getHearingState(listing: Listing, now: number): Omit<HearingStatus, "days"> {
+  if (listing.cancelled) return { state: "cancelled", round: listing.rounds[0] ?? null };
   if (listing.rounds.length === 0) {
-    if (!listing.hearingAt) return { state: "unknown", round: null, days: null };
+    if (!listing.hearingAt) return { state: "unknown", round: null };
     const at = Date.parse(listing.hearingAt);
     const round = { round: 1, start: listing.hearingAt, end: listing.hearingAt };
-    return at >= now ? { state: "upcoming", round, days: daysBetween(now, at, zone) } : { state: "past", round, days: null };
+    return at >= now ? { state: "upcoming", round } : { state: "past", round };
   }
 
   for (const round of listing.rounds) {
-    const start = Date.parse(round.start);
-    const end = Date.parse(round.end);
-    if (now < start) return { state: "upcoming", round, days: daysBetween(now, start, zone) };
-    if (now <= end) return { state: "running", round, days: daysBetween(now, end, zone) };
+    const [start, end] = roundTimes(round);
+    if (now < start) return { state: "upcoming", round };
+    if (now <= end) return { state: "running", round };
   }
-  return { state: "past", round: listing.rounds[listing.rounds.length - 1], days: null };
+  return { state: "past", round: listing.rounds[listing.rounds.length - 1] };
+}
+
+/** Parsed start and end of a round, kept per round object — snapshot rounds never change. */
+const parsedRounds = new WeakMap<ListingRound, [number, number]>();
+
+function roundTimes(round: ListingRound): [number, number] {
+  let times = parsedRounds.get(round);
+  if (!times) {
+    times = [Date.parse(round.start), Date.parse(round.end)];
+    parsedRounds.set(round, times);
+  }
+  return times;
 }
 
 /** Calendar days between two instants in the court's time zone — tomorrow 08:00 is "1", not "0". */
@@ -46,7 +69,7 @@ function daysBetween(from: number, to: number, timeZone: string): number {
 
 /** Next relevant moment: end of a running round, else start of the next one. Used for sorting and the calendar. */
 export function getNextDate(listing: Listing, now: number): string | null {
-  const status = getHearingStatus(listing, now);
+  const status = getHearingState(listing, now);
   if (status.state === "running") return status.round?.end ?? listing.hearingAt;
   return status.round?.start ?? listing.hearingAt;
 }

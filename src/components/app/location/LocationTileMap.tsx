@@ -1,3 +1,4 @@
+// Needs useState for interactive zoom level switching and tile provider fallback
 "use client";
 
 import { useState } from "react";

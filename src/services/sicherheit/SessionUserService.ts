@@ -1,7 +1,7 @@
 import "server-only";
-import { eq, sql } from "drizzle-orm";
+import { eq, getTableColumns, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { users } from "@/db/schema";
+import { sessions, users } from "@/db/schema";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/authConfig";
 import { readCookieFromRequest, readSessionCookieToken } from "@/lib/auth/sessionToken";
 import { effectiveUserPermissions, hasFullAppAccess } from "@/lib/permissions";
@@ -42,7 +42,7 @@ export async function resolveSessionToken(
   userAgent?: string | null,
   erlaubeRotation = false,
 ): Promise<SessionUser | null> {
-  const daten = readSessionCookieToken(rawToken);
+  const daten = readSessionCookieToken(rawToken, Date.now());
   if (!daten?.sessionId || !daten.tokenId) return null;
 
   const [user] = await db
@@ -61,8 +61,11 @@ export async function resolveSessionToken(
       gesperrtAm: users.gesperrtAm,
       sperrGrund: users.sperrGrund,
       createdAt: users.createdAt,
+      // Read together with the user: one round trip instead of two
+      sitzung: getTableColumns(sessions),
     })
     .from(users)
+    .leftJoin(sessions, eq(sessions.id, daten.sessionId))
     .where(eq(users.id, daten.id));
 
   if (!user) return null;
@@ -100,6 +103,7 @@ export async function resolveSessionToken(
     daten.tokenId,
     userAgent,
     erlaubeRotation,
+    user.sitzung,
   );
   if (!pruefung.gueltig) return null;
 

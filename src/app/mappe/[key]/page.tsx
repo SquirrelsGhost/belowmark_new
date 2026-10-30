@@ -14,6 +14,7 @@ import BidderFileToolbar from "@/components/bidderFile/BidderFileToolbar";
 import BidderFileVerdictSection from "@/components/bidderFile/BidderFileVerdictSection";
 import ListingNotFound from "@/components/app/listing/ListingNotFound";
 import LockedPanel from "@/components/app/listing/LockedPanel";
+import PageNote from "@/components/ui/PageNote";
 import { listingHref } from "@/lib/appConstants";
 import { fill } from "@/lib/appFormat";
 import { getAppPageContext } from "@/lib/appPage";
@@ -87,7 +88,7 @@ export default async function BidderFilePage({ params, searchParams }: PageProps
         <BidderFileMoney listing={listing} labels={L} locale={locale} />
       </BidderFileSection>
       <BidderFileSection number="04" title={File.Sections.limit}>
-        {context ? <BidderFileLimit listingId={listing.key} context={context} labels={labels.Limit} noLimit={File.NoLimit} locale={locale} /> : <p className="text-[13px] text-muted">{L.NotStated}</p>}
+        {context ? <BidderFileLimit listingId={listing.key} context={context} labels={labels.Limit} noLimit={File.NoLimit} locale={locale} /> : <PageNote variant="mutedSmall" text={L.NotStated} />}
       </BidderFileSection>
       <BidderFileSection number="05" title={File.Sections.comparables}>
         <BidderFileComparables listingId={listing.key} comparables={comparables} labels={labels.Comparables} market={market} locale={locale} />

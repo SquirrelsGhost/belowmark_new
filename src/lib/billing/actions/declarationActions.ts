@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { RATE_LIMITS } from "@/lib/auth/authConfig";
+import { normalizeEmail } from "@/lib/auth/normalizeEmail";
 import { getRequestInfo } from "@/lib/auth/requestInfo";
 import { BILLING_ROUTES } from "@/lib/billing/billingConfig";
 import { DeclarationFormState } from "@/lib/billing/billingForm.types";
@@ -14,7 +15,7 @@ import { TranslationService } from "@/services/TranslationService";
 import { DeclarationErrorCode } from "@/translations/billing/IBillingTranslation";
 
 const text = (max: number) => z.string().trim().max(max);
-const emailSchema = z.string().trim().max(254).pipe(z.email());
+const emailSchema = z.string().trim().max(254).pipe(z.email()).transform(normalizeEmail);
 
 /** Keeps what was typed, so an error never empties the form. */
 function echo(formData: FormData): Record<string, string> {
@@ -59,7 +60,7 @@ export async function cancelContractAction(_previous: DeclarationFormState, form
     const declaration = await ConsumerDeclarationService.cancel(
       {
         name: String(formData.get("name")).trim(),
-        email: String(formData.get("email")).trim(),
+        email: normalizeEmail(String(formData.get("email"))),
         contractReference: String(formData.get("contract") ?? "").trim().slice(0, 200) || null,
         type,
         reason: type === "extraordinary" ? String(formData.get("reason")).trim() : null,
@@ -93,7 +94,7 @@ export async function withdrawContractAction(_previous: DeclarationFormState, fo
     const declaration = await ConsumerDeclarationService.withdraw(
       {
         name: String(formData.get("name")).trim(),
-        email: String(formData.get("email")).trim(),
+        email: normalizeEmail(String(formData.get("email"))),
         contractReference: String(formData.get("contract") ?? "").trim().slice(0, 200) || null,
         statement,
       },

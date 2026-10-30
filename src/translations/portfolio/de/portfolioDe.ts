@@ -3,7 +3,7 @@ import { IPortfolioTranslation } from "../IPortfolioTranslation";
 export const PORTFOLIO_DE: IPortfolioTranslation = {
   MetaTags: {
     title: "Portfolio — Belowmark",
-    description: "Alle gemerkten und ersteigerten Objekte auf einen Blick: Kosten, Bietlimit, Rendite und Urteil, mit Summen und Export als CSV für Excel.",
+    description: "Alle gemerkten und ersteigerten Objekte auf einen Blick: Gesamtkosten, Bietlimit, Rendite und Urteil, mit Summen und Export als CSV für Excel.",
     imgUrl: "https://belowmark.com/og/home.png",
     tags: ["Portfolio", "Zwangsversteigerung", "Rendite", "Bietlimit"],
     url: "https://belowmark.com/app/portfolio",

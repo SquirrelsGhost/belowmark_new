@@ -35,7 +35,7 @@ export default function BidderFileVerdict({ listingId, evidence, context, labels
   );
 
   return (
-    <div className="grid grid-cols-[minmax(0,5fr)_minmax(0,7fr)] gap-6">
+    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 print:grid-cols-2">
       <div className="flex flex-col gap-4">
         <VerdictHeadline verdict={verdict} labels={labels} market={evidence.market} locale={locale} />
         {verdict.stress.length > 0 && <VerdictStressTest cases={verdict.stress} labels={labels.Stress} market={evidence.market} locale={locale} />}

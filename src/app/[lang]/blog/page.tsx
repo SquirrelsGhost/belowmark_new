@@ -1,11 +1,13 @@
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { connection } from "next/server";
 import BlogClusterCard from "@/components/blog/BlogClusterCard";
 import BlogHubGrid from "@/components/blog/BlogHubGrid";
 import BlogHubHero from "@/components/blog/BlogHubHero";
 import BlogHubSection from "@/components/blog/BlogHubSection";
 import BlogLangBar from "@/components/blog/BlogLangBar";
 import BlogShell from "@/components/blog/BlogShell";
+import { BLOG_COPY } from "@/lib/blog/blogCopy";
 import { BELOWMARK_ORIGIN, blogHubAlternates } from "@/lib/blog/blogSeo";
 import { BlogService } from "@/services/BlogService";
 import { MetaTagService } from "@/services/MetaTagService";
@@ -25,16 +27,14 @@ interface LangBlogProps {
 
 export async function generateMetadata({ params }: LangBlogProps): Promise<Metadata> {
   const { lang } = await params;
-  const [t, feed] = await Promise.all([
-    TranslationService.GetUserTranslations(),
-    BlogService.GetFeed(),
-  ]);
+  const t = await TranslationService.GetUserTranslations();
   const cleanLang: BlogLang = VALID_LANGS.has(lang as BlogLang) ? (lang as BlogLang) : "en";
+  const copy = BLOG_COPY[cleanLang];
   return {
     ...MetaTagService.CreateMetaTags({
       ...t.HomePage.MetaTags,
-      title: `Belowmark Blog (${cleanLang.toUpperCase()}) — ${feed.tagline}`,
-      description: feed.strategy.aiSearchPositioning,
+      title: `Belowmark Blog (${cleanLang.toUpperCase()}) — ${copy.defaultH1Top} ${copy.defaultH1Below}`,
+      description: copy.sub,
       url: `${BELOWMARK_ORIGIN}/${cleanLang}/blog`,
     }),
     alternates: blogHubAlternates(cleanLang, BELOWMARK_ORIGIN),
@@ -42,6 +42,7 @@ export async function generateMetadata({ params }: LangBlogProps): Promise<Metad
 }
 
 export default async function LangBlogHubPage({ params }: LangBlogProps) {
+  await connection();
   const { lang } = await params;
   if (!VALID_LANGS.has(lang as BlogLang)) redirect("/blog");
   const cleanLang = lang as BlogLang;

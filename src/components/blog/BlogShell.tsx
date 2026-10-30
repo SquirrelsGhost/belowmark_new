@@ -27,9 +27,10 @@ export default async function BlogShell({ lang, children }: BlogShellProps) {
   const t = TranslationService.GetTranslations(locale);
   const nav = t.Navigation;
   const homePrefix = "/";
+  const blogHref = lang === "de" ? ROUTES.blog : `/${lang}/blog`;
 
   return (
-    <div lang={lang}>
+    <div lang={lang} dir={lang === "ar" ? "rtl" : "ltr"}>
       <PaperTexture />
       <NavigationSkipLink label={nav.SkipToContent} targetId={MAIN_ID} />
       <Navigation label={nav.MainNavLabel}>
@@ -39,7 +40,7 @@ export default async function BlogShell({ lang, children }: BlogShellProps) {
         <NavigationItem href={`${homePrefix}${ROUTES.notice}`} label={nav.NoticeLabel} />
         <NavigationItem href={`${homePrefix}${ROUTES.method}`} label={nav.MethodLabel} />
         <NavigationItem href={`${homePrefix}${ROUTES.pricing}`} label={nav.PricingLabel} />
-        <NavigationItem href={ROUTES.blog} label={nav.BlogLabel} />
+        <NavigationItem href={blogHref} label={nav.BlogLabel} />
         <NavigationVerticalLine />
         <NavigationLoginButton loginLabel={nav.LoginLabel} signupLabel={nav.SignupLabel} />
       </Navigation>
@@ -56,7 +57,7 @@ export default async function BlogShell({ lang, children }: BlogShellProps) {
           <FooterLink href={`${homePrefix}${ROUTES.calculator}`} label={nav.CalculatorLabel} />
           <FooterLink href={`${homePrefix}${ROUTES.method}`} label={nav.MethodLabel} />
           <FooterLink href={`${homePrefix}${ROUTES.pricing}`} label={nav.PricingLabel} />
-          <FooterLink href={ROUTES.blog} label={nav.BlogLabel} />
+          <FooterLink href={blogHref} label={nav.BlogLabel} />
           <FooterLink href={ROUTES.login} label={nav.LoginLabel} />
         </FooterColumn>
         <FooterColumn title={t.Footer.SourcesTitle}>

@@ -27,7 +27,7 @@ export default function AccountPlanPanel({ t, view, notice }: AccountPlanPanelPr
         <AccountDetailRow label={t.PlanLabel} value={view.plan} tone={view.isActive ? "verdict" : "default"} />
         {view.term && <AccountDetailRow label={t.Status} value={view.term} />}
       </AccountDetails>
-      <AccountPlanActions book={view.book} cancel={view.cancel} portalLabel={t.Portal} portalHint={t.PortalHint} portalUnavailable={view.portalUnavailable} />
+      <AccountPlanActions book={view.book} cancel={view.cancel} upgrade={view.upgrade} portalLabel={t.Portal} portalHint={t.PortalHint} portalUnavailable={view.portalUnavailable} />
     </AccountPanel>
   );
 }

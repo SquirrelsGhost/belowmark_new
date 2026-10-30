@@ -32,7 +32,7 @@ export default function BidderFileLimit({ listingId, context, labels, noLimit, l
   if (!hasAnyInput(inputs)) return <p className="bg-hatch px-2 py-1.5 text-[13px] text-ink-soft">{noLimit}</p>;
 
   return (
-    <div className="grid grid-cols-2 gap-6">
+    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 print:grid-cols-2">
       <div className="flex flex-col gap-4">
         <BidLimitHeadline labels={labels} market={context.market} locale={locale} value={context.value} result={result} ceiling={context.value * MAX_BID_SHARE} />
         <BidderFileInputs labels={labels} market={context.market} locale={locale} inputs={inputs} />

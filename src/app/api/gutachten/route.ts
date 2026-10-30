@@ -20,7 +20,7 @@ interface ReportDeleteResponse {
 
 /** Signed-in users with capability `gutachten:analyze`, and only proceedings of their own market. */
 async function authorise(req: Request, listingId: unknown): Promise<{ userId: string; listing: Listing } | Response> {
-  const user = await getSessionUser(req, true);
+  const user = await getSessionUser(req, false);
   if (!user) return err("unauthorized", 401);
   if (user.banned) return err("banned", 403);
   if (!hasPermission(user.permissions, "gutachten:analyze")) return err("plan", 403);
@@ -31,7 +31,12 @@ async function authorise(req: Request, listingId: unknown): Promise<{ userId: st
 
 export async function POST(req: Request): Promise<Response> {
   try {
-    const form = await req.formData();
+    let form: FormData;
+    try {
+      form = await req.formData();
+    } catch {
+      return err("file", 400);
+    }
     const target = await authorise(req, form.get(REPORT_UPLOAD.fieldListing));
     if (target instanceof Response) return target;
 

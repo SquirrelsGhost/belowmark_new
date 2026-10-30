@@ -5,17 +5,17 @@ export const CLOSING_DE: IClosingTranslation = {
   MetaTags: {
     Tasks: {
       title: "Nach dem Zuschlag — Belowmark",
-      description: "Aufgabenliste nach dem Zuschlag: Zahlung, Grunderwerbsteuer, Grundbuch, Räumung, Versicherung und Sanierung — mit Fristen aus Ihren Daten und jeder Vorschrift verlinkt.",
+      description: "Aufgabenliste nach dem Zuschlag: Zahlung, Grunderwerbsteuer, Grundbuch, Räumung, Versicherung und Sanierung — mit Fristen und verlinkten Gesetzen.",
       imgUrl: "https://belowmark.com/og/home.png",
       tags: ["Zuschlag", "Zwangsversteigerung", "Grundbuch", "Räumung"],
       url: "https://belowmark.com/app",
     },
     Results: {
       title: "Terminergebnisse — Belowmark",
-      description: "Was Zwangsversteigerungen tatsächlich erzielen: Zuschlag im Verhältnis zum Verkehrswert, aus gemeldeten Terminergebnissen, anonym und erst ab fünf Terminen je Gruppe.",
+      description: "Was Zwangsversteigerungen erzielen: Zuschlag im Verhältnis zum Verkehrswert, aus gemeldeten Terminergebnissen, anonym ab fünf Terminen je Gruppe.",
       imgUrl: "https://belowmark.com/og/home.png",
       tags: ["Zuschlag", "Verkehrswert", "Terminergebnis", "Zwangsversteigerung"],
-      url: "https://belowmark.com/app",
+      url: "https://belowmark.com/app/ergebnisse",
     },
   },
 
@@ -118,6 +118,12 @@ export const CLOSING_DE: IClosingTranslation = {
       Save: "Daten speichern",
       Saved: "Gespeichert.",
       Required: "Bitte mindestens das Zuschlagsdatum eintragen.",
+      Errors: {
+        auth: "Bitte erneut anmelden.",
+        locked: "Die Aufgabenliste gehört zum Investor-Tarif.",
+        date: "Bitte mindestens das Zuschlagsdatum eintragen.",
+        unknown: "Speichern hat nicht geklappt. Bitte noch einmal.",
+      },
     },
     Conditions: {
       Title: "Ihre Lage",

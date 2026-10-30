@@ -5,7 +5,7 @@ import { connection } from "next/server";
 import { cache } from "react";
 import { db } from "@/db";
 import { users } from "@/db/schema";
-import { SESSION_COOKIE_NAME, SESSION_TTL } from "@/lib/auth/authConfig";
+import { SESSION_COOKIE_CANDIDATES, SESSION_COOKIE_NAME, SESSION_TTL } from "@/lib/auth/authConfig";
 import { createSessionCookieToken, readSessionCookieToken } from "@/lib/auth/sessionToken";
 import { resolveSessionToken } from "@/services/sicherheit/SessionUserService";
 import { Sitzungswachdienst } from "@/services/sicherheit/Sitzungswachdienst";
@@ -17,6 +17,8 @@ const COOKIE_BASE = {
   sameSite: "lax",
   path: "/",
 } as const;
+
+export { SESSION_COOKIE_CANDIDATES };
 
 export interface CreateSessionOptions {
   ip?: string;
@@ -85,24 +87,8 @@ export class SessionService {
     if (!rawToken) return null;
 
     const ua = hdrs.get("user-agent");
-    const sessionUser = await resolveSessionToken(rawToken, ua, true);
+    const sessionUser = await resolveSessionToken(rawToken, ua, false);
     if (!sessionUser || sessionUser.banned) return null;
-
-    if (sessionUser.neuesTokenId) {
-      try {
-        const currentCookie = readSessionCookieToken(rawToken);
-        const rotatedToken = createSessionCookieToken({
-          id: sessionUser.id,
-          version: sessionUser.sitzungsVersion,
-          sessionId: sessionUser.sessionId,
-          tokenId: sessionUser.neuesTokenId,
-          exp: currentCookie?.exp,
-        });
-        cookieStore.set(SESSION_COOKIE_NAME, rotatedToken, COOKIE_BASE);
-      } catch {
-        // Ignored in read-only Server Component contexts; Server Actions & Route Handlers persist the rotated cookie
-      }
-    }
 
     return {
       id: sessionUser.id,
@@ -122,18 +108,20 @@ export class SessionService {
     };
   });
 
-  /** Ends the current session and clears the cookie. */
+  /** Ends the current session and clears all candidate session cookies. */
   static destroyCurrent = async (): Promise<void> => {
     const cookieStore = await cookies();
-    const rawToken =
-      cookieStore.get(SESSION_COOKIE_NAME)?.value ??
-      cookieStore.get("__Host-bm_session")?.value ??
-      cookieStore.get("bm_session")?.value;
+    let rawToken: string | undefined;
+    for (const name of SESSION_COOKIE_CANDIDATES) {
+      rawToken ??= cookieStore.get(name)?.value;
+    }
     const daten = readSessionCookieToken(rawToken);
     if (daten?.sessionId) {
       await Sitzungswachdienst.widerrufe(daten.sessionId, "Abmeldung durch Nutzer");
     }
-    cookieStore.delete(SESSION_COOKIE_NAME);
+    for (const name of SESSION_COOKIE_CANDIDATES) {
+      cookieStore.delete(name);
+    }
   };
 
   /** Ends every session of a user, optionally keeping one (the current device). */

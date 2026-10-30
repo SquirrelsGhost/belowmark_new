@@ -1,6 +1,11 @@
+// Needs useRef and useState for pointer/focus tooltip positioning over SVG map regions
 "use client";
 
 import { ReactNode, useRef, useState } from "react";
+
+interface MapHoverLayerProps {
+  children: ReactNode;
+}
 
 interface HoverInfo {
   title: string;
@@ -16,7 +21,7 @@ interface HoverInfo {
  * keyboard focus) is on. Reads the text from data attributes, so the map
  * itself stays server-rendered and works without JavaScript.
  */
-export default function MapHoverLayer({ children }: { children: ReactNode }) {
+export default function MapHoverLayer({ children }: MapHoverLayerProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [info, setInfo] = useState<HoverInfo | null>(null);
 

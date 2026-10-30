@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { BLOG_COPY } from "@/lib/blog/blogCopy";
 import { blogArticleCoverPath } from "@/lib/blog/blogSeo";
 import { BlogClusterItem, BlogLang } from "@/types/blog.types";
@@ -32,7 +33,7 @@ export default function BlogArticleHeader({ cluster, lang }: BlogArticleHeaderPr
 
       <h1 className="mt-4 font-display text-3xl leading-[1.02] text-ink sm:text-5xl">{entry.title}</h1>
 
-      <div className="mt-6 border-2 border-ink border-l-8 border-l-signal bg-paper-bright p-5">
+      <div className="mt-6 border-2 border-ink border-s-8 border-s-signal bg-paper-bright p-5">
         <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-signal">
           {copy.directAnswerLabel}
         </p>
@@ -40,12 +41,13 @@ export default function BlogArticleHeader({ cluster, lang }: BlogArticleHeaderPr
       </div>
 
       <figure className="mt-8 overflow-hidden border-2 border-ink bg-ink">
-        <img
+        <Image
           src={coverPath}
           alt={coverAlt}
           width={1200}
           height={630}
-          loading="eager"
+          priority
+          unoptimized
           className="h-auto w-full object-cover"
         />
       </figure>

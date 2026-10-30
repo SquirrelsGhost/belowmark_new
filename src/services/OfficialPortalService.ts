@@ -30,56 +30,217 @@ const ZVG_COM_REFERER = "https://www.zvg.com/";
 const USER_AGENT =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
 
-function cleanHtmlText(html: string | null | undefined): string {
+const NAMED_ENTITIES: Record<string, string> = {
+  "&nbsp;": " ",
+  "&amp;": "&",
+  "&lt;": "<",
+  "&gt;": ">",
+  "&quot;": '"',
+  "&apos;": "'",
+  "&#39;": "'",
+  "&#039;": "'",
+  "&uuml;": "ü",
+  "&Uuml;": "Ü",
+  "&auml;": "ä",
+  "&Auml;": "Ä",
+  "&ouml;": "ö",
+  "&Ouml;": "Ö",
+  "&szlig;": "ß",
+  "&euro;": "€",
+  "&#128;": "€",
+  "&sect;": "§",
+  "&sup2;": "²",
+  "&sup3;": "³",
+  "&ndash;": "–",
+  "&mdash;": "—",
+  "&bdquo;": "„",
+  "&ldquo;": '"',
+  "&rdquo;": '"',
+  "&sbquo;": "‚",
+  "&lsquo;": "'",
+  "&rsquo;": "'",
+  "&deg;": "°",
+  "&frac12;": "1/2",
+  "&frac14;": "1/4",
+  "&frac34;": "3/4",
+};
+
+function cleanHtmlText(html: string | null | undefined, preserveNewlines = true): string {
   if (!html) return "";
-  return html
-    .replace(/<br\s*\/?>/gi, "\n")
+  let s = html;
+  if (preserveNewlines) {
+    s = s.replace(/<br\s*\/?>/gi, "\n").replace(/<\/(?:p|div|tr|li|h[1-6])>/gi, "\n");
+  }
+  s = s
     .replace(/<[^>]+>/g, " ")
-    .replace(/&nbsp;/gi, " ")
-    .replace(/&amp;/gi, "&")
-    .replace(/&quot;/gi, '"')
-    .replace(/&#0*39;/gi, "'")
-    .replace(/&lt;/gi, "<")
-    .replace(/&gt;/gi, ">")
-    .replace(/&sect;/gi, "§")
-    .replace(/&euro;/gi, "€")
-    .replace(/&sup2;/gi, "²")
-    .replace(/&#x([0-9a-f]+);/gi, (_, hex: string) => String.fromCodePoint(Number.parseInt(hex, 16)))
-    .replace(/&#(\d+);/g, (_, dec: string) => String.fromCodePoint(Number.parseInt(dec, 10)))
-    .replace(/[ \t]+/g, " ")
-    .replace(/\n\s*\n+/g, "\n")
-    .trim();
+    .replace(/&#x([0-9a-f]+);/gi, (_, hex: string) => {
+      const code = Number.parseInt(hex, 16);
+      return code === 0x80 ? "€" : String.fromCodePoint(code);
+    })
+    .replace(/&#(\d+);/g, (_, dec: string) => {
+      const code = Number.parseInt(dec, 10);
+      return code === 128 ? "€" : String.fromCodePoint(code);
+    })
+    .replace(/&[a-zA-Z0-9#]+;/g, (ent) => NAMED_ENTITIES[ent] ?? NAMED_ENTITIES[ent.toLowerCase()] ?? ent);
+
+  if (preserveNewlines) {
+    return s
+      .replace(/[ \t]+/g, " ")
+      .replace(/\n[ \t]+/g, "\n")
+      .replace(/[ \t]+\n/g, "\n")
+      .replace(/\n\s*\n+/g, "\n\n")
+      .trim();
+  }
+  return s.replace(/\s+/g, " ").trim();
 }
 
 function parseGermanNum(raw: string | null | undefined): number | null {
   if (!raw) return null;
-  const cleaned = raw.replace(/\./g, "").replace(",", ".");
+  const s = raw.trim().replace(/\s+/g, "");
+  if (!s) return null;
+  const cleaned = /^\d{1,3}(?:\.\d{3})+(?:,\d+)?$/.test(s) || s.includes(",") ? s.replace(/\./g, "").replace(",", ".") : s;
   const n = Number.parseFloat(cleaned);
   return Number.isFinite(n) && n > 0 ? Math.round(n * 100) / 100 : null;
 }
 
 function extractLivingArea(text: string): number | null {
-  const m =
-    /(?:Wohnfl(?:ä|ae)che|Wohn-\/Nutzfl(?:ä|ae)che|Nutzfl(?:ä|ae)che|Gesamtwohnfl(?:ä|ae)che)[^0-9]{0,25}(\d{1,4}(?:[.,]\d{1,2})?)\s*(?:m²|qm|m2)/i.exec(
-      text,
+  if (!text) return null;
+  const cleaned = cleanHtmlText(text, false);
+  const afterMatch =
+    /(?:Gesamtwohnfl(?:ä|ae)che|Wohnfl(?:ä|ae)che|Wohn-\s*(?:und\s*|\/\s*)?Nutzfl(?:ä|ae)che|\bWfl\.?)(?:\s*(?:von|beträgt|insgesamt|gesamt|lt\.\s*\S+|laut\s*\S+|ca\.?|rd\.?|rund|etwa|circa|~|:|-))*[^0-9\n.;]{0,28}?(\d{1,4}(?:\.\d{3})*(?:,\d{1,2})?)\s*(?:m²|m2|qm\b)/i.exec(
+      cleaned,
     );
-  return m ? parseGermanNum(m[1]) : null;
+  if (afterMatch) {
+    const val = parseGermanNum(afterMatch[1]);
+    if (val && val >= 12 && val <= 5000) return val;
+  }
+
+  const beforeMatch =
+    /(\d{1,4}(?:\.\d{3})*(?:,\d{1,2})?)\s*(?:m²|m2|qm\b)\s*(?:Gesamtwohnfl(?:ä|ae)che|Wohnfl(?:ä|ae)che|Wohn-\s*(?:und\s*|\/\s*)?Nutzfl(?:ä|ae)che|\bWfl\.?)/i.exec(
+      cleaned,
+    );
+  if (beforeMatch) {
+    const val = parseGermanNum(beforeMatch[1]);
+    if (val && val >= 12 && val <= 5000) return val;
+  }
+  return null;
+}
+
+function extractUsableArea(text: string): number | null {
+  if (!text) return null;
+  const cleaned = cleanHtmlText(text, false);
+  const afterMatch =
+    /(?:Gesamtnutzfl(?:ä|ae)che|Nutzfl(?:ä|ae)che|Gewerbefl(?:ä|ae)che|Ladenfl(?:ä|ae)che|Bürofl(?:ä|ae)che|Hallenfl(?:ä|ae)che|\bNfl\.?)(?:\s*(?:von|beträgt|insgesamt|gesamt|ca\.?|rd\.?|rund|etwa|circa|~|:|-))*[^0-9\n.;]{0,28}?(\d{1,5}(?:\.\d{3})*(?:,\d{1,2})?)\s*(?:m²|m2|qm\b)/i.exec(
+      cleaned,
+    );
+  if (afterMatch) {
+    const val = parseGermanNum(afterMatch[1]);
+    if (val && val >= 10 && val <= 60000) return val;
+  }
+
+  const beforeMatch =
+    /(\d{1,5}(?:\.\d{3})*(?:,\d{1,2})?)\s*(?:m²|m2|qm\b)\s*(?:Gesamtnutzfl(?:ä|ae)che|Nutzfl(?:ä|ae)che|Gewerbefl(?:ä|ae)che|Ladenfl(?:ä|ae)che|Bürofl(?:ä|ae)che|Hallenfl(?:ä|ae)che|\bNfl\.?)/i.exec(
+      cleaned,
+    );
+  if (beforeMatch) {
+    const val = parseGermanNum(beforeMatch[1]);
+    if (val && val >= 10 && val <= 60000) return val;
+  }
+  return null;
 }
 
 function extractLandArea(text: string): number | null {
-  const m =
-    /(?:Grundst(?:ü|ue)cksgr(?:ö|oe)(?:ß|ss)e|Grundst(?:ü|ue)cksfl(?:ä|ae)che|Gesamtfl(?:ä|ae)che|Katasterfl(?:ä|ae)che|\bFl(?:ä|ae)che\b)[^0-9]{0,25}(\d{1,6}(?:[.,]\d{1,2})?)\s*(?:m²|qm|m2)/i.exec(
-      text,
+  if (!text) return null;
+  const cleaned = cleanHtmlText(text, false);
+
+  const explicitAfter =
+    /(?:Grundst(?:ü|ue)cksgr(?:ö|oe)(?:ß|ss)e|Grundst(?:ü|ue)cksfl(?:ä|ae)che|Katasterfl(?:ä|ae)che|Gesamtfl(?:ä|ae)che|Arealfl(?:ä|ae)che)(?:\s*(?:von|beträgt|insgesamt|gesamt|ca\.?|rd\.?|rund|etwa|circa|~|:|-))*[^0-9\n.;]{0,28}?(\d{1,6}(?:\.\d{3})*(?:,\d{1,2})?)\s*(?:m²|m2|qm\b)/i.exec(
+      cleaned,
     );
-  return m ? parseGermanNum(m[1]) : null;
+  if (explicitAfter) {
+    const val = parseGermanNum(explicitAfter[1]);
+    if (val && val >= 15 && val <= 5000000) return val;
+  }
+
+  const explicitBefore =
+    /(\d{1,6}(?:\.\d{3})*(?:,\d{1,2})?)\s*(?:m²|m2|qm\b)\s*(?:Grundst(?:ü|ue)cksfl(?:ä|ae)che|Grundst(?:ü|ue)cksgr(?:ö|oe)(?:ß|ss)e|gro(?:ß|ss)es\s+Grundst(?:ü|ue)ck)/i.exec(
+      cleaned,
+    );
+  if (explicitBefore) {
+    const val = parseGermanNum(explicitBefore[1]);
+    if (val && val >= 15 && val <= 5000000) return val;
+  }
+
+  const parcelSizes: number[] = [];
+  const groesseRe = /(?:Gr(?:ö|oe)(?:ß|ss)e|Fl(?:ä|ae)che)\s*:\s*(?:ca\.?\s*)?(\d{1,6}(?:\.\d{3})*(?:,\d{1,2})?)\s*(?:m²|m2|qm\b)/gi;
+  for (const m of cleaned.matchAll(groesseRe)) {
+    const val = parseGermanNum(m[1]);
+    if (val && val >= 15 && val <= 5000000) parcelSizes.push(val);
+  }
+  if (parcelSizes.length === 1) return parcelSizes[0];
+  if (parcelSizes.length > 1) return Math.round(parcelSizes.reduce((a, b) => a + b, 0) * 100) / 100;
+
+  const zuMatch =
+    /(?:Flst\.?|FlNr\.?|Flurst(?:ü|ue)ck|Parzelle|Grundst(?:ü|ue)ck)[^.;\n]{0,65}?\bzu\s+(?:ca\.?\s*)?(\d{1,6}(?:\.\d{3})*(?:,\d{1,2})?)\s*(?:m²|m2|qm\b)/i.exec(
+      cleaned,
+    );
+  if (zuMatch) {
+    const val = parseGermanNum(zuMatch[1]);
+    if (val && val >= 15 && val <= 5000000) return val;
+  }
+
+  const haMatch = /\b(\d{1,4},\d{1,4})\s*ha\b/i.exec(cleaned);
+  if (haMatch) {
+    const ha = parseGermanNum(haMatch[1]);
+    if (ha && ha > 0 && ha <= 1000) return Math.round(ha * 10000);
+  }
+  return null;
+}
+
+const WORD_TO_ROOMS_DE: [RegExp, string][] = [
+  [/\bEinzimmerwohnung\b/i, "1 Zimmer"],
+  [/\bZweizimmerwohnung\b/i, "2 Zimmer"],
+  [/\bDreizimmerwohnung\b/i, "3 Zimmer"],
+  [/\bVierzimmerwohnung\b/i, "4 Zimmer"],
+  [/\bF(?:ü|ue)nfzimmerwohnung\b/i, "5 Zimmer"],
+  [/\bSechszimmerwohnung\b/i, "6 Zimmer"],
+];
+
+function extractRooms(text: string): string | null {
+  if (!text) return null;
+  const cleaned = cleanHtmlText(text, false);
+  const rangeMatch = /\b(\d+(?:,\d)?\s*(?:bis|-)\s*\d+(?:,\d)?)\s*-?\s*Zimmer/i.exec(cleaned);
+  if (rangeMatch) return `${rangeMatch[1].replace(/\s+/g, " ")} Zimmer`;
+
+  const numMatch = /\b([1-9](?:,[05])?)\s*-?\s*Zimmer(?:-Wohnung|\b)/i.exec(cleaned);
+  if (numMatch) return `${numMatch[1]} Zimmer`;
+
+  for (const [re, label] of WORD_TO_ROOMS_DE) {
+    if (re.test(cleaned)) return label;
+  }
+  return null;
+}
+
+function extractYearBuilt(text: string): number | null {
+  if (!text) return null;
+  const cleaned = cleanHtmlText(text, false);
+  const m =
+    /(?:Baujahr|Bj\.?|urspr(?:ü|ue)ngliches\s+Baujahr|erbaut(?:\s+ca\.?|\s+um|\s+im\s+Jahr)?)[^0-9\n]{0,22}?(1[789]\d{2}|20[0-2]\d)\b/i.exec(
+      cleaned,
+    );
+  if (!m) return null;
+  const y = Number.parseInt(m[1], 10);
+  return y >= 1700 && y <= 2027 ? y : null;
 }
 
 function classifyAttachment(label: string, fileName: string): OfficialAttachment["kind"] {
-  const combined = `${label} ${fileName}`.toLowerCase();
-  if (combined.includes("foto") || combined.includes("bild") || combined.includes("ansicht")) return "photos";
-  if (combined.includes("expose") || combined.includes("exposé")) return "expose";
+  const fnLower = fileName.toLowerCase();
+  const rawLower = label.toLowerCase();
+  const combined = `${rawLower} ${fnLower}`;
+  if (fnLower.includes("hinweis") || fnLower.includes("merkblatt") || rawLower.includes("hinweis") || rawLower.includes("merkblatt")) return "notes";
+  if (fnLower.includes("foto") || fnLower.includes("bild") || fnLower.includes("ansicht") || rawLower.includes("foto") || rawLower.includes("bild")) return "photos";
+  if (fnLower.includes("expose") || fnLower.includes("exposé") || fnLower.includes("kurzbeschreibung") || rawLower.includes("expose") || rawLower.includes("exposé")) return "expose";
   if (combined.includes("gutachten") || combined.includes("verkehrswert")) return "report";
-  if (combined.includes("hinweis") || combined.includes("merkblatt")) return "notes";
   return "announcement";
 }
 
@@ -259,15 +420,18 @@ async function fetchZvgPortalDetails(listing: Listing): Promise<OfficialPortalDe
   const base: OfficialPortalDetails = {
     sourcePortal: "zvg-portal.de",
     portalEntryUrl,
-    proceedingKind: null,
-    grundbuch: null,
-    description: null,
-    hearingPlace: null,
-    creditor: null,
+    proceedingKind: listing.proceedingKind ?? null,
+    grundbuch: listing.grundbuch ?? null,
+    description: listing.description ?? null,
+    hearingPlace: listing.hearingPlace ?? null,
+    creditor: listing.creditor ?? null,
     courtUrl: listing.courtUrl ?? null,
-    geoServerUrl: null,
-    livingAreaM2: extractLivingArea(listing.title),
-    landAreaM2: extractLandArea(listing.title),
+    geoServerUrl: listing.geoServerUrl ?? null,
+    livingAreaM2: listing.livingAreaM2 ?? extractLivingArea(listing.title),
+    usableAreaM2: listing.usableAreaM2 ?? extractUsableArea(listing.title),
+    landAreaM2: listing.landAreaM2 ?? extractLandArea(listing.title),
+    rooms: listing.rooms ?? extractRooms(listing.title),
+    yearBuilt: listing.yearBuilt ?? extractYearBuilt(listing.title),
     attachments: [],
     galleryUrls: listing.imageUrl ? [listing.imageUrl] : [],
     tkgmParcelUrl: null,
@@ -307,34 +471,57 @@ async function fetchZvgPortalDetails(listing: Listing): Promise<OfficialPortalDe
     });
     if (!res.ok) return base;
     const html = await res.text();
-    if (html.trim() === "error" || !html.includes("zvg_table")) return base;
+    if (html.trim() === "error" || (!html.includes("id=anzeige") && !html.includes("Objekt/Lage") && !html.includes("zvg_table"))) {
+      return base;
+    }
 
-    const extractRow = (labelPattern: string): string | null => {
-      const re = new RegExp(`>${labelPattern}<\\/td>\\s*<td[^>]*>([\\s\\S]*?)<\\/td>`, "i");
+    const extractRow = (labelPattern: string, keepNewlines = false): string | null => {
+      const re = new RegExp(
+        `<td[^>]*>\\s*(?:<nobr>)?\\s*${labelPattern}\\s*:?\\s*(?:<\\/nobr>)?\\s*<\\/td>\\s*<td[^>]*>([\\s\\S]*?)<\\/td>`,
+        "i",
+      );
       const m = re.exec(html);
-      const val = cleanHtmlText(m?.[1]);
-      return val || null;
+      const val = cleanHtmlText(m?.[1], keepNewlines);
+      return val && val !== ":" ? val : null;
     };
 
-    base.proceedingKind = extractRow("Art der Versteigerung");
-    base.grundbuch = extractRow("Grundbuch");
-    base.description = extractRow("Beschreibung") ?? extractRow("Objekt\\/Lage");
-    base.hearingPlace = extractRow("Ort der Versteigerung");
-    base.creditor = extractRow("Informationen zum Gl(?:ä|&auml;)ubiger") ?? extractRow("Gl(?:ä|&auml;)ubiger");
+    const objLage = extractRow("Objekt\\/Lage", false);
+    const rawDesc = extractRow("Beschreibung", true);
+    const cleanDesc =
+      rawDesc && !/^s\.\s*amtliche\s*Bekanntmachung$/i.test(rawDesc.trim()) ? rawDesc : objLage;
 
-    const courtHref = /href="([^"]+)"[^>]*>\s*Informationen zum zust/i.exec(html)?.[1];
-    if (courtHref) base.courtUrl = courtHref.replace(/&amp;/g, "&");
+    base.proceedingKind = extractRow("Art der Versteigerung") ?? base.proceedingKind;
+    base.grundbuch = extractRow("Grundbuch") ?? base.grundbuch;
+    base.description = cleanDesc ?? base.description;
+    base.hearingPlace = extractRow("Ort der Versteigerung") ?? base.hearingPlace;
+    base.creditor =
+      extractRow("Informationen zum Gl(?:ä|&auml;)ubiger") ??
+      extractRow("Gl(?:ä|&auml;)ubiger") ??
+      base.creditor;
 
-    const geoHref = /href="([^"]+)"[^>]*>\s*GeoServer/i.exec(html)?.[1];
-    if (geoHref) base.geoServerUrl = geoHref.replace(/&amp;/g, "&");
+    const courtHref = /href=['"]([^'"]+)['"][^>]*>\s*(?:Internetseite des Gerichtes|Informationen zum zust)/i.exec(html)?.[1];
+    if (courtHref) {
+      const rawCourtUrl = cleanHtmlText(courtHref, false);
+      try {
+        base.courtUrl = new URL(rawCourtUrl, "https://www.zvg-portal.de/index.php").toString();
+      } catch {
+        base.courtUrl = rawCourtUrl;
+      }
+    }
 
-    const combinedText = [listing.title, base.description, base.grundbuch].filter(Boolean).join(" ");
-    base.livingAreaM2 = extractLivingArea(combinedText);
-    base.landAreaM2 = extractLandArea(combinedText);
+    const geoHref = /<td[^>]*>\s*GeoServer:\s*<\/td>\s*<td[^>]*>\s*<a[^>]*href=['"]([^'"]+)['"]/i.exec(html)?.[1];
+    if (geoHref) base.geoServerUrl = cleanHtmlText(geoHref, false);
+
+    const combinedText = [listing.title, objLage, rawDesc, base.grundbuch].filter(Boolean).join(" \n ");
+    base.livingAreaM2 = extractLivingArea(combinedText) ?? base.livingAreaM2;
+    base.usableAreaM2 = extractUsableArea(combinedText) ?? base.usableAreaM2;
+    base.landAreaM2 = extractLandArea(combinedText) ?? base.landAreaM2;
+    base.rooms = extractRooms(combinedText) ?? base.rooms;
+    base.yearBuilt = extractYearBuilt(combinedText) ?? base.yearBuilt;
 
     const anhangIdx = html.indexOf("Anhaenge");
     const anhangHtml = anhangIdx !== -1 ? html.slice(anhangIdx) : html;
-    const rowChunks = anhangHtml.split(/<tr>/i).slice(1);
+    const rowChunks = anhangHtml.split(/<tr[^>]*>/i).slice(1);
     const seenIds = new Set<string>();
 
     for (const chunk of rowChunks) {
@@ -343,10 +530,10 @@ async function fetchZvgPortalDetails(listing: Listing): Promise<OfficialPortalDe
           chunk,
         );
       if (!m) continue;
-      const rawLabel = cleanHtmlText(m[1]).replace(/:$/, "").trim();
+      const rawLabel = cleanHtmlText(m[1], false).replace(/:$/, "").trim();
       const queryPart = m[2].replace(/&amp;/g, "&").trim();
       const fileId = m[3];
-      const fileName = cleanHtmlText(m[4]) || `${rawLabel || "Dokument"}.pdf`;
+      const fileName = cleanHtmlText(m[4], false) || `${rawLabel || "Dokument"}.pdf`;
       if (seenIds.has(fileId)) continue;
       seenIds.add(fileId);
 
@@ -407,15 +594,18 @@ async function fetchZvgComDetails(listing: Listing): Promise<OfficialPortalDetai
   const base: OfficialPortalDetails = {
     sourcePortal: "zvg.com",
     portalEntryUrl: listing.officialUrl || "https://www.zvg.com/",
-    proceedingKind: "Zwangsversteigerung",
-    grundbuch: null,
-    description: null,
-    hearingPlace: null,
-    creditor: null,
+    proceedingKind: listing.proceedingKind ?? "Zwangsversteigerung",
+    grundbuch: listing.grundbuch ?? null,
+    description: listing.description ?? null,
+    hearingPlace: listing.hearingPlace ?? null,
+    creditor: listing.creditor ?? null,
     courtUrl: listing.courtUrl ?? null,
-    geoServerUrl: null,
-    livingAreaM2: extractLivingArea(listing.title),
-    landAreaM2: extractLandArea(listing.title),
+    geoServerUrl: listing.geoServerUrl ?? null,
+    livingAreaM2: listing.livingAreaM2 ?? extractLivingArea(listing.title),
+    usableAreaM2: listing.usableAreaM2 ?? extractUsableArea(listing.title),
+    landAreaM2: listing.landAreaM2 ?? extractLandArea(listing.title),
+    rooms: listing.rooms ?? extractRooms(listing.title),
+    yearBuilt: listing.yearBuilt ?? extractYearBuilt(listing.title),
     attachments: [],
     galleryUrls: listing.imageUrl ? [listing.imageUrl] : [],
     tkgmParcelUrl: null,
@@ -426,32 +616,72 @@ async function fetchZvgComDetails(listing: Listing): Promise<OfficialPortalDetai
   const headers = {
     Referer: ZVG_COM_REFERER,
     "User-Agent": USER_AGENT,
-    Accept: "application/json",
+    Accept: "application/json, text/html, */*",
   };
 
   try {
-    const [textRes, pdfRes, galleryPics] = await Promise.all([
+    const [textHtml, jsonMeta, pdfRes, galleryPics] = await Promise.all([
       fetch(`https://www.zvg.com/v2024/termine.prg?act=getText&id=${zvgComId}`, {
         headers,
         signal: AbortSignal.timeout(5000),
       })
-        .then((r) => r.json())
+        .then((r) => (r.ok ? r.text() : ""))
+        .catch(() => ""),
+      fetch(`https://www.zvg.com/v2024/termine.prg?act=getJSON&id=${zvgComId}`, {
+        headers,
+        signal: AbortSignal.timeout(5000),
+      })
+        .then((r) => (r.ok ? r.json() : null))
         .catch(() => null),
       fetch(`https://www.zvg.com/v2024/termine.prg?act=getPDF&id=${zvgComId}`, {
         headers,
         signal: AbortSignal.timeout(5000),
       })
-        .then((r) => r.json())
+        .then((r) => (r.ok ? r.json() : null))
         .catch(() => null),
       fetchZvgComGalleryUrls(zvgComId),
     ]);
 
-    const rawDesc = cleanHtmlText(textRes?.Text ?? "");
-    if (rawDesc) {
-      base.description = rawDesc;
-      base.livingAreaM2 = base.livingAreaM2 ?? extractLivingArea(rawDesc);
-      base.landAreaM2 = base.landAreaM2 ?? extractLandArea(rawDesc);
+    const fullText = cleanHtmlText(textHtml, true);
+    if (fullText) {
+      if (/Aufhebung der Gemeinschaft|Teilungsversteigerung/i.test(fullText)) {
+        base.proceedingKind = "Zwangsversteigerung zur Aufhebung der Gemeinschaft (Teilungsversteigerung)";
+      } else if (/Insolvenz/i.test(fullText)) {
+        base.proceedingKind = "Zwangsversteigerung auf Antrag des Insolvenzverwalters";
+      }
+
+      const gbMatch = /Grundbucheintragung:\s*([\s\S]*?)(?:Objektbeschreibung\/Lage|Verkehrswert:|Hinweis:|$)/i.exec(fullText);
+      if (gbMatch) {
+        base.grundbuch = gbMatch[1].replace(/\s+/g, " ").trim().slice(0, 320);
+      }
+
+      const descMatch = /Objektbeschreibung\/Lage[^:\n]*:\s*([\s\S]*?)(?:Verkehrswert:|Hinweis:|Ansprechpartner|$)/i.exec(fullText);
+      if (descMatch) {
+        base.description = descMatch[1].trim();
+      } else {
+        base.description = fullText.split(/Hinweis:|Bietsicherheit kann/i)[0].trim() || base.description;
+      }
+
+      const credMatch = /Ansprechpartner[^:\n]*:\s*([\s\S]*?)$/i.exec(fullText);
+      if (credMatch) {
+        base.creditor = credMatch[1].replace(/\s+/g, " ").trim();
+      }
     }
+
+    if (jsonMeta && typeof jsonMeta === "object") {
+      const m = jsonMeta as Record<string, string | undefined>;
+      const ort = cleanHtmlText(m.Versteigerungsort || m.V_ort || "", false);
+      const saal = cleanHtmlText(m.Saal || m.V_Saal || "", false);
+      const hp = [ort, saal ? (saal.toLowerCase().includes("saal") ? saal : `Saal ${saal}`) : null].filter(Boolean).join(", ");
+      if (hp) base.hearingPlace = hp;
+    }
+
+    const combinedText = [listing.title, fullText].filter(Boolean).join(" \n ");
+    base.livingAreaM2 = extractLivingArea(combinedText) ?? base.livingAreaM2;
+    base.usableAreaM2 = extractUsableArea(combinedText) ?? base.usableAreaM2;
+    base.landAreaM2 = extractLandArea(combinedText) ?? base.landAreaM2;
+    base.rooms = extractRooms(combinedText) ?? base.rooms;
+    base.yearBuilt = extractYearBuilt(combinedText) ?? base.yearBuilt;
 
     const toAbs = (p: unknown): string | null => {
       if (!p || typeof p !== "string") return null;
@@ -524,9 +754,11 @@ async function fetchTrDetails(listing: Listing): Promise<OfficialPortalDetails> 
   }
 
   const descParts = [
-    tr?.excerpt,
+    tr?.excerpt ?? listing.description,
     tr?.nitelik ? `Nitelik: ${tr.nitelik}` : null,
     tr?.zoning ? `İmar Durumu: ${tr.zoning}` : null,
+    tr?.arsaPayi ? `Arsa Payı: ${tr.arsaPayi}` : null,
+    tr?.unitNo ? `Bağımsız Bölüm No: ${tr.unitNo}` : null,
     tr?.ownershipShare ? `Hisse: ${tr.ownershipShare}` : null,
   ].filter(Boolean);
 
@@ -536,7 +768,7 @@ async function fetchTrDetails(listing: Listing): Promise<OfficialPortalDetails> 
     proceedingKind: tr?.adType ?? "İCRA",
     grundbuch:
       tr?.ada && tr?.parsel
-        ? `Ada ${tr.ada} / Parsel ${tr.parsel}${tr.mahalle ? ` (${tr.mahalle})` : ""}`
+        ? `Ada ${tr.ada} / Parsel ${tr.parsel}${tr.mahalle ? ` (${tr.mahalle})` : ""}${tr.unitNo ? ` · BB No: ${tr.unitNo}` : ""}`
         : tr?.mahalle ?? null,
     description: descParts.join("\n") || null,
     hearingPlace: "esatis.uyap.gov.tr (Elektronik Satış Portalı)",
@@ -545,16 +777,94 @@ async function fetchTrDetails(listing: Listing): Promise<OfficialPortalDetails> 
     geoServerUrl: "https://parselsorgu.tkgm.gov.tr/",
     livingAreaM2: tr?.buildingAreaM2 ?? (tr?.isCondo ? tr.areaM2 : null),
     landAreaM2: tr?.landAreaM2 ?? (!tr?.isCondo ? tr?.areaM2 ?? null : null),
+    netAreaM2: tr?.netAreaM2 ?? null,
+    rooms: tr?.rooms ?? listing.rooms ?? null,
+    yearBuilt: tr?.yearBuilt ?? listing.yearBuilt ?? null,
+    floor: tr?.floor ?? null,
+    unitNo: tr?.unitNo ?? null,
+    arsaPayi: tr?.arsaPayi ?? null,
+    zoning: tr?.zoning ?? null,
+    ownershipShare: tr?.ownershipShare ?? null,
     attachments: [],
     galleryUrls,
     tkgmParcelUrl: "https://parselsorgu.tkgm.gov.tr/",
   };
 }
 
+function resolveCourtUrl(rawCourtUrl: string | null | undefined): string | null {
+  if (!rawCourtUrl) return null;
+  try {
+    return new URL(rawCourtUrl, "https://www.zvg-portal.de/index.php").toString();
+  } catch {
+    return rawCourtUrl;
+  }
+}
+
+function mergeListingFallback(details: OfficialPortalDetails, listing: Listing): OfficialPortalDetails {
+  const tr = listing.tr;
+  const sourcePortal =
+    details.sourcePortal ||
+    (listing.market === "TR"
+      ? tr?.source ?? "ilan.gov.tr"
+      : listing.key.startsWith("zvgcom-")
+        ? "zvg.com"
+        : "zvg-portal.de");
+  const rawCourtUrl = details.courtUrl ?? listing.courtUrl ?? null;
+  return {
+    ...details,
+    sourcePortal,
+    portalEntryUrl:
+      details.portalEntryUrl ||
+      (listing.market === "DE" && !listing.key.startsWith("zvgcom-")
+        ? `/api/quelle/${encodeURIComponent(listing.key)}?mode=portal`
+        : listing.officialUrl),
+    proceedingKind: details.proceedingKind ?? listing.proceedingKind ?? null,
+    grundbuch: details.grundbuch ?? listing.grundbuch ?? null,
+    description: details.description ?? listing.description ?? null,
+    hearingPlace: details.hearingPlace ?? listing.hearingPlace ?? null,
+    creditor: details.creditor ?? listing.creditor ?? null,
+    courtUrl: resolveCourtUrl(rawCourtUrl),
+    geoServerUrl: details.geoServerUrl ?? listing.geoServerUrl ?? null,
+    livingAreaM2: details.livingAreaM2 ?? listing.livingAreaM2 ?? tr?.buildingAreaM2 ?? null,
+    usableAreaM2: details.usableAreaM2 ?? listing.usableAreaM2 ?? null,
+    landAreaM2: details.landAreaM2 ?? listing.landAreaM2 ?? tr?.landAreaM2 ?? null,
+    netAreaM2: details.netAreaM2 ?? tr?.netAreaM2 ?? null,
+    rooms: details.rooms ?? listing.rooms ?? tr?.rooms ?? null,
+    yearBuilt: details.yearBuilt ?? listing.yearBuilt ?? tr?.yearBuilt ?? null,
+    floor: details.floor ?? tr?.floor ?? null,
+    unitNo: details.unitNo ?? tr?.unitNo ?? null,
+    arsaPayi: details.arsaPayi ?? tr?.arsaPayi ?? null,
+    zoning: details.zoning ?? tr?.zoning ?? null,
+    ownershipShare: details.ownershipShare ?? tr?.ownershipShare ?? null,
+    attachments: Array.isArray(details.attachments)
+      ? details.attachments.map((att) => ({
+          ...att,
+          proxyUrl: att.proxyUrl ? att.proxyUrl.replace(/\?doc=pdf\b/, "?doc=announcement") : att.proxyUrl,
+        }))
+      : [],
+    galleryUrls:
+      Array.isArray(details.galleryUrls) && details.galleryUrls.length > 0
+        ? details.galleryUrls
+        : listing.imageUrl
+          ? [listing.imageUrl]
+          : [],
+    tkgmParcelUrl: details.tkgmParcelUrl ?? (listing.market === "TR" ? "https://parselsorgu.tkgm.gov.tr/" : null),
+  };
+}
+
 export class OfficialPortalService {
   static async getDetails(listing: Listing): Promise<OfficialPortalDetails> {
     const cached = await readCache(listing.key);
-    if (cached) return cached;
+    const isCacheComplete =
+      cached !== null &&
+      (Boolean(cached.description) ||
+        Boolean(cached.grundbuch) ||
+        Boolean(cached.livingAreaM2) ||
+        Boolean(cached.landAreaM2) ||
+        listing.market === "TR");
+    if (cached && isCacheComplete) {
+      return mergeListingFallback(cached, listing);
+    }
 
     let details: OfficialPortalDetails;
     if (listing.market === "TR") {
@@ -565,7 +875,17 @@ export class OfficialPortalService {
       details = await fetchZvgPortalDetails(listing);
     }
 
-    if (details.attachments.length > 0 || details.galleryUrls.length > 0 || details.description || listing.market === "TR") {
+    details = mergeListingFallback(details, listing);
+
+    if (
+      details.attachments.length > 0 ||
+      details.galleryUrls.length > 0 ||
+      details.description ||
+      details.grundbuch ||
+      details.livingAreaM2 ||
+      details.landAreaM2 ||
+      listing.market === "TR"
+    ) {
       await writeCache(listing.key, details);
     }
     return details;
@@ -597,7 +917,15 @@ export class OfficialPortalService {
     if (opts.fileId) {
       target = details.attachments.find((a) => a.id === opts.fileId);
     } else if (opts.doc) {
-      target = details.attachments.find((a) => a.kind === opts.doc || a.id === opts.doc);
+      const docAlias = opts.doc === "pdf" ? "announcement" : opts.doc;
+      target = details.attachments.find(
+        (a) =>
+          a.kind === opts.doc ||
+          a.id === opts.doc ||
+          a.kind === docAlias ||
+          a.id === docAlias ||
+          (docAlias === "announcement" && a.id === "bekanntmachung"),
+      );
     }
     if (!target) {
       target =

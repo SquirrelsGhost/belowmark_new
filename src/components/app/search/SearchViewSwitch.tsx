@@ -1,5 +1,5 @@
 import Link from "next/link";
-import Icon, { IconName } from "@/components/ui/Icon";
+import Icon, { type IconName } from "@/components/ui/Icon";
 
 interface SearchViewOption {
   href: string;

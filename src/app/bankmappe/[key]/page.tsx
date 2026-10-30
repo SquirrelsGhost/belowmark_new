@@ -18,6 +18,8 @@ import BidderFileSources from "@/components/bidderFile/BidderFileSources";
 import BidderFileToolbar from "@/components/bidderFile/BidderFileToolbar";
 import ListingNotFound from "@/components/app/listing/ListingNotFound";
 import LockedPanel from "@/components/app/listing/LockedPanel";
+import PageNote from "@/components/ui/PageNote";
+import PageStack from "@/components/ui/PageStack";
 import { listingHref } from "@/lib/appConstants";
 import { fill, formatMoney } from "@/lib/appFormat";
 import { getAppPageContext } from "@/lib/appPage";
@@ -65,7 +67,7 @@ export default async function BankFilePage({ params, searchParams }: PageProps<"
         {listing && viewer.plan === "free" ? (
           <LockedPanel title={File.Locked} body={L.Locked.Body} cta={L.Locked.Cta} />
         ) : listing ? (
-          <p className="text-[13px] text-muted">{L.NotStated}</p>
+          <PageNote variant="mutedSmall" text={L.NotStated} />
         ) : (
           <ListingNotFound title={L.NotFound.Title} body={L.NotFound.Body} backLabel={L.Back} />
         )}
@@ -118,9 +120,9 @@ export default async function BankFilePage({ params, searchParams }: PageProps<"
       </BidderFileSection>
       <BidderFileSection number="06" title={File.Sections.object}>
         <BidderFileMoney listing={listing} labels={L} locale={locale} />
-        <div className="mt-3">
+        <PageStack variant="top3">
           <BidderFileFacts listing={listing} labels={L} locale={locale} />
-        </div>
+        </PageStack>
         <BankFileReportFacts report={report} title={labels.Object.ReportTitle} noReport={labels.Object.NoReport} reportFrom={labels.Object.ReportFrom} factLabels={reportLabels.Report.Facts} pageLabel={reportLabels.Report.Page} />
       </BidderFileSection>
       <BidderFileSection number="07" title={File.Sections.risks}>

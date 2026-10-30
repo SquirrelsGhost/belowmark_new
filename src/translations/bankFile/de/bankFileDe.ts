@@ -4,7 +4,7 @@ export const BANK_FILE_DE: IBankFileTranslation = {
   MetaTags: {
     BankFile: {
       title: "Bankenmappe — Belowmark",
-      description: "Finanzierungsanfrage für ein Objekt aus der Zwangsversteigerung: Betrag, Eigenkapital, Zahlungsplan nach dem Zuschlag und Sicherheitsleistung — jede Zahl mit Quelle.",
+      description: "Finanzierungsanfrage für ein Versteigerungsobjekt: Betrag, Eigenkapital, Zahlungsplan nach Zuschlag und Sicherheitsleistung — jede Zahl mit Quelle.",
       imgUrl: "https://belowmark.com/og/home.png",
       tags: ["Bankenmappe", "Finanzierung", "Zwangsversteigerung"],
       url: "https://belowmark.com/app",

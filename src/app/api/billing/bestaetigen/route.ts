@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
+import { err } from "@/lib/api";
 import { AUTH_PARAMS, AUTH_ROUTES } from "@/lib/auth/authConfig";
 import { BILLING_STATUS } from "@/lib/billing/billingConfig";
 import { BILLING_ACCOUNT_ANCHOR, BILLING_ACCOUNT_PARAM } from "@/lib/billing/billingRoutes";
@@ -13,9 +14,10 @@ import { SessionService } from "@/services/SessionService";
  * waits for the webhook; the webhook does the same and only one of them wins.
  * Answers with a redirect to /konto, never with data.
  */
-export async function GET(request: Request): Promise<Response> {
+export async function GET(req: Request): Promise<Response> {
   await connection();
-  const sessionId = new URL(request.url).searchParams.get("session_id") ?? "";
+  if (!req.url) return err("Invalid request URL", 400);
+  const sessionId = new URL(req.url).searchParams.get("session_id") ?? "";
   const user = await SessionService.getCurrentUser();
   if (!user) redirect(`${AUTH_ROUTES.login}?${AUTH_PARAMS.next}=${encodeURIComponent(AUTH_ROUTES.account)}`);
 

@@ -6,6 +6,8 @@ interface AccountPlanActionsProps {
   book?: { href: string; label: string };
   /** Shown while the monthly subscription renews */
   cancel?: { href: string; label: string };
+  /** "Auf Pro upgraden" while Investor runs */
+  upgrade?: { href: string; label: string };
   portalLabel: string;
   portalHint: string;
   /** No Stripe customer yet: explains where invoices will appear */
@@ -13,11 +15,12 @@ interface AccountPlanActionsProps {
 }
 
 /** Book or extend, open Stripe's portal, cancel the renewal — one row of plain links and forms. */
-export default function AccountPlanActions({ book, cancel, portalLabel, portalHint, portalUnavailable }: AccountPlanActionsProps) {
+export default function AccountPlanActions({ book, cancel, upgrade, portalLabel, portalHint, portalUnavailable }: AccountPlanActionsProps) {
   return (
     <div className="mt-6 grid gap-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-        {book && <Button href={book.href} label={book.label} variant="signal" withArrow />}
+        {upgrade && <Button href={upgrade.href} label={upgrade.label} variant="signal" withArrow />}
+        {book && <Button href={book.href} label={book.label} variant={upgrade ? "outline" : "signal"} withArrow={!upgrade} />}
         {!portalUnavailable && (
           <form action={openPortalAction}>
             <Button type="submit" label={portalLabel} variant="outline" />

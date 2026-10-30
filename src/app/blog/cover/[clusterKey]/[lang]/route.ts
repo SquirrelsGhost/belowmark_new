@@ -5,31 +5,38 @@ interface CoverRouteContext {
   params: Promise<{ clusterKey: string; lang: string }>;
 }
 
+const UPSTREAM_COOLDOWN_MS = 5 * 60 * 1000;
+let upstreamDownUntil = 0;
+
 export async function GET(_req: Request, context: CoverRouteContext): Promise<Response> {
   const { clusterKey, lang } = await context.params;
   const cleanLang: BlogLang = BLOG_LANGS.includes(lang as BlogLang) ? (lang as BlogLang) : "de";
   const upstreamUrl = `https://pycie.com/blog/cover/${encodeURIComponent(clusterKey)}/${cleanLang}?v=2`;
 
-  try {
-    const res = await fetch(upstreamUrl, {
-      headers: {
-        "x-seo-brand-domain": "belowmark.com",
-      },
-      next: { revalidate: 86400 },
-      signal: AbortSignal.timeout(8000),
-    });
-    if (res.ok) {
-      const buf = await res.arrayBuffer();
-      return new Response(buf, {
-        status: 200,
+  if (Date.now() >= upstreamDownUntil) {
+    try {
+      const res = await fetch(upstreamUrl, {
         headers: {
-          "Content-Type": "image/png",
-          "Cache-Control": "public, max-age=86400, s-maxage=86400",
+          "x-seo-brand-domain": "belowmark.com",
         },
+        next: { revalidate: 86400 },
+        signal: AbortSignal.timeout(1500),
       });
+      if (res.ok) {
+        const buf = await res.arrayBuffer();
+        return new Response(buf, {
+          status: 200,
+          headers: {
+            "Content-Type": "image/png",
+            "Cache-Control": "public, max-age=86400, s-maxage=86400",
+          },
+        });
+      }
+      upstreamDownUntil = Date.now() + UPSTREAM_COOLDOWN_MS;
+    } catch (error) {
+      upstreamDownUntil = Date.now() + UPSTREAM_COOLDOWN_MS;
+      console.error("[GET /blog/cover/[clusterKey]/[lang]]", error);
     }
-  } catch {
-    // Fallback to branded SVG below
   }
 
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">

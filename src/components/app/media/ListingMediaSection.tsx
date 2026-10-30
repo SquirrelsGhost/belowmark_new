@@ -12,6 +12,7 @@ import {
   TKGM_PARCEL_URL,
   UYAP_ESATIS_URL,
 } from "@/lib/locationLinks";
+import { LocaleOption } from "@/lib/constants";
 import { IAppTranslation } from "@/translations/app/IAppTranslation";
 import { Listing, OfficialPortalDetails } from "@/types/listing.types";
 
@@ -19,10 +20,11 @@ interface ListingMediaSectionProps {
   listing: Listing;
   labels: IAppTranslation["Media"];
   portalDetails?: OfficialPortalDetails;
+  locale?: LocaleOption;
 }
 
 /** Fotos & Unterlagen: real building/apartment photo gallery + satellite orthophoto + official documents. */
-export default function ListingMediaSection({ listing, labels, portalDetails }: ListingMediaSectionProps) {
+export default function ListingMediaSection({ listing, labels, portalDetails, locale = labels.Title.startsWith("Fotoğraflar") ? "tr" : "de" }: ListingMediaSectionProps) {
   const market = listing.market;
   const parcel = listing.tr?.ada && listing.tr?.parsel ? `Ada ${listing.tr.ada} / Parsel ${listing.tr.parsel}` : null;
   const portalHref = portalDetails?.portalEntryUrl ?? officialPortalHref(listing);
@@ -55,7 +57,7 @@ export default function ListingMediaSection({ listing, labels, portalDetails }: 
           portalHref={portalHref}
           streetViewHref={streetViewHref}
           slotLabel={labels.Slot[market]}
-          isTr={market === "TR"}
+          isTr={locale === "tr"}
         />
       }
     >

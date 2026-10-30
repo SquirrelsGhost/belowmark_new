@@ -2,7 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import { APP_ROUTES } from "@/lib/appConstants";
+import { RATE_LIMITS } from "@/lib/auth/authConfig";
 import { ListingService } from "@/services/ListingService";
+import { RateLimitService } from "@/services/RateLimitService";
 import { SessionService } from "@/services/SessionService";
 import { WatchlistService } from "@/services/WatchlistService";
 
@@ -29,6 +31,8 @@ export async function toggleWatchAction(_: WatchlistActionState, formData: FormD
   if (!target) return { ok: false };
   const shouldSave = formData.get("save") === "1";
   try {
+    const rl = await RateLimitService.hit(`watchlist:user:${target.userId}`, RATE_LIMITS.profileUpdate);
+    if (!rl.allowed) return { ok: false, saved: !shouldSave };
     if (shouldSave) await WatchlistService.add(target.userId, target.listingId);
     else await WatchlistService.remove(target.userId, target.listingId);
   } catch (error) {
@@ -45,6 +49,8 @@ export async function saveNoteAction(_: WatchlistActionState, formData: FormData
   const note = formData.get("note");
   if (!target || typeof note !== "string") return { ok: false };
   try {
+    const rl = await RateLimitService.hit(`watchlist:user:${target.userId}`, RATE_LIMITS.profileUpdate);
+    if (!rl.allowed) return { ok: false };
     await WatchlistService.saveNote(target.userId, target.listingId, note);
   } catch (error) {
     console.error("[saveNoteAction]", error);

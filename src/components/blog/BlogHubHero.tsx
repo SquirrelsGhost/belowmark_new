@@ -17,7 +17,7 @@ export default function BlogHubHero({ lang, totalArticlesCount }: BlogHubHeroPro
           {copy.dateline}
         </span>
         <span className="border border-ink bg-paper-bright px-2.5 py-0.5 font-mono text-[11px] font-semibold uppercase tracking-wider text-ink">
-          {totalArticlesCount} Dossiers · 5 Sprachen
+          {totalArticlesCount} {copy.dossiersCountLabel}
         </span>
       </div>
 

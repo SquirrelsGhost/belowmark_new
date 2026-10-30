@@ -3,7 +3,7 @@ import { IAlertsTranslation } from "../IAlertsTranslation";
 export const ALERTS_TR: IAlertsTranslation = {
   MetaTags: {
     title: "Alarmlar — Belowmark",
-    description: "E-posta bildirimli kayıtlı aramalar: aramanıza uyan yeni bir ihale çıktığında veya bir ihale tarihi değiştiğinde haberiniz olur.",
+    description: "E-posta bildirimli kayıtlı ihale aramaları: aramanıza uyan yeni bir dosya yayımlandığında veya bir ihale tarihi değiştiğinde hemen haberiniz olur.",
     imgUrl: "https://belowmark.com/og/home.png",
     tags: ["Alarm", "icra", "ihale"],
     url: "https://belowmark.com/app/alerts",
@@ -76,7 +76,7 @@ export const ALERTS_TR: IAlertsTranslation = {
     Kinds: { new: "Yeni", cancelled: "İptal", reinstated: "Yeniden ilan", rescheduled: "Tarih değişti" },
     NextDate: "İhale {date}",
     Moved: "önce {before}, şimdi {after}",
-    Value: { DE: "Verkehrswert", TR: "Muhammen bedel" },
+    Value: { DE: "Muhammen bedel", TR: "Muhammen bedel" },
     More: "+ {count} ilan daha",
     OpenSearch: "Aramayı aç",
     LockedValues: "Tutarları uygulamada tam erişimle görürsünüz.",

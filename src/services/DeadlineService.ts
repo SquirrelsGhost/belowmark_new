@@ -56,7 +56,6 @@ export class DeadlineService {
 
   static unfollow = async (userId: string, listingKey: string): Promise<void> => {
     await db.delete(deadlineFollows).where(and(eq(deadlineFollows.userId, userId), eq(deadlineFollows.listingKey, listingKey)));
-    await db.delete(deadlineRemindersSent).where(and(eq(deadlineRemindersSent.userId, userId), eq(deadlineRemindersSent.listingKey, listingKey)));
   };
 
   static setMail = async (userId: string, listingKey: string, mailEnabled: boolean): Promise<void> => {

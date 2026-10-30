@@ -11,6 +11,10 @@ import AppMain from "@/components/app/shell/AppMain";
 import AppPageHeader from "@/components/app/shell/AppPageHeader";
 import WatchlistEmpty from "@/components/app/watchlist/WatchlistEmpty";
 import AlertsUsage from "@/components/app/alerts/AlertsUsage";
+import PageAside from "@/components/ui/PageAside";
+import PageNote from "@/components/ui/PageNote";
+import PageSplitGrid from "@/components/ui/PageSplitGrid";
+import PageStack from "@/components/ui/PageStack";
 import { APP_MAIN_ID, listingHref } from "@/lib/appConstants";
 import { fill } from "@/lib/appFormat";
 import { getAppPageContext } from "@/lib/appPage";
@@ -35,7 +39,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function DeadlinesPage() {
-  const { viewer, app, locale } = await getAppPageContext(DEADLINE_ROUTES.overview);
+  const { viewer, locale } = await getAppPageContext(DEADLINE_ROUTES.overview);
   const labels = getDeadlineTranslation(locale);
   const { Page: P, Follow: F, Section: S } = labels;
   const hideAmounts = viewer.plan === "free";
@@ -60,15 +64,15 @@ export default async function DeadlinesPage() {
         title={P.Title}
         lead={P.Lead}
         aside={
-          <div className="flex flex-wrap items-center gap-3">
+          <PageStack variant="rowWrap">
             <AlertsUsage label={fill(P.Count, { count: mine.length })} />
             {mine.length > 0 && <DeadlineCalendarLink href={DEADLINE_ROUTES.download} label={F.Download} />}
-          </div>
+          </PageStack>
         }
       />
 
-      <div className="mt-10 grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,8fr)_minmax(0,4fr)]">
-        <div className="min-w-0">
+      <PageSplitGrid variant="wideLeft">
+        <PageStack variant="min0">
           {mine.length === 0 ? (
             <WatchlistEmpty title={P.Empty.Title} body={P.Empty.Body} cta={P.Empty.Cta} />
           ) : (
@@ -93,7 +97,7 @@ export default async function DeadlinesPage() {
                           source={next.law?.label ?? null}
                         />
                       ) : (
-                        <p className="font-mono text-[11px] text-muted">{listing?.cancelled ? S.Cancelled : P.NothingAhead}</p>
+                        <PageNote variant="monoMuted" text={listing?.cancelled ? S.Cancelled : P.NothingAhead} />
                       )
                     }
                   >
@@ -104,11 +108,11 @@ export default async function DeadlinesPage() {
               })}
             </DeadlineFollowList>
           )}
-        </div>
-        <aside className="flex flex-col gap-6">
+        </PageStack>
+        <PageAside variant="stack">
           <DeadlineFeedPanel hasFeed={hasFeed} labels={P.Feed} />
-        </aside>
-      </div>
+        </PageAside>
+      </PageSplitGrid>
 
       <AlertsNote text={P.HowItWorks} />
     </AppMain>

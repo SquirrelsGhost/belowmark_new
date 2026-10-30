@@ -24,9 +24,9 @@ export interface WithdrawalInput {
 }
 
 async function findUserId(email: string, sessionUserId: string | null): Promise<string | null> {
-  if (sessionUserId) return sessionUserId;
   const [row] = await db.select({ id: users.id }).from(users).where(eq(users.email, normalizeEmail(email)));
-  return row?.id ?? null;
+  if (row?.id) return row.id;
+  return sessionUserId ?? null;
 }
 
 /** Stores, confirms and reports a declaration. Mails never block the receipt: the row is the proof. */
@@ -60,7 +60,7 @@ export class ConsumerDeclarationService {
     let effectiveEnd: Date | null = null;
     let status: "processed" | "manual" = "manual";
 
-    if (userId && input.type === "ordinary") {
+    if (userId && sessionUserId && userId === sessionUserId && input.type === "ordinary") {
       const access = await BillingService.access(userId);
       const wantsLater = input.requestedEnd && access.endsAt && input.requestedEnd.getTime() > access.endsAt.getTime();
       if (access.isActive && !wantsLater) {

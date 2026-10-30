@@ -132,7 +132,7 @@ export const CLOSING_TASKS_DE: Record<MarketCode, Record<string, ClosingTaskText
   },
   TR: {
     "tr.pay": {
-      title: "İhale bedelini zahlen — 7 Tage",
+      title: "Zuschlagspreis (ihale bedeli) zahlen — 7 Tage",
       detail:
         "Kaufpreis und Kosten sind binnen sieben Tagen ab Bekanntgabe des Versteigerungsprotokolls (artırma sonuç tutanağı) zu zahlen, auch wenn jemand die Aufhebung beantragt hat (Elektronik Satış Yönetmeliği m.20/1; İİK m.130). Seit Kanun 7343 gibt es keine Verlängerung um zehn Tage mehr. Tragen Sie oben das Datum der Bekanntgabe ein.",
     },

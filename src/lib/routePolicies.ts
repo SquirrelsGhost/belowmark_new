@@ -31,16 +31,20 @@ const POLICY_RULES: readonly PolicyRule[] = [
   { methods: ["GET"], pattern: /^\/(agb|datenschutz|impressum|widerruf)$/, policy: PAGE_PUBLIC },
   { methods: ["GET", "POST"], pattern: /^\/(widerruf\/erklaeren|kuendigen)$/, policy: PAGE_PUBLIC },
   { methods: ["GET", "POST"], pattern: /^\/login$/, policy: PAGE_PUBLIC },
+  { methods: ["GET", "POST"], pattern: /^\/anmelden$/, policy: PAGE_PUBLIC },
   { methods: ["GET", "POST"], pattern: /^\/signup$/, policy: PAGE_PUBLIC },
+  { methods: ["GET", "POST"], pattern: /^\/registrieren$/, policy: PAGE_PUBLIC },
   { methods: ["GET", "POST"], pattern: /^\/passwort-vergessen$/, policy: PAGE_PUBLIC },
   { methods: ["GET", "POST"], pattern: /^\/passwort-neu$/, policy: PAGE_PUBLIC },
   { methods: ["GET", "POST"], pattern: /^\/email-bestaetigen$/, policy: PAGE_PUBLIC },
   { methods: ["GET", "POST"], pattern: /^\/einladung$/, policy: PAGE_PUBLIC },
   { methods: ["GET"], pattern: /^\/k\/[^/]+$/, policy: PAGE_PUBLIC },
-  { methods: ["GET"], pattern: /^\/blog(\/cover\/[^/]+\/(de|tr|en|ar|ru))?$/, policy: PAGE_PUBLIC },
+  { methods: ["GET"], pattern: /^\/blog$/, policy: PAGE_PUBLIC },
+  { methods: ["GET"], pattern: /^\/blog\/cover\/[^/]+\/[^/]+$/, policy: API_PUBLIC },
   { methods: ["GET"], pattern: /^\/blog\/[^/]+$/, policy: PAGE_PUBLIC },
-  { methods: ["GET"], pattern: /^\/(tr|en|ar|ru)\/blog(\/[^/]+)?$/, policy: PAGE_PUBLIC },
-  { methods: ["GET"], pattern: /^\/(sitemap\.xml|sitemap-blog\.xml|robots\.txt|llms\.txt|llms-full\.txt|pycie2026seoindexnowkey\.txt)$/, policy: API_PUBLIC },
+  { methods: ["GET"], pattern: /^\/(de|tr|en|ar|ru)\/blog(\/[^/]+)?$/, policy: PAGE_PUBLIC },
+  { methods: ["GET"], pattern: /^\/karten\/(de|tr)\.svg$/, policy: API_PUBLIC },
+  { methods: ["GET"], pattern: /^\/(sitemap\.xml|sitemap-blog\.xml|robots\.txt|llms\.txt|llms-full\.txt|pycie2026seoindexnowkey\.txt|sw\.js)$/, policy: API_PUBLIC },
 
   // ─── 2. Protected Account Page ──────────────────────────────────────────────
   { methods: ["GET", "POST"], pattern: /^\/konto$/, policy: PAGE_AUTH },
@@ -49,13 +53,14 @@ const POLICY_RULES: readonly PolicyRule[] = [
 
   // ─── 2b. Booking (order overview, local test checkout, Stripe success URL) ──
   { methods: ["GET", "POST"], pattern: /^\/buchen$/, policy: PAGE_AUTH },
+  { methods: ["GET", "POST"], pattern: /^\/buchen\/upgrade$/, policy: PAGE_AUTH },
   { methods: ["GET", "POST"], pattern: /^\/bezahlen\/test$/, policy: PAGE_AUTH },
   { methods: ["GET"], pattern: /^\/api\/billing\/bestaetigen$/, policy: PAGE_AUTH },
 
   // ─── 3. Protected App Routes & Calendar Export ──────────────────────────────
   { methods: ["GET"], pattern: /^\/app\/kalender$/, policy: API_AUTH },
-  { methods: ["GET"], pattern: /^\/app\/termine\/kalender$/, policy: API_AUTH },
-  { methods: ["GET", "POST"], pattern: /^\/app(\/.*)?$/, policy: PAGE_AUTH },
+  { methods: ["GET"], pattern: /^\/app\/termine\/kalender$/, policy: apiPerm("app:investor") },
+  { methods: ["GET", "POST"], pattern: /^\/app(\/(?!kalender$|termine\/kalender$).*)?$/, policy: PAGE_AUTH },
   { methods: ["GET", "POST"], pattern: /^\/mappe\/[^/]+$/, policy: PAGE_AUTH },
   { methods: ["GET", "POST"], pattern: /^\/bankmappe\/[^/]+$/, policy: PAGE_AUTH },
   { methods: ["GET", "POST"], pattern: /^\/expose\/[^/]+$/, policy: PAGE_AUTH },
@@ -68,7 +73,7 @@ const POLICY_RULES: readonly PolicyRule[] = [
   { methods: ["GET"], pattern: /^\/api\/termine\/feed\/[A-Za-z0-9_-]{43}(\.ics)?$/, policy: API_PUBLIC },
   // Signed by Stripe; the route verifies the signature itself
   { methods: ["POST"], pattern: /^\/api\/billing\/webhook$/, policy: API_PUBLIC },
-  { methods: ["GET"], pattern: /^\/api\/quelle\/[^/]+$/, policy: API_AUTH },
+  { methods: ["GET"], pattern: /^\/api\/quelle\/[^/]+$/, policy: apiPerm("app:investor") },
   { methods: ["POST", "DELETE"], pattern: /^\/api\/gutachten$/, policy: apiPerm("gutachten:analyze") },
 ];
 

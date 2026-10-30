@@ -23,7 +23,9 @@ export default function RegionDetector({ country }: RegionDetectorProps) {
     const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone ?? "";
     const detected: MarketCode = TURKEY_TIME_ZONE.test(timeZone) ? "TR" : "DE";
     if (detected === country) return;
-    setDetectedCountryAction(detected).then(() => router.refresh());
+    setDetectedCountryAction(detected)
+      .then(() => router.refresh())
+      .catch(() => {});
   }, [country, router]);
 
   return null;

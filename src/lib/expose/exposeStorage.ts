@@ -52,5 +52,6 @@ export function parseHolding(raw: string): ExposeHolding | null {
   const record = readRecord(raw);
   if (!record || !["won", "lost", "bid"].includes(record.status as string)) return null;
   const date = typeof record.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(record.date) ? record.date : null;
-  return { status: record.status as ExposeHolding["status"], price: positive(record.price), date };
+  const price = typeof record.price === "number" && Number.isFinite(record.price) && record.price > 0 ? record.price : null;
+  return { status: record.status as ExposeHolding["status"], price, date };
 }

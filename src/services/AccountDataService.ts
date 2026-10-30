@@ -3,12 +3,25 @@ import { readdir, readFile, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
-import { billingOrders, consumerDeclarations, searchAlerts, sessions, users, watchlist } from "@/db/schema";
+import {
+  billingOrders,
+  closingCases,
+  consumerDeclarations,
+  deadlineFeeds,
+  deadlineFollows,
+  deadlineRemindersSent,
+  hearingResults,
+  searchAlerts,
+  sessions,
+  users,
+  watchlist,
+} from "@/db/schema";
 import { verifyPassword } from "@/lib/auth/password";
 import { BillingService } from "@/services/billing/BillingService";
 import { TeamService } from "@/services/team/TeamService";
 import { BrokerBrandService } from "@/services/BrokerBrandService";
 import { ClientShareService } from "@/services/ClientShareService";
+import { InvoiceService } from "@/services/invoice/InvoiceService";
 
 /** Same folder ReportService writes Gutachten results to. */
 const REPORT_DIR = join(process.cwd(), ".data", "gutachten");
@@ -39,7 +52,7 @@ export class AccountDataService {
     if (!user) throw new Error("account not found");
     const { passwordHash: _hash, hardwareFingerprint, ...account } = user;
     void _hash;
-    const [savedListings, alerts, orders, declarations, deviceSessions] = await Promise.all([
+    const [savedListings, alerts, orders, declarations, deviceSessions, follows, reminders, feeds, results, cases] = await Promise.all([
       db.select().from(watchlist).where(eq(watchlist.userId, userId)),
       db.select().from(searchAlerts).where(eq(searchAlerts.userId, userId)),
       db.select().from(billingOrders).where(eq(billingOrders.userId, userId)),
@@ -48,6 +61,11 @@ export class AccountDataService {
         .select({ createdAt: sessions.createdAt, lastActiveAt: sessions.zuletztAktivAm, expiresAt: sessions.expiresAt, userAgent: sessions.userAgent, ipShort: sessions.ipKuerzel, revokedAt: sessions.widerrufenAm })
         .from(sessions)
         .where(eq(sessions.userId, userId)),
+      db.select().from(deadlineFollows).where(eq(deadlineFollows.userId, userId)),
+      db.select().from(deadlineRemindersSent).where(eq(deadlineRemindersSent.userId, userId)),
+      db.select({ userId: deadlineFeeds.userId, createdAt: deadlineFeeds.createdAt }).from(deadlineFeeds).where(eq(deadlineFeeds.userId, userId)),
+      db.select().from(hearingResults).where(eq(hearingResults.userId, userId)),
+      db.select().from(closingCases).where(eq(closingCases.userId, userId)),
     ]);
     return {
       exportedAt: new Date().toISOString(),
@@ -56,12 +74,16 @@ export class AccountDataService {
       sessions: deviceSessions,
       watchlist: savedListings,
       alerts,
+      deadlines: { follows, reminders, feeds },
+      hearingResults: results,
+      closingCases: cases,
       gutachten: await storedReports(userId),
       orders,
       declarations,
       brokerBrand: await BrokerBrandService.get(userId),
       clientShares: await ClientShareService.exportFor(userId),
       teams: await TeamService.exportFor(userId),
+      ...(await InvoiceService.exportFor(userId)),
     };
   };
 
@@ -73,7 +95,7 @@ export class AccountDataService {
     await BillingService.endSubscriptionNow(userId);
     // Owned teams go to the next member (or are deleted when nobody is left); notes and memberships cascade
     await TeamService.beforeAccountDelete(userId);
-    // Cascades: sessions, auth_tokens, watchlist, search_alerts (+ alert_seen), broker_brands, client_shares; orders/declarations are set null
+    // Cascades: sessions, auth_tokens, watchlist, search_alerts (+ alert_seen), broker_brands, client_shares; orders/declarations/invoices are set null, billing_profiles cascade
     await db.delete(users).where(eq(users.id, userId));
     await rm(join(REPORT_DIR, safeId(userId)), { recursive: true, force: true });
     return true;

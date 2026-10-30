@@ -1,6 +1,7 @@
 import Link from "next/link";
 import MapLegend from "@/components/app/map/MapLegend";
 import MapPlaceDot from "@/components/app/map/MapPlaceDot";
+import MapRegionDefs from "@/components/app/map/MapRegionDefs";
 import MapRegionShape from "@/components/app/map/MapRegionShape";
 import MapSources from "@/components/app/map/MapSources";
 import MarketMap from "@/components/app/map/MarketMap";
@@ -44,6 +45,7 @@ export default function SearchMapSection({ geo, result, filters, app, locale, is
         />
       }
     >
+      <MapRegionDefs regions={view.regions} />
       <g>
         {view.regions.map((region) => (
           <MapRegionShape key={region.code} {...region} />

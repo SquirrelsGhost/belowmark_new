@@ -4,7 +4,7 @@ export const EXPOSE_TR: IExposeTranslation = {
   MetaTags: {
     Expose: {
       title: "Satış dosyası — Belowmark",
-      description: "İhaleden alınan taşınmaz için yazdırılabilir satış dosyası: ilan ve bilirkişi raporundan kaynaklı bilgiler, kendi fotoğraflarınız, eksik zorunlu bilgiler açıkça işaretli.",
+      description: "İhaleden alınan taşınmaz için yazdırılabilir satış dosyası: ilan ve bilirkişi raporundan kaynaklı bilgiler, fotoğraflarınız ve zorunlu alan kontrolü.",
       imgUrl: "https://belowmark.com/og/home.png",
       tags: ["satış dosyası", "ihale", "satılık"],
       url: "https://belowmark.com/app",

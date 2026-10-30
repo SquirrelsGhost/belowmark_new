@@ -162,10 +162,10 @@ export const REPORT_RULES: Record<ReportLanguage, { kinds: KindRule[]; facts: Fa
 /** Negations right before or after the keyword ("kein Wohnrecht", "Altlasten bestehen nicht"). */
 const NEGATION_BEFORE: Record<ReportLanguage, RegExp> = {
   de: /((\bkein\w*|\bohne)\s+(\S+\s+){0,2}|\bnicht\s+)$/iu,
-  tr: /$^/u,
+  tr: /(?!)/u,
 };
 const NEGATION_AFTER: Record<ReportLanguage, RegExp> = {
-  de: /^[^.;]{0,60}?(besteh\w* (auch )?nicht|lieg\w* nicht vor|nicht vorhanden|nicht verzeichnet|nicht eingetragen|nicht erkennbar|nicht festgestellt|wurden? nicht (festgestellt|gefunden)|gelöscht)/iu,
+  de: /^[^.;]{0,60}?((besteh\w*|lieg\w*|existier\w*|find\w*\s+sich)\s+[^.;]{0,45}?\b(nicht(\s+vor)?|keine?)\b|nicht vorhanden|nicht verzeichnet|nicht eingetragen|nicht erkennbar|nicht festgestellt|wurden? nicht (festgestellt|gefunden)|gelöscht)/iu,
   tr: /^[^.;]{0,60}?(bulunmamaktadır|bulunmamakta|yoktur|mevcut değil|tespit edilmemiştir|rastlanmamıştır)/iu,
 };
 

@@ -33,8 +33,10 @@ import StatsLedgerItem from "@/components/stats/StatsLedgerItem";
 import NoticeTicker from "@/components/ticker/NoticeTicker";
 import NoticeTickerItem from "@/components/ticker/NoticeTickerItem";
 import RegionDetector from "@/components/region/RegionDetector";
+import LandingShell from "@/components/ui/LandingShell";
+import PageMain from "@/components/ui/PageMain";
 import PaperTexture from "@/components/ui/PaperTexture";
-import { BILLING_ROUTES, OFFER_PARAM } from "@/lib/billing/billingConfig";
+import { BILLING_ROUTES, MARKET_PARAM, OFFER_PARAM } from "@/lib/billing/billingConfig";
 import { ROUTES, SOURCES } from "@/lib/constants";
 import { formatCompactEuro, formatDate, formatEuro, formatNumber, formatPercent, formatShortDate } from "@/lib/format";
 import { SNAPSHOT_DATE, SNAPSHOT_STATS, STATES, TICKER_ENTRIES } from "@/lib/snapshot";
@@ -75,7 +77,7 @@ export default async function HomePage() {
 
   // lang on the wrapper so uppercase display type follows locale rules (İ/I in Turkish)
   return (
-    <div lang={locale}>
+    <LandingShell lang={locale}>
       <PaperTexture />
       {!region.isFromGeoHeader && <RegionDetector country={region.country} />}
       <NavigationSkipLink label={nav.SkipToContent} targetId={MAIN_ID} />
@@ -93,7 +95,7 @@ export default async function HomePage() {
         <NavigationLoginButton loginLabel={nav.LoginLabel} signupLabel={nav.SignupLabel} />
       </Navigation>
 
-      <main id={MAIN_ID}>
+      <PageMain id={MAIN_ID}>
         <HeroSection
           dateline={Hero.Dateline}
           liveLabel={Hero.LiveLabel}
@@ -219,14 +221,14 @@ export default async function HomePage() {
           <PricingPlan {...planProps(plans.Free)} href={ROUTES.signup} />
           <PricingPlan
             {...planProps(plans.Investor)}
-            href={`${BILLING_ROUTES.order}?${OFFER_PARAM}=investor-monat`}
+            href={`${BILLING_ROUTES.order}?${OFFER_PARAM}=investor-monat&${MARKET_PARAM}=${region.market}`}
             altPrice={`${Pricing.AltPricePrefix} ${plans.Investor.AltPrice} ${plans.Investor.AltPeriod}`}
             recommendedLabel={Pricing.Recommended}
             delay={STAGGER_MS}
           />
           <PricingPlan
             {...planProps(plans.Pro)}
-            href={`${BILLING_ROUTES.order}?${OFFER_PARAM}=pro-monat`}
+            href={`${BILLING_ROUTES.order}?${OFFER_PARAM}=pro-monat&${MARKET_PARAM}=${region.market}`}
             altPrice={`${Pricing.AltPricePrefix} ${plans.Pro.AltPrice} ${plans.Pro.AltPeriod}`}
             delay={STAGGER_MS * 2}
           />
@@ -245,7 +247,7 @@ export default async function HomePage() {
           primaryCta={Closing.PrimaryCta}
           secondaryCta={Closing.SecondaryCta}
         />
-      </main>
+      </PageMain>
 
       <Footer tagline={t.Footer.Tagline} disclaimer={t.Footer.Disclaimer} rights={t.Footer.Rights} actions={<ConsumerFooterButtons tone="paper" />}>
         <FooterColumn title={t.Footer.ProductTitle}>
@@ -267,7 +269,7 @@ export default async function HomePage() {
           <FooterLink href={ROUTES.privacy} label={t.Footer.Privacy} />
         </FooterColumn>
       </Footer>
-    </div>
+    </LandingShell>
   );
 }
 

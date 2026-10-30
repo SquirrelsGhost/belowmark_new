@@ -170,8 +170,9 @@ export function isDisposableEmail(email: string): boolean {
   if (DISPOSABLE_DOMAINS.has(domain)) return true;
   const dots = domain.split(".");
   if (dots.length > 2) {
-    const mainDomain = dots.slice(-2).join(".");
-    if (DISPOSABLE_DOMAINS.has(mainDomain)) return true;
+    for (let i = 1; i <= dots.length - 2; i++) {
+      if (DISPOSABLE_DOMAINS.has(dots.slice(i).join("."))) return true;
+    }
   }
   return DISPOSABLE_PATTERN.test(domain);
 }

@@ -1,7 +1,19 @@
 import { createHash } from "node:crypto";
 
 const POW_PREFIX = "000"; // 12 bits of work (~4096 SHA-256 hashes in browser ≈ 10ms)
-const MAX_AGE_MS = 10 * 60 * 1000;
+export const POW_MAX_AGE_MS = 10 * 60 * 1000;
+const POW_MAX_CACHE_ENTRIES = 10_000;
+
+declare global {
+  var __bmUsedPowNonces: Map<string, number> | undefined;
+}
+
+function getUsedPowNonces(): Map<string, number> {
+  if (!globalThis.__bmUsedPowNonces) {
+    globalThis.__bmUsedPowNonces = new Map<string, number>();
+  }
+  return globalThis.__bmUsedPowNonces;
+}
 
 export interface LoginBotShieldInput {
   honeypot?: unknown;
@@ -14,6 +26,7 @@ export interface LoginBotShieldInput {
  * 1. Invisible honeypot field must be empty.
  * 2. Timestamp (powTs) and nonce (powNonce) must be valid, at most 10 minutes old,
  *    and SHA-256("ec-pow-v1:ts:nonce") must start with "000".
+ * 3. In-memory replay protection (`globalThis.__bmUsedPowNonces`) rejects any reused `${ts}:${nonce}`.
  */
 export function verifyLoginPoW(input: LoginBotShieldInput): { ok: true } | { ok: false; reason: "bot_detected" } {
   if (typeof input.honeypot === "string" && input.honeypot.trim() !== "") {
@@ -33,8 +46,9 @@ export function verifyLoginPoW(input: LoginBotShieldInput): { ok: true } | { ok:
     return { ok: false, reason: "bot_detected" };
   }
 
-  const age = Date.now() - ts;
-  if (age < -60_000 || age > MAX_AGE_MS) {
+  const now = Date.now();
+  const age = now - ts;
+  if (age < -60_000 || age > POW_MAX_AGE_MS) {
     return { ok: false, reason: "bot_detected" };
   }
 
@@ -42,6 +56,23 @@ export function verifyLoginPoW(input: LoginBotShieldInput): { ok: true } | { ok:
   if (!digest.startsWith(POW_PREFIX)) {
     return { ok: false, reason: "bot_detected" };
   }
+
+  const usedNonces = getUsedPowNonces();
+  for (const [key, expiresAt] of usedNonces.entries()) {
+    if (expiresAt <= now) {
+      usedNonces.delete(key);
+    }
+  }
+
+  const nonceKey = `${ts}:${nonce}`;
+  if (usedNonces.has(nonceKey)) {
+    return { ok: false, reason: "bot_detected" };
+  }
+  if (usedNonces.size >= POW_MAX_CACHE_ENTRIES) {
+    const oldestKey = usedNonces.keys().next().value;
+    if (oldestKey !== undefined) usedNonces.delete(oldestKey);
+  }
+  usedNonces.set(nonceKey, Math.max(now, ts) + POW_MAX_AGE_MS);
 
   return { ok: true };
 }

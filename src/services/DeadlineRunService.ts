@@ -68,14 +68,16 @@ function mailFor(recipient: DeadlineRecipient, groups: ListingReminders[]) {
  * send is retried on the next run. Run it once a day in the morning.
  */
 export class DeadlineRunService {
-  static run = async (now: number): Promise<DeadlineRunReport> => {
+  static run = async (now: number, targetUserId?: string): Promise<DeadlineRunReport> => {
     const report: DeadlineRunReport = { follows: 0, mailed: 0, reminders: 0, failed: 0 };
-    if (globalForDeadlines.deadlineRunActive) return report;
-    globalForDeadlines.deadlineRunActive = true;
+    if (!targetUserId && globalForDeadlines.deadlineRunActive) return report;
+    if (!targetUserId) globalForDeadlines.deadlineRunActive = true;
     try {
-      const follows = await DeadlineService.listMailing();
+      const allFollows = await DeadlineService.listMailing();
+      const follows = targetUserId ? allFollows.filter((f) => f.userId === targetUserId) : allFollows;
       report.follows = follows.length;
       const userIds = [...new Set(follows.map((follow) => follow.userId))];
+      if (userIds.length === 0) return report;
       const [people, sent] = await Promise.all([DeadlineTimelineService.recipients(userIds), DeadlineService.sentKeys(userIds)]);
 
       for (const userId of userIds) {
@@ -110,7 +112,7 @@ export class DeadlineRunService {
       }
       return report;
     } finally {
-      globalForDeadlines.deadlineRunActive = false;
+      if (!targetUserId) globalForDeadlines.deadlineRunActive = false;
     }
   };
 }

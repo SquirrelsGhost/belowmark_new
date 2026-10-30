@@ -4,6 +4,8 @@ import PriceStatsMethod from "@/components/app/closing/PriceStatsMethod";
 import PriceStatsTable from "@/components/app/closing/PriceStatsTable";
 import AppMain from "@/components/app/shell/AppMain";
 import AppPageHeader from "@/components/app/shell/AppPageHeader";
+import PageSplitGrid from "@/components/ui/PageSplitGrid";
+import PageStack from "@/components/ui/PageStack";
 import { APP_MAIN_ID } from "@/lib/appConstants";
 import { getAppPageContext } from "@/lib/appPage";
 import { CLOSING_ROUTES } from "@/lib/closing/closingConstants";
@@ -35,13 +37,13 @@ export default async function HearingResultsPage() {
   return (
     <AppMain id={APP_MAIN_ID}>
       <AppPageHeader eyebrow={Results.Kicker} title={Results.Title} lead={Results.Lead} />
-      <div className="mt-10 grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,8fr)_minmax(0,4fr)]">
-        <div className="flex min-w-0 flex-col gap-8">
+      <PageSplitGrid variant="wideLeft">
+        <PageStack variant="col8Min">
           <PriceStatsTable stats={stats} labels={Results} segments={app.Segments} locale={locale} isLocked={viewer.plan === "free"} />
           <PriceStatsMethod title={Results.Method.Title} items={Results.Method.Items} />
-        </div>
+        </PageStack>
         <OwnResultsList rows={ownRows} labels={Results.Own} outcomes={Result.Outcomes} market={viewer.market} locale={locale} />
-      </div>
+      </PageSplitGrid>
     </AppMain>
   );
 }

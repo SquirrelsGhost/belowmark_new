@@ -6,6 +6,7 @@ import AuthTextLink from "@/components/auth/AuthTextLink";
 import BillingNotice from "@/components/billing/BillingNotice";
 import OrderIntro from "@/components/billing/OrderIntro";
 import TestCheckoutCard from "@/components/billing/TestCheckoutCard";
+import PageStack from "@/components/ui/PageStack";
 import { BILLING_ROUTES, isOfferId } from "@/lib/billing/billingConfig";
 import { formatPrice } from "@/lib/billing/billingFormat";
 import { env } from "@/lib/env";
@@ -43,10 +44,10 @@ export default async function TestCheckoutPage({ searchParams }: PageProps<"/bez
             labels={TestCheckout}
           />
         ) : (
-          <div className="grid gap-4">
+          <PageStack variant="grid4">
             <BillingNotice message={TestCheckout.Missing} />
             <AuthTextLink href={BILLING_ROUTES.order} label={t.Order.Back} />
-          </div>
+          </PageStack>
         )}
       </AuthCard>
     </AuthLayout>

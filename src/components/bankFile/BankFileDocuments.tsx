@@ -8,7 +8,7 @@ export default function BankFileDocuments({ lead, groups }: BankFileDocumentsPro
   return (
     <div className="flex flex-col gap-2">
       <p className="text-[12px] leading-snug text-ink-soft">{lead}</p>
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 print:grid-cols-2">
         {groups.map((group) => (
           <div key={group.title}>
             <p className="mb-1 font-narrow text-xs font-bold tracking-[0.12em] uppercase">{group.title}</p>

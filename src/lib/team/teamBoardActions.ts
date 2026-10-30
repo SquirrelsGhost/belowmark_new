@@ -1,9 +1,11 @@
 "use server";
 
+import { RATE_LIMITS } from "@/lib/auth/authConfig";
 import { currentActor, fail, failed, field, refreshTeamViews, uuidField } from "@/lib/team/teamActionHelpers";
 import { isTeamStatus, TEAMS } from "@/lib/team/teamConfig";
 import { canDo, TeamAction } from "@/lib/team/teamRoles";
 import { ListingService } from "@/services/ListingService";
+import { RateLimitService } from "@/services/RateLimitService";
 import { TeamAccessService, TeamMembership } from "@/services/team/TeamAccessService";
 import { TeamBoardService } from "@/services/team/TeamBoardService";
 import { TeamActionState, TeamErrorCode } from "@/types/team.types";
@@ -20,6 +22,8 @@ async function target(formData: FormData, action: TeamAction, allowMissing = fal
   const teamId = uuidField(formData, "teamId");
   const listingId = field(formData, "listingId");
   if (!actor || !teamId || !listingId || listingId.length > 128) return "failed";
+  const rl = await RateLimitService.hit(`teamBoard:user:${actor.id}`, RATE_LIMITS.profileUpdate);
+  if (!rl.allowed) return "rate_limited";
   const access = await TeamAccessService.authorise(teamId, actor.id, action);
   if (!access.ok) return access.reason;
   if (!allowMissing && !(await ListingService.getByKey(access.membership.market, listingId))) return "invalid";
@@ -93,6 +97,8 @@ export async function deleteTeamNoteAction(_: TeamActionState, formData: FormDat
   const noteId = uuidField(formData, "noteId");
   if (!actor || !teamId || !noteId) return fail("failed");
   try {
+    const rl = await RateLimitService.hit(`teamBoard:user:${actor.id}`, RATE_LIMITS.profileUpdate);
+    if (!rl.allowed) return fail("rate_limited");
     const access = await TeamAccessService.authorise(teamId, actor.id, "read");
     if (!access.ok) return fail(access.reason);
     const deleted = await TeamBoardService.deleteNote(teamId, noteId, actor.id, canDo(access.membership.role, "moderateNotes"));

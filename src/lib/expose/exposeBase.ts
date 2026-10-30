@@ -24,16 +24,23 @@ function noticeFacts(listing: Listing, portal: OfficialPortalDetails | null, loc
     if (value) facts.push({ key, value: formatArea(value, locale), source });
   };
   if (listing.market === "DE") {
-    area(portal?.livingAreaM2, "livingArea", "portal");
-    area(portal?.landAreaM2, "plotArea", "portal");
+    area(portal?.livingAreaM2 ?? listing.livingAreaM2 ?? portal?.usableAreaM2 ?? listing.usableAreaM2, "livingArea", "portal");
+    area(portal?.landAreaM2 ?? listing.landAreaM2, "plotArea", "portal");
+    const yb = portal?.yearBuilt ?? listing.yearBuilt;
+    if (yb) facts.push({ key: "yearBuilt", value: String(yb), source: "portal" });
+    const gb = portal?.grundbuch ?? listing.grundbuch;
+    if (gb) facts.push({ key: "parcel", value: clip(gb, 120), source: "portal" });
     return facts;
   }
   const tr = listing.tr;
   if (!tr) return facts;
-  area(tr.landAreaM2, "plotArea", "notice");
+  area(tr.landAreaM2 ?? listing.landAreaM2, "plotArea", "notice");
   // The parser often writes the parcel area into both fields; an equal value says nothing about the building
-  if (tr.buildingAreaM2 !== tr.landAreaM2) area(tr.buildingAreaM2, "buildingArea", "notice");
-  if (tr.ada && tr.parsel) facts.push({ key: "parcel", value: `${tr.ada} / ${tr.parsel}`, source: "notice" });
+  const trBldg = tr.buildingAreaM2 ?? tr.netAreaM2 ?? listing.livingAreaM2;
+  if (trBldg && trBldg !== tr.landAreaM2) area(trBldg, "buildingArea", "notice");
+  const trYb = tr.yearBuilt ?? listing.yearBuilt;
+  if (trYb) facts.push({ key: "yearBuilt", value: String(trYb), source: "notice" });
+  if (tr.ada && tr.parsel) facts.push({ key: "parcel", value: `${tr.ada} / ${tr.parsel}${tr.unitNo ? ` · BB ${tr.unitNo}` : ""}`, source: "notice" });
   if (tr.nitelik && !NITELIK_NOISE.test(tr.nitelik)) facts.push({ key: "nitelik", value: tr.nitelik, source: "notice" });
   if (tr.zoning) facts.push({ key: "zoning", value: clip(tr.zoning, ZONING_MAX), source: "notice" });
   if (tr.ownershipShare) facts.push({ key: "share", value: tr.ownershipShare, source: "notice" });

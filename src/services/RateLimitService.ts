@@ -72,20 +72,24 @@ export class RateLimitService {
   /** Records a failed login attempt for IP or account and applies persistent exponential backoff. */
   static recordFailure = async (key: string): Promise<void> => {
     const now = Date.now();
-    const [existing] = await db.select().from(rateLimits).where(eq(rateLimits.key, key));
-    const expired = !existing || existing.resetAt.getTime() < now;
-    const failures = (expired ? 0 : existing.count) + 1;
-    const lockMs = backoffMsForFailures(failures);
-    const lockedUntil = lockMs > 0 ? new Date(now + lockMs) : null;
     const resetAt = new Date(now + DAY_MS);
-
-    await db
+    const [row] = await db
       .insert(rateLimits)
-      .values({ key, count: failures, resetAt, lockedUntil })
+      .values({ key, count: 1, resetAt, lockedUntil: null })
       .onConflictDoUpdate({
         target: rateLimits.key,
-        set: { count: failures, resetAt, lockedUntil },
-      });
+        set: {
+          count: sql`CASE WHEN ${rateLimits.resetAt} < now() THEN 1 ELSE ${rateLimits.count} + 1 END`,
+          resetAt,
+        },
+      })
+      .returning({ count: rateLimits.count });
+
+    const lockMs = backoffMsForFailures(row.count);
+    const lockedUntil = lockMs > 0 ? new Date(now + lockMs) : null;
+    if (lockedUntil) {
+      await db.update(rateLimits).set({ lockedUntil }).where(eq(rateLimits.key, key));
+    }
   };
 
   static reset = async (key: string): Promise<void> => {

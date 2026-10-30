@@ -15,6 +15,7 @@ interface ReportDirectAnalyzeButtonProps {
   lead: string;
   pendingLabel: string;
   errors: Record<string, string>;
+  locale?: "de" | "tr";
 }
 
 const WRAP_CLASSES =
@@ -27,12 +28,14 @@ export default function ReportDirectAnalyzeButton({
   lead,
   pendingLabel,
   errors,
+  locale,
 }: ReportDirectAnalyzeButtonProps) {
   const router = useRouter();
   const [activeId, setActiveId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isRefreshing, startTransition] = useTransition();
   const isBusy = activeId !== null || isRefreshing;
+  const isTr = locale ? locale === "tr" : /okunuyor|lütfen|rapor|dosya|analiz/i.test(`${title} ${pendingLabel} ${errors.file ?? ""}`);
 
   const analyzable = attachments.filter((a) => a.kind === "report" || a.kind === "expose" || a.kind === "announcement");
   if (analyzable.length === 0) return null;
@@ -76,7 +79,9 @@ export default function ReportDirectAnalyzeButton({
             label={
               activeId === att.id
                 ? pendingLabel
-                : `⚡ ${att.label} direkt auswerten`
+                : isTr
+                  ? `⚡ ${att.label} doğrudan analiz et`
+                  : `⚡ ${att.label} direkt auswerten`
             }
           />
         ))}

@@ -1,5 +1,6 @@
 import "server-only";
 import { and, desc, eq } from "drizzle-orm";
+import { cache } from "react";
 import { db } from "@/db";
 import { watchlist } from "@/db/schema";
 import { NOTE_MAX_LENGTH } from "@/lib/appConstants";
@@ -25,10 +26,11 @@ export class WatchlistService {
       .orderBy(desc(watchlist.createdAt));
   };
 
-  static keys = async (userId: string): Promise<Set<string>> => {
+  /** Deduplicated per request — the app layout and the page both ask. */
+  static keys = cache(async (userId: string): Promise<Set<string>> => {
     const rows = await db.select({ listingId: watchlist.listingId }).from(watchlist).where(eq(watchlist.userId, userId));
     return new Set(rows.map((row) => row.listingId));
-  };
+  });
 
   static get = async (userId: string, listingId: string): Promise<WatchlistItem | null> => {
     const [row] = await db

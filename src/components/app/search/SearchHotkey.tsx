@@ -1,9 +1,14 @@
+// Needs useEffect + window.addEventListener to listen for the "/" keyboard shortcut
 "use client";
 
 import { useEffect } from "react";
 
+interface SearchHotkeyProps {
+  targetId: string;
+}
+
 /** "/" jumps into the search field from anywhere on the page, as in most tools. */
-export default function SearchHotkey({ targetId }: { targetId: string }) {
+export default function SearchHotkey({ targetId }: SearchHotkeyProps) {
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if (event.key !== "/" || event.metaKey || event.ctrlKey || event.altKey) return;

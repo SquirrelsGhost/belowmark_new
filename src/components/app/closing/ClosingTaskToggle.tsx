@@ -17,6 +17,7 @@ const INITIAL_STATE: ClosingActionState = { ok: true };
 /** Square tick box in the margin of a task. */
 export default function ClosingTaskToggle({ listingKey, taskId, isDone, doneLabel, openLabel }: ClosingTaskToggleProps) {
   const [state, formAction, isPending] = useActionState(toggleClosingTaskAction, INITIAL_STATE);
+  const label = isDone ? openLabel : doneLabel;
   return (
     <form action={formAction}>
       <input type="hidden" name="listingKey" value={listingKey} />
@@ -26,14 +27,19 @@ export default function ClosingTaskToggle({ listingKey, taskId, isDone, doneLabe
         type="submit"
         disabled={isPending}
         aria-pressed={isDone}
-        aria-label={isDone ? openLabel : doneLabel}
-        title={isDone ? openLabel : doneLabel}
+        aria-label={label}
+        title={!state.ok && state.error ? `${label} (${state.error})` : label}
         className={`mt-1 flex size-6 cursor-pointer items-center justify-center border-2 font-mono text-sm leading-none disabled:opacity-50 ${
-          isDone ? "border-verdict bg-verdict text-paper-bright" : state.ok ? "border-ink bg-paper-bright" : "border-signal bg-paper-bright"
+          isDone ? "border-verdict bg-verdict text-paper-bright" : state.ok ? "border-ink bg-paper-bright" : "border-signal bg-paper-bright text-signal"
         }`}
       >
-        {isDone ? "✓" : ""}
+        {isDone ? "✓" : !state.ok ? "!" : ""}
       </button>
+      {!state.ok && (
+        <span role="alert" className="sr-only">
+          {state.error ?? "error"}
+        </span>
+      )}
     </form>
   );
 }

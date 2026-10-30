@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { listingHref } from "@/lib/appConstants";
+import { RATE_LIMITS } from "@/lib/auth/authConfig";
 import { CLOSING_DATE_FIELDS, CLOSING_ROUTES, closingHref, HEARING_OUTCOMES, RESULT_LIMITS, RESULT_RATIO_BOUNDS, RESULT_SOURCES } from "@/lib/closing/closingConstants";
 import { addDays, isIsoDate, todayIn } from "@/lib/closing/closingSchedule";
 import { closingTaskIds } from "@/lib/closing/closingTasks";
@@ -9,6 +10,7 @@ import { MarketCode } from "@/lib/constants";
 import { ClosingCaseService } from "@/services/ClosingCaseService";
 import { HearingResultService } from "@/services/HearingResultService";
 import { ListingService } from "@/services/ListingService";
+import { RateLimitService } from "@/services/RateLimitService";
 import { SessionService } from "@/services/SessionService";
 import { ClosingDates, HearingOutcome, HearingResult, ResultSource } from "@/types/closing.types";
 import { Listing } from "@/types/listing.types";
@@ -95,19 +97,22 @@ function readResult(formData: FormData, listing: Listing, now: number): { result
 export async function saveHearingResultAction(_: ClosingActionState, formData: FormData): Promise<ClosingActionState> {
   const target = await authorise(formData.get("listingKey"));
   if (!target) return { ok: false, error: "auth" };
+  if (!target.hasFullAccess) return { ok: false, error: "locked" };
   const { listing, userId } = target;
   const { result, awardDate, error } = readResult(formData, listing, Date.now());
   if (!result) return { ok: false, error };
   try {
+    const rl = await RateLimitService.hit(`closing:user:${userId}`, RATE_LIMITS.profileUpdate);
+    if (!rl.allowed) return { ok: false, error: "unknown" };
     await HearingResultService.save(userId, result, { regionCode: listing.regionCode, segment: listing.segment, appraisedValue: listing.appraisedValue });
-    if (awardDate) await ClosingCaseService.saveAwardDate(userId, listing.key, listing.market, awardDate);
+    if (awardDate && target.hasFullAccess) await ClosingCaseService.saveAwardDate(userId, listing.key, listing.market, awardDate);
   } catch (caught) {
     console.error("[saveHearingResultAction]", caught);
     return { ok: false, error: "unknown" };
   }
   revalidatePath(listingHref(listing.key));
   revalidatePath(CLOSING_ROUTES.results);
-  return { ok: true, saved: true, won: awardDate ? { price: result.highestBid, date: awardDate } : undefined };
+  return { ok: true, saved: true, won: awardDate && target.hasFullAccess ? { price: result.highestBid, date: awardDate } : undefined };
 }
 
 /** Server Action: the case dates of the task list (paid plans). */
@@ -125,6 +130,8 @@ export async function saveClosingDatesAction(_: ClosingActionState, formData: Fo
   }
   if (!dates.awardDate) return { ok: false, error: "date" };
   try {
+    const rl = await RateLimitService.hit(`closing:user:${target.userId}`, RATE_LIMITS.profileUpdate);
+    if (!rl.allowed) return { ok: false, error: "unknown" };
     await ClosingCaseService.saveDates(target.userId, target.listing.key, target.listing.market, dates);
   } catch (caught) {
     console.error("[saveClosingDatesAction]", caught);
@@ -142,6 +149,8 @@ export async function toggleClosingTaskAction(_: ClosingActionState, formData: F
   if (!target.hasFullAccess) return { ok: false, error: "locked" };
   if (typeof taskId !== "string" || !closingTaskIds(target.listing.market).has(taskId)) return { ok: false, error: "unknown" };
   try {
+    const rl = await RateLimitService.hit(`closing:user:${target.userId}`, RATE_LIMITS.profileUpdate);
+    if (!rl.allowed) return { ok: false, error: "unknown" };
     await ClosingCaseService.setDone(target.userId, target.listing.key, target.listing.market, taskId, formData.get("done") === "1");
   } catch (caught) {
     console.error("[toggleClosingTaskAction]", caught);

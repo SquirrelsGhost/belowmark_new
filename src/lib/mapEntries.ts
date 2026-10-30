@@ -85,7 +85,7 @@ export function buildMapView(
 
   const entries = places.map((place) => {
     const [cx, cy] = projectPoint(geo.projection, place.lat, place.lng);
-    const r = (base + Math.sqrt(place.count) * growth) / zoom ** 0.15;
+    const r = (base + Math.sqrt(Math.max(0, place.count)) * growth) / Math.max(0.01, zoom) ** 0.15;
     const isImminent = place.imminent > 0;
     if (place.single) {
       const value = place.single.value === null || isLocked ? "" : ` · ${formatCompactMoney(place.single.value, market, locale)}`;

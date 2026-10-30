@@ -65,7 +65,10 @@ export async function loginAction(_prev: AuthFormState, formData: FormData): Pro
       }
       return { status: "error", code: result.reason, values: { ...values, email } };
     }
-    await Promise.all([RateLimitService.reset(ipBackoffKey), RateLimitService.reset(accountKey)]);
+    await Promise.all([
+      RateLimitService.reset(accountKey),
+      RateLimitService.reset(ipBackoffKey),
+    ]);
     await SessionService.create(result.userId, remember, userAgent, { ip, hardwareFingerprint });
   } catch (error) {
     return unknownError("loginAction", error, values);

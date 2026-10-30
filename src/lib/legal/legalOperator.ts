@@ -12,8 +12,6 @@ export const LEGAL_OPERATOR = {
   country: "Deutschland",
   email: "contact@belowmark.com",
   phone: "0152 24759168",
-  /** USt-IdNr. — only shown when there is one (§ 5 Abs. 1 Nr. 6 DDG) */
-  vatId: null as string | null,
   /** Hosting provider incl. address and server location — needed for the Datenschutzerklärung */
   hosting: "IONOS SE, Elgendorfer Str. 57, 56410 Montabaur, Deutschland (Serverstandort: Deutschland / Europäische Union)" as string | null,
   /** SMTP provider that sends the mails */

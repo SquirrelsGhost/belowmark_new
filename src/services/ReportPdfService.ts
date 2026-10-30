@@ -16,7 +16,7 @@ export interface PdfPages {
  */
 export class ReportPdfService {
   static readPages = async (bytes: Uint8Array): Promise<PdfPages> => {
-    const pdf = await getDocumentProxy(bytes);
+    const pdf = await getDocumentProxy(new Uint8Array(bytes));
     const { totalPages, text } = await extractText(pdf, { mergePages: false });
     return { pageCount: totalPages, pages: text.map(cleanPageText) };
   };

@@ -1,11 +1,13 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { RATE_LIMITS } from "@/lib/auth/authConfig";
 import { CLIENT_SHARE, CLIENT_SHARE_ROUTES, clientShareHref, isExpiryDays } from "@/lib/clientShare/clientShareConfig";
 import { buildPayload, parseSections } from "@/lib/clientShare/clientSharePayload";
 import { getProUser } from "@/lib/clientShare/proAccess";
 import { ClientShareService } from "@/services/ClientShareService";
 import { ListingService } from "@/services/ListingService";
+import { RateLimitService } from "@/services/RateLimitService";
 import { VerdictService } from "@/services/VerdictService";
 import { ClientShareErrorCode } from "@/types/clientShare.types";
 
@@ -43,6 +45,8 @@ export async function createClientShareAction(_: ClientShareActionState, formDat
   if (!isExpiryDays(expiryDays) || !listingKey) return { ok: false, error: "invalid" };
 
   try {
+    const rl = await RateLimitService.hit(`clientShare:user:${user.id}`, RATE_LIMITS.profileUpdate);
+    if (!rl.allowed) return { ok: false, error: "failed" };
     const now = Date.now();
     const listing = await ListingService.getByKey(user.market, listingKey);
     if (!listing) return { ok: false, error: "notFound" };
@@ -83,6 +87,8 @@ export async function changeClientShareAction(_: ClientShareActionState, formDat
   if (intent === "renew" && !user.isPro) return { ok: false, error: "plan" };
 
   try {
+    const rl = await RateLimitService.hit(`clientShare:user:${user.id}`, RATE_LIMITS.profileUpdate);
+    if (!rl.allowed) return { ok: false, error: "failed" };
     let result: ClientShareActionState = { ok: true };
     if (intent === "revoke") await ClientShareService.revoke(user.id, shareId);
     else if (intent === "delete") await ClientShareService.remove(user.id, shareId);

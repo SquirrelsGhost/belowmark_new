@@ -3,10 +3,11 @@ import { and, eq, ne } from "drizzle-orm";
 import Stripe from "stripe";
 import { db } from "@/db";
 import { billingEvents, billingOrders, users } from "@/db/schema";
-import { isOfferId, OFFERS } from "@/lib/billing/billingConfig";
+import { BillingOffer, BillingOfferId, isOfferId, OFFERS } from "@/lib/billing/billingConfig";
 import { addCalendarMonths, laterOf } from "@/lib/billing/billingDates";
 import { BillingMailService } from "@/services/billing/BillingMailService";
 import { stripeClient } from "@/services/billing/StripeClient";
+import { InvoiceService } from "@/services/invoice/InvoiceService";
 
 /** Stripe statuses that end the access of a subscription. */
 const ENDED_STATUSES = new Set<Stripe.Subscription.Status>(["canceled", "unpaid", "incomplete_expired"]);
@@ -28,6 +29,10 @@ function cancelDate(subscription: Stripe.Subscription): Date | null {
 const idOf = (value: string | { id: string } | null | undefined): string | null =>
   typeof value === "string" ? value : (value?.id ?? null);
 
+function computePlanEndsAt(offer: BillingOffer, now: Date): Date | null {
+  return offer.kind === "subscription" ? addCalendarMonths(now, offer.months) : null;
+}
+
 /**
  * BillingFulfillment
  *
@@ -46,6 +51,7 @@ export class BillingFulfillment {
     if (!claimed?.userId || !isOfferId(claimed.offer)) return false;
 
     const offer = OFFERS[claimed.offer];
+    if (claimed.upgradeFrom) return BillingFulfillment.applyUpgrade(claimed.id, claimed.userId, offer.id, details.subscription);
     const [user] = await db.select({ planEndsAt: users.planEndsAt }).from(users).where(eq(users.id, claimed.userId));
     const now = new Date();
     const endsAt = details.subscription
@@ -57,6 +63,7 @@ export class BillingFulfillment {
     await db
       .update(users)
       .set({
+        market: claimed.market === "TR" ? "TR" : "DE",
         plan: offer.plan,
         planOffer: offer.id,
         planEndsAt: endsAt,
@@ -65,8 +72,43 @@ export class BillingFulfillment {
       })
       .where(eq(users.id, claimed.userId));
     await db.update(billingOrders).set({ accessEndsAt: endsAt }).where(eq(billingOrders.id, orderId));
+    // Access first; a failed invoice is issued again when the account opens its invoices
+    await InvoiceService.issueForOrder(orderId).catch((error) => console.error("[billing] invoice", error));
     await BillingMailService.sendOrderConfirmation(orderId).catch((error) => console.error("[billing] order mail", error));
     return true;
+  };
+
+  /**
+   * Upgrade paid: Pro from now on, the end date stays. A swapped subscription
+   * keeps its period; a term keeps its end and its "ends by itself".
+   */
+  private static applyUpgrade = async (orderId: string, userId: string, offerId: BillingOfferId, subscription: Stripe.Subscription | null): Promise<boolean> => {
+    const offer = OFFERS[offerId];
+    const now = new Date();
+    const [currentUser] = await db.select({ planEndsAt: users.planEndsAt }).from(users).where(eq(users.id, userId));
+    const fallbackEndsAt = computePlanEndsAt(offer, now);
+    const endsAt = (subscription && periodEnd(subscription)) ?? currentUser?.planEndsAt ?? fallbackEndsAt;
+    const nextPlanEndsAt = subscription ? endsAt : (fallbackEndsAt ?? currentUser?.planEndsAt ?? null);
+    await db
+      .update(users)
+      .set({
+        plan: offer.plan,
+        planOffer: offerId,
+        planEndsAt: nextPlanEndsAt,
+        planCancelAt: subscription ? cancelDate(subscription) : null,
+      })
+      .where(eq(users.id, userId));
+    await db.update(billingOrders).set({ accessEndsAt: nextPlanEndsAt }).where(eq(billingOrders.id, orderId));
+    await InvoiceService.issueForOrder(orderId).catch((error) => console.error("[billing] upgrade invoice", error));
+    await BillingMailService.sendOrderConfirmation(orderId).catch((error) => console.error("[billing] upgrade mail", error));
+    return true;
+  };
+
+  /** Subscription swapped to Pro and Stripe's proration invoice is paid (at once, or later via the webhook). */
+  static fulfilUpgradeInvoice = async (orderId: string, invoice: Stripe.Invoice | null, subscription?: Stripe.Subscription): Promise<boolean> => {
+    if (invoice) await db.update(billingOrders).set({ amount: invoice.amount_paid }).where(and(eq(billingOrders.id, orderId), ne(billingOrders.status, "paid")));
+    const current = subscription ?? null;
+    return BillingFulfillment.fulfilOrder(orderId, { subscription: current, invoiceId: invoice?.id ?? null });
   };
 
   /** Checkout session finished (success page or webhook). Grants access only when Stripe says "paid". */
@@ -130,8 +172,26 @@ export class BillingFulfillment {
         await BillingFulfillment.syncSubscription(event.data.object);
         break;
       case "invoice.paid": {
-        const subscriptionId = idOf(event.data.object.parent?.subscription_details?.subscription);
-        if (subscriptionId) await BillingFulfillment.syncSubscription(await stripeClient().subscriptions.retrieve(subscriptionId));
+        const invoice = event.data.object;
+        const subscriptionId = idOf(invoice.parent?.subscription_details?.subscription);
+        const subscription = subscriptionId ? await stripeClient().subscriptions.retrieve(subscriptionId) : null;
+        if (subscription) await BillingFulfillment.syncSubscription(subscription);
+        if (invoice.billing_reason === "subscription_update" && invoice.id) {
+          // The prorated Pro upgrade, paid after 3-D Secure or a retry
+          const [orderByInvoice] = await db.select({ id: billingOrders.id }).from(billingOrders).where(eq(billingOrders.stripeInvoiceId, invoice.id));
+          const fallbackOrderId =
+            invoice.parent?.subscription_details?.metadata?.orderId ??
+            invoice.metadata?.orderId ??
+            subscription?.metadata?.orderId ??
+            null;
+          const [orderByMeta] =
+            !orderByInvoice && fallbackOrderId
+              ? await db.select({ id: billingOrders.id }).from(billingOrders).where(eq(billingOrders.id, fallbackOrderId))
+              : [undefined];
+          const targetOrderId = orderByInvoice?.id ?? orderByMeta?.id ?? null;
+          if (targetOrderId) await BillingFulfillment.fulfilUpgradeInvoice(targetOrderId, invoice, subscription ?? undefined);
+        }
+        await InvoiceService.issueForRenewal(invoice);
         break;
       }
       default:

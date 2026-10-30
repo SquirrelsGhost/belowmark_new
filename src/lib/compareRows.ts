@@ -1,4 +1,4 @@
-import { formatHearing, formatMoney } from "@/lib/appFormat";
+import { formatArea, formatHearing, formatMoney } from "@/lib/appFormat";
 import { LocaleOption, MarketCode } from "@/lib/constants";
 import { getAddressLine } from "@/lib/listingLabels";
 import { getIcraFigures, getNextDate, getZvgFigures } from "@/lib/listingMath";
@@ -65,11 +65,35 @@ export function compareRows(listings: Listing[], market: MarketCode, app: IAppTr
   return [
     textRow("place", R.Place, listings.map((l) => getAddressLine(l) || l.region)),
     textRow("segment", R.Segment, listings.map((l) => app.Segments[l.segment])),
+    textRow(
+      "buildingArea",
+      app.Listing.Tr.BuildingArea,
+      listings.map((l) => {
+        const a = l.livingAreaM2 ?? l.usableAreaM2 ?? l.tr?.buildingAreaM2 ?? l.tr?.netAreaM2 ?? null;
+        return a ? formatArea(a, locale) : null;
+      }),
+    ),
+    textRow(
+      "landArea",
+      app.Listing.Tr.LandArea,
+      listings.map((l) => {
+        const a = l.landAreaM2 ?? l.tr?.landAreaM2 ?? null;
+        return a ? formatArea(a, locale) : null;
+      }),
+    ),
     textRow("hearing", R.Hearing, listings.map((l) => {
       const next = getNextDate(l, now);
       return next ? formatHearing(next, l.market, locale) : null;
     })),
     money("value", R.Value[market], (l) => l.appraisedValue),
+    money(
+      "perM2",
+      locale === "tr" ? "m² Birim Değeri" : "Richtwert / m²",
+      (l) => {
+        const area = l.livingAreaM2 ?? l.usableAreaM2 ?? l.tr?.buildingAreaM2 ?? l.tr?.netAreaM2 ?? l.tr?.areaM2 ?? l.areaM2 ?? l.landAreaM2 ?? l.tr?.landAreaM2 ?? null;
+        return area && area > 0 && l.appraisedValue && l.appraisedValue > 0 ? Math.round(l.appraisedValue / area) : null;
+      },
+    ),
     ...figures,
     textRow("authority", R.Authority[market], listings.map((l) => `${l.authority} · ${l.fileNo}`)),
     textRow("note", R.Note, listings.map((l) => notes.get(l.key) || app.Watchlist.NoNote)),

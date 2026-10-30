@@ -15,6 +15,7 @@ import ClientShareTitle from "@/components/clientShare/ClientShareTitle";
 import ClientShareToolbar from "@/components/clientShare/ClientShareToolbar";
 import ClientShareUnavailable from "@/components/clientShare/ClientShareUnavailable";
 import ClientShareVerdict from "@/components/clientShare/ClientShareVerdict";
+import PageNote from "@/components/ui/PageNote";
 import { fill } from "@/lib/appFormat";
 import { getFileSources, getHearingLines } from "@/lib/bidding/bidderFile";
 import { EMPTY_BID_INPUTS } from "@/lib/bidding/biddingConstants";
@@ -113,7 +114,7 @@ export default async function ClientSharePage({ params, searchParams }: PageProp
       </BidderFileSection>
       {numbers.limit && payload.context && (
         <BidderFileSection number={numbers.limit} title={P.Sections.limit}>
-          {payload.bidInputs ? <ClientShareLimit context={payload.context} inputs={inputs} labels={bidding.Limit} locale={locale} /> : <p className="bg-hatch px-2 py-1.5 text-[13px] text-ink-soft">{P.NoInputs}</p>}
+          {payload.bidInputs ? <ClientShareLimit context={payload.context} inputs={inputs} labels={bidding.Limit} locale={locale} /> : <PageNote variant="hatched" text={P.NoInputs} />}
         </BidderFileSection>
       )}
       {numbers.financing && payload.context && payload.bank && (

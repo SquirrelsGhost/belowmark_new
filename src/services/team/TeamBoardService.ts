@@ -92,6 +92,7 @@ export class TeamBoardService {
 
   /** Sets the status; a proceeding not on the list yet is added with it. */
   static setStatus = async (teamId: string, listingId: string, status: TeamStatus, userId: string): Promise<TeamErrorCode | null> => {
+    if (!isTeamStatus(status)) return "invalid";
     const error = await TeamBoardService.add(teamId, listingId, userId);
     if (error) return error;
     await db

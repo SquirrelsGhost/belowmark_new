@@ -46,9 +46,11 @@ async function findByEmail(email: string) {
   return user ?? null;
 }
 
+const HARDWARE_FP_REGEX = /^HW-[0-9a-f]{32}$/;
+
 /** Checks if a hardware fingerprint (`HW-...`) belongs to any banned user account. */
 export async function isHardwareBanned(hardwareFingerprint: string | undefined): Promise<boolean> {
-  if (!hardwareFingerprint || !hardwareFingerprint.startsWith("HW-")) return false;
+  if (!hardwareFingerprint || !HARDWARE_FP_REGEX.test(hardwareFingerprint)) return false;
   const [banned] = await db
     .select({ id: users.id })
     .from(users)
@@ -71,7 +73,7 @@ export class AuthService {
   /** Creates the account (or re-sends mail if it exists) — same outcome either way. */
   static signup = async ({ email, password, market, locale, hardwareFingerprint }: SignupInput): Promise<void> => {
     const passwordHash = await hashPassword(password);
-    const hw = hardwareFingerprint && hardwareFingerprint.startsWith("HW-") ? hardwareFingerprint.slice(0, 64) : null;
+    const hw = hardwareFingerprint && HARDWARE_FP_REGEX.test(hardwareFingerprint) ? hardwareFingerprint : null;
     const [created] = await db
       .insert(users)
       .values({ email, passwordHash, market, locale, hardwareFingerprint: hw })
@@ -105,8 +107,8 @@ export class AuthService {
     if (!user.emailVerifiedAt) return { ok: false, reason: "unverified" };
 
     const update: Partial<typeof users.$inferInsert> = { lastLoginAt: new Date() };
-    if (hardwareFingerprint && hardwareFingerprint.startsWith("HW-")) {
-      update.hardwareFingerprint = hardwareFingerprint.slice(0, 64);
+    if (hardwareFingerprint && HARDWARE_FP_REGEX.test(hardwareFingerprint)) {
+      update.hardwareFingerprint = hardwareFingerprint;
     }
     // Old immo hashes (N=16384) are upgraded silently on the next login.
     if (needsRehash(user.passwordHash)) update.passwordHash = await hashPassword(password);

@@ -2,11 +2,13 @@
 
 import { revalidatePath } from "next/cache";
 import { APP_ROUTES, listingHref } from "@/lib/appConstants";
+import { RATE_LIMITS } from "@/lib/auth/authConfig";
 import { DEADLINE_ROUTES } from "@/lib/deadlines/deadlineConstants";
 import { env } from "@/lib/env";
 import { DeadlineRunService } from "@/services/DeadlineRunService";
 import { DeadlineService } from "@/services/DeadlineService";
 import { ListingService } from "@/services/ListingService";
+import { RateLimitService } from "@/services/RateLimitService";
 import { SessionService } from "@/services/SessionService";
 
 /** Result of a Termin-Begleiter action; the UI shows its own error text. */
@@ -20,7 +22,7 @@ const MAX_KEY_LENGTH = 128;
 
 async function signedInUser() {
   const user = await SessionService.getCurrentUser();
-  if (!user) return null;
+  if (!user || !user.hasFullAccess) return null;
   return { id: user.id, market: user.market === "TR" ? ("TR" as const) : ("DE" as const) };
 }
 
@@ -38,13 +40,15 @@ export async function toggleFollowAction(_: DeadlineActionState, formData: FormD
   const listingKey = keyOf(formData);
   if (!user || !listingKey) return { ok: false };
   try {
+    const rl = await RateLimitService.hit(`deadlines:user:${user.id}`, RATE_LIMITS.profileUpdate);
+    if (!rl.allowed) return { ok: false };
     if (formData.get("intent") === "unfollow") {
       await DeadlineService.unfollow(user.id, listingKey);
     } else {
       // Only proceedings of the user's market that exist in the data
       if (!(await ListingService.getByKey(user.market, listingKey))) return { ok: false };
       if (!(await DeadlineService.follow(user.id, listingKey, user.market))) return { ok: false };
-      void DeadlineRunService.run(Date.now()).catch((err) => console.error("[toggleFollowAction:run]", err));
+      void DeadlineRunService.run(Date.now(), user.id).catch((err) => console.error("[toggleFollowAction:run]", err));
     }
   } catch (error) {
     console.error("[toggleFollowAction]", error);
@@ -61,6 +65,8 @@ export async function setDeadlineMailAction(_: DeadlineActionState, formData: Fo
   if (!user || !listingKey) return { ok: false };
   const mailOn = formData.get("mail") === "1";
   try {
+    const rl = await RateLimitService.hit(`deadlines:user:${user.id}`, RATE_LIMITS.profileUpdate);
+    if (!rl.allowed) return { ok: false };
     if (mailOn) {
       if (!(await ListingService.getByKey(user.market, listingKey))) return { ok: false };
       const existing = await DeadlineService.get(user.id, listingKey);
@@ -68,7 +74,7 @@ export async function setDeadlineMailAction(_: DeadlineActionState, formData: Fo
     }
     await DeadlineService.setMail(user.id, listingKey, mailOn);
     if (mailOn) {
-      void DeadlineRunService.run(Date.now()).catch((err) => console.error("[setDeadlineMailAction:run]", err));
+      void DeadlineRunService.run(Date.now(), user.id).catch((err) => console.error("[setDeadlineMailAction:run]", err));
     }
   } catch (error) {
     console.error("[setDeadlineMailAction]", error);
@@ -83,6 +89,8 @@ export async function renewFeedAction(): Promise<DeadlineActionState> {
   const user = await signedInUser();
   if (!user) return { ok: false };
   try {
+    const rl = await RateLimitService.hit(`deadlines:user:${user.id}`, RATE_LIMITS.profileUpdate);
+    if (!rl.allowed) return { ok: false };
     const token = await DeadlineService.renewFeed(user.id);
     return { ok: true, feedUrl: new URL(`${DEADLINE_ROUTES.feed}/${token}.ics`, env.appUrl).toString() };
   } catch (error) {

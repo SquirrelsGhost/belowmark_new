@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { connection } from "next/server";
 import BlogClusterCard from "@/components/blog/BlogClusterCard";
 import BlogHubGrid from "@/components/blog/BlogHubGrid";
 import BlogHubHero from "@/components/blog/BlogHubHero";
@@ -32,6 +33,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function BlogPage() {
+  await connection();
   const feed = await BlogService.GetFeed();
 
   return (

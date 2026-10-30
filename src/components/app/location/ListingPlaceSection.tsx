@@ -2,7 +2,6 @@ import ListingLocation from "@/components/app/location/ListingLocation";
 import LocationMissing from "@/components/app/location/LocationMissing";
 import LocationTileMap from "@/components/app/location/LocationTileMap";
 import RegionLocator from "@/components/app/map/RegionLocator";
-import RegionLocatorSprite from "@/components/app/map/RegionLocatorSprite";
 import { MAP_TILES } from "@/lib/appConstants";
 import { fill } from "@/lib/appFormat";
 import { projectPoint } from "@/lib/geo";
@@ -13,6 +12,8 @@ import { Listing, MarketGeo } from "@/types/listing.types";
 interface ListingPlaceSectionProps {
   listing: Listing;
   geo: MarketGeo;
+  /** URL of the locator outline file */
+  sprite: string;
   labels: IAppTranslation["Location"];
 }
 
@@ -20,14 +21,13 @@ interface ListingPlaceSectionProps {
 const POSTCODE_RADIUS_M = 1500;
 
 /** The "Lage" block of the Aktenblatt, built from the notice's postcode or province. */
-export default function ListingPlaceSection({ listing, geo, labels }: ListingPlaceSectionProps) {
+export default function ListingPlaceSection({ listing, geo, sprite, labels }: ListingPlaceSectionProps) {
   const position = listing.geo;
   const zooms = position ? MAP_TILES.zooms[position.precision] : null;
   const precisionLabel = position?.precision === "postcode" ? `${listing.postcode} ${listing.place ?? ""}`.trim() : listing.region ?? "";
 
   return (
     <>
-      <RegionLocatorSprite regions={geo.regions} />
       <ListingLocation
         title={labels.Title}
         map={
@@ -48,6 +48,7 @@ export default function ListingPlaceSection({ listing, geo, labels }: ListingPla
         }
         locator={
           <RegionLocator
+            sprite={sprite}
             width={geo.projection.width}
             height={geo.projection.height}
             regionCode={listing.regionCode}

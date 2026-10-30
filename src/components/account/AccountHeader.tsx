@@ -5,13 +5,13 @@ interface AccountHeaderProps {
   lineLabel: string;
   /** Confirmation after verify / reset / change, if any */
   notice?: string;
-  note: string;
+  note?: string;
 }
 
 /** Account page headline: the address above the line, the outcome below it. */
 export default function AccountHeader({ eyebrow, title, email, lineLabel, notice, note }: AccountHeaderProps) {
   return (
-    <section className="flex flex-col lg:col-span-5">
+    <section className="flex flex-col">
       <p className="border-t border-rule-strong pt-3 font-mono text-xs tracking-wider text-muted uppercase">§ {eyebrow}</p>
       <h1 className="mt-6 font-display text-[clamp(2.6rem,7vw,5rem)] leading-[0.86]">{title}</h1>
       <p className="mt-3 font-mono text-base break-all text-ink-soft">{email}</p>
@@ -24,7 +24,7 @@ export default function AccountHeader({ eyebrow, title, email, lineLabel, notice
           {notice}
         </p>
       )}
-      <p className="mt-5 max-w-md text-sm leading-relaxed text-muted">{note}</p>
+      {note && <p className="mt-5 max-w-md text-sm leading-relaxed text-muted">{note}</p>}
     </section>
   );
 }

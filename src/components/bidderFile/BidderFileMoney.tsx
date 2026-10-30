@@ -12,6 +12,8 @@ interface BidderFileMoneyProps {
   locale: LocaleOption;
 }
 
+const GRID_CLASSES = "grid grid-cols-1 gap-x-8 divide-y divide-rule sm:grid-cols-2 print:grid-cols-2";
+
 /** Appraised value, the legal limits and the deposit — the numbers the court will work with. */
 export default function BidderFileMoney({ listing, labels: L, locale }: BidderFileMoneyProps) {
   const market = listing.market;
@@ -24,7 +26,7 @@ export default function BidderFileMoney({ listing, labels: L, locale }: BidderFi
   if (market === "TR") {
     const figures = getIcraFigures(value, listing.tr?.vatRate ?? null);
     return (
-      <dl className="grid grid-cols-2 gap-x-8 divide-y divide-rule">
+      <dl className={GRID_CLASSES}>
         {valueRow}
         <BidderFileRow label={L.Tr.StartingBid} value={money(figures.startingBid)} missing={L.NotStated} />
         <BidderFileRow label={L.Tr.Deposit} value={money(figures.deposit)} missing={L.NotStated} />
@@ -36,7 +38,7 @@ export default function BidderFileMoney({ listing, labels: L, locale }: BidderFi
   const figures = getZvgFigures(value, listing.transferTaxPct);
   const pct = listing.transferTaxPct;
   return (
-    <dl className="grid grid-cols-2 gap-x-8 divide-y divide-rule">
+    <dl className={GRID_CLASSES}>
       {valueRow}
       <BidderFileRow label={L.Deposit} value={money(figures.deposit)} missing={L.NotStated} />
       {listing.limitsWaived ? (

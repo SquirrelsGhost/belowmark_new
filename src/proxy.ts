@@ -1,9 +1,35 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { AUTH_PARAMS, AUTH_ROUTES } from "@/lib/auth/authConfig";
+import { AUTH_PARAMS, AUTH_ROUTES, SESSION_COOKIE_NAME } from "@/lib/auth/authConfig";
+import { createSessionCookieToken, readCookieFromRequest, readSessionCookieToken } from "@/lib/auth/sessionToken";
 import { hasPermission } from "@/lib/permissions";
 import { findPolicy } from "@/lib/routePolicies";
-import { getSessionUser } from "@/services/sicherheit/SessionUserService";
+import { getSessionUser, type SessionUser } from "@/services/sicherheit/SessionUserService";
+
+/**
+ * Persists a rotated `tokenId` (`user.neuesTokenId`) onto the outgoing `NextResponse`
+ * so a 15-minute rotation in `Sitzungswachdienst` is never lost (even on 403/redirect in Step 4).
+ */
+function attachRotatedCookie(response: NextResponse, user: SessionUser, rawCookie?: string): NextResponse {
+  if (!user.neuesTokenId) return response;
+  const currentCookie = readSessionCookieToken(rawCookie);
+  const rotatedExp = currentCookie?.exp;
+  const rotatedCookie = createSessionCookieToken({
+    id: user.id,
+    version: user.sitzungsVersion,
+    sessionId: user.sessionId,
+    tokenId: user.neuesTokenId,
+    exp: rotatedExp,
+  });
+  response.cookies.set(SESSION_COOKIE_NAME, rotatedCookie, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    ...(rotatedExp ? { expires: new Date(rotatedExp) } : {}),
+  });
+  return response;
+}
 
 /**
  * Next.js 16 Zero-Trust Proxy (`src/proxy.ts` — 5-Step Engine):
@@ -22,13 +48,23 @@ export async function proxy(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
   }
 
+  const requestHeaders = new Headers(req.headers);
+  requestHeaders.delete("x-user-id");
+  requestHeaders.delete("x-user-name");
+  requestHeaders.delete("x-user-permissions");
+  requestHeaders.set("x-pathname", pathname);
+
   // 2. Public routes skip session validation
   if (policy.access === "public") {
-    return NextResponse.next();
+    return NextResponse.next({ request: { headers: requestHeaders } });
   }
 
-  // 3. Unified Session + Ban Check
-  const user = await getSessionUser(req, false);
+  // 3. Unified Session + Ban Check (with 15-min tokenId rotation persisted to response cookie)
+  const rawCookie =
+    readCookieFromRequest(req, SESSION_COOKIE_NAME) ??
+    readCookieFromRequest(req, "__Host-bm_session") ??
+    readCookieFromRequest(req, "bm_session");
+  const user = await getSessionUser(req, true);
   if (!user) {
     if (policy.kind === "page") {
       const loginUrl = new URL(policy.loginPath ?? AUTH_ROUTES.login, req.url);
@@ -52,17 +88,15 @@ export async function proxy(req: NextRequest): Promise<NextResponse> {
 
   // 4. Granular Capability Check (`<domain>:<action>` or `<domain>:*`)
   if (policy.access !== "authenticated" && !hasPermission(user.permissions, policy.access)) {
-    if (policy.kind === "page") {
-      return NextResponse.redirect(new URL(policy.loginPath ?? AUTH_ROUTES.login, req.url));
-    }
-    return NextResponse.json(
-      { success: false, error: "plan" },
-      { status: 403 },
-    );
+    const deniedResponse =
+      policy.kind === "page"
+        ? NextResponse.redirect(new URL(policy.loginPath ?? AUTH_ROUTES.login, req.url))
+        : NextResponse.json({ success: false, error: "plan" }, { status: 403 });
+    return attachRotatedCookie(deniedResponse, user, rawCookie);
   }
 
   // 5. Anti-Spoofing: strip any client-sent x-user-* headers and set verified values
-  const headers = new Headers(req.headers);
+  const headers = new Headers(requestHeaders);
   headers.delete("x-user-id");
   headers.delete("x-user-name");
   headers.delete("x-user-permissions");
@@ -70,25 +104,28 @@ export async function proxy(req: NextRequest): Promise<NextResponse> {
   headers.set("x-user-name", user.name);
   headers.set("x-user-permissions", user.permissions.join(","));
 
-  return NextResponse.next({ request: { headers } });
+  if (user.neuesTokenId) {
+    const currentCookie = readSessionCookieToken(rawCookie);
+    const rotatedCookie = createSessionCookieToken({
+      id: user.id,
+      version: user.sitzungsVersion,
+      sessionId: user.sessionId,
+      tokenId: user.neuesTokenId,
+      exp: currentCookie?.exp,
+    });
+    const existingCookieHeader = headers.get("cookie") ?? "";
+    const filteredCookies = existingCookieHeader
+      .split(";")
+      .map((c) => c.trim())
+      .filter((c) => c && !c.startsWith(`${SESSION_COOKIE_NAME}=`) && !c.startsWith("__Host-bm_session=") && !c.startsWith("bm_session="));
+    filteredCookies.push(`${SESSION_COOKIE_NAME}=${encodeURIComponent(rotatedCookie)}`);
+    headers.set("cookie", filteredCookies.join("; "));
+  }
+
+  const response = NextResponse.next({ request: { headers } });
+  return attachRotatedCookie(response, user, rawCookie);
 }
 
 export const config = {
-  matcher: [
-    "/app",
-    "/app/:path*",
-    "/mappe/:path*",
-    "/bankmappe/:path*",
-    "/expose/:path*",
-    "/konto",
-    "/konto/:path*",
-    "/buchen",
-    "/bezahlen/:path*",
-    "/api/:path*",
-    "/login",
-    "/signup",
-    "/passwort-vergessen",
-    "/passwort-neu",
-    "/email-bestaetigen",
-  ],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|og/|file\\.svg$|globe\\.svg$|next\\.svg$|vercel\\.svg$|window\\.svg$).*)"],
 };

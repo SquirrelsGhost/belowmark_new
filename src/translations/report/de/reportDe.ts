@@ -52,6 +52,8 @@ export const REPORT_DE: IReportTranslation = {
         unreadable: "Das PDF ließ sich nicht öffnen (beschädigt oder passwortgeschützt).",
         plan: "Der Gutachten-Leser gehört zum Investor-Plan.",
         unauthorized: "Bitte erneut anmelden.",
+        banned: "Ihr Konto ist gesperrt.",
+        account_banned: "Ihr Konto ist gesperrt.",
         listing: "Dieses Verfahren gibt es nicht mehr.",
         internal: "Das hat nicht geklappt. Bitte später noch einmal versuchen.",
       },

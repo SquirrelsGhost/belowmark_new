@@ -18,13 +18,14 @@ const DONE_COMMON = {
 
 export const BILLING_TR: IBillingTranslation = {
   Meta: {
-    Order: meta("/buchen", "Investor erişimi satın al — Belowmark", "Belowmark Investor erişimi: aylık, her ay sonunda iptal edilebilir veya üç ay tek ödeme. Ödeme Stripe üzerinden güvenli, fatura e-postayla.", ["Belowmark", "Investor"]),
-    TestCheckout: meta("/bezahlen/test", "Test ödemesi — Belowmark", "Belowmark geliştirme ortamı için yerel test ödemesi. Para çekilmez, sözleşme kurulmaz.", ["Test"]),
-    Cancel: meta("/kuendigen", "Sözleşmeyi buradan feshet — Belowmark", "Belowmark sözleşmenizi giriş yapmadan feshedin: beyanı gönderin, tarih, saat ve sözleşme bitiş tarihiyle onayı hemen e-postayla alın.", ["Fesih"]),
-    Withdraw: meta("/widerruf/erklaeren", "Sözleşmeden cayma — Belowmark", "Cayma süresi içinde Belowmark sözleşmesinden cayın: bilgilerinizi onaylayın, alındı onayını hemen e-postayla alın.", ["Cayma"]),
-    Imprint: meta("/impressum", "Künye — Belowmark", "Belowmark'ın Alman hukukuna (§ 5 DDG, § 18 MStV) göre künyesi: sağlayıcı, adres, iletişim ve içerikten sorumlu kişi.", ["Künye"]),
-    Terms: meta("/agb", "Genel işlem şartları — Belowmark", "Belowmark genel işlem şartları: tarifeler, sözleşmenin kurulması, Stripe ile ödeme, süre, fesih, sorumluluk ve uygulanacak hukuk.", ["Şartlar"]),
-    Withdrawal: meta("/widerruf", "Cayma bilgilendirmesi — Belowmark", "Belowmark sözleşmeleri için cayma hakkı bilgilendirmesi, örnek cayma formu ve çevrim içi cayma düğmesi.", ["Cayma"]),
+    Order: meta("/buchen", "Investor erişimi satın al — Belowmark", "Belowmark Investor erişimi satın alın: aylık, her ay sonunda iptal edilebilir veya üç ay tek ödeme. Ödeme Stripe üzerinden güvenli, fatura e-postayla.", ["Belowmark", "Investor"]),
+    Upgrade: meta("/buchen/upgrade", "Pro'ya yükselt — Belowmark", "Belowmark Investor erişiminden Pro'ya geçin: ek özellikler hemen açılır, sözleşme süresi aynı kalır ve yalnızca kalan süre için orantılı fark tahsil edilir.", ["Pro", "Yükseltme"]),
+    TestCheckout: meta("/bezahlen/test", "Test ödemesi — Belowmark", "Belowmark yerel geliştirme ortamı için test ödemesi sayfası: gerçek para çekilmez, bağlayıcı bir sözleşme kurulmaz ve işlem yalnızca sistem testi içindir.", ["Test"]),
+    Cancel: meta("/kuendigen", "Sözleşmeyi buradan feshet — Belowmark", "Belowmark abonelik sözleşmenizi giriş yapmadan feshedin: beyanı gönderin, tarih, saat ve sözleşme bitiş tarihiyle onayı hemen e-postayla alın.", ["Fesih", "Sözleşme feshi"]),
+    Withdraw: meta("/widerruf/erklaeren", "Sözleşmeden cayma — Belowmark", "Yasal cayma süresi içinde Belowmark abonelik sözleşmesinden çevrim içi cayın: bilgilerinizi onaylayın ve alındı onayını hemen e-postayla alın.", ["Cayma", "Cayma hakkı"]),
+    Imprint: meta("/impressum", "Künye — Belowmark", "Belowmark'ın Alman hukukuna (§ 5 DDG ve § 18 MStV) göre resmî künyesi: hizmet sağlayıcı, açık posta adresi, doğrudan iletişim kanalları ve içerik sorumlusu.", ["Künye"]),
+    Terms: meta("/agb", "Genel işlem şartları — Belowmark", "Belowmark abonelik ve kullanım genel işlem şartları: tarifeler, sözleşmenin kurulması, Stripe ile ödeme, süre, fesih, sorumluluk ve uygulanacak hukuk.", ["Şartlar"]),
+    Withdrawal: meta("/widerruf", "Cayma bilgilendirmesi — Belowmark", "Belowmark abonelik ve erişim sözleşmeleri için yasal cayma hakkı bilgilendirmesi, örnek cayma formu ve doğrudan çevrim içi sözleşmeden cayma düğmesi.", ["Cayma"]),
     Privacy: meta("/datenschutz", "Gizlilik bildirimi — Belowmark", "Belowmark hangi verileri, ne amaçla, hangi hukuki dayanakla ve ne kadar süre işler — hesap, Stripe ödemesi, çerezler, haritalar, haklarınız.", ["Gizlilik", "KVKK", "DSGVO"]),
   },
 
@@ -74,7 +75,7 @@ export const BILLING_TR: IBillingTranslation = {
       "pro-monat": {
         Name: "Pro · aylık",
         Period: "aylık",
-        Summary: "Tam erişim + kendi antetinizle müşteri bağlantıları ve ekipler (5 kişiye kadar)",
+        Summary: "Tam erişim + kendi antetinizle müşteri bağlantıları ve ekipler (5 kişilik 3 ekibe kadar)",
         Term: "Her ay yenilenir. Ödenmiş ayın sonuna kadar istediğiniz zaman feshedilebilir.",
       },
       "pro-quartal": {
@@ -94,6 +95,9 @@ export const BILLING_TR: IBillingTranslation = {
     VatInclusive: "Nihai fiyat, Almanya KDV'si (%19) dahil.",
     VatSmallBusiness: "Nihai fiyat. Alman KDV Kanunu § 19 uyarınca KDV hesaplanmaz.",
     VatOpen: "Nihai fiyat.",
+    VatTr: "Nihai fiyat. Almanya KDV'si yok (hizmet yeri Türkiye). Türk KDV'sinin uygulanıp uygulanmayacağı henüz inceleniyor.",
+    VatTrKdv: "Nihai fiyat, %20 Türk KDV'si dahil. Almanya KDV'si yok (hizmet yeri Türkiye).",
+    UpgradeCta: "Investor zaten açık mı? Pro'ya yükseltin — yalnızca orantılı farkı ödersiniz.",
     ConsentLabel:
       "Bunun anında açılan dijital bir ürün olduğunu biliyorum. Dijital içeriğin derhal sağlanmasına açıkça onay veriyor ve erişimin açılmasıyla cayma hakkımın derhal sona ereceğini onaylıyorum (§ 356 Abs. 5 BGB / Mesafeli Sözleşmeler Yönetmeliği md. 15/1-ğ).",
     ConsentRequired: "Lütfen anında erişimi ve cayma hakkının sona ermesini onaylayın.",
@@ -117,8 +121,11 @@ export const BILLING_TR: IBillingTranslation = {
       price_missing: "Bu tarife şu anda satın alınamıyor. Lütfen daha sonra tekrar deneyin.",
     },
     OrderBlockers: {
-      subscription_running: "Aylık Investor erişiminiz zaten devam ediyor ve {date} tarihinde yenilenecek. İkinci bir satın alma gerekmez.",
-      term_running: "Investor erişiminiz {date} tarihine kadar sürüyor. Üç ay uzatabilirsiniz; yanına aylık abonelik çift ödeme olur.",
+      subscription_running: "Aylık aboneliğiniz zaten devam ediyor ve {date} tarihinde yenilenecek. İkinci bir satın alma gerekmez.",
+      term_running: "Erişiminiz {date} tarihine kadar sürüyor. Üç ay uzatabilirsiniz; yanına aylık abonelik çift ödeme olur.",
+      use_upgrade: "Yükseltme olarak: {date} tarihine kadar orantılı fark.",
+      pro_running: "Pro erişiminiz {date} tarihine kadar sürüyor. Investor buna dahildir.",
+      other_market: "Diğer pazardaki aboneliğiniz {date} tarihinde yenileniyor. İptal edildikten sonra pazar değiştirebilirsiniz.",
     },
     ManageCta: "Hesaba git",
     Contact: "Bize yazın",
@@ -126,6 +133,33 @@ export const BILLING_TR: IBillingTranslation = {
     ProTitle: "5 kişiden büyük ekip mi?",
     ProBody: "Genişletilmiş koltuk kontenjanlı kurumsal ekip paketlerini (299 €'dan) bireysel olarak belirliyoruz.",
     ProCta: "Ekip paketi talep et",
+  },
+
+  Upgrade: {
+    Eyebrow: "Yükseltme",
+    Title: "Pro'ya geçin.",
+    Lead: "Pro hemen geçerli olur. Yalnızca Investor erişiminizin kalan süresi için fiyat farkını ödersiniz.",
+    Points: [
+      "Orantılı fark: (Pro fiyatı − Investor fiyatı) × kalan süre ÷ dönem.",
+      "Bitiş tarihi değişmez. Aylık abonelikte bir sonraki yenilemeden itibaren tam Pro fiyatı geçerlidir.",
+      "Farkın faturası hesabınızda, Faturalar bölümünde.",
+    ],
+    SummaryTitle: "Yükseltmeniz",
+    From: "Şu an",
+    To: "Yeni",
+    Start: "Başlangıç",
+    StartValue: "ödeme alındıktan hemen sonra",
+    Until: "Bitiş",
+    UntilRenews: "{date}, sonra aylık {price}",
+    UntilEnds: "{date}, kendiliğinden biter",
+    Today: "Bugün ödenecek",
+    FreeNote: "Kalan süre o kadar kısa ki fark alınmıyor.",
+    Rule: "{date} tarihine kadar kalan süre için orantılı",
+    Submit: "Ödemeli olarak yükselt",
+    Pending: "Hazırlanıyor …",
+    Unavailable: "Yükseltme yalnızca açık bir Investor erişimi varken mümkündür. Açık paket yoksa Pro'yu doğrudan satın alın.",
+    Cancelled: "Yükseltme iptal edildi. Ücret alınmadı.",
+    Failed: "Yükseltme başlatılamadı. Lütfen tekrar deneyin.",
   },
 
   TestCheckout: {
@@ -148,6 +182,7 @@ export const BILLING_TR: IBillingTranslation = {
     EndsOn: "{date} tarihine kadar tam erişim",
     Book: "Investor satın al",
     Extend: "Üç ay uzat",
+    Upgrade: "Pro'ya yükselt",
     Portal: "Faturalar ve ödeme yöntemi",
     PortalHint: "Stripe müşteri portalını açar: faturaları indirin, kartı veya fatura adresini değiştirin.",
     PortalUnavailable: "Faturalar, Stripe üzerinden satın aldığınızda burada olur.",

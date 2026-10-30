@@ -56,10 +56,24 @@ const empty = (id: ComparisonFigure["id"], kind: ComparisonFigure["kind"], gap: 
 
 function germanComparables(listing: Listing): ListingComparables {
   const { boris, zensus } = DE_COMPARISON_SOURCES;
+  const value = listing.appraisedValue;
+  const floorArea = listing.livingAreaM2 ?? listing.usableAreaM2 ?? null;
+  const plotArea = listing.landAreaM2 ?? null;
+  const floorPerM2 = value !== null && floorArea && floorArea > 0 ? Math.round(value / floorArea) : null;
+  const plotPerM2 = value !== null && plotArea && plotArea > 0 ? Math.round(value / plotArea) : null;
+
   return {
     figures: [
-      empty("landValue", "landValue", "noLicensedData", "BORIS-D", boris.url),
-      empty("offers", "salePrice", "noLicensedData", "", ""),
+      {
+        ...empty("landValue", "landValue", "noLicensedData", "BORIS-D", boris.url),
+        objectPerM2: plotPerM2,
+        areaKind: plotArea ? `Grundstück (${plotArea} m²)` : null,
+      },
+      {
+        ...empty("offers", "salePrice", "noLicensedData", "", ""),
+        objectPerM2: floorPerM2 ?? plotPerM2,
+        areaKind: floorArea ? "Wohn-/Nutzfläche" : plotArea ? "Grundstücksfläche" : null,
+      },
       empty("rent", "rent", "noLicensedData", "Zensus 2022", zensus.url),
     ],
     lookups: [

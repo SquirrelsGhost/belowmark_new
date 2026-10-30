@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { EMAIL_MAX_LENGTH } from "@/lib/auth/authConfig";
-import { normalizeEmail } from "@/lib/auth/normalizeEmail";
+import { isDisposableEmail, normalizeEmail } from "@/lib/auth/normalizeEmail";
 import { hasPermission } from "@/lib/permissions";
 import { currentActor, fail, failed, field, refreshTeamViews, uuidField } from "@/lib/team/teamActionHelpers";
 import { isAssignableRole, TEAM_PLAN_PERMISSION, TEAM_ROUTES, teamHref, TEAMS } from "@/lib/team/teamConfig";
@@ -78,9 +78,10 @@ export async function inviteMemberAction(_: TeamActionState, formData: FormData)
   const actor = await currentActor();
   const teamId = uuidField(formData, "teamId");
   const role = field(formData, "role");
-  const email = emailSchema.safeParse(field(formData, "email"));
+  const parsedEmail = emailSchema.safeParse(field(formData, "email"));
   if (!actor || !teamId) return fail("failed");
-  if (!email.success || !isAssignableRole(role)) return fail("invalid");
+  if (!parsedEmail.success || !isAssignableRole(role)) return fail("invalid");
+  if (isDisposableEmail(parsedEmail.data)) return fail("invalid");
   if (!MailService.isAvailable()) return fail("mail_unavailable");
   try {
     const access = await TeamAccessService.authorise(teamId, actor.id, "invite");
@@ -88,11 +89,11 @@ export async function inviteMemberAction(_: TeamActionState, formData: FormData)
     if (!outranks(access.membership.role, role)) return fail("forbidden");
     if (!(await RateLimitService.hit(`team:invite:${teamId}`, TEAMS.invitesPerDay)).allowed) return fail("rate_limited");
 
-    const created = await TeamInviteService.create(teamId, actor.id, email.data, role);
+    const created = await TeamInviteService.create(teamId, actor.id, parsedEmail.data, role);
     if (!created.ok) return fail(created.error);
     try {
       await TeamMailService.sendInvite({
-        to: email.data,
+        to: parsedEmail.data,
         locale: actor.locale,
         inviter: actor.name,
         team: access.membership.teamName,
@@ -102,7 +103,7 @@ export async function inviteMemberAction(_: TeamActionState, formData: FormData)
       });
     } catch (error) {
       // No mail, no stored address: an invitation nobody can open is pointless
-      await TeamInviteService.purgeByEmail(teamId, email.data);
+      await TeamInviteService.purgeByEmail(teamId, parsedEmail.data);
       return failed("inviteMemberAction:mail", error);
     }
   } catch (error) {

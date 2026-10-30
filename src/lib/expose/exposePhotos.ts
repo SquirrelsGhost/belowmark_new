@@ -56,22 +56,25 @@ export const isPhotoType = (type: string): boolean => (PHOTO_TYPES as readonly s
  */
 export async function downscalePhoto(file: File, confirmedAt: string): Promise<ExposePhoto> {
   const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
-  const scale = Math.min(1, PHOTO_MAX_EDGE / Math.max(bitmap.width, bitmap.height));
-  const width = Math.round(bitmap.width * scale);
-  const height = Math.round(bitmap.height * scale);
-  const canvas = document.createElement("canvas");
-  canvas.width = width;
-  canvas.height = height;
-  const context = canvas.getContext("2d");
-  if (!context) throw new Error("canvas unavailable");
-  context.drawImage(bitmap, 0, 0, width, height);
-  bitmap.close();
-  return {
-    id: crypto.randomUUID(),
-    dataUrl: canvas.toDataURL("image/jpeg", PHOTO_QUALITY),
-    width,
-    height,
-    caption: "",
-    rightsConfirmedAt: confirmedAt,
-  };
+  try {
+    const scale = Math.min(1, PHOTO_MAX_EDGE / Math.max(bitmap.width, bitmap.height));
+    const width = Math.round(bitmap.width * scale);
+    const height = Math.round(bitmap.height * scale);
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const context = canvas.getContext("2d");
+    if (!context) throw new Error("canvas unavailable");
+    context.drawImage(bitmap, 0, 0, width, height);
+    return {
+      id: crypto.randomUUID(),
+      dataUrl: canvas.toDataURL("image/jpeg", PHOTO_QUALITY),
+      width,
+      height,
+      caption: "",
+      rightsConfirmedAt: confirmedAt,
+    };
+  } finally {
+    bitmap.close();
+  }
 }

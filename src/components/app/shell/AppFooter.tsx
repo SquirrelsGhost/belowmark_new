@@ -7,11 +7,15 @@ import { BillingTranslations } from "@/translations/billing/BillingTranslations"
 
 const LINK_CLASSES = "underline-offset-4 transition-colors hover:text-ink hover:underline";
 
+interface AppFooterProps {
+  className?: string;
+}
+
 /** Legal line at the end of every app page: Impressum, AGB, Widerruf, Datenschutz and the two consumer buttons. */
-export default async function AppFooter() {
+export default async function AppFooter({ className }: AppFooterProps = {}) {
   const { Footer } = BillingTranslations[await TranslationService.GetUserLocale()];
   return (
-    <footer className="mt-16 border-t border-rule">
+    <footer className={className ? `mt-16 border-t border-rule ${className}` : "mt-16 border-t border-rule"}>
       <Container className="flex flex-col gap-4 py-6 font-mono text-[11px] text-muted sm:flex-row sm:items-center sm:justify-between">
         <span className="flex flex-wrap gap-x-4 gap-y-2">
           <Link href={ROUTES.imprint} className={LINK_CLASSES}>{Footer.Imprint}</Link>

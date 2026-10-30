@@ -24,6 +24,17 @@ import { mkdirSync, readFileSync, writeFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import tls from "node:tls";
 import { slug } from "./lib/slug.mjs";
+import {
+  decodeHtmlText,
+  extractDeLivingArea,
+  extractDeUsableArea,
+  extractDeLandArea,
+  extractDeRooms,
+  extractYearBuilt,
+  parseZvgPortalHtml,
+  parseZvgComData,
+  extractTrEnrichedDetails,
+} from "./lib/propertyExtractor.mjs";
 
 if (process.platform === "win32" && typeof tls.getCACertificates === "function" && typeof tls.setDefaultCACertificates === "function") {
   try {
@@ -176,13 +187,25 @@ const MONTHS_DE = {
   Juli: 7, August: 8, September: 9, Oktober: 10, November: 11, Dezember: 12,
 };
 
+function berlinOffsetForDate(year, month, day, hour) {
+  try {
+    const probe = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day), Number(hour), 0, 0));
+    const parts = new Intl.DateTimeFormat("en-US", { timeZone: "Europe/Berlin", timeZoneName: "longOffset" }).formatToParts(probe);
+    const tz = parts.find((p) => p.type === "timeZoneName")?.value ?? "";
+    const match = /GMT([+-]\d{2}:\d{2})/.exec(tz);
+    return match ? match[1] : "+01:00";
+  } catch {
+    return "+01:00";
+  }
+}
+
 function parseGermanDateIso(dateStr, timeStr = "09:00") {
   const m = /^(\d{2})\.(\d{2})\.(\d{4})$/.exec(String(dateStr ?? "").trim());
   if (!m) return null;
   const [, d, mo, y] = m;
   const t = /^\d{1,2}:\d{2}/.test(String(timeStr ?? "").trim()) ? String(timeStr).trim().padStart(5, "0") : "09:00";
-  // German court time -> ISO
-  return `${y}-${mo}-${d}T${t}:00+01:00`;
+  const offset = berlinOffsetForDate(y, mo, d, t.slice(0, 2));
+  return `${y}-${mo}-${d}T${t}:00${offset}`;
 }
 
 function parseTerminLine(line = "") {
@@ -207,14 +230,15 @@ function parseVerkehrswert(block = "") {
     ...new Set(
       [...text.matchAll(BETRAG_RE)]
         .map((t) => parseGermanNumber(t[0]))
-        .filter((n) => Number.isFinite(n) && n > 0),
+        .filter((n) => Number.isFinite(n) && n >= 500),
     ),
   ];
   if (werte.length === 0) return null;
   if (werte.length === 1) return werte[0];
   const summe = werte.reduce((a, b) => a + b, 0);
   const gesamt = werte.filter((w) => Math.abs(summe - w - w) < 0.5);
-  return gesamt.length === 1 ? gesamt[0] : werte[0];
+  const result = gesamt.length === 1 ? gesamt[0] : werte[0];
+  return result >= 500 ? result : null;
 }
 
 function buildDeCaveats({ fileYear, appraisedValue, limitsWaived, proceedingKind }) {
@@ -370,19 +394,26 @@ async function fetchZvgComAll() {
   const rawRows = Array.isArray(gridRes) ? gridRes : Object.values(gridRes ?? {});
   const validRows = rawRows.filter((r) => r && r.id != null && r.ag && r.az && r.date);
 
-  // Also fetch PDF links & metadata for zvg.com objects in polite batches
-  console.log(`  zvg.com: ${validRows.length} aktive Termine gefunden, lade Dokument-Links ...`);
-  const enriched = await mapLimit(validRows, 10, async (row) => {
+  // Also fetch PDF links, full text & metadata for zvg.com objects in polite batches
+  console.log(`  zvg.com: ${validRows.length} aktive Termine gefunden, lade Detailtexte & Dokument-Links ...`);
+  const enriched = await mapLimit(validRows, 12, async (row) => {
     const stateName = row.gericht?.bundesland || courtToState.get(String(row.ag).trim()) || null;
     const state = STATE_BY_NAME_DE.get(stateName);
     if (!state) return null;
 
-    let pdfInfo = null;
-    try {
-      pdfInfo = await fetch(`https://www.zvg.com/v2024/termine.prg?act=getPDF&id=${row.id}`, { headers }).then((r) => r.json());
-    } catch {
-      pdfInfo = null;
-    }
+    const [pdfInfo, textHtml, jsonMeta] = await Promise.all([
+      fetch(`https://www.zvg.com/v2024/termine.prg?act=getPDF&id=${row.id}`, { headers })
+        .then((r) => r.json())
+        .catch(() => null),
+      fetch(`https://www.zvg.com/v2024/termine.prg?act=getText&id=${row.id}`, {
+        headers: { ...headers, Accept: "text/html,*/*" },
+      })
+        .then((r) => (r.ok ? r.text() : ""))
+        .catch(() => ""),
+      fetch(`https://www.zvg.com/v2024/termine.prg?act=getJSON&id=${row.id}`, { headers })
+        .then((r) => (r.ok ? r.json() : null))
+        .catch(() => null),
+    ]);
 
     const abs = (p) => {
       if (!p || typeof p !== "string") return null;
@@ -391,11 +422,12 @@ async function fetchZvgComAll() {
     };
 
     const iso = parseGermanDateIso(row.date, row.time);
-    const cleanTitle = String(row.title ?? "").replace(/^\s*\S+\s*K\s*\S+\s*:\s*/i, "").trim();
+    const cleanTitle = decodeHtmlText(String(row.title ?? "").replace(/^\s*\S+\s*K\s*\S+\s*:\s*/i, "").trim());
     const postcode = row.plz && row.plz !== "00000" ? String(row.plz).trim() : null;
-    const city = row.city ? String(row.city).trim() : null;
-    const street = row.street ? String(row.street).trim() : null;
-    const appraisedValue = Number.isFinite(row.vwert) && row.vwert > 0 ? row.vwert : null;
+    const city = row.city ? decodeHtmlText(String(row.city).trim()) : null;
+    const street = row.street ? decodeHtmlText(String(row.street).trim()) : null;
+    const appraisedValue = Number.isFinite(row.vwert) && row.vwert >= 500 ? row.vwert : null;
+    const parsedDetails = parseZvgComData(textHtml, jsonMeta, { title: cleanTitle });
 
     return {
       source: "zvg.com",
@@ -411,13 +443,14 @@ async function fetchZvgComAll() {
       appraisedValue,
       hearingAt: iso,
       cancelled: Boolean(row.terminAufgehoben),
-      limitsWaived: /Wertgrenzen\s+(?:entfallen|gelten\s+nicht)/i.test(cleanTitle),
+      limitsWaived: /Wertgrenzen\s+(?:entfallen|gelten\s+nicht)/i.test(`${cleanTitle} ${parsedDetails.description ?? ""}`),
       officialUrl: `https://www.zvg.com/objekt/${row.id}/show`,
       imageUrl: row.img ? `https://www.zvg.com${String(row.img).replace("/vn_", "/")}` : null,
       announcementPdf: abs(pdfInfo?.pdf) ?? abs(pdfInfo?.expose) ?? null,
       exposeUrl: abs(pdfInfo?.expose) ?? null,
       biddingNotesUrl: abs(pdfInfo?.hinweis) ?? null,
       courtUrl: row.gericht?.url || null,
+      details: parsedDetails,
     };
   });
 
@@ -524,6 +557,10 @@ async function buildDeLive() {
       if (!existing.imageUrl && r.imageUrl) existing.imageUrl = r.imageUrl;
       if (!existing.zvgComId && r.zvgId) existing.zvgComId = r.zvgId;
       if (!existing.appraisedValue && r.appraisedValue) existing.appraisedValue = r.appraisedValue;
+      if (!existing.exposeUrl && r.exposeUrl) existing.exposeUrl = r.exposeUrl;
+      if (!existing.biddingNotesUrl && r.biddingNotesUrl) existing.biddingNotesUrl = r.biddingNotesUrl;
+      if (!existing.courtUrl && r.courtUrl) existing.courtUrl = r.courtUrl;
+      if (!existing._zvgComDetails && r.details) existing._zvgComDetails = r.details;
       if (!existing.postcode && r.postcode) {
         existing.postcode = r.postcode;
         existing.geo = geoPoint(postcodes[r.postcode], "postcode");
@@ -562,6 +599,10 @@ async function buildDeLive() {
       officialUrl: r.officialUrl,
       imageUrl: r.imageUrl ?? null,
       zvgComId: r.zvgId,
+      exposeUrl: r.exposeUrl ?? null,
+      biddingNotesUrl: r.biddingNotesUrl ?? null,
+      courtUrl: r.courtUrl ?? null,
+      _zvgComDetails: r.details ?? null,
       mapUrl: addr ? `https://www.openstreetmap.org/search?query=${encodeURIComponent(addr)}` : null,
       documentUrl: r.announcementPdf,
       geo: geoPoint(postcodes[r.postcode], "postcode"),
@@ -575,6 +616,189 @@ async function buildDeLive() {
   }
 
   const listings = [...byProceeding.values()];
+
+  // 3. Enrich all DE listings with showZvg / zvg.com detail pages (areas, rooms, yearBuilt, Grundbuch, description, attachments)
+  const portalCacheDir = join(process.cwd(), ".data", "portal-cache");
+  mkdirSync(portalCacheDir, { recursive: true });
+  console.log(`  ▸ Lade Detailseiten (Grundbuch, Wohn-/Grundstücksflächen, Beschreibung) für ${listings.length} DE-Verfahren ...`);
+
+  let detailFetched = 0;
+  let detailFromCache = 0;
+  await mapLimit(listings, 24, async (l) => {
+    const cacheFile = join(portalCacheDir, `${l.key.replace(/[^a-zA-Z0-9_-]/g, "_")}.json`);
+    let parsed = null;
+
+    if (existsSync(cacheFile)) {
+      try {
+        const cached = JSON.parse(readFileSync(cacheFile, "utf8"));
+        if (cached && (cached.description || cached.grundbuch || cached.livingAreaM2 || cached.landAreaM2)) {
+          parsed = cached;
+          detailFromCache++;
+        }
+      } catch {
+        parsed = null;
+      }
+    }
+
+    if (!parsed && l.officialUrl?.includes("zvg-portal.de") && l.officialUrl?.includes("zvg_id=")) {
+      try {
+        const res = await fetch(l.officialUrl, {
+          headers: {
+            Referer: "https://www.zvg-portal.de/index.php?button=Suchen&all=1",
+            "User-Agent": "Mozilla/5.0 (compatible; BelowmarkBot/1.0; +https://belowmark.com; contact@pycie.com)",
+          },
+        });
+        if (res.ok) {
+          const buf = await res.arrayBuffer();
+          let html = new TextDecoder("utf-8", { fatal: false }).decode(buf);
+          if (html.includes("\uFFFD")) {
+            html = new TextDecoder("iso-8859-1").decode(buf);
+          }
+          parsed = parseZvgPortalHtml(html, l);
+          detailFetched++;
+        }
+      } catch {
+        parsed = null;
+      }
+    }
+
+    const zc = l._zvgComDetails ?? null;
+    delete l._zvgComDetails;
+
+    const livingAreaM2 = parsed?.livingAreaM2 ?? zc?.livingAreaM2 ?? extractDeLivingArea(l.title);
+    const usableAreaM2 = parsed?.usableAreaM2 ?? zc?.usableAreaM2 ?? extractDeUsableArea(l.title);
+    const landAreaM2 = parsed?.landAreaM2 ?? zc?.landAreaM2 ?? extractDeLandArea(l.title);
+    const areaM2 = livingAreaM2 ?? usableAreaM2 ?? landAreaM2 ?? null;
+    const areaKind = livingAreaM2 || usableAreaM2 ? "Wohn-/Nutzfläche" : landAreaM2 ? "Grundstücksfläche" : null;
+    const rooms = parsed?.rooms ?? zc?.rooms ?? extractDeRooms(l.title);
+    const yearBuilt = parsed?.yearBuilt ?? zc?.yearBuilt ?? extractYearBuilt(l.title);
+    const grundbuch = parsed?.grundbuch ?? zc?.grundbuch ?? null;
+    const proceedingKind = parsed?.proceedingKind ?? zc?.proceedingKind ?? "Zwangsversteigerung";
+    const description = parsed?.description ?? zc?.description ?? l.title;
+    const hearingPlace = parsed?.hearingPlace ?? zc?.hearingPlace ?? null;
+    const creditor = parsed?.creditor ?? zc?.creditor ?? null;
+
+    if (!l.postcode && parsed?.postcode) {
+      l.postcode = parsed.postcode;
+      l.geo = geoPoint(postcodes[parsed.postcode], "postcode");
+    }
+
+    const attachments = parsed?.attachments ?? [];
+    const findAttUrl = (k) => attachments.find((a) => a.kind === k)?.directUrl ?? null;
+    if (!l.documentUrl) l.documentUrl = findAttUrl("announcement") ?? attachments[0]?.directUrl ?? null;
+    l.exposeUrl = l.exposeUrl ?? findAttUrl("expose") ?? null;
+    l.reportUrl = l.reportUrl ?? findAttUrl("report") ?? null;
+    l.biddingNotesUrl = l.biddingNotesUrl ?? findAttUrl("notes") ?? null;
+    const rawCourtUrl = l.courtUrl ?? parsed?.courtUrl ?? null;
+    if (rawCourtUrl) {
+      try {
+        l.courtUrl = new URL(rawCourtUrl, "https://www.zvg-portal.de/index.php").toString();
+      } catch {
+        l.courtUrl = rawCourtUrl;
+      }
+    } else {
+      l.courtUrl = null;
+    }
+    l.geoServerUrl = parsed?.geoServerUrl ?? null;
+
+    l.livingAreaM2 = livingAreaM2;
+    l.usableAreaM2 = usableAreaM2;
+    l.landAreaM2 = landAreaM2;
+    l.areaM2 = areaM2;
+    l.areaKind = areaKind;
+    l.rooms = rooms;
+    l.yearBuilt = yearBuilt;
+    l.grundbuch = grundbuch;
+    l.proceedingKind = proceedingKind;
+    l.description = description;
+    l.hearingPlace = hearingPlace;
+    l.creditor = creditor;
+
+    // Refine segment if description has clearer classification
+    if (l.segment === "other" && description) {
+      l.segment = deSegment(l.segmentLabel, `${l.title} ${description}`);
+    }
+
+    l.caveats = buildDeCaveats({
+      fileYear: l.fileYear,
+      appraisedValue: l.appraisedValue,
+      limitsWaived: l.limitsWaived,
+      proceedingKind,
+    });
+
+    // Save warm OfficialPortalDetails to .data/portal-cache/${l.key}.json
+    if (parsed || zc) {
+      const encodedKey = encodeURIComponent(l.key);
+      const zvgComAtts = [];
+      if (l.key.startsWith("zvgcom-")) {
+        if (l.documentUrl) {
+          zvgComAtts.push({
+            id: "bekanntmachung",
+            kind: "announcement",
+            label: "Amtliche Terminbestimmung (PDF)",
+            fileName: `Bekanntmachung-${l.zvgComId ?? l.key}.pdf`,
+            proxyUrl: `/api/quelle/${encodedKey}?doc=announcement`,
+            directUrl: l.documentUrl,
+          });
+        }
+        if (l.exposeUrl && l.exposeUrl !== l.documentUrl) {
+          zvgComAtts.push({
+            id: "expose",
+            kind: "expose",
+            label: "Kurzexposé / Objektbeschreibung (PDF)",
+            fileName: `Expose-${l.zvgComId ?? l.key}.pdf`,
+            proxyUrl: `/api/quelle/${encodedKey}?doc=expose`,
+            directUrl: l.exposeUrl,
+          });
+        }
+        if (l.biddingNotesUrl) {
+          zvgComAtts.push({
+            id: "hinweise",
+            kind: "notes",
+            label: "Bieterhinweise des Amtsgerichts",
+            fileName: `Bieterhinweise-${l.zvgComId ?? l.key}.pdf`,
+            proxyUrl: `/api/quelle/${encodedKey}?doc=notes`,
+            directUrl: l.biddingNotesUrl,
+          });
+        }
+      }
+      const cachePayload = {
+        key: l.key,
+        source: l.key.startsWith("zvgcom-") ? "zvg.com" : "zvg-portal.de",
+        fetchedAt: nowIso,
+        proceedingKind,
+        grundbuch,
+        description,
+        hearingPlace,
+        creditor,
+        livingAreaM2,
+        usableAreaM2,
+        landAreaM2,
+        netAreaM2: null,
+        rooms,
+        floor: null,
+        yearBuilt,
+        unitNo: null,
+        arsaPayi: null,
+        zoning: null,
+        ownershipShare: null,
+        vatRate: null,
+        courtUrl: l.courtUrl,
+        geoServerUrl: l.geoServerUrl,
+        attachments: attachments.length > 0 ? attachments : zvgComAtts,
+      };
+      try {
+        writeFileSync(cacheFile, JSON.stringify(cachePayload));
+      } catch {
+        // Ignore cache write errors
+      }
+    }
+  });
+
+  const withAreaCount = listings.filter((l) => l.livingAreaM2 || l.usableAreaM2 || l.landAreaM2).length;
+  console.log(
+    `  → DE Detail-Extraktion: ${detailFetched} neu geladen, ${detailFromCache} aus Cache, ${withAreaCount}/${listings.length} mit Flächenangabe (m²)`,
+  );
   for (const l of listings) {
     if (l.regionCode) stateCounts.set(l.regionCode, (stateCounts.get(l.regionCode) ?? 0) + 1);
   }
@@ -601,13 +825,35 @@ async function buildDeLive() {
 // ---------------------------------------------------------------------------
 // 2. Fetch Turkey Live (GİB, VakıfBank, ilan.gov.tr top cities + dataset.json)
 // ---------------------------------------------------------------------------
+const TR_PROVINCE_ALIASES = {
+  "ş.urfa": "Şanlıurfa",
+  "s.urfa": "Şanlıurfa",
+  "k.maraş": "Kahramanmaraş",
+  "k.maras": "Kahramanmaraş",
+  "g.antep": "Gaziantep",
+  "a.karahisar": "Afyonkarahisar",
+};
+
 function trTitle(value) {
   if (!value) return null;
-  return String(value)
+  const formatted = String(value)
     .toLocaleLowerCase("tr")
     .split(/(\s+|\/|-)/)
     .map((word) => word.charAt(0).toLocaleUpperCase("tr") + word.slice(1))
     .join("");
+  const key = formatted.toLocaleLowerCase("tr").replace(/\s+/g, "");
+  return TR_PROVINCE_ALIASES[key] ?? formatted;
+}
+
+function extractTrAppraisedValue(rawVal, text = "") {
+  const direct = num(rawVal);
+  if (direct !== null && direct >= 1000) return direct;
+  const kiymetMatch =
+    /(?:Muhammen\s+Bedeli?|K[ıi]ymeti)\s*:\s*([\d.,]+)\s*(?:TL|Türk\s*Liras[ıi])/i.exec(text) ??
+    /(?<!vergi\s+)(?:Muhammen\s+Bedeli?|K[ıi]ymeti|Değeri)\s*:\s*([\d.,]+)\s*(?:TL|Türk\s*Liras[ıi])/i.exec(text);
+  if (!kiymetMatch) return null;
+  const parsed = Number.parseFloat(kiymetMatch[1].replace(/\./g, "").replace(",", "."));
+  return Number.isFinite(parsed) && parsed >= 1000 ? round2(parsed) : null;
 }
 
 function trTime(value) {
@@ -644,7 +890,7 @@ async function fetchVakifbankLive(centers) {
         const loc = clean(/class="location"[\s\S]*?<span>([\s\S]*?)<\/span>/i.exec(b)?.[1]);
         const typeStr = clean(/class="type"[\s\S]*?<span>([\s\S]*?)<\/span>/i.exec(b)?.[1]);
         const endStr = clean(/(?:İ|&#x130;|&#304;)hale Biti(?:ş|&#x15F;|&#351;) Tarihi<\/span>\s*<span>([\d-]+\s+[\d:]+)<\/span>/i.exec(b)?.[1]);
-        const priceStr = /class="priceMask">([\d.]+)<\/span>/i.exec(b)?.[1];
+        const priceStr = /class="priceMask">([\d.,]+)<\/span>/i.exec(b)?.[1];
         if (!no || !href || !endStr) continue;
 
         const locParts = loc.split("/").map((p) => clean(p)).filter(Boolean);
@@ -652,7 +898,8 @@ async function fetchVakifbankLive(centers) {
         const county = trTitle(locParts[1] ?? null);
         const mahalle = trTitle(locParts[3] ?? locParts[2] ?? null);
         const regionCode = slug(city ?? "");
-        const price = priceStr ? Number.parseFloat(priceStr) : null;
+        const parsedPrice = priceStr ? Number.parseFloat(priceStr.replace(/\./g, "").replace(",", ".")) : null;
+        const price = Number.isFinite(parsedPrice) && parsedPrice >= 1000 ? parsedPrice : null;
         const endIso = trTime(endStr);
         if (!endIso) continue;
         const startIso = new Date(Date.now() - 86400000).toISOString();
@@ -660,6 +907,7 @@ async function fetchVakifbankLive(centers) {
         const isLand = /arsa|tarla|arazi/i.test(typeStr);
         const isComm = /iş\s*yeri|depo|dükkan|ofis|ticari/i.test(typeStr);
         const segment = isLand ? "land" : isComm ? "commercial" : "apartment";
+        const ext = extractTrEnrichedDetails({ title: `${title} ${typeStr}` });
 
         listings.push({
           key: `vakifbank-${no}`,
@@ -696,24 +944,44 @@ async function fetchVakifbankLive(centers) {
             },
           ],
           firstSeenAt: new Date().toISOString(),
+          livingAreaM2: ext.buildingAreaM2 ?? ext.netAreaM2 ?? null,
+          usableAreaM2: null,
+          landAreaM2: ext.landAreaM2,
+          areaM2: ext.areaM2,
+          areaKind: ext.areaKind,
+          rooms: ext.rooms,
+          yearBuilt: ext.yearBuilt,
+          grundbuch: mahalle ?? null,
+          proceedingKind: "Banka E-İhale Satışı",
+          description: title || null,
           tr: {
             adType: "BANKA",
             source: "gayrimenkul.intengo.com",
             mahalle,
             ada: null,
             parsel: null,
+            unitNo: ext.unitNo,
+            arsaPayi: ext.arsaPayi,
             isCondo: segment === "apartment",
-            landAreaM2: null,
-            buildingAreaM2: null,
+            landAreaM2: ext.landAreaM2,
+            buildingAreaM2: ext.buildingAreaM2,
+            netAreaM2: ext.netAreaM2,
             vatRate: null,
             startingBid: price,
-            areaM2: null,
-            areaKind: null,
+            areaM2: ext.areaM2,
+            areaKind: ext.areaKind,
+            rooms: ext.rooms,
+            floor: ext.floor,
+            yearBuilt: ext.yearBuilt,
             marketMedianPerM2: null,
             marketSampleSize: null,
             discountPct: null,
             confidence: null,
             hitCount: null,
+            nitelik: typeStr || null,
+            zoning: null,
+            ownershipShare: null,
+            excerpt: title || null,
           },
         });
       }
@@ -775,13 +1043,26 @@ async function buildTrLive() {
     const cutoff = new Date("2026-08-15T00:00:00Z");
 
     for (const l of data.listings) {
-      let rounds = (l.auction?.rounds ?? [])
+      // Prefer parcel-specific rounds on multi-parcel notices to avoid duplicate rounds across parcels
+      const rawRounds =
+        Array.isArray(l.parcel?.auction?.rounds) && l.parcel.auction.rounds.length > 0
+          ? l.parcel.auction.rounds
+          : (l.auction?.rounds ?? []);
+
+      const seenRoundKeys = new Set();
+      let rounds = rawRounds
         .map((r) => ({ round: r.round, start: trTime(r.start), end: trTime(r.end ?? r.start) }))
-        .filter((r) => r.start && r.end);
+        .filter((r) => {
+          if (!r.start || !r.end) return false;
+          const rk = `${r.round}|${r.start}|${r.end}`;
+          if (seenRoundKeys.has(rk)) return false;
+          seenRoundKeys.add(rk);
+          return true;
+        });
 
       // Fix: İHALE, GİB, and SGK often provide tenderAt or firstAuctionDateShort when rounds is empty
       if (rounds.length === 0) {
-        const singleIso = trTime(l.auction?.tenderAt ?? l.auction?.envelopeDeadline ?? null);
+        const singleIso = trTime(l.parcel?.auction?.tenderAt ?? l.auction?.tenderAt ?? l.auction?.envelopeDeadline ?? null);
         if (singleIso) {
           rounds = [{ round: 1, start: singleIso, end: singleIso }];
         }
@@ -792,9 +1073,30 @@ async function buildTrLive() {
 
       const parcel = l.parcel ?? {};
       const ev = l.evaluation ?? {};
+      const ext = extractTrEnrichedDetails(l);
       const regionName = trTitle(l.city ?? parcel.city ?? null);
-      const regionCode = slug(l.city ?? parcel.city ?? "") || null;
-      const appraised = num(ev.appraisedValue ?? parcel.appraisedValue);
+      const regionCode = slug(regionName ?? "") || null;
+      const combinedText = [l.rawText, l.summary, l.notes, parcel.excerpt, ext.excerpt].filter(Boolean).join("\n");
+      const appraised = extractTrAppraisedValue(ev.appraisedValue ?? parcel.appraisedValue, combinedText);
+      const rawStartingBid = num(ev.startingBid);
+      const startingBid =
+        rawStartingBid !== null && rawStartingBid >= 500
+          ? rawStartingBid
+          : appraised
+            ? round2(appraised * 0.5)
+            : null;
+      const mahalleFormatted = trTitle(parcel.mahalle ?? null);
+      const adaStr = parcel.ada ? String(parcel.ada) : null;
+      const parselStr = parcel.parsel ? String(parcel.parsel) : null;
+      const tapuSummary =
+        [
+          mahalleFormatted,
+          adaStr ? `Ada ${adaStr}` : null,
+          parselStr ? `Parsel ${parselStr}` : null,
+          ext.unitNo ? `BB ${ext.unitNo}` : null,
+        ]
+          .filter(Boolean)
+          .join(" · ") || null;
 
       seenKeys.add(l.key);
       listings.push({
@@ -826,27 +1128,51 @@ async function buildTrLive() {
         geoportalName: "TKGM Parsel Sorgu",
         caveats: (l.caveats ?? []).map((c) => ({ points: c.points ?? 0, short: c.short, long: c.long })),
         firstSeenAt: l.firstSeenAt ?? data.meta?.generatedAt ?? new Date().toISOString(),
+        livingAreaM2: ext.buildingAreaM2 ?? ext.netAreaM2 ?? null,
+        usableAreaM2: null,
+        landAreaM2: ext.landAreaM2,
+        areaM2: ext.areaM2,
+        areaKind: ext.areaKind,
+        rooms: ext.rooms,
+        yearBuilt: ext.yearBuilt,
+        grundbuch: tapuSummary,
+        proceedingKind:
+          l.adType === "İHALE"
+            ? "2886 Sayılı DİK Kamu İhalesi"
+            : l.source?.includes("gib")
+              ? "6183 Sayılı AATUHK Vergi Dairesi Satışı"
+              : l.source?.includes("sgk")
+                ? "SGK Gayrimenkul Satış İlanı"
+                : "2004 Sayılı İİK Cebri İcra Satışı",
+        description: ext.excerpt ?? l.title ?? null,
         tr: {
           adType: l.adType ?? "İCRA",
           source: l.source ?? "ilan.gov.tr",
-          mahalle: trTitle(parcel.mahalle ?? null),
-          ada: parcel.ada ? String(parcel.ada) : null,
-          parsel: parcel.parsel ? String(parcel.parsel) : null,
+          mahalle: mahalleFormatted,
+          ada: adaStr,
+          parsel: parselStr,
+          unitNo: ext.unitNo,
+          arsaPayi: ext.arsaPayi,
           isCondo: Boolean(parcel.isCondo),
-          landAreaM2: round2(num(parcel.landAreaM2)),
-          buildingAreaM2: round2(num(parcel.buildingAreaM2)),
+          landAreaM2: ext.landAreaM2,
+          buildingAreaM2: ext.buildingAreaM2,
+          netAreaM2: ext.netAreaM2,
           vatRate: num(parcel.vatRate),
-          startingBid: num(ev.startingBid) ?? (appraised ? round2(appraised * 0.5) : null),
-          areaM2: round2(num(ev.areaM2 ?? parcel.landAreaM2)),
-          areaKind: ev.areaKind ?? null,
+          startingBid,
+          areaM2: ext.areaM2,
+          areaKind: ext.areaKind,
+          rooms: ext.rooms,
+          floor: ext.floor,
+          yearBuilt: ext.yearBuilt,
           marketMedianPerM2: round2(num(ev.marketMedianPerM2)),
           marketSampleSize: num(ev.marketSampleSize),
           discountPct: round2(num(ev.discountPct)),
           confidence: ev.confidence ?? null,
           hitCount: num(l.hitCount),
           nitelik: parcel.nitelik ?? null,
-          zoning: parcel.zoning ?? null,
+          zoning: ext.zoning,
           ownershipShare: parcel.ownershipShare ?? null,
+          excerpt: ext.excerpt,
         },
       });
     }
@@ -881,6 +1207,7 @@ async function buildTrLive() {
     const regionCode = slug(regionName ?? "");
     const urlStr = ad.urlStr ?? "";
     const seg = urlStr.includes("arsa") ? "land" : urlStr.includes("tarla") || urlStr.includes("zeytin") ? "farmland" : urlStr.includes("isyeri") || urlStr.includes("ticari") ? "commercial" : "apartment";
+    const ext = extractTrEnrichedDetails({ title: ad.title ?? "" });
 
     seenKeys.add(key);
     listings.push({
@@ -912,24 +1239,44 @@ async function buildTrLive() {
       geoportalName: "TKGM Parsel Sorgu",
       caveats: [],
       firstSeenAt: new Date().toISOString(),
+      livingAreaM2: ext.buildingAreaM2 ?? ext.netAreaM2 ?? null,
+      usableAreaM2: null,
+      landAreaM2: ext.landAreaM2,
+      areaM2: ext.areaM2,
+      areaKind: ext.areaKind,
+      rooms: ext.rooms,
+      yearBuilt: ext.yearBuilt,
+      grundbuch: null,
+      proceedingKind: adType === "İHALE" ? "2886 Sayılı DİK Kamu İhalesi" : "2004 Sayılı İİK Cebri İcra Satışı",
+      description: ad.title ?? null,
       tr: {
         adType,
         source: "ilan.gov.tr",
         mahalle: null,
         ada: null,
         parsel: null,
+        unitNo: ext.unitNo,
+        arsaPayi: ext.arsaPayi,
         isCondo: seg === "apartment",
-        landAreaM2: null,
-        buildingAreaM2: null,
+        landAreaM2: ext.landAreaM2,
+        buildingAreaM2: ext.buildingAreaM2,
+        netAreaM2: ext.netAreaM2,
         vatRate: null,
         startingBid: bedel ? round2(bedel * 0.5) : null,
-        areaM2: null,
-        areaKind: null,
+        areaM2: ext.areaM2,
+        areaKind: ext.areaKind,
+        rooms: ext.rooms,
+        floor: ext.floor,
+        yearBuilt: ext.yearBuilt,
         marketMedianPerM2: null,
         marketSampleSize: null,
         discountPct: null,
         confidence: null,
         hitCount: null,
+        nitelik: null,
+        zoning: null,
+        ownershipShare: null,
+        excerpt: ad.title ?? null,
       },
     });
   }

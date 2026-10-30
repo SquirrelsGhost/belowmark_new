@@ -11,14 +11,14 @@ export const TEAM_DE: ITeamTranslation = {
     },
     Team: {
       title: "Team-Liste — Belowmark",
-      description: "Die gemeinsame Liste eines Teams: welche Verfahren geprüft, besichtigt, beboten oder verworfen sind, mit den Notizen aller Mitglieder.",
+      description: "Die gemeinsame Arbeitsliste eines Teams: welche Verfahren geprüft, besichtigt, beboten oder verworfen sind, inklusive den Notizen aller Mitglieder.",
       imgUrl: "https://belowmark.com/og/home.png",
       tags: ["Team", "Merkliste", "Zwangsversteigerung"],
       url: "https://belowmark.com/app/team",
     },
     Invitation: {
       title: "Einladung in ein Team — Belowmark",
-      description: "Sie wurden in ein Belowmark-Team eingeladen. Hier sehen Sie, wer Sie eingeladen hat, und nehmen die Einladung an oder lehnen sie ab.",
+      description: "Sie wurden in ein Belowmark-Team eingeladen: Hier sehen Sie auf einen Blick, wer Sie eingeladen hat, und nehmen die Einladung direkt an oder lehnen sie ab.",
       imgUrl: "https://belowmark.com/og/home.png",
       tags: ["Einladung", "Team", "Belowmark"],
       url: "https://belowmark.com/einladung",

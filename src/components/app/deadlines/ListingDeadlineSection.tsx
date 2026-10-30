@@ -22,11 +22,10 @@ interface ListingDeadlineSectionProps {
   /** Free plan: reminders and the computed deadlines are part of the paid plan */
   isLocked: boolean;
   now: number;
-  lockedCta: string;
 }
 
 /** "Fristen & Fahrplan" on the Aktenblatt — loads the follow state and the timeline itself. */
-export default async function ListingDeadlineSection({ listing, userId, locale, isLocked, now, lockedCta }: ListingDeadlineSectionProps) {
+export default async function ListingDeadlineSection({ listing, userId, locale, isLocked, now }: ListingDeadlineSectionProps) {
   const labels = getDeadlineTranslation(locale);
   const { Section: S, Follow: F, Checklist: C } = labels;
   const market = listing.market;

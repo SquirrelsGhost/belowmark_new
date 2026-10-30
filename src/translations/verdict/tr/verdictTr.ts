@@ -47,7 +47,7 @@ export const VERDICT_TR: IVerdictTranslation = {
     askCostBasis: "Tadilat ve tahliye masraflarınızın neye dayandığını belirtin.",
     costsIncomplete: "Yasal bir masraf kalemi ilandan hesaplanamıyor (ör. KDV oranı yok) — toplam masraf eksik.",
     contamination: "Rapora göre kirlilik var. Temizliğin maliyetini ancak bir uzman raporu gösterir. Masraflarınız bir teklife dayanana kadar teklif vermeyin.",
-    rightPriced: "Kaynağa göre {risk} var — incelendi ve rakamlarınıza dahil edildi.",
+    rightPriced: "Kaynağa göre {risk} var — incelendi ve {amount} ile teklif limitine dahil edildi.",
     notInside: "Taşınmazın içini görmediniz. Tadilat tutarınız bu yüzden doğrulanmamış — aşağıdaki stres testi ek masrafın limiti nasıl etkilediğini gösterir.",
     reportOutsideOnly: "Bilirkişi de taşınmazın içine (tamamen) girememiş.",
     estimateOnly: "Tadilat masraflarınız kendi tahmininiz, bir teklif değil.",
@@ -83,6 +83,10 @@ export const VERDICT_TR: IVerdictTranslation = {
       DE: "Devam eden hakları mahkemeye sorup sormadığınızı belirtin.",
       TR: "Tapu kaydını ve satış şartnamesini takyidat açısından inceleyip incelemediğinizi belirtin.",
     },
+    tenant: {
+      DE: "Taşınmaz (muhtemelen) kirada. Kira sözleşmeleri ihale alıcısına geçer — hayal ettiğiniz kirayla değil, mevcut kirayla hesaplayın.",
+      TR: "Taşınmaz (muhtemelen) kullanımda veya kirada. Tahliye zaman ve ayrı bir süreç gerektirebilir — bunu hesaba katın.",
+    },
   },
   Actions: {
     limit: "Teklif limitine girin",
@@ -108,7 +112,11 @@ export const VERDICT_TR: IVerdictTranslation = {
         Hint: "İcra satışlarında içeriyi görmek çoğu zaman mümkün değildir.",
         Options: { inside: "Evet, içini", outside: "Yalnızca dışarıdan", none: "Hiç" },
       },
-      rights: { Label: "", Hint: "", Options: { confirmed: "Evet, incelendi", open: "Henüz değil" } },
+      rights: {
+        Label: "Tapu kaydı ve satış şartnamesi takyidat açısından incelendi mi?",
+        Hint: "Şerhler, intifa ve sükna hakkı tapu kaydında ve e-Satış'taki satış şartnamesinde yer alır.",
+        Options: { confirmed: "Evet, incelendi", open: "Henüz değil" },
+      },
       occupancy: {
         Label: "Taşınmazı kim kullanıyor?",
         Hint: "Rapordan, komşulardan veya alacaklıdan — bilindiği kadarıyla.",

@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { BLOG_COPY } from "@/lib/blog/blogCopy";
 import { blogArticleCoverPath } from "@/lib/blog/blogSeo";
@@ -22,7 +23,7 @@ export default function BlogClusterCard({ cluster, lang, index }: BlogClusterCar
       <div>
         <div className="flex items-center justify-between border-b border-ink bg-paper-deep px-4 py-2 font-mono text-[11px] uppercase tracking-wider text-ink">
           <span className="font-semibold text-signal">
-            AKTE #{dossierNo} · {cluster.category}
+            {copy.dossierPrefix} #{dossierNo} · {cluster.category}
           </span>
           <span>
             {cluster.dayKey} · {entry.readingTimeMin} {copy.min}
@@ -30,12 +31,13 @@ export default function BlogClusterCard({ cluster, lang, index }: BlogClusterCar
         </div>
 
         <Link href={entry.url} className="block overflow-hidden border-b-2 border-ink bg-ink">
-          <img
+          <Image
             src={coverSrc}
             alt={`${entry.title}${entry.focusKeyword ? ` – ${entry.focusKeyword}` : ""}`}
             width={1200}
             height={630}
             loading="lazy"
+            unoptimized
             className="h-auto w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
           />
         </Link>

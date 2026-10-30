@@ -6,8 +6,12 @@ import { useEffect, useRef } from "react";
 /** Text fields wait this long after the last keystroke before searching. */
 const TYPING_DELAY_MS = 450;
 
+interface FilterAutoSubmitProps {
+  className?: string;
+}
+
 /** Invisible helper: submits the parent form whenever a filter changes. */
-export default function FilterAutoSubmit() {
+export default function FilterAutoSubmit({ className }: FilterAutoSubmitProps = {}) {
   const anchor = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
@@ -37,5 +41,5 @@ export default function FilterAutoSubmit() {
     };
   }, []);
 
-  return <span ref={anchor} hidden />;
+  return <span ref={anchor} className={className} hidden />;
 }

@@ -1,10 +1,12 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { RATE_LIMITS } from "@/lib/auth/authConfig";
 import { checkAccent, normalizeUrl, sniffLogo } from "@/lib/clientShare/brandRules";
 import { CLIENT_SHARE, CLIENT_SHARE_ROUTES } from "@/lib/clientShare/clientShareConfig";
 import { getProUser } from "@/lib/clientShare/proAccess";
 import { BrokerBrandService } from "@/services/BrokerBrandService";
+import { RateLimitService } from "@/services/RateLimitService";
 import { ClientShareErrorCode } from "@/types/clientShare.types";
 
 /** Result of a letterhead action; the UI translates the code. */
@@ -39,6 +41,8 @@ export async function saveBrandAction(_: BrandActionState, formData: FormData): 
   if (website === false || imprintUrl === false) return { ok: false, error: "urlInvalid" };
 
   try {
+    const rl = await RateLimitService.hit(`brand:user:${user.id}`, RATE_LIMITS.profileUpdate);
+    if (!rl.allowed) return { ok: false, error: "failed" };
     await BrokerBrandService.save(user.id, {
       displayName,
       contactLine: field(formData, "contactLine", CLIENT_SHARE.contactMax) || null,
@@ -63,6 +67,8 @@ export async function uploadLogoAction(_: BrandActionState, formData: FormData):
   if (file.size > CLIENT_SHARE.logoMaxBytes) return { ok: false, error: "logoSize" };
 
   try {
+    const rl = await RateLimitService.hit(`brand:user:${user.id}`, RATE_LIMITS.profileUpdate);
+    if (!rl.allowed) return { ok: false, error: "failed" };
     const bytes = new Uint8Array(await file.arrayBuffer());
     const mime = sniffLogo(bytes);
     if (!mime) return { ok: false, error: "logoType" };
@@ -80,6 +86,8 @@ export async function removeLogoAction(): Promise<BrandActionState> {
   const user = await getProUser();
   if (!user) return { ok: false, error: "failed" };
   try {
+    const rl = await RateLimitService.hit(`brand:user:${user.id}`, RATE_LIMITS.profileUpdate);
+    if (!rl.allowed) return { ok: false, error: "failed" };
     await BrokerBrandService.removeLogo(user.id);
   } catch (error) {
     console.error("[removeLogoAction]", error);

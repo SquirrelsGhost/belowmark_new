@@ -35,6 +35,7 @@ export interface TrListingDetails {
   isCondo: boolean;
   landAreaM2: number | null;
   buildingAreaM2: number | null;
+  netAreaM2?: number | null;
   /** KDV rate from the notice, in percent */
   vatRate: number | null;
   startingBid: number | null;
@@ -49,6 +50,11 @@ export interface TrListingDetails {
   zoning?: string | null;
   ownershipShare?: string | null;
   excerpt?: string | null;
+  rooms?: string | null;
+  floor?: string | null;
+  yearBuilt?: number | null;
+  unitNo?: string | null;
+  arsaPayi?: string | null;
 }
 
 export interface OfficialAttachment {
@@ -71,7 +77,16 @@ export interface OfficialPortalDetails {
   courtUrl: string | null;
   geoServerUrl: string | null;
   livingAreaM2: number | null;
+  usableAreaM2?: number | null;
   landAreaM2: number | null;
+  netAreaM2?: number | null;
+  rooms?: string | null;
+  yearBuilt?: number | null;
+  floor?: string | null;
+  unitNo?: string | null;
+  arsaPayi?: string | null;
+  zoning?: string | null;
+  ownershipShare?: string | null;
   attachments: OfficialAttachment[];
   galleryUrls: string[];
   tkgmParcelUrl: string | null;
@@ -105,6 +120,30 @@ export interface Listing {
   limitsWaived: boolean;
   appraisedValue: number | null;
   transferTaxPct: number | null;
+  /** Primary living/floor area in m² (Wohnfläche / Brüt alan) */
+  livingAreaM2?: number | null;
+  /** Usable/commercial area in m² (Nutz-/Gewerbefläche) */
+  usableAreaM2?: number | null;
+  /** Plot/parcel area in m² (Grundstücksgröße / Yüzölçümü) */
+  landAreaM2?: number | null;
+  /** Best single area in m² for €/m² calculations */
+  areaM2?: number | null;
+  /** Kind of areaM2 ("Wohnfläche" | "Wohn-/Nutzfläche" | "Nutzfläche" | "Grundstücksfläche") */
+  areaKind?: string | null;
+  /** Room count from the notice ("3 Zimmer", "3+1", etc.) */
+  rooms?: string | null;
+  /** Construction year from the notice */
+  yearBuilt?: number | null;
+  /** Land register reference (Grundbuchblatt / Flurstück or Ada / Parsel) */
+  grundbuch?: string | null;
+  /** Proceeding type (Zwangsversteigerung, Teilungsversteigerung, İCRA, İHALE, etc.) */
+  proceedingKind?: string | null;
+  /** Official property description from the notice */
+  description?: string | null;
+  /** Courtroom / auction venue */
+  hearingPlace?: string | null;
+  /** Creditor / representative stated in the notice */
+  creditor?: string | null;
   officialUrl: string;
   imageUrl?: string | null;
   zvgComId?: string | null;
@@ -112,8 +151,10 @@ export interface Listing {
   /** Official announcement PDF on the portal (DE) */
   documentUrl: string | null;
   exposeUrl?: string | null;
+  reportUrl?: string | null;
   biddingNotesUrl?: string | null;
   courtUrl?: string | null;
+  geoServerUrl?: string | null;
   geo: ListingGeo | null;
   /** Changes the portal made since the proceeding was first seen, as the notice words them */
   history: string[];

@@ -176,6 +176,15 @@ export interface IAppTranslation {
       Mahalle: string;
       LandArea: string;
       BuildingArea: string;
+      NetArea: string;
+      UsableArea: string;
+      PricePerM2: string;
+      Rooms: string;
+      Floor: string;
+      YearBuilt: string;
+      Grundbuch: string;
+      ArsaPayi: string;
+      UnitNoPrefix: string;
       Condo: string;
       StartingBid: string;
       StartingBidNote: string;

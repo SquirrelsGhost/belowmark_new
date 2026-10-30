@@ -25,7 +25,7 @@ export default function BankFileRisks({ check, labels, lead, sourceLabels }: Ban
   return (
     <div className="flex flex-col gap-2">
       <p className="text-[12px] leading-snug text-ink-soft">{lead}</p>
-      <ul className="grid grid-cols-2 gap-x-8">
+      <ul className="grid grid-cols-1 gap-x-8 sm:grid-cols-2 print:grid-cols-2">
         {check.items.map((item) => (
           <li key={item.key} className="flex items-center justify-between gap-3 border-b border-rule py-1.5 text-[13px]">
             <span>

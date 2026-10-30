@@ -16,7 +16,6 @@ export const IMPRINT_DE: LegalDocument = {
         { label: "Anschrift", value: `${LEGAL_OPERATOR.street}, ${LEGAL_OPERATOR.city}, ${LEGAL_OPERATOR.country}` },
         { label: "E-Mail", value: LEGAL_OPERATOR.email },
         { label: "Telefon", value: LEGAL_OPERATOR.phone },
-        ...(LEGAL_OPERATOR.vatId ? [{ label: "USt-IdNr. (§ 27a UStG)", value: LEGAL_OPERATOR.vatId }] : []),
         { label: "Inhaltlich verantwortlich (§ 18 Abs. 2 MStV)", value: `${LEGAL_OPERATOR.owner}, Anschrift wie oben` },
       ],
     },

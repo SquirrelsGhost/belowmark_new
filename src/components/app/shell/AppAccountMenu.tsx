@@ -1,7 +1,7 @@
-"use client";
-
 // Client component: a <details> menu only needs JavaScript to close itself on
 // outside click, Escape and navigation — without JS it still opens and works.
+"use client";
+
 import { ReactNode, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 

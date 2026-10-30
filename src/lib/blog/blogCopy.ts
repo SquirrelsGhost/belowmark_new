@@ -3,6 +3,9 @@ import { BlogLang } from "@/types/blog.types";
 export interface BlogUiCopy {
   dateline: string;
   badgeSuffix: string;
+  dossierPrefix: string;
+  dossiersCountLabel: string;
+  langNavLabel: string;
   defaultH1Top: string;
   defaultH1Below: string;
   sub: string;
@@ -31,6 +34,9 @@ export const BLOG_COPY: Record<BlogLang, BlogUiCopy> = {
   de: {
     dateline: "Amtliches Fachverzeichnis · ZVG & UYAP Analysen",
     badgeSuffix: "FACHVERZEICHNIS & RATGEBER",
+    dossierPrefix: "AKTE",
+    dossiersCountLabel: "Dossiers · 5 Sprachen",
+    langNavLabel: "Sprachauswahl",
     defaultH1Top: "Zwangsversteigerungen & Ausschreibungen.",
     defaultH1Below: "Praxisleitfäden unter Marktwert.",
     sub: "Quellenbasierte Analysen zu §§ 68, 74a, 85a ZVG, Verkehrswertgutachten, Sicherheitsleistung und UYAP E-İhale in 5 Sprachen (DE · TR · EN · AR · RU).",
@@ -49,6 +55,9 @@ export const BLOG_COPY: Record<BlogLang, BlogUiCopy> = {
   tr: {
     dateline: "Resmî Rehber · ZVG & UYAP İhale Analizleri",
     badgeSuffix: "İHALE REHBERİ & ANALİZ",
+    dossierPrefix: "DOSYA",
+    dossiersCountLabel: "Rehber · 5 Dil",
+    langNavLabel: "Dil seçimi",
     defaultH1Top: "İcra ve İhalelerde Gayrimenkul.",
     defaultH1Below: "Piyasa Altı Uygulama Rehberleri.",
     sub: "Almanya (ZVG §§ 68, 74a, 85a) ve Türkiye (UYAP E-İhale) gayrimenkul ihaleleri, teminat ve bilirkişi raporu analizleri (DE · TR · EN · AR · RU).",
@@ -67,6 +76,9 @@ export const BLOG_COPY: Record<BlogLang, BlogUiCopy> = {
   en: {
     dateline: "Official Dossier Index · Foreclosure & Auction Guides",
     badgeSuffix: "FORECLOSURE & AUCTION GUIDES",
+    dossierPrefix: "DOSSIER",
+    dossiersCountLabel: "Dossiers · 5 Languages",
+    langNavLabel: "Language selection",
     defaultH1Top: "Court Foreclosures & Public Auctions.",
     defaultH1Below: "Below-Market Investment Guides.",
     sub: "Evidence-based guides on German court auctions (ZVG §§ 68, 74a, 85a), appraisal reports, security deposits, and Turkish UYAP e-auctions across 5 languages.",
@@ -85,6 +97,9 @@ export const BLOG_COPY: Record<BlogLang, BlogUiCopy> = {
   ar: {
     dateline: "الدليل الرسمي · تحليلات المزادات العقارية القضائية",
     badgeSuffix: "أدلة المزادات العقارية",
+    dossierPrefix: "ملف",
+    dossiersCountLabel: "أدلة · 5 لغات",
+    langNavLabel: "اختيار اللغة",
     defaultH1Top: "المزادات العقارية والبيوع القضائية.",
     defaultH1Below: "أدلة الشراء بأقل من القيمة السوقية.",
     sub: "أدلة عملية موثقة حول مزادات المحاكم الألمانية (ZVG) ونظام المزادات الإلكترونية التركي (UYAP) وتقييم العقارات بخمس لغات.",
@@ -103,6 +118,9 @@ export const BLOG_COPY: Record<BlogLang, BlogUiCopy> = {
   ru: {
     dateline: "Официальный справочник · Аналитика судебных торгов ZVG и UYAP",
     badgeSuffix: "СПРАВОЧНИК И РУКОВОДСТВА",
+    dossierPrefix: "ДОСЬЕ",
+    dossiersCountLabel: "Досье · 5 языков",
+    langNavLabel: "Выбор языка",
     defaultH1Top: "Судебные аукционы по недвижимости.",
     defaultH1Below: "Покупка объектов ниже рынка.",
     sub: "Практические руководства по судебным торгам Германии (ZVG §§ 68, 74a, 85a), оценке стоимости, залогу и торгам UYAP в Турции на 5 языках.",

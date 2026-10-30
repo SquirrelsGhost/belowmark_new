@@ -14,7 +14,8 @@ interface ExposeTextFieldProps {
   wide?: boolean;
 }
 
-const AREA_CLASSES = "w-full border border-rule-strong bg-paper-bright px-3 py-2 text-[13px] leading-relaxed text-ink outline-none transition-shadow focus:shadow-[3px_3px_0_0_var(--signal)]";
+const INPUT_CLASSES =
+  "w-full border border-rule-strong bg-paper-bright px-3 py-2 text-[13px] leading-relaxed text-ink outline-none transition-shadow focus:shadow-[3px_3px_0_0_var(--signal)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-signal";
 
 /** One text input of the exposé form; long texts show how much room is left. */
 export default function ExposeTextField({ id, label, hint, value, maxLength, onChange, rows, type = "text", autoComplete, wide = false }: ExposeTextFieldProps) {
@@ -25,7 +26,7 @@ export default function ExposeTextField({ id, label, hint, value, maxLength, onC
         {rows && <span className="font-mono text-[10px] text-muted">{`${value.length} / ${maxLength}`}</span>}
       </span>
       {rows ? (
-        <textarea id={id} rows={rows} maxLength={maxLength} value={value} onChange={(event) => onChange(event.target.value)} className={AREA_CLASSES} />
+        <textarea id={id} rows={rows} maxLength={maxLength} value={value} onChange={(event) => onChange(event.target.value)} className={INPUT_CLASSES} />
       ) : (
         <input id={id} type={type} maxLength={maxLength} autoComplete={autoComplete} value={value} onChange={(event) => onChange(event.target.value)} className={CONTROL_CLASSES} />
       )}

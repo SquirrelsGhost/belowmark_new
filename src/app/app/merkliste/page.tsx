@@ -1,7 +1,6 @@
 import { Metadata } from "next";
 import AppMain from "@/components/app/shell/AppMain";
 import RegionLocator from "@/components/app/map/RegionLocator";
-import RegionLocatorSprite from "@/components/app/map/RegionLocatorSprite";
 import SearchViewSwitch from "@/components/app/search/SearchViewSwitch";
 import AppPageHeader from "@/components/app/shell/AppPageHeader";
 import WatchCompareRow from "@/components/app/watchlist/WatchCompareRow";
@@ -11,6 +10,7 @@ import WatchlistExport from "@/components/app/watchlist/WatchlistExport";
 import WatchlistItem from "@/components/app/watchlist/WatchlistItem";
 import WatchlistMissing from "@/components/app/watchlist/WatchlistMissing";
 import WatchlistSection from "@/components/app/watchlist/WatchlistSection";
+import PageNote from "@/components/ui/PageNote";
 import { APP_MAIN_ID, APP_ROUTES, listingHref, SEARCH, SEARCH_PARAMS, WATCHLIST_COMPARE_VIEW } from "@/lib/appConstants";
 import { fill, getDateParts } from "@/lib/appFormat";
 import { appMetadata, getAppPageContext } from "@/lib/appPage";
@@ -52,7 +52,7 @@ export default async function WatchlistPage({ searchParams }: PageProps<"/app/me
   const upcoming = rows.filter((row) => row.status.state === "upcoming" || row.status.state === "running");
   const over = rows.filter((row) => !upcoming.includes(row)).reverse();
   const compared = upcoming.map((row) => row.listing);
-  const geo = await GeoService.getMarket(viewer.market);
+  const [geo, sprite] = await Promise.all([GeoService.getMarket(viewer.market), GeoService.getLocatorSprite(viewer.market)]);
   const { Compare: C } = app;
 
   const item = ({ listing, status, date }: (typeof rows)[number]) => {
@@ -107,10 +107,9 @@ export default async function WatchlistPage({ searchParams }: PageProps<"/app/me
         />
       )}
       {entries.length === 0 && <WatchlistEmpty title={W.Empty.Title} body={W.Empty.Body} cta={W.Empty.Cta} />}
-      {isCompare && compared.length < 2 && entries.length > 0 && <p className="mt-8 text-sm text-ink-soft">{C.NeedTwo}</p>}
+      {isCompare && compared.length < 2 && entries.length > 0 && <PageNote variant="softTop" text={C.NeedTwo} />}
       {isCompare && compared.length >= 2 && (
         <>
-          <RegionLocatorSprite regions={geo.regions} />
           <WatchCompareTable
             title={C.Title}
             columns={compared.map((listing) => ({
@@ -119,6 +118,7 @@ export default async function WatchlistPage({ searchParams }: PageProps<"/app/me
               title: getPlaceTitle(listing),
               locator: (
                 <RegionLocator
+                  sprite={sprite.href}
                   width={geo.projection.width}
                   height={geo.projection.height}
                   regionCode={listing.regionCode}

@@ -20,7 +20,7 @@ export const DE: ITranslation = {
     MetaTags: {
       title: "Belowmark — Zwangsversteigerungen unter Marktwert, mit Quelle",
       description:
-        "Alle ZVG-Termine der Amtsgerichte an einem Ort: Verkehrswert, 5/10- und 7/10-Grenze, Sicherheitsleistung und Grunderwerbsteuer je Verfahren. Belegt, nicht geschätzt.",
+        "Alle ZVG-Termine der Amtsgerichte an einem Ort: Verkehrswert, 5/10- und 7/10-Grenze, Sicherheitsleistung und Steuer je Verfahren. Belegt statt geschätzt.",
       imgUrl: "https://belowmark.com/og/home.png",
       tags: ["Zwangsversteigerung", "ZVG", "Immobilien unter Marktwert", "Amtsgericht", "Verkehrswert", "5/10-Grenze"],
       url: "https://belowmark.com",

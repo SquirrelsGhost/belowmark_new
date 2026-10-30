@@ -1,7 +1,7 @@
 // Computes browser Micro-PoW (`loeseLoginPoW`) and hardware fingerprint (`HW-...`)
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getHardwareFingerprint } from "@/lib/auth/hardwareFingerprint";
 import { loeseLoginPoW } from "@/lib/auth/loginPowClient";
 
@@ -18,20 +18,44 @@ interface AuthBotShieldProps {
  */
 export default function AuthBotShield({ refreshKey }: AuthBotShieldProps) {
   const [pow, setPow] = useState<{ powTs: number; powNonce: number; hw: string } | null>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let active = true;
-    loeseLoginPoW().then((res) => {
-      if (active) setPow({ ...res, hw: getHardwareFingerprint() });
-    });
+    let submitTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const refreshChallenge = () => {
+      void loeseLoginPoW().then((res) => {
+        if (active) setPow({ ...res, hw: getHardwareFingerprint() });
+      });
+    };
+
+    refreshChallenge();
+
+    const form = wrapperRef.current?.closest("form");
+    const handleSubmit = () => {
+      if (submitTimer) clearTimeout(submitTimer);
+      submitTimer = setTimeout(() => {
+        if (active) refreshChallenge();
+      }, 50);
+    };
+
+    form?.addEventListener("submit", handleSubmit);
+
     return () => {
       active = false;
+      if (submitTimer) clearTimeout(submitTimer);
+      form?.removeEventListener("submit", handleSubmit);
     };
   }, [refreshKey]);
 
   return (
     <>
-      <div aria-hidden="true" className="pointer-events-none absolute -left-[9999px] h-0 w-0 overflow-hidden opacity-0">
+      <div
+        ref={wrapperRef}
+        aria-hidden="true"
+        className="pointer-events-none absolute -left-[9999px] h-0 w-0 overflow-hidden opacity-0"
+      >
         <label htmlFor="auth-hp-field">Website</label>
         <input id="auth-hp-field" type="text" name="honeypot" tabIndex={-1} autoComplete="off" defaultValue="" />
       </div>

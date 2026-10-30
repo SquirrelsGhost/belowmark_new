@@ -72,6 +72,22 @@ export const OFFERS: Record<BillingOfferId, BillingOffer> = {
 
 export const DEFAULT_OFFER: BillingOfferId = "investor-monat";
 
+/**
+ * Upgrade path Investor → Pro, keeping the cadence: a monthly subscription
+ * becomes the Pro subscription, a three-month term becomes a Pro term with
+ * the same end date. The rule for the price is in upgradeMath.ts.
+ */
+export const UPGRADES: Partial<Record<BillingOfferId, BillingOfferId>> = {
+  "investor-monat": "pro-monat",
+  "investor-quartal": "pro-quartal",
+};
+
+/**
+ * Below this an upgrade is not charged (Stripe refuses charges under about
+ * 0,50 € after conversion; for TRY a round amount safely above that).
+ */
+export const MIN_UPGRADE_CHARGE: Record<OfferPrice["currency"], number> = { eur: 50, try: 5_000 };
+
 export const isOfferId = (value: unknown): value is BillingOfferId =>
   typeof value === "string" && (BILLING_OFFERS as readonly string[]).includes(value);
 
@@ -83,6 +99,9 @@ export const TERMS_VERSION = "2026-10-26";
 
 /** Query parameter of /buchen that preselects an offer. */
 export const OFFER_PARAM = "tarif";
+
+/** Query parameter of /buchen that preselects a market (DE or TR). */
+export const MARKET_PARAM = "markt";
 
 /** How VAT is shown: German VAT included, or the small-business note (§ 19 UStG). */
 export type VatMode = "inclusive" | "kleinunternehmer";
@@ -98,10 +117,10 @@ export type BillingBlocker = "not_configured" | "legal_not_approved" | "market_c
 
 export const BILLING_ROUTES = {
   order: "/buchen",
+  upgrade: "/buchen/upgrade",
   testCheckout: "/bezahlen/test",
   confirm: "/api/billing/bestaetigen",
   webhook: "/api/billing/webhook",
-  portal: "/api/billing/portal",
   export: "/konto/export",
   cancel: "/kuendigen",
   withdraw: "/widerruf/erklaeren",

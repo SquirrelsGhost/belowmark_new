@@ -175,6 +175,36 @@ details > summary::-webkit-details-marker {
   display: none;
 }
 
+/* ── Search map dots ──────────────────────────────────────────
+ * The map view draws one dot per postcode, thousands per page. The
+ * look sits here once instead of in attributes on every dot.
+ */
+.map-dot {
+  outline: none;
+}
+
+.map-dot > circle {
+  fill: var(--ink);
+  fill-opacity: 0.72;
+  stroke: var(--paper-bright);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+  transition: fill-opacity 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.map-dot.is-imminent > circle {
+  fill: var(--signal);
+  fill-opacity: 0.92;
+}
+
+.map-dot:hover > circle {
+  fill-opacity: 1;
+}
+
+.map-dot:focus-visible > circle {
+  stroke: var(--signal);
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
@@ -191,5 +221,17 @@ details > summary::-webkit-details-marker {
   *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
+  }
+}
+
+@media print {
+  [data-reveal] {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+
+  .bg-fibre {
+    display: none !important;
   }
 }

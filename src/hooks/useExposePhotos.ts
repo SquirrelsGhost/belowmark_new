@@ -25,7 +25,12 @@ export function useExposePhotos(listingId: string): ExposePhotosState {
     const load = () =>
       readPhotos(listingId)
         .then((stored) => !isCancelled && setPhotos(stored))
-        .catch(() => !isCancelled && setPhotos([]));
+        .catch(() => {
+          if (!isCancelled) {
+            setPhotos([]);
+            setError(true);
+          }
+        });
     load();
     window.addEventListener(PHOTOS_CHANGED, load);
     return () => {
@@ -40,29 +45,74 @@ export function useExposePhotos(listingId: string): ExposePhotosState {
     async (files: FileList) => {
       setBusy(true);
       setError(false);
-      const confirmedAt = new Date().toISOString();
-      const room = PHOTO_LIMIT - photos.length;
-      const added: ExposePhoto[] = [];
-      for (const file of Array.from(files).slice(0, Math.max(0, room))) {
-        if (!isPhotoType(file.type)) {
-          setError(true);
-          continue;
+      try {
+        const confirmedAt = new Date().toISOString();
+        const current = await readPhotos(listingId).catch(() => photos);
+        const room = PHOTO_LIMIT - current.length;
+        const added: ExposePhoto[] = [];
+        for (const file of Array.from(files).slice(0, Math.max(0, room))) {
+          if (!isPhotoType(file.type)) {
+            setError(true);
+            continue;
+          }
+          try {
+            added.push(await downscalePhoto(file, confirmedAt));
+          } catch {
+            setError(true);
+          }
         }
-        try {
-          added.push(await downscalePhoto(file, confirmedAt));
-        } catch {
-          setError(true);
-        }
+        if (added.length > 0) await save([...current, ...added]);
+      } catch {
+        setError(true);
+      } finally {
+        setBusy(false);
       }
-      if (added.length > 0) await save([...photos, ...added]);
-      setBusy(false);
     },
-    [photos, save],
+    [listingId, photos, save],
   );
 
-  const remove = useCallback((id: string) => save(photos.filter((photo) => photo.id !== id)), [photos, save]);
-  const makeTitle = useCallback((id: string) => save([...photos.filter((photo) => photo.id === id), ...photos.filter((photo) => photo.id !== id)]), [photos, save]);
-  const setCaption = useCallback((id: string, caption: string) => save(photos.map((photo) => (photo.id === id ? { ...photo, caption } : photo))), [photos, save]);
+  const remove = useCallback(
+    async (id: string) => {
+      setBusy(true);
+      try {
+        const current = await readPhotos(listingId).catch(() => photos);
+        await save(current.filter((photo) => photo.id !== id));
+      } catch {
+        setError(true);
+      } finally {
+        setBusy(false);
+      }
+    },
+    [listingId, photos, save],
+  );
+  const makeTitle = useCallback(
+    async (id: string) => {
+      setBusy(true);
+      try {
+        const current = await readPhotos(listingId).catch(() => photos);
+        await save([...current.filter((photo) => photo.id === id), ...current.filter((photo) => photo.id !== id)]);
+      } catch {
+        setError(true);
+      } finally {
+        setBusy(false);
+      }
+    },
+    [listingId, photos, save],
+  );
+  const setCaption = useCallback(
+    async (id: string, caption: string) => {
+      setBusy(true);
+      try {
+        const current = await readPhotos(listingId).catch(() => photos);
+        await save(current.map((photo) => (photo.id === id ? { ...photo, caption } : photo)));
+      } catch {
+        setError(true);
+      } finally {
+        setBusy(false);
+      }
+    },
+    [listingId, photos, save],
+  );
 
   return { photos, isBusy, hasError, add, remove, makeTitle, setCaption };
 }

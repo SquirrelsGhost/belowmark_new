@@ -126,7 +126,7 @@ export const BIDDING_TR: IBiddingTranslation = {
       Total: "Toplam yatırım",
       Deposit: "İhale teminatı",
       DepositNote: {
-        DE: "Verkehrswert'in %10'u (§ 68 ZVG), nakit kabul edilmez (§ 69 ZVG). Bedelden düşülür.",
+        DE: "Muhammen bedelin (Verkehrswert) %10'u (§ 68 ZVG), nakit kabul edilmez (§ 69 ZVG). Bedelden düşülür.",
         TR: "Muhammen bedelin %10'u (İİK m.114/7), teklif öncesi e-Satış'ta yatırılır. Bedelden düşülür.",
       },
       Lines: {
@@ -198,7 +198,7 @@ export const BIDDING_TR: IBiddingTranslation = {
     HearingNotes: {
       DE: [
         "Kimlik kartı veya pasaport getirin.",
-        "Teminat: Verkehrswert'in %10'u (§ 68 Abs. 1 ZVG) — Bundesbank veya banka çeki, banka teminatı ya da önceden mahkeme veznesine havale. Nakit kabul edilmez (§ 69 ZVG).",
+        "Teminat: Muhammen bedelin (Verkehrswert) %10'u (§ 68 Abs. 1 ZVG) — Bundesbank veya banka çeki, banka teminatı ya da önceden mahkeme veznesine havale. Nakit kabul edilmez (§ 69 ZVG).",
         "Başkası veya bir şirket adına teklif verenin resmî onaylı vekâletnamesi olmalı (§ 71 Abs. 2 ZVG).",
         "Teklif süresi en az 30 dakikadır (§ 73 Abs. 1 ZVG). Teklifler sözlü verilir.",
         "İhale kararıyla malik olursunuz (§ 90 ZVG). Nakit bedel paylaştırma gününe kadar ödenir ve ihaleden itibaren %4 faiz işler (§ 49 ZVG).",

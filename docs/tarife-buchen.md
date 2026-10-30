@@ -102,7 +102,8 @@ Buchung auch ohne Rechtsfreigabe, mit Testkarte `4242 4242 4242 4242`.
 | `STRIPE_AUTOMATIC_TAX` | `on` nur mit Stripe Tax |
 | `BILLING_LEGAL_APPROVED` | `yes` erst nach anwaltlicher Prüfung. Ohne diesen Wert ist mit `sk_live_` keine Bestellung möglich, und die Rechtsseiten zeigen den Entwurfshinweis |
 | `BILLING_VAT_MODE` | `inclusive` (inkl. 19 % USt) oder `kleinunternehmer` (§ 19 UStG). Pflicht im Livebetrieb, steuert den Preishinweis und den AGB-Text |
-| `BILLING_TR_ENABLED` | `yes` erst wenn die türkischen Punkte unten erledigt sind |
+| `BILLING_TR_ENABLED` | leer oder `yes` = Türkei in TL buchbar, `no` sperrt den Markt |
+| `BILLING_TR_KDV` | `inclusive` erst nach der türkischen KDV-Registrierung (TL-Preise inkl. 20 % KDV) |
 | `BILLING_TEST_CHECKOUT` | `off` schaltet die lokale Testkasse ab (in Produktion ist sie immer aus) |
 | `OPERATOR_EMAIL` | bekommt Widerrufe und manuelle Kündigungen |
 
@@ -140,23 +141,57 @@ Auf den Seiten sind diese Stellen rot als ⟨…⟩ markiert. Im Testmodus liste
   das Marktcookie gesetzt werden und keine Analyse- oder Werbedienste dazukommen.
   Stripe-Cookies entstehen erst auf der Stripe-Seite.
 
-## Türkei: ehrlicher Stand
+## Türkei: so wird gebucht (Stand 27.10.2026)
 
-Die Online-Buchung für den TR-Markt ist **gesperrt**, bis `BILLING_TR_ENABLED=yes`
-gesetzt ist. TR-Nutzer sehen einen Hinweis und den Kontaktweg.
+TR-Kunden buchen über **dasselbe deutsche Stripe-Konto**, nur in Türkischer Lira:
+599 TL/Monat, 1.490 TL/3 Monate, Pro 1.990 TL/Monat bzw. 4.990 TL/3 Monate
+(Tabelle in `src/lib/billing/billingConfig.ts`). `BILLING_TR_ENABLED` ist
+standardmäßig an; `no` sperrt den Markt wieder.
 
-- **Stripe** eröffnet keine Konten für Unternehmen mit Sitz in der Türkei. Ein
-  deutsches Stripe-Konto kann aber in TRY abrechnen. Ob das für dein Konto
-  freigeschaltet ist, siehst du im Dashboard beim Anlegen des TRY-Preises.
-- **iyzico** setzt ein türkisches Unternehmen voraus und ist für PYCIE Studio
-  derzeit keine Option.
-- **Steuer**: Ausländische Anbieter elektronischer Dienstleistungen an
+- **Stripe**: eröffnet keine Konten für Firmen in der Türkei, ein deutsches
+  Konto darf aber in TRY abrechnen. Stripe rechnet beim Auszahlen in Euro um
+  (Umrechnungsgebühr laut Stripe-Preisliste). Ob TRY für dein Konto geht,
+  siehst du beim Anlegen des ersten TRY-Preises. Rein inländische türkische
+  Karten (z. B. nur Troy) können scheitern; Visa/Mastercard sind der Normalfall.
+- **iyzico/PayTR**: brauchen eine türkische Firma — bewusst nicht genutzt.
+- **Deutsche Umsatzsteuer**: Für eine elektronische Dienstleistung an Kunden in
+  der Türkei liegt der Leistungsort in der Türkei (§ 3a Abs. 2 UStG bei
+  Firmen, § 3a Abs. 5 UStG bei Privatpersonen) → keine 19 % USt. Bestellseite,
+  Mail und Rechnung sagen das so. **Vom Steuerberater bestätigen lassen.**
+- **Türkische KDV — offen**: Ausländische Anbieter elektronischer Dienste an
   Privatpersonen in der Türkei müssen sich für die Sonder-KDV registrieren
   („Elektronik Hizmet Sağlayıcıları İçin Özel KDV Mükellefiyeti“, Erklärung Nr. 3,
-  ohne Schwellenwert).
-- **Verträge**: Nötig sind ein Vorabinformationsformular und ein Fernabsatzvertrag
-  nach der Mesafeli Sözleşmeler Yönetmeliği sowie ein KVKK-Aydınlatma-Metni.
-  Die deutschen Texte reichen dafür nicht.
+  monatlich, ohne Schwellenwert, Satz in der Regel 20 %). Ob und ab wann das für
+  belowmark gilt, entscheidet der Steuerberater. Bis dahin druckt die Rechnung
+  ⟨Türkische KDV prüfen⟩ in Rot. Nach der Registrierung `BILLING_TR_KDV=inclusive`
+  setzen: Dann gelten die TL-Preise als Endpreise inkl. 20 % KDV, und die
+  Rechnung weist Netto + KDV aus.
+- **Rechnung**: eigene PDF-Rechnung in TL, auf Deutsch (wie für DE-Kunden).
+- **Verträge**: Ein Vorabinformationsformular und ein Fernabsatzvertrag nach der
+  Mesafeli Sözleşmeler Yönetmeliği sowie ein KVKK-Aydınlatma-Metni fehlen noch;
+  die deutschen Texte (mit Hinweis auf Türkisch) reichen dafür voraussichtlich nicht.
+- **Ein Markt pro Konto**: Wer in DE ein Monatsabo hat, kann TR erst buchen, wenn
+  das Abo gekündigt ist (3-Monats-Zugänge dürfen direkt wechseln).
+
+## Upgrade Investor → Pro
+
+Im Konto unter Tarif steht „Auf Pro upgraden“, solange Investor läuft
+(`/buchen/upgrade`). Regel: **(Pro-Preis − Investor-Preis) × Restzeit ÷ Laufzeit**,
+das Laufzeitende bleibt gleich, Pro gilt sofort. Beträge unter 0,50 € bzw.
+50 TL werden nicht berechnet.
+
+- **Monatsabo mit Stripe**: Das Abo wird auf den Pro-Preis umgestellt
+  (`proration_behavior=always_invoice`, `payment_behavior=pending_if_incomplete`).
+  Stripe berechnet den Aufpreis sofort; die Seite zeigt vorher Stripes eigene
+  Vorschau. Braucht die Karte 3-D Secure, geht es auf Stripes Rechnungsseite
+  weiter und der Webhook `invoice.paid` schaltet Pro frei. Ab der nächsten
+  Verlängerung zieht Stripe den vollen Pro-Preis. Ist `STRIPE_PRICE_*_PRO_MONAT`
+  nicht gesetzt, legt belowmark das Produkt `belowmark_pro_monat` selbst an.
+- **3-Monats-Zugang** (und lokale Testkasse): Einmalzahlung des Aufpreises über
+  Stripe Checkout.
+- Jede Upgrade-Zahlung bekommt eine eigene Rechnung („Upgrade Investor → Pro“).
+- Wer Pro hat, kann nicht zusätzlich Investor buchen. Größere Teams (ab 299 €)
+  bleiben auf Anfrage.
 
 ## Nach dem Einspielen lokal
 

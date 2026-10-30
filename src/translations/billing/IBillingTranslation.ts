@@ -1,7 +1,7 @@
 import { IMetaTags } from "../../services/MetaTagService";
 
 export type BillingBlockerKey = "not_configured" | "legal_not_approved" | "market_closed" | "price_missing";
-export type OrderBlockerKey = "subscription_running" | "term_running";
+export type OrderBlockerKey = "subscription_running" | "term_running" | "use_upgrade" | "pro_running" | "other_market";
 export type DeclarationErrorCode = "name_required" | "email_invalid" | "contract_required" | "date_invalid" | "reason_required" | "rate_limited" | "unknown";
 export type DeleteErrorCode = "password_wrong" | "confirm_required" | "rate_limited" | "unknown";
 
@@ -31,7 +31,7 @@ interface IDeclarationDone {
  * from ITranslation so the landing thread's file stays untouched.
  */
 export interface IBillingTranslation {
-  Meta: { Order: IMetaTags; TestCheckout: IMetaTags; Cancel: IMetaTags; Withdraw: IMetaTags; Imprint: IMetaTags; Terms: IMetaTags; Withdrawal: IMetaTags; Privacy: IMetaTags };
+  Meta: { Order: IMetaTags; Upgrade: IMetaTags; TestCheckout: IMetaTags; Cancel: IMetaTags; Withdraw: IMetaTags; Imprint: IMetaTags; Terms: IMetaTags; Withdrawal: IMetaTags; Privacy: IMetaTags };
 
   Legal: {
     DraftTitle: string;
@@ -64,6 +64,12 @@ export interface IBillingTranslation {
     VatInclusive: string;
     VatSmallBusiness: string;
     VatOpen: string;
+    /** Market Türkei: no German VAT (place of supply Türkiye); KDV still open */
+    VatTr: string;
+    /** Market Türkei with BILLING_TR_KDV=inclusive */
+    VatTrKdv: string;
+    /** Under the Pro cards while Investor runs */
+    UpgradeCta: string;
     ConsentLabel: string;
     ConsentRequired: string;
     TermsNote: string;
@@ -89,6 +95,31 @@ export interface IBillingTranslation {
     ProCta: string;
   };
 
+  Upgrade: {
+    Eyebrow: string;
+    Title: string;
+    Lead: string;
+    Points: string[];
+    SummaryTitle: string;
+    From: string;
+    To: string;
+    Start: string;
+    StartValue: string;
+    Until: string;
+    /** "{date}, danach {price} im Monat" */
+    UntilRenews: string;
+    /** "{date}, endet automatisch" */
+    UntilEnds: string;
+    Today: string;
+    FreeNote: string;
+    Rule: string;
+    Submit: string;
+    Pending: string;
+    Unavailable: string;
+    Cancelled: string;
+    Failed: string;
+  };
+
   TestCheckout: { Eyebrow: string; Title: string; Body: string; Pay: string; Abort: string; Missing: string };
 
   Account: {
@@ -102,6 +133,7 @@ export interface IBillingTranslation {
     EndsOn: string;
     Book: string;
     Extend: string;
+    Upgrade: string;
     Portal: string;
     PortalHint: string;
     PortalUnavailable: string;

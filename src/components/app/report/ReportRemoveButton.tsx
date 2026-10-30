@@ -19,8 +19,12 @@ export default function ReportRemoveButton({ listingId, label, confirmLabel }: R
   function handleClick() {
     if (!window.confirm(confirmLabel)) return;
     startTransition(async () => {
-      await fetch(`${REPORT_API}?${REPORT_UPLOAD.fieldListing}=${encodeURIComponent(listingId)}`, { method: "DELETE" });
-      router.refresh();
+      try {
+        const res = await fetch(`${REPORT_API}?${REPORT_UPLOAD.fieldListing}=${encodeURIComponent(listingId)}`, { method: "DELETE" });
+        if (res.ok) router.refresh();
+      } catch {
+        // Ignore network failure and keep current UI state
+      }
     });
   }
 

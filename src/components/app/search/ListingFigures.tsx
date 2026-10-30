@@ -14,6 +14,8 @@ interface ListingFiguresProps {
   lockedLabel: string;
 }
 
+const CAPTION_CLASSES = "font-mono text-[10px] tracking-[0.16em] text-muted uppercase";
+
 /** Value on the red line, the entry bid below it — the brand mark as numbers. */
 export default function ListingFigures({ valueLabel, value, noValueLabel, entryLabel, entry, comparison, isLocked, lockedLabel }: ListingFiguresProps) {
   if (value === null && !isLocked) {
@@ -26,11 +28,11 @@ export default function ListingFigures({ valueLabel, value, noValueLabel, entryL
 
   return (
     <div className="flex w-full flex-col sm:w-56">
-      <span className="font-mono text-[10px] tracking-[0.16em] text-muted uppercase">{valueLabel}</span>
+      <span className={CAPTION_CLASSES}>{valueLabel}</span>
       <span className="pb-1 font-mono text-lg font-semibold">{isLocked ? <Redacted label={lockedLabel} width="lg" /> : value}</span>
       <span aria-hidden="true" className="h-[2px] bg-signal" />
       <span className="flex items-baseline justify-between gap-2 pt-1">
-        <span className="font-mono text-[10px] tracking-[0.16em] text-muted uppercase">{entryLabel}</span>
+        <span className={CAPTION_CLASSES}>{entryLabel}</span>
         <span className="font-mono text-sm">{isLocked ? <Redacted label={lockedLabel} width="sm" /> : entry}</span>
       </span>
       {comparison && !isLocked && <span className="pt-0.5 text-right font-mono text-[11px] text-verdict">{comparison}</span>}

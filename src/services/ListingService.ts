@@ -1,9 +1,9 @@
 import "server-only";
-import { readFile } from "node:fs/promises";
+import { readFile, stat } from "node:fs/promises";
 import { join } from "node:path";
 import { DAY_MS, SEARCH } from "@/lib/appConstants";
 import { MarketCode } from "@/lib/constants";
-import { getHearingStatus, getNextDate } from "@/lib/listingMath";
+import { getHearingState, getNextDate } from "@/lib/listingMath";
 import {
   CalendarWeek,
   Listing,
@@ -13,6 +13,12 @@ import {
   MapPlace,
   RegionFacet,
 } from "@/types/listing.types";
+
+function snapshotPath(market: MarketCode): string {
+  return market === "TR"
+    ? join(process.cwd(), "data", "snapshots", "tr.json")
+    : join(process.cwd(), "data", "snapshots", "de.json");
+}
 
 /** Snapshot files written by scripts/build-snapshots.mjs — literal paths so the bundler can trace them. */
 function readSnapshot(market: MarketCode): Promise<string> {
@@ -26,9 +32,12 @@ interface LoadedMarket {
   byKey: Map<string, Listing>;
   /** Normalised search text per listing key */
   haystack: Map<string, string>;
+  mtimeMs: number;
+  checkedAt: number;
 }
 
 const loaded = new Map<MarketCode, Promise<LoadedMarket>>();
+const STAT_TTL_MS = 10_000;
 
 /** Lower case, no accents, Turkish dotless i folded — "cesme" finds "Çeşme". */
 export function normalizeText(value: string): string {
@@ -52,11 +61,18 @@ function buildHaystack(listing: Listing): string {
     listing.region,
     listing.segmentLabel,
     listing.sourcePortal,
+    listing.grundbuch,
+    listing.rooms,
+    listing.proceedingKind,
+    listing.description,
     listing.tr?.adType,
     listing.tr?.source,
     listing.tr?.mahalle,
     listing.tr?.nitelik,
     listing.tr?.zoning,
+    listing.tr?.rooms,
+    listing.tr?.floor,
+    listing.tr?.excerpt,
     listing.tr?.ada && listing.tr?.parsel ? `${listing.tr.ada}/${listing.tr.parsel}` : null,
   ];
   return normalizeText(parts.filter(Boolean).join(" "));
@@ -90,24 +106,107 @@ function opportunityScore(listing: Listing): number {
   );
 }
 
-async function loadMarket(market: MarketCode): Promise<LoadedMarket> {
-  const snapshot = JSON.parse(await readSnapshot(market)) as ListingSnapshot;
-  const byKey = new Map(snapshot.listings.map((listing) => [listing.key, listing]));
-  const haystack = new Map(snapshot.listings.map((listing) => [listing.key, buildHaystack(listing)]));
-  return { snapshot, byKey, haystack };
+const TR_PROVINCE_ALIASES: Record<string, { region: string; regionCode: string }> = {
+  "ş.urfa": { region: "Şanlıurfa", regionCode: "sanliurfa" },
+  "s.urfa": { region: "Şanlıurfa", regionCode: "sanliurfa" },
+  "k.maraş": { region: "Kahramanmaraş", regionCode: "kahramanmaras" },
+  "k.maras": { region: "Kahramanmaraş", regionCode: "kahramanmaras" },
+  "g.antep": { region: "Gaziantep", regionCode: "gaziantep" },
+  "a.karahisar": { region: "Afyonkarahisar", regionCode: "afyonkarahisar" },
+};
+
+function sanitizeSnapshotListing(listing: Listing): Listing {
+  if (listing.market === "DE") {
+    if (listing.courtUrl && !/^https?:\/\//i.test(listing.courtUrl)) {
+      try {
+        listing.courtUrl = new URL(listing.courtUrl, "https://www.zvg-portal.de/index.php").toString();
+      } catch {
+        // Keep original courtUrl if malformed
+      }
+    }
+    if (listing.appraisedValue !== null && listing.appraisedValue < 500) {
+      listing.appraisedValue = null;
+    }
+    return listing;
+  }
+
+  if (listing.region) {
+    const alias = TR_PROVINCE_ALIASES[listing.region.toLocaleLowerCase("tr").replace(/\s+/g, "")];
+    if (alias) {
+      listing.region = alias.region;
+      listing.regionCode = alias.regionCode;
+    }
+  }
+  if (listing.appraisedValue !== null && listing.appraisedValue < 1000) {
+    listing.appraisedValue = null;
+    if (listing.tr && listing.tr.startingBid !== null && listing.tr.startingBid < 500) {
+      listing.tr.startingBid = null;
+    }
+  }
+  return listing;
 }
 
-function getMarket(market: MarketCode): Promise<LoadedMarket> {
-  let entry = loaded.get(market);
+async function loadMarket(market: MarketCode): Promise<LoadedMarket> {
+  const [raw, fileStat] = await Promise.all([
+    readSnapshot(market),
+    stat(snapshotPath(market)).catch(() => ({ mtimeMs: 0 })),
+  ]);
+  const snapshot = JSON.parse(raw) as ListingSnapshot;
+  snapshot.listings = snapshot.listings.map(sanitizeSnapshotListing);
+  const byKey = new Map(snapshot.listings.map((listing) => [listing.key, listing]));
+  const haystack = new Map(snapshot.listings.map((listing) => [listing.key, buildHaystack(listing)]));
+  return { snapshot, byKey, haystack, mtimeMs: fileStat.mtimeMs, checkedAt: Date.now() };
+}
+
+const refreshing = new Set<MarketCode>();
+
+/**
+ * Loads a market once and keeps it in memory. When the snapshot file changes
+ * (npm run sync), the new file is parsed in the background while requests
+ * keep getting the previous data — parsing the TR file takes about half a
+ * second, nobody should wait for it.
+ */
+async function getMarket(market: MarketCode): Promise<LoadedMarket> {
+  const entry = loaded.get(market);
   if (!entry) {
-    entry = loadMarket(market);
-    loaded.set(market, entry);
-    entry.catch(() => loaded.delete(market));
+    const fresh = loadMarket(market);
+    loaded.set(market, fresh);
+    fresh.catch(() => loaded.delete(market));
+    return fresh;
   }
-  return entry;
+  const current = await entry;
+  if (Date.now() - current.checkedAt > STAT_TTL_MS && !refreshing.has(market)) {
+    current.checkedAt = Date.now();
+    refreshing.add(market);
+    stat(snapshotPath(market))
+      .then(async (fileStat) => {
+        if (fileStat.mtimeMs <= current.mtimeMs) return;
+        const next = await loadMarket(market);
+        if (loaded.get(market) === entry) loaded.set(market, Promise.resolve(next));
+      })
+      // A half-written file fails to parse: keep the previous data and try again after the next interval
+      .catch(() => undefined)
+      .finally(() => refreshing.delete(market));
+  }
+  return current;
 }
 
 const toDay = (iso: string) => iso.slice(0, 10);
+
+type NextDateOf = (listing: Listing) => string | null;
+
+/** getNextDate, worked out once per proceeding and search — the search asks up to five times. */
+function nextDates(now: number): NextDateOf {
+  const known = new Map<Listing, string | null>();
+  return (listing) => {
+    let next = known.get(listing);
+    if (next === undefined) {
+      next = getNextDate(listing, now);
+      known.set(listing, next);
+    }
+    return next;
+  };
+}
 
 /** Monday 00:00 UTC of the week containing `time`. */
 function weekStart(time: number): number {
@@ -142,6 +241,7 @@ export class ListingService {
   static search = async (market: MarketCode, filters: ListingFilters, now: number): Promise<ListingSearchResult> => {
     const { snapshot, haystack } = await getMarket(market);
     const terms = normalizeText(filters.query).split(/\s+/).filter(Boolean);
+    const nextOf = nextDates(now);
 
     // Everything except region and date range — those two get their own facets.
     const base = snapshot.listings.filter((listing) => {
@@ -157,9 +257,9 @@ export class ListingService {
     });
 
     const inRegion = filters.region ? base.filter((listing) => listing.regionCode === filters.region) : base;
-    const inRange = inRegion.filter((listing) => ListingService.matchesRange(listing, filters, now));
-    const anyRegionInRange = filters.region ? base.filter((listing) => ListingService.matchesRange(listing, filters, now)) : inRange;
-    const sorted = ListingService.sort(inRange, filters, now);
+    const inRange = inRegion.filter((listing) => ListingService.matchesRange(listing, filters, nextOf));
+    const anyRegionInRange = filters.region ? base.filter((listing) => ListingService.matchesRange(listing, filters, nextOf)) : inRange;
+    const sorted = ListingService.sort(inRange, filters, nextOf);
 
     const pageCount = Math.max(1, Math.ceil(sorted.length / SEARCH.pageSize));
     const page = Math.min(filters.page, pageCount);
@@ -170,26 +270,26 @@ export class ListingService {
       total: sorted.length,
       page,
       pageCount,
-      calendar: ListingService.calendar(inRegion, now),
+      calendar: ListingService.calendar(inRegion, now, nextOf),
       regions: ListingService.regionFacets(base),
       nextSevenDays: inRange.filter((listing) => {
-        const next = getNextDate(listing, now);
+        const next = nextOf(listing);
         return next !== null && Date.parse(next) >= now && Date.parse(next) <= soon;
       }).length,
       opportunitiesCount: inRange.filter(isOpportunityListing).length,
       withDocsCount: inRange.filter(hasListingDocs).length,
-      places: filters.view === "map" ? ListingService.places(inRange, now, soon) : [],
+      places: filters.view === "map" ? ListingService.places(inRange, now, soon, nextOf) : [],
       regionCounts: ListingService.regionCounts(anyRegionInRange),
     };
   };
 
   /** Groups proceedings that share a map position; listings without one are left off the map. */
-  private static places(listings: Listing[], now: number, soon: number): MapPlace[] {
+  private static places(listings: Listing[], now: number, soon: number, nextOf: NextDateOf): MapPlace[] {
     const byPosition = new Map<string, { place: MapPlace; first: Listing }>();
     for (const listing of listings) {
       if (!listing.geo) continue;
       const id = listing.geo.precision === "postcode" ? `plz-${listing.postcode}` : `il-${listing.regionCode}`;
-      const next = getNextDate(listing, now);
+      const next = nextOf(listing);
       const imminent = next !== null && Date.parse(next) >= now && Date.parse(next) <= soon ? 1 : 0;
       const entry = byPosition.get(id);
       if (entry) {
@@ -205,7 +305,7 @@ export class ListingService {
     }
     return [...byPosition.values()].map(({ place, first }) => {
       if (place.count !== 1) return place;
-      const single = { key: first.key, title: first.place ?? first.title, nextDate: getNextDate(first, now), value: first.appraisedValue, segment: first.segment };
+      const single = { key: first.key, title: first.place ?? first.title, nextDate: nextOf(first), value: first.appraisedValue, segment: first.segment };
       return { ...place, single };
     });
   }
@@ -220,21 +320,21 @@ export class ListingService {
 
   private static matchesScope(listing: Listing, filters: ListingFilters, now: number): boolean {
     if (filters.scope === "all") return true;
-    const state = getHearingStatus(listing, now).state;
+    const state = getHearingState(listing, now).state;
     const isOpen = state === "upcoming" || state === "running" || (state === "cancelled" && filters.withCancelled);
     return filters.scope === "upcoming" ? isOpen : state === "past";
   }
 
-  private static matchesRange(listing: Listing, filters: ListingFilters, now: number): boolean {
+  private static matchesRange(listing: Listing, filters: ListingFilters, nextOf: NextDateOf): boolean {
     if (!filters.from && !filters.to) return true;
-    const next = getNextDate(listing, now);
+    const next = nextOf(listing);
     if (!next) return false;
     const day = toDay(next);
     return (!filters.from || day >= filters.from) && (!filters.to || day <= filters.to);
   }
 
-  private static sort(listings: Listing[], filters: ListingFilters, now: number): Listing[] {
-    const dates = new Map(listings.map((listing) => [listing.key, Date.parse(getNextDate(listing, now) ?? "9999-12-31")]));
+  private static sort(listings: Listing[], filters: ListingFilters, nextOf: NextDateOf): Listing[] {
+    const dates = new Map(listings.map((listing) => [listing.key, Date.parse(nextOf(listing) ?? "9999-12-31")]));
     const dateOf = (listing: Listing) => dates.get(listing.key) ?? Infinity;
     const copy = [...listings];
     switch (filters.sort) {
@@ -255,14 +355,14 @@ export class ListingService {
   }
 
   /** Hearings per week for the next weeks, starting with the current one. */
-  private static calendar(listings: Listing[], now: number): CalendarWeek[] {
+  private static calendar(listings: Listing[], now: number, nextOf: NextDateOf): CalendarWeek[] {
     const first = weekStart(now);
     const weeks: CalendarWeek[] = Array.from({ length: SEARCH.calendarWeeks }, (_, index) => {
       const start = first + index * 7 * DAY_MS;
       return { start: toDay(new Date(start).toISOString()), end: toDay(new Date(start + 6 * DAY_MS).toISOString()), count: 0 };
     });
     for (const listing of listings) {
-      const next = getNextDate(listing, now);
+      const next = nextOf(listing);
       if (!next) continue;
       const index = Math.floor((Date.parse(next) - first) / (7 * DAY_MS));
       if (index >= 0 && index < weeks.length) weeks[index].count += 1;

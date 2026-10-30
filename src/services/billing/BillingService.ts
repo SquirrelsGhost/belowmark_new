@@ -90,24 +90,44 @@ export class BillingService {
   };
 
   /**
-   * One paid access at a time: a running monthly subscription blocks every
-   * new order (no double charge); a running term may be extended by another
-   * three months or upgraded to Pro, but not stacked with an Investor subscription.
+   * One paid access at a time, in one market:
+   * - Investor running → Pro only as an upgrade (prorated, same end date).
+   * - Pro running → no Investor booking on top (that would be a downgrade).
+   * - A running monthly subscription blocks every other order (no double charge).
+   * - A three-month term may be extended by the same offer.
+   * - Another market only once nothing renews; it replaces the current one when paid.
    */
-  static orderBlocker = (access: BillingAccess, offerId: BillingOfferId): OrderBlocker | null => {
+  static orderBlocker = (
+    access: BillingAccess,
+    offerId: BillingOfferId,
+    currentMarket?: MarketCode,
+    targetMarket?: MarketCode,
+  ): OrderBlocker | null => {
     if (!access.isActive || !access.endsAt) return null;
+    if (currentMarket && targetMarket && currentMarket !== targetMarket) return access.renews ? "other_market" : null;
+    const wanted = OFFERS[offerId].plan;
+    if (access.plan === "investor" && wanted === "pro") return "use_upgrade";
+    if (access.plan === "pro" && wanted === "investor") return "pro_running";
     if (access.renews) return "subscription_running";
-    if (offerId === "investor-monat") return "term_running";
-    if (offerId === "pro-monat" && access.plan === "pro") return "term_running";
+    if (OFFERS[offerId].kind === "subscription") return "term_running";
     return null;
   };
 
   /** Records the order and returns where the browser pays for it. */
-  static placeOrder = async (user: OrderingUser, offerId: BillingOfferId, consentAt: Date): Promise<OrderResult> => {
+  static placeOrder = async (
+    user: OrderingUser,
+    offerId: BillingOfferId,
+    consentAt: Date,
+    currentMarket: MarketCode = user.market,
+  ): Promise<OrderResult> => {
     const availability = BillingService.availability(user.market);
     if (availability.blocker) throw new Error(`billing unavailable: ${availability.blocker}`);
-    const blocker = BillingService.orderBlocker(await BillingService.access(user.id), offerId);
+    const access = await BillingService.access(user.id);
+    const blocker = BillingService.orderBlocker(access, offerId, currentMarket, user.market);
     if (blocker) throw new Error(`order blocked: ${blocker}`);
+    if (!access.isActive && currentMarket !== user.market) {
+      await db.update(users).set({ market: user.market }).where(eq(users.id, user.id));
+    }
 
     const offer = OFFERS[offerId];
     const price = offer.prices[user.market];
@@ -214,7 +234,7 @@ export class BillingService {
     if (!row?.customerId) return null;
     const session = await stripeClient().billingPortal.sessions.create({
       customer: row.customerId,
-      return_url: absolute("/konto"),
+      return_url: absolute("/konto?bereich=tarif"),
       locale: locale === "tr" ? "tr" : "de",
     });
     return session.url;
@@ -254,7 +274,7 @@ export class BillingService {
 
   /** An open order of the local test checkout — only while that checkout is allowed (never in production). */
   static openTestOrder = async (orderId: string, userId: string): Promise<BillingOrder | null> => {
-    if (!env.billingTestCheckout || env.stripeSecretKey || !/^[0-9a-f-]{36}$/.test(orderId)) return null;
+    if (process.env.NODE_ENV === "production" || !env.billingTestCheckout || env.stripeSecretKey || !/^[0-9a-f-]{36}$/.test(orderId)) return null;
     const [order] = await db
       .select()
       .from(billingOrders)

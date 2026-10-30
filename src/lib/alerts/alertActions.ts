@@ -3,9 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { ALERT_ROUTES, ALERTS } from "@/lib/alerts/alertConfig";
 import { toStoredFilters } from "@/lib/alerts/alertMatch";
+import { RATE_LIMITS } from "@/lib/auth/authConfig";
 import { parseFilters } from "@/lib/listingFilters";
 import { AlertService } from "@/services/AlertService";
 import { ListingService } from "@/services/ListingService";
+import { RateLimitService } from "@/services/RateLimitService";
 import { SessionService } from "@/services/SessionService";
 import { AlertErrorCode } from "@/translations/alerts/IAlertsTranslation";
 
@@ -36,6 +38,8 @@ export async function createAlertAction(_: AlertActionState, formData: FormData)
   const params = Object.fromEntries([...formData.entries()].filter(([, value]) => typeof value === "string")) as Record<string, string>;
   const filters = parseFilters(params);
   try {
+    const rl = await RateLimitService.hit(`alerts:user:${user.id}`, RATE_LIMITS.profileUpdate);
+    if (!rl.allowed) return { ok: false, error: "failed" };
     if ((await AlertService.countForUser(user.id)) >= ALERTS.maxPerUser) return { ok: false, error: "limit" };
     // The region name comes from the data, not from the form
     const region = filters.region ? (await ListingService.search(user.market, { ...filters, page: 1 }, Date.now())).regions.find((facet) => facet.code === filters.region) : undefined;
@@ -57,6 +61,8 @@ export async function setAlertActiveAction(_: AlertActionState, formData: FormDa
   const alertId = String(formData.get("alertId") ?? "");
   if (!user || !UUID.test(alertId)) return { ok: false, error: "failed" };
   try {
+    const rl = await RateLimitService.hit(`alerts:user:${user.id}`, RATE_LIMITS.profileUpdate);
+    if (!rl.allowed) return { ok: false, error: "failed" };
     await AlertService.setActive(user.id, alertId, formData.get("active") === "1");
   } catch (error) {
     console.error("[setAlertActiveAction]", error);
@@ -72,6 +78,8 @@ export async function deleteAlertAction(_: AlertActionState, formData: FormData)
   const alertId = String(formData.get("alertId") ?? "");
   if (!user || !UUID.test(alertId)) return { ok: false, error: "failed" };
   try {
+    const rl = await RateLimitService.hit(`alerts:user:${user.id}`, RATE_LIMITS.profileUpdate);
+    if (!rl.allowed) return { ok: false, error: "failed" };
     await AlertService.remove(user.id, alertId);
   } catch (error) {
     console.error("[deleteAlertAction]", error);

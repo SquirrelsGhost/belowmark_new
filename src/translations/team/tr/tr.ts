@@ -4,21 +4,21 @@ export const TEAM_TR: ITeamTranslation = {
   MetaTags: {
     Overview: {
       title: "Ekipler — Belowmark",
-      description: "Birlikte değerlendirin: icra ilanları için ortak ekip listesi; durum, notlar, roller ve e-postayla davet. Her üye aynı güncel durumu görür.",
+      description: "Birlikte değerlendirin: icra ilanları için ortak çalışma listesi; durum, notlar, roller ve e-postayla davet. Her üye aynı güncel durumu görür.",
       imgUrl: "https://belowmark.com/og/home.png",
       tags: ["Ekip", "İcra", "ortak liste"],
       url: "https://belowmark.com/app/team",
     },
     Team: {
       title: "Ekip listesi — Belowmark",
-      description: "Bir ekibin ortak listesi: hangi dosyalar inceleniyor, yerinde görülüyor, teklif veriliyor ya da elendi; tüm üyelerin notlarıyla birlikte.",
+      description: "Bir çalışma ekibinin ortak listesi: hangi dosyalar inceleniyor, yerinde görülüyor, teklif veriliyor ya da elendi; tüm üyelerin notlarıyla birlikte.",
       imgUrl: "https://belowmark.com/og/home.png",
       tags: ["Ekip", "Takip listesi", "İcra"],
       url: "https://belowmark.com/app/team",
     },
     Invitation: {
       title: "Ekip daveti — Belowmark",
-      description: "Bir Belowmark ekibine davet edildiniz. Sizi kimin davet ettiğini burada görür, daveti kabul eder ya da reddedersiniz.",
+      description: "Bir Belowmark çalışma ekibine davet edildiniz: sizi kimin ve hangi rol için davet ettiğini burada ayrıntısıyla görür, daveti kabul eder ya da reddedersiniz.",
       imgUrl: "https://belowmark.com/og/home.png",
       tags: ["Davet", "Ekip", "Belowmark"],
       url: "https://belowmark.com/einladung",

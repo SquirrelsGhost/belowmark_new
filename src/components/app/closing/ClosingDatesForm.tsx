@@ -36,9 +36,15 @@ export default function ClosingDatesForm({ listingKey, market, dates, labels }: 
 
   useEffect(() => {
     if (!state.won) return;
-    const current = parseHolding(window.localStorage.getItem(holdingKey(listingKey)) ?? "");
-    writeHolding(listingKey, { status: "won", price: current.price, date: state.won.date });
+    try {
+      const current = parseHolding(window.localStorage.getItem(holdingKey(listingKey)) ?? "");
+      writeHolding(listingKey, { status: "won", price: current.price, date: state.won.date });
+    } catch {
+      // Storage unavailable
+    }
   }, [state, listingKey]);
+
+  const errorMessage = !state.ok ? (state.error && labels.Errors[state.error]) ?? labels.Required : null;
 
   return (
     <form onSubmit={submit} className="flex flex-col gap-4 border-2 border-ink bg-paper-bright p-5">
@@ -61,9 +67,15 @@ export default function ClosingDatesForm({ listingKey, market, dates, labels }: 
       </div>
       {fromPortfolio && <p className="font-mono text-[11px] text-signal">{labels.FromPortfolio}</p>}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p aria-live="polite" className={`font-mono text-[11px] ${state.ok ? "text-verdict" : "text-signal"}`}>
-          {!state.ok ? labels.Required : state.saved ? labels.Saved : ""}
-        </p>
+        {errorMessage ? (
+          <p role="alert" className="font-mono text-[11px] text-signal">
+            {errorMessage}
+          </p>
+        ) : (
+          <p aria-live="polite" className="font-mono text-[11px] text-verdict">
+            {state.saved ? labels.Saved : ""}
+          </p>
+        )}
         <button
           type="submit"
           disabled={isPending}

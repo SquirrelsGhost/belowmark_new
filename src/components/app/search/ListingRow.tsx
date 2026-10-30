@@ -7,7 +7,7 @@ import Stamp from "@/components/ui/Stamp";
 import { listingHref, SEARCH } from "@/lib/appConstants";
 import { formatMoney, getDateParts } from "@/lib/appFormat";
 import { LocaleOption } from "@/lib/constants";
-import { getAddressLine, getPlaceTitle, getRoundLabel, getStatusLabel } from "@/lib/listingLabels";
+import { getAddressLine, getPlaceTitle, getPropertyMetricsChips, getRoundLabel, getStatusLabel } from "@/lib/listingLabels";
 import { getEntryBid } from "@/lib/listingMath";
 import { getAerialTileUrl } from "@/lib/locationLinks";
 import { IAppTranslation } from "@/translations/app/IAppTranslation";
@@ -28,6 +28,8 @@ interface ListingRowProps {
 
 /** Comparisons are only shown when the old pipeline rated them as solid enough. */
 const SHOWN_CONFIDENCE = ["belastbar", "mittel"];
+const HIGH_DISCOUNT_PCT = 25;
+const CONFIDENCE_TR: Record<string, string> = { belastbar: "güvenilir", mittel: "orta" };
 
 /** One proceeding on the board: date sheet, map stamp, place and file, figures, watch button. */
 export default function ListingRow({ listing, status, labels, segmentLabel, locale, isSaved, isNew, isLocked, locator }: ListingRowProps) {
@@ -35,19 +37,16 @@ export default function ListingRow({ listing, status, labels, segmentLabel, loca
   const money = (value: number) => formatMoney(value, listing.market, locale);
   const entry = getEntryBid(listing);
   const discount = listing.tr?.discountPct;
-  const showComparison = discount !== null && discount !== undefined && SHOWN_CONFIDENCE.includes(listing.tr?.confidence ?? "");
+  const rawConfidence = listing.tr?.confidence ?? "";
+  const showComparison = discount !== null && discount !== undefined && SHOWN_CONFIDENCE.includes(rawConfidence);
+  const confidenceLabel = locale === "tr" ? (CONFIDENCE_TR[rawConfidence] ?? rawConfidence) : rawConfidence;
   const round = getRoundLabel(listing, status, labels);
   const href = listingHref(listing.key);
   const hasPdf = Boolean(listing.documentUrl || listing.exposeUrl);
-  const thumbUrl =
-    listing.imageUrl ??
-    (listing.geo ? getAerialTileUrl(listing.geo.lat, listing.geo.lng, listing.geo.precision === "postcode" ? 16 : 14) : null);
+  const metricChips = getPropertyMetricsChips(listing, locale);
+  const thumbUrl = listing.imageUrl ?? (listing.geo ? getAerialTileUrl(listing.geo.lat, listing.geo.lng, listing.geo.precision === "postcode" ? 16 : 14) : null);
   const isDirectPhoto = Boolean(listing.imageUrl);
-  const thumbBadge = isDirectPhoto
-    ? "FOTO"
-    : listing.market === "TR"
-      ? "UYDU"
-      : "LUFTBILD";
+  const thumbBadge = isDirectPhoto ? "FOTO" : locale === "tr" ? "UYDU" : "LUFTBILD";
   const sourceTag =
     listing.market === "TR"
       ? listing.tr?.adType && listing.tr.adType !== "İCRA"
@@ -68,15 +67,8 @@ export default function ListingRow({ listing, status, labels, segmentLabel, loca
       {thumbUrl ? (
         <div className="relative hidden h-20 w-28 shrink-0 self-center overflow-hidden border border-ink/80 bg-ink sm:block">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={thumbUrl}
-            alt=""
-            loading="lazy"
-            className="size-full object-cover transition-transform duration-300 group-hover:scale-105"
-          />
-          <span
-            className={`absolute bottom-1 left-1 px-1 py-px font-mono text-[9px] tracking-[0.12em] text-paper-bright uppercase ${isDirectPhoto ? "bg-signal" : "bg-ink/80"}`}
-          >
+          <img src={thumbUrl} alt="" loading="lazy" className="size-full object-cover transition-transform duration-300 group-hover:scale-105" />
+          <span className={`absolute bottom-1 left-1 px-1 py-px font-mono text-[9px] tracking-[0.12em] text-paper-bright uppercase ${isDirectPhoto ? "bg-signal" : "bg-ink/80"}`}>
             {thumbBadge}
           </span>
         </div>
@@ -90,15 +82,9 @@ export default function ListingRow({ listing, status, labels, segmentLabel, loca
             {round && <span className="text-ink">{round}</span>}
             {sourceTag && <span className="border border-ink/40 px-1.5 py-px text-ink">{sourceTag}</span>}
             {hasPdf && <span className="border border-ink/35 bg-paper-warm/70 px-1.5 py-px text-ink">PDF</span>}
-            {listing.limitsWaived && (
-              <span className="bg-signal px-1.5 py-px font-semibold text-paper-bright">
-                ★ {labels.Waived}
-              </span>
-            )}
-            {showComparison && discount >= 25 && (
-              <span className="bg-verdict px-1.5 py-px font-semibold text-paper-bright">
-                −{Math.round(discount)} %
-              </span>
+            {listing.limitsWaived && <span className="bg-signal px-1.5 py-px font-semibold text-paper-bright">★ {labels.Waived}</span>}
+            {showComparison && discount >= HIGH_DISCOUNT_PCT && (
+              <span className="bg-verdict px-1.5 py-px font-semibold text-paper-bright">−{Math.round(discount)} %</span>
             )}
             {isNew && <span className="bg-ink px-1.5 py-px text-paper-bright">{labels.New}</span>}
           </p>
@@ -108,6 +94,15 @@ export default function ListingRow({ listing, status, labels, segmentLabel, loca
             </Link>
           </h3>
           <p className="mt-0.5 truncate text-sm text-ink-soft">{getAddressLine(listing) || listing.title}</p>
+          {metricChips.length > 0 && (
+            <p className="mt-1.5 flex flex-wrap items-center gap-1.5 font-mono text-[11px] font-medium text-ink">
+              {metricChips.map((chip) => (
+                <span key={chip} className="border border-ink/25 bg-paper-warm/50 px-1.5 py-0.5">
+                  {chip}
+                </span>
+              ))}
+            </p>
+          )}
           <p className="mt-1.5 truncate font-mono text-[11px] text-muted">
             {listing.authority} · {listing.fileNo} · {listing.region}
           </p>
@@ -123,7 +118,7 @@ export default function ListingRow({ listing, status, labels, segmentLabel, loca
           noValueLabel={labels.NoValue}
           entryLabel={listing.market === "TR" ? labels.EntryTr : labels.EntryDe}
           entry={entry === null ? labels.Waived : money(entry)}
-          comparison={showComparison ? `−${Math.round(discount)} % · ${listing.tr?.confidence}` : undefined}
+          comparison={showComparison ? `−${Math.round(discount)} % · ${confidenceLabel}` : undefined}
           isLocked={isLocked}
           lockedLabel={labels.Locked}
         />

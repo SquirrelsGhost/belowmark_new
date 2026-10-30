@@ -112,7 +112,11 @@ export const VERDICT_DE: IVerdictTranslation = {
         Hint: "Innenbesichtigungen sind bei Zwangsversteigerungen oft nicht möglich.",
         Options: { inside: "Ja, innen", outside: "Nur von außen", none: "Gar nicht" },
       },
-      rights: { Label: "", Hint: "", Options: { confirmed: "Ja, geklärt", open: "Noch nicht" } },
+      rights: {
+        Label: "Bestehenbleibende Rechte beim Gericht erfragt?",
+        Hint: "Das geringste Gebot und die Rechte, die bestehen bleiben, nennt der Rechtspfleger auf Nachfrage vor dem Termin.",
+        Options: { confirmed: "Ja, geklärt", open: "Noch nicht" },
+      },
       occupancy: {
         Label: "Wer nutzt das Objekt?",
         Hint: "Aus Gutachten, Nachbarn oder Gläubiger — soweit bekannt.",

@@ -7,6 +7,10 @@ import LockedPanel from "@/components/app/listing/LockedPanel";
 import ListingNotFound from "@/components/app/listing/ListingNotFound";
 import AppMain from "@/components/app/shell/AppMain";
 import AppPageHeader from "@/components/app/shell/AppPageHeader";
+import PageAside from "@/components/ui/PageAside";
+import PageNote from "@/components/ui/PageNote";
+import PageSplitGrid from "@/components/ui/PageSplitGrid";
+import PageStack from "@/components/ui/PageStack";
 import { APP_MAIN_ID, listingHref } from "@/lib/appConstants";
 import { getAppPageContext } from "@/lib/appPage";
 import { closingHref } from "@/lib/closing/closingConstants";
@@ -48,14 +52,14 @@ export default async function ClosingTasksPage({ params }: PageProps<"/app/zusch
     <AppMain id={APP_MAIN_ID}>
       <ClosingListingLink href={listingHref(listing.key)} label={Tasks.Back} />
       <AppPageHeader eyebrow={`${Tasks.Kicker} · ${getPlaceTitle(listing)}`} title={Tasks.Title} lead={Tasks.Lead[listing.market]} />
-      <p className="mt-2 font-mono text-[11px] tracking-[0.1em] text-muted uppercase">{subtitle}</p>
+      <PageNote variant="monoKicker" text={subtitle} />
       <ClosingDisclaimer text={Tasks.Disclaimer} />
       {viewer.plan === "free" ? (
-        <div className="mt-8">
+        <PageStack variant="top8">
           <LockedPanel title={Tasks.Locked.Title} body={Tasks.Locked.Body} cta={Tasks.Locked.Cta} />
-        </div>
+        </PageStack>
       ) : (
-        <div className="mt-8 grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,8fr)_minmax(0,4fr)]">
+        <PageSplitGrid variant="wideLeftCompact">
           <ClosingBoard
             listingKey={listing.key}
             market={listing.market}
@@ -65,10 +69,10 @@ export default async function ClosingTasksPage({ params }: PageProps<"/app/zusch
             labels={Tasks}
             locale={locale}
           />
-          <aside className="lg:sticky lg:top-24 lg:self-start">
+          <PageAside variant="sticky">
             <ClosingDatesForm listingKey={listing.key} market={listing.market} dates={closingCase?.dates ?? null} labels={Tasks.Dates} />
-          </aside>
-        </div>
+          </PageAside>
+        </PageSplitGrid>
       )}
     </AppMain>
   );

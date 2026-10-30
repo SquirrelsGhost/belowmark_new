@@ -233,6 +233,8 @@ export const billingOrders = pgTable(
     paidAt: timestamp("paid_at", { withTimezone: true }),
     /** Access granted by this order runs until here */
     accessEndsAt: timestamp("access_ends_at", { withTimezone: true }),
+    /** Set for an upgrade: the offer it replaces. The order then pays only the prorated difference and keeps the end date. */
+    upgradeFrom: varchar("upgrade_from", { length: 32 }),
     ...timestamps,
   },
   (table) => [index("billing_orders_user_id_idx").on(table.userId)],
@@ -476,3 +478,6 @@ export const teamNotes = pgTable(
 
 // Tables of the after-Zuschlag module (hearing results, closing cases)
 export * from "./closingSchema";
+
+// Tables of the invoices on /konto (billing_invoices, billing_profiles)
+export * from "./invoiceSchema";

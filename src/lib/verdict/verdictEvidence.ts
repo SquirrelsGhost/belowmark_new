@@ -18,9 +18,9 @@ export function parseReportAmount(printed: string): number | null {
   return Number.isFinite(value) && value > 0 ? value : null;
 }
 
-/** "12.03.2024" / "1. 3. 24" → Date (UTC); null when it is no real date. */
+/** "12.03.2024" / "18/05/2023" / "1. 3. 24" → Date (UTC); null when it is no real date. */
 export function parseReportDate(printed: string): Date | null {
-  const match = /(\d{1,2})\.\s?(\d{1,2})\.\s?(\d{2,4})/.exec(printed);
+  const match = /(\d{1,2})[./]\s?(\d{1,2})[./]\s?(\d{2,4})/u.exec(printed);
   if (!match) return null;
   const [day, month] = [Number(match[1]), Number(match[2])];
   const year = match[3].length === 2 ? 2000 + Number(match[3]) : Number(match[3]);

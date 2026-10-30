@@ -41,3 +41,6 @@ next-env.d.ts
 /_tmp_*/
 /.t-migrate.mjs
 
+
+# Instagram-Bilder (npm run insta:daily)
+/marketing/instagram/

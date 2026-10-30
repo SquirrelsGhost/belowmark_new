@@ -1,4 +1,4 @@
-import { BILLING_ROUTES, OFFER_PARAM } from "@/lib/billing/billingConfig";
+import { BILLING_ROUTES, OFFER_PARAM, UPGRADES } from "@/lib/billing/billingConfig";
 import { fill, formatContractDate } from "@/lib/billing/billingFormat";
 import { LocaleOption } from "@/lib/constants";
 import { IBillingTranslation } from "@/translations/billing/IBillingTranslation";
@@ -11,6 +11,8 @@ export interface AccountPlanView {
   term?: string;
   book?: { href: string; label: string };
   cancel?: { href: string; label: string };
+  /** Investor running: switch to Pro for the prorated difference */
+  upgrade?: { href: string; label: string };
   portalUnavailable?: string;
 }
 
@@ -46,6 +48,7 @@ export function buildAccountPlanView(access: BillingAccess, t: IBillingTranslati
     term,
     book,
     cancel: access.renews ? { href: BILLING_ROUTES.cancel, label: Account.Cancel } : undefined,
+    upgrade: access.isActive && access.plan === "investor" && access.offer && UPGRADES[access.offer] ? { href: BILLING_ROUTES.upgrade, label: Account.Upgrade } : undefined,
     portalUnavailable: access.hasStripeCustomer ? undefined : Account.PortalUnavailable,
   };
 }

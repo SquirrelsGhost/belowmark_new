@@ -15,13 +15,14 @@ dotenv.config({ path: ".env.local", quiet: true });
 
 const { password, accounts } = JSON.parse(readFileSync(new URL("../src/lib/auth/devAccounts.json", import.meta.url), "utf8"));
 const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1", "::1", "[::1]"]);
+const isAllowedHost = (host) => LOCAL_HOSTS.has(host) || host.endsWith(".neon.tech");
 const DAY_MS = 24 * 60 * 60 * 1000;
 const TRIAL_MS = 14 * DAY_MS;
 
 const url = process.env.DATABASE_URL;
 if (process.env.NODE_ENV === "production") throw new Error("[seed:dev] Refusing to run with NODE_ENV=production.");
 if (!url) throw new Error("[seed:dev] DATABASE_URL is missing (.env.local).");
-if (!LOCAL_HOSTS.has(new URL(url).hostname)) throw new Error(`[seed:dev] Refusing: ${new URL(url).hostname} is not a local database.`);
+if (!isAllowedHost(new URL(url).hostname)) throw new Error(`[seed:dev] Refusing: ${new URL(url).hostname} is not an allowed dev database.`);
 
 /** Same format as src/lib/auth/password.ts. */
 async function hashPassword(plain) {
@@ -30,7 +31,7 @@ async function hashPassword(plain) {
   return `scrypt$${2 ** 15}$8$1$${salt.toString("hex")}$${hash.toString("hex")}`;
 }
 
-const client = new pg.Client({ connectionString: url, connectionTimeoutMillis: 1500 });
+const client = new pg.Client({ connectionString: url, connectionTimeoutMillis: 10000 });
 try {
   await client.connect();
 } catch {

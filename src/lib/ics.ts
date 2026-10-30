@@ -14,10 +14,25 @@ const stamp = (iso: string) => new Date(iso).toISOString().replace(/[-:]/g, "").
 
 const escape = (text: string) => text.replace(/\\/g, "\\\\").replace(/;/g, "\;").replace(/,/g, "\\,").replace(/\r?\n/g, "\\n");
 
-/** Long lines are folded with CRLF + space, as the standard requires. */
+/** Long lines are folded by UTF-8 octets (RFC 5545 § 3.1: max 75 octets per line, never splitting a multi-byte char). */
 function fold(line: string): string {
   const parts: string[] = [];
-  for (let index = 0; index < line.length; index += LINE_LIMIT) parts.push(line.slice(index, index + LINE_LIMIT));
+  let current = "";
+  let bytes = 0;
+  for (const ch of line) {
+    const size = Buffer.byteLength(ch, "utf8");
+    const limit = parts.length === 0 ? 75 : LINE_LIMIT;
+    if (bytes + size > limit && current.length > 0) {
+      parts.push(current);
+      current = "";
+      bytes = 0;
+    }
+    current += ch;
+    bytes += size;
+  }
+  if (current.length > 0 || parts.length === 0) {
+    parts.push(current);
+  }
   return parts.join("\r\n ");
 }
 
@@ -32,7 +47,7 @@ function events(listing: Listing, labels: IAppTranslation["Ics"], now: number, c
     .filter((round) => Date.parse(round.end) >= now)
     .flatMap((round) => [
       "BEGIN:VEVENT",
-      `UID:${encodeURIComponent(listing.key)}-${round.round}@belowmark.com`,
+      fold(`UID:${encodeURIComponent(listing.key)}-${round.round}@belowmark.com`),
       `DTSTAMP:${stamp(createdAt)}`,
       `DTSTART:${stamp(round.start)}`,
       `DTEND:${stamp(round.end === round.start ? new Date(Date.parse(round.start) + 60 * 60 * 1000).toISOString() : round.end)}`,

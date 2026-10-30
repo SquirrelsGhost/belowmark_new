@@ -1,7 +1,6 @@
 import { Metadata } from "next";
 import SearchAlertSave from "@/components/app/alerts/SearchAlertSave";
 import RegionLocator from "@/components/app/map/RegionLocator";
-import RegionLocatorSprite from "@/components/app/map/RegionLocatorSprite";
 import SearchMapSection from "@/components/app/map/SearchMapSection";
 import AppMain from "@/components/app/shell/AppMain";
 import AppPageHeader from "@/components/app/shell/AppPageHeader";
@@ -18,6 +17,8 @@ import SearchHotkey from "@/components/app/search/SearchHotkey";
 import SearchToolbar from "@/components/app/search/SearchToolbar";
 import SearchViewSwitch from "@/components/app/search/SearchViewSwitch";
 import SortLink from "@/components/app/search/SortLink";
+import PageSection from "@/components/ui/PageSection";
+import PageSplitGrid from "@/components/ui/PageSplitGrid";
 import { APP_MAIN_ID, APP_ROUTES } from "@/lib/appConstants";
 import { fill } from "@/lib/appFormat";
 import { appMetadata, getAppPageContext } from "@/lib/appPage";
@@ -42,10 +43,11 @@ export default async function SearchPage({ searchParams }: PageProps<"/app">) {
   const { viewer, app, locale, meta } = await getAppPageContext(APP_ROUTES.search);
   const filters = parseFilters(await searchParams);
   const market = viewer.market;
-  const [result, saved, geo] = await Promise.all([
+  const [result, saved, geo, sprite] = await Promise.all([
     ListingService.search(market, filters, viewer.now),
     WatchlistService.keys(viewer.id),
     GeoService.getMarket(market),
+    GeoService.getLocatorSprite(market),
   ]);
   const { Search, Row, Segments, Views } = app;
   const isLocked = viewer.plan === "free";
@@ -56,7 +58,6 @@ export default async function SearchPage({ searchParams }: PageProps<"/app">) {
   return (
     <AppMain id={APP_MAIN_ID}>
       <SearchHotkey targetId="filter-q" />
-      <RegionLocatorSprite regions={geo.regions} />
       <AppPageHeader eyebrow={Search.Eyebrow[market]} title={Search.Title} lead={Search.Lead[market]} />
 
       <HearingCalendar
@@ -70,10 +71,10 @@ export default async function SearchPage({ searchParams }: PageProps<"/app">) {
         ))}
       </HearingCalendar>
 
-      <div className="mt-8 grid gap-8 lg:grid-cols-[280px_minmax(0,1fr)] lg:items-start">
+      <PageSplitGrid variant="search">
         <SearchFilterPanel filters={filters} regions={result.regions} market={market} app={app} locale={locale} />
 
-        <section aria-label={Search.Title} className="min-w-0">
+        <PageSection label={Search.Title}>
           <SearchToolbar
             summary={result.total === 1 ? Search.SummaryOne : fill(Search.Summary, { count })}
             detail={result.nextSevenDays > 0 && filters.scope !== "past" ? fill(Search.NextSevenDays, { count: result.nextSevenDays }) : undefined}
@@ -118,6 +119,7 @@ export default async function SearchPage({ searchParams }: PageProps<"/app">) {
                   isLocked={isLocked}
                   locator={
                     <RegionLocator
+                      sprite={sprite.href}
                       width={width}
                       height={height}
                       regionCode={listing.regionCode}
@@ -141,8 +143,8 @@ export default async function SearchPage({ searchParams }: PageProps<"/app">) {
               nextHref={result.page < result.pageCount ? searchHref(filters, { page: result.page + 1 }) : undefined}
             />
           )}
-        </section>
-      </div>
+        </PageSection>
+      </PageSplitGrid>
     </AppMain>
   );
 }

@@ -1,4 +1,4 @@
-import { FilterOption } from "@/components/app/search/FilterSelect";
+import type { FilterOption } from "@/components/app/search/FilterSelect";
 
 interface FilterScopeProps {
   name: string;

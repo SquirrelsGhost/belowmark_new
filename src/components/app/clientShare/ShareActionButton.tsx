@@ -5,12 +5,14 @@ import { useActionState } from "react";
 import ClientShareCreated from "@/components/app/clientShare/ClientShareCreated";
 import { ClientShareActionState, changeClientShareAction } from "@/lib/clientShare/clientShareActions";
 import { IClientShareTranslation } from "@/translations/clientShare/IClientShareTranslation";
+import type { ClientShareErrorCode } from "@/types/clientShare.types";
 
 interface ShareActionButtonProps {
   shareId: string;
   intent: "revoke" | "delete" | "renew";
   label: string;
   errorLabel: string;
+  errorMessages?: Partial<Record<ClientShareErrorCode, string>>;
   /** Needed for "renew": the new address is shown once */
   created?: IClientShareTranslation["Created"];
   renewedTitle?: string;
@@ -22,7 +24,7 @@ const INTENT_CLASSES: Record<ShareActionButtonProps["intent"], string> = {
   delete: "border-transparent text-signal hover:border-signal",
 };
 
-export default function ShareActionButton({ shareId, intent, label, errorLabel, created, renewedTitle }: ShareActionButtonProps) {
+export default function ShareActionButton({ shareId, intent, label, errorLabel, errorMessages, created, renewedTitle }: ShareActionButtonProps) {
   const [state, formAction, isPending] = useActionState<ClientShareActionState, FormData>(changeClientShareAction, { ok: true });
   if (state.ok && state.path && state.printPath && created) {
     return (
@@ -44,7 +46,7 @@ export default function ShareActionButton({ shareId, intent, label, errorLabel, 
       </button>
       {!state.ok && (
         <span role="alert" className="mt-1 font-mono text-[10px] text-signal">
-          {errorLabel}
+          {(state.error && errorMessages?.[state.error]) ?? errorLabel}
         </span>
       )}
     </form>

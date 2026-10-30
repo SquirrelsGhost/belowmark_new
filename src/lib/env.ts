@@ -36,9 +36,15 @@ export const env = {
   },
 
   // ── PostgreSQL ─────────────────────────────────────────────
-  /** Full PostgreSQL connection string. SERVER ONLY. */
+  /** Full PostgreSQL connection string (supports DATABASE_URL & POSTGRES_URL). SERVER ONLY. */
   get databaseUrl(): string {
+    const val = process.env.DATABASE_URL || process.env.POSTGRES_URL;
+    if (val) return val;
     return requireEnv("DATABASE_URL");
+  },
+  /** Direct (non-pooled) PostgreSQL connection string when available. SERVER ONLY. */
+  get databaseUrlUnpooled(): string {
+    return optionalEnv("DATABASE_URL_UNPOOLED", optionalEnv("POSTGRES_URL_NON_POOLING", this.databaseUrl));
   },
 
   // ── Mail (SMTP) ────────────────────────────────────────────
@@ -114,8 +120,16 @@ export const env = {
     const val = optionalEnv("BILLING_TR_ENABLED", "yes").trim().toLowerCase();
     return val !== "no" && val !== "off" && val !== "false";
   },
-  /** Local/fallback checkout without Stripe key. Enabled unless explicitly set to "off". SERVER ONLY. */
+  /**
+   * "inclusive" = TRY prices contain 20 % Turkish KDV (only once registered as
+   * a foreign e-service provider in Türkiye). Empty = KDV not charged, shown as open. SERVER ONLY.
+   */
+  get billingTrKdvIncluded(): boolean {
+    return optionalEnv("BILLING_TR_KDV").trim().toLowerCase() === "inclusive";
+  },
+  /** Local/fallback checkout without Stripe key. Enabled outside production unless explicitly set to "off". SERVER ONLY. */
   get billingTestCheckout(): boolean {
+    if (process.env.NODE_ENV === "production") return false;
     return optionalEnv("BILLING_TEST_CHECKOUT", "on").trim().toLowerCase() !== "off";
   },
   /** Where withdrawals and cancellations are reported to the operator. Empty = MAIL_FROM address. SERVER ONLY. */

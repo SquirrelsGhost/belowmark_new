@@ -52,6 +52,8 @@ export const REPORT_TR: IReportTranslation = {
         unreadable: "PDF açılamadı (bozuk veya şifreli).",
         plan: "Rapor okuyucu Investor planına dahildir.",
         unauthorized: "Lütfen yeniden giriş yapın.",
+        banned: "Hesabınız askıya alındı.",
+        account_banned: "Hesabınız askıya alındı.",
         listing: "Bu ilan artık yok.",
         internal: "İşlem başarısız oldu. Lütfen daha sonra tekrar deneyin.",
       },

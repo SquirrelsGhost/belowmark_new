@@ -6,11 +6,26 @@ const INTL_LOCALES: Record<LocaleOption, string> = { de: "de-DE", tr: "tr-TR" };
 /** Contract dates are Berlin calendar dates — the provider sits in Germany. */
 export const BILLING_TIME_ZONE = "Europe/Berlin";
 
-/** Price with cents, as the contract states it: "79,00 €", "990,00 ₺". */
+/** Price with cents, as the contract states it: "39,00 €", "599,00 ₺". */
 export function formatPrice(price: OfferPrice, locale: LocaleOption): string {
-  return new Intl.NumberFormat(INTL_LOCALES[locale], { style: "currency", currency: price.currency.toUpperCase(), minimumFractionDigits: 2 }).format(
-    price.amount / 100,
-  );
+  return new Intl.NumberFormat(INTL_LOCALES[locale], {
+    style: "currency",
+    currency: price.currency.toUpperCase(),
+    currencyDisplay: "narrowSymbol",
+    minimumFractionDigits: 2,
+  }).format(price.amount / 100);
+}
+
+/** Compact price for selection cards: omits ",00" when whole ("39 €", "1.490 ₺"). */
+export function formatCardPrice(price: OfferPrice, locale: LocaleOption): string {
+  const isWhole = price.amount % 100 === 0;
+  return new Intl.NumberFormat(INTL_LOCALES[locale], {
+    style: "currency",
+    currency: price.currency.toUpperCase(),
+    currencyDisplay: "narrowSymbol",
+    minimumFractionDigits: isWhole ? 0 : 2,
+    maximumFractionDigits: isWhole ? 0 : 2,
+  }).format(price.amount / 100);
 }
 
 /** "26.10.2026" in Berlin time. */

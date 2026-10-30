@@ -19,14 +19,13 @@ export async function GET(request: Request, { params }: RouteContext): Promise<R
   try {
     const user = await SessionService.getCurrentUser();
     if (!user) return err("Nicht angemeldet", 401);
+    if (!user.hasFullAccess) return err("Dieser Abruf erfordert einen aktiven Tarif.", 403);
 
     const { key: rawKey } = await params;
     const key = decodeURIComponent(rawKey);
     const market = user.market === "TR" ? "TR" : "DE";
 
-    const listing =
-      (await ListingService.getByKey(market, key)) ??
-      (await ListingService.getByKey(market === "DE" ? "TR" : "DE", key));
+    const listing = await ListingService.getByKey(market, key);
 
     if (!listing) return err("Verfahren nicht gefunden", 404);
 
@@ -57,7 +56,8 @@ export async function GET(request: Request, { params }: RouteContext): Promise<R
       });
     }
 
-    if (mode === "portal") {
+    const isPortalBridge = mode === "portal" || url.searchParams.get("bridge") === "1";
+    if (isPortalBridge) {
       const isZvgPortal =
         listing.key.startsWith("zvgportal-") || (listing.officialUrl ?? "").includes("zvg-portal.de");
       if (isZvgPortal) {
@@ -66,10 +66,14 @@ export async function GET(request: Request, { params }: RouteContext): Promise<R
           headers: {
             "Content-Type": "text/html; charset=utf-8",
             "Cache-Control": "private, no-store",
+            "X-Content-Type-Options": "nosniff",
           },
         });
       }
-      return Response.redirect(listing.officialUrl || "https://www.zvg-portal.de/", 302);
+      const targetUrl = listing.officialUrl && /^https?:\/\//i.test(listing.officialUrl)
+        ? listing.officialUrl
+        : "https://www.zvg-portal.de/";
+      return Response.redirect(targetUrl, 302);
     }
 
     const docResult = await OfficialPortalService.fetchDocumentBuffer(listing, { fileId, doc });
@@ -78,11 +82,16 @@ export async function GET(request: Request, { params }: RouteContext): Promise<R
     }
 
     const safeFilename = docResult.fileName.replace(/[^\w.-]+/g, "_");
+    const safeContentType =
+      docResult.contentType === "application/pdf" || docResult.contentType.startsWith("image/")
+        ? docResult.contentType
+        : "application/octet-stream";
     return new Response(new Uint8Array(docResult.buffer), {
       headers: {
-        "Content-Type": docResult.contentType,
+        "Content-Type": safeContentType,
         "Content-Disposition": `inline; filename="${safeFilename}"`,
         "Cache-Control": "private, max-age=3600",
+        "X-Content-Type-Options": "nosniff",
       },
     });
   } catch (error) {

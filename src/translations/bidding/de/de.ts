@@ -4,7 +4,7 @@ export const BIDDING_DE: IBiddingTranslation = {
   MetaTags: {
     BidderFile: {
       title: "Bieter-Mappe — Belowmark",
-      description: "Alle Fakten eines Verfahrens auf Papier: Termin, Verkehrswert, Grenzen, Sicherheitsleistung, Ihr Bietlimit, Vergleichswerte mit Quelle und die Prüfliste für den Termin.",
+      description: "Alle Fakten eines Verfahrens auf Papier: Termin, Verkehrswert, Grenzen, Sicherheitsleistung, Ihr Bietlimit, Vergleichswerte und Termin-Prüfliste.",
       imgUrl: "https://belowmark.com/og/home.png",
       tags: ["Bieter-Mappe", "Zwangsversteigerung"],
       url: "https://belowmark.com/app",

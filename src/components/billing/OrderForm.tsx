@@ -1,108 +1,120 @@
-// Needs state for the chosen duration and useActionState for the order action
+// Needs state for the chosen market & duration, and useActionState for the order action
 "use client";
 
-import { useActionState, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useActionState, useState, useTransition } from "react";
 import AuthCheckbox from "@/components/auth/AuthCheckbox";
-import AuthIcon from "@/components/auth/AuthIcon";
 import AuthErrorSummary from "@/components/auth/AuthErrorSummary";
+import AuthIcon from "@/components/auth/AuthIcon";
 import AuthSubmit from "@/components/auth/AuthSubmit";
-import OrderOfferOption from "@/components/billing/OrderOfferOption";
+import BillingNotice from "@/components/billing/BillingNotice";
+import OrderMarketOption from "@/components/billing/OrderMarketOption";
+import OrderOfferList from "@/components/billing/OrderOfferList";
 import OrderSummaryRow from "@/components/billing/OrderSummaryRow";
 import OrderTermsNote from "@/components/billing/OrderTermsNote";
 import { placeOrderAction } from "@/lib/billing/actions/placeOrderAction";
-import { INITIAL_ORDER_STATE } from "@/lib/billing/billingForm.types";
+import { INITIAL_ORDER_STATE, OrderFormLabels, OrderMarketView, OrderOfferView } from "@/lib/billing/billingForm.types";
+import { MARKETS, MarketCode } from "@/lib/constants";
+import { setMarketAction } from "@/lib/regionActions";
 
-export interface OrderOfferView {
-  id: string;
-  name: string;
-  price: string;
-  period: string;
-  term: string;
-  summary: string;
-  badge?: string;
-  blockedReason?: string;
-}
-
-export interface OrderFormLabels {
-  ChooseOffer: string;
-  SummaryTitle: string;
-  Account: string;
-  Market: string;
-  Start: string;
-  StartValue: string;
-  Total: string;
-  ConsentLabel: string;
-  ConsentRequired: string;
-  TermsNote: string;
-  TermsLink: string;
-  WithdrawalLink: string;
-  PrivacyLink: string;
-  Submit: string;
-  Pending: string;
-  PaymentNote: string;
-  ErrorTitle: string;
-  Failed: string;
-  Blocked: string;
-}
+export type { OrderFormLabels, OrderMarketView, OrderOfferView };
 
 interface OrderFormProps {
-  offers: OrderOfferView[];
+  offersByMarket: Record<MarketCode, OrderOfferView[]>;
+  markets: Record<MarketCode, OrderMarketView>;
+  initialMarket: MarketCode;
   initialOffer: string;
   email: string;
-  market: string;
-  vatNote: string;
+  /** VAT line per market — Germany with USt, Türkiye without German VAT */
+  vatNotes: Record<MarketCode, string>;
+  /** Shown under the offers while Investor runs: link to the prorated upgrade */
+  upgrade?: { href: string; label: string };
   labels: OrderFormLabels;
 }
 
-/** Duration, summary, the one consent, the order button — everything § 312j BGB wants right above it. */
-export default function OrderForm({ offers, initialOffer, email, market, vatNote, labels }: OrderFormProps) {
+const STEP_LEGEND_CLASSES = "mb-3 font-mono text-[11px] font-semibold tracking-[0.14em] text-ink-soft uppercase";
+
+/** Market switch, duration, summary, the one consent, the order button — everything § 312j BGB wants right above it. */
+export default function OrderForm({ offersByMarket, markets, initialMarket, initialOffer, email, vatNotes, upgrade, labels }: OrderFormProps) {
+  const router = useRouter();
   const [state, action] = useActionState(placeOrderAction, INITIAL_ORDER_STATE);
+  const [selectedMarket, setSelectedMarket] = useState<MarketCode>(state.market ?? initialMarket);
   const [selected, setSelected] = useState(state.offer ?? initialOffer);
+  const [, startTransition] = useTransition();
+
+  const offers = offersByMarket[selectedMarket];
   const offer = offers.find((item) => item.id === selected) ?? offers[0];
+  const currentMarket = markets[selectedMarket];
   const formError = state.code === "failed" ? labels.Failed : state.code === "blocked" ? labels.Blocked : undefined;
+
+  const chooseMarket = (next: MarketCode) => {
+    setSelectedMarket(next);
+    startTransition(async () => {
+      try {
+        await setMarketAction(next);
+        router.refresh();
+      } catch {}
+    });
+  };
 
   return (
     <form action={action} className="grid gap-7" noValidate>
       {formError && <AuthErrorSummary title={labels.ErrorTitle} message={formError} />}
-      <fieldset className="grid gap-3">
-        <legend className="mb-3 font-mono text-[11px] font-semibold tracking-[0.14em] text-ink-soft uppercase">
-          <span className="text-signal">01</span> {labels.ChooseOffer}
+      <fieldset className="grid gap-2">
+        <legend className={STEP_LEGEND_CLASSES}>
+          <span className="text-signal">01</span> {labels.Market}
         </legend>
         <div className="grid gap-3 sm:grid-cols-2">
-          {offers.map((item) => (
-            <OrderOfferOption key={item.id} {...item} isSelected={item.id === offer.id} onSelect={() => setSelected(item.id)} />
+          {MARKETS.map((code) => (
+            <OrderMarketOption key={code} {...markets[code]} isSelected={code === selectedMarket} onSelect={() => chooseMarket(code)} />
           ))}
         </div>
+        <p className="text-xs leading-relaxed text-muted">{labels.MarketNote}</p>
       </fieldset>
 
-      <section aria-labelledby="order-summary-title">
-        <h3 id="order-summary-title" className="font-mono text-[11px] font-semibold tracking-[0.14em] text-ink-soft uppercase">
-          <span className="text-signal">02</span> {labels.SummaryTitle}
-        </h3>
-        <dl className="mt-3 border-t border-rule" aria-live="polite">
-          <OrderSummaryRow label={offer.name} value={offer.summary} />
-          <OrderSummaryRow label={labels.Account} value={email} />
-          <OrderSummaryRow label={labels.Market} value={market} />
-          <OrderSummaryRow label={labels.Start} value={labels.StartValue} />
-          <OrderSummaryRow label={offer.period} value={offer.term} />
-          <OrderSummaryRow label={labels.Total} value={offer.price} note={vatNote} isTotal />
-        </dl>
-      </section>
+      {currentMarket.blocker ? (
+        <BillingNotice message={currentMarket.blocker} />
+      ) : (
+        <>
+          <OrderOfferList
+            legend={labels.ChooseOffer}
+            legendClassName={STEP_LEGEND_CLASSES}
+            offers={offers}
+            selectedId={offer.id}
+            onSelect={setSelected}
+            upgrade={upgrade}
+          />
 
-      <div className="grid gap-4">
-        <AuthCheckbox id="order-consent" name="consent" required error={state.code === "consent_required" ? labels.ConsentRequired : undefined}>
-          {labels.ConsentLabel}
-        </AuthCheckbox>
-        <OrderTermsNote template={labels.TermsNote} labels={{ terms: labels.TermsLink, withdrawal: labels.WithdrawalLink, privacy: labels.PrivacyLink }} />
-      </div>
+          <section aria-labelledby="order-summary-title">
+            <h3 id="order-summary-title" className={STEP_LEGEND_CLASSES}>
+              <span className="text-signal">03</span> {labels.SummaryTitle}
+            </h3>
+            <dl className="mt-3 border-t border-rule" aria-live="polite">
+              <OrderSummaryRow label={offer.name} value={offer.summary} />
+              <OrderSummaryRow label={labels.Account} value={email} />
+              <OrderSummaryRow label={labels.Market} value={`${currentMarket.label} · ${selectedMarket}`} />
+              <OrderSummaryRow label={labels.Start} value={labels.StartValue} />
+              <OrderSummaryRow label={offer.period} value={offer.term} />
+              <OrderSummaryRow label={labels.Total} value={offer.totalPrice} note={vatNotes[selectedMarket]} isTotal />
+            </dl>
+          </section>
 
-      <div className="grid gap-3">
-        <AuthSubmit label={labels.Submit} pendingLabel={labels.Pending} variant="signal" />
-        <p className="flex items-start gap-2 font-mono text-[11px] leading-relaxed text-muted">
-          <AuthIcon name="lock" className="mt-0.5 size-3.5 shrink-0 text-ink" />
-          {labels.PaymentNote}
-        </p>
-      </div>
+          <div className="grid gap-4">
+            <AuthCheckbox id="order-consent" name="consent" required error={state.code === "consent_required" ? labels.ConsentRequired : undefined}>
+              {labels.ConsentLabel}
+            </AuthCheckbox>
+            <OrderTermsNote template={labels.TermsNote} labels={{ terms: labels.TermsLink, withdrawal: labels.WithdrawalLink, privacy: labels.PrivacyLink }} />
+          </div>
+
+          <div className="grid gap-3">
+            <AuthSubmit label={labels.Submit} pendingLabel={labels.Pending} variant="signal" />
+            <p className="flex items-start gap-2 font-mono text-[11px] leading-relaxed text-muted">
+              <AuthIcon name="lock" className="mt-0.5 size-3.5 shrink-0 text-ink" />
+              {labels.PaymentNote}
+            </p>
+          </div>
+        </>
+      )}
     </form>
   );
 }

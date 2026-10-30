@@ -14,7 +14,8 @@ interface HealthResponse {
   database: DatabaseHealth;
 }
 
-export async function GET(): Promise<Response> {
+export async function GET(req: Request): Promise<Response> {
+  void req.url;
   try {
     const dbHealth = await DatabaseService.checkHealth();
 

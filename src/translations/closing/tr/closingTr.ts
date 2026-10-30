@@ -12,10 +12,10 @@ export const CLOSING_TR: IClosingTranslation = {
     },
     Results: {
       title: "İhale sonuçları — Belowmark",
-      description: "İcra ihalelerinde gerçekte ödenen: muhammen bedele oranla ihale bedeli, bildirilen sonuçlardan, anonim ve grup başına en az beş ihaleden.",
+      description: "İcra ihalelerinde gerçekte ödenen tutarlar: muhammen bedele oranla ihale bedeli, bildirilen sonuçlardan, anonim ve grup başına en az beş ihaleden.",
       imgUrl: "https://belowmark.com/og/home.png",
       tags: ["ihale bedeli", "muhammen bedel", "icra", "ihale sonucu"],
-      url: "https://belowmark.com/app",
+      url: "https://belowmark.com/app/ergebnisse",
     },
   },
 
@@ -118,6 +118,12 @@ export const CLOSING_TR: IClosingTranslation = {
       Save: "Tarihleri kaydet",
       Saved: "Kaydedildi.",
       Required: "Lütfen en azından ihale tarihini girin.",
+      Errors: {
+        auth: "Lütfen tekrar giriş yapın.",
+        locked: "Görev listesi Yatırımcı paketine dahildir.",
+        date: "Lütfen en azından ihale tarihini girin.",
+        unknown: "Kaydedilemedi. Lütfen tekrar deneyin.",
+      },
     },
     Conditions: {
       Title: "Durumunuz",

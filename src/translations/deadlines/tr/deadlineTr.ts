@@ -3,7 +3,7 @@ import { IDeadlineTranslation } from "../IDeadlineTranslation";
 export const DEADLINE_TR: IDeadlineTranslation = {
   MetaTags: {
     title: "Süre Takibi — Belowmark",
-    description: "İlandan ihaleye kadar tüm süreler, mevzuat kaynağıyla: teminat, artırma başlangıcı ve bitişi. E-posta hatırlatması ve takvim aboneliği ile.",
+    description: "İlandan ihaleye kadar tüm yasal süreler, mevzuat kaynağıyla: teminat, artırma başlangıcı ve bitişi. E-posta hatırlatması ve takvim aboneliği ile.",
     imgUrl: "https://belowmark.com/og/home.png",
     tags: ["süre", "icra ihalesi", "teminat", "takvim"],
     url: "https://belowmark.com/app/termine",

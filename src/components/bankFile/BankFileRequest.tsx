@@ -31,7 +31,7 @@ export default function BankFileRequest({ listingId, context, labels, costLabels
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 print:grid-cols-2">
         <div>
           <p className={COLUMN_TITLE}>{R.UsesTitle}</p>
           <dl className="divide-y divide-rule">

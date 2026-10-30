@@ -8,6 +8,7 @@ const DAY = 24 * HOUR;
 
 /** `__Host-` forces Secure + Path=/ + no Domain, so subdomains can't plant it. */
 export const SESSION_COOKIE_NAME = process.env.NODE_ENV === "production" ? "__Host-bm_session" : "bm_session";
+export const SESSION_COOKIE_CANDIDATES = ["__Host-bm_session", "bm_session"] as const;
 
 export const SESSION_TTL = {
   /** "Angemeldet bleiben" ticked */
@@ -59,8 +60,13 @@ export const RATE_LIMITS = {
   declarationIp: { limit: 8, windowMs: HOUR },
   /** Account deletion attempts (password check). */
   deleteAccount: { limit: 5, windowMs: 15 * MINUTE },
+  /** Authenticated profile / user mutation actions per window. */
+  profileUpdate: { limit: 30, windowMs: 15 * MINUTE },
 } as const;
-export type RateLimitRule = (typeof RATE_LIMITS)[keyof typeof RATE_LIMITS];
+export interface RateLimitRule {
+  readonly limit: number;
+  readonly windowMs: number;
+}
 
 export const AUTH_ROUTES = {
   login: "/login",

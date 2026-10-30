@@ -3,7 +3,7 @@ import { IAlertsTranslation } from "../IAlertsTranslation";
 export const ALERTS_DE: IAlertsTranslation = {
   MetaTags: {
     title: "Alerts — Belowmark",
-    description: "Gespeicherte Suchen mit Mail-Benachrichtigung: Sie erfahren es, sobald ein passendes Verfahren neu erscheint oder sich ein Termin ändert.",
+    description: "Gespeicherte Suchen mit E-Mail-Benachrichtigung: Sie erfahren sofort, sobald ein passendes Verfahren neu erscheint oder sich ein Termin ändert.",
     imgUrl: "https://belowmark.com/og/home.png",
     tags: ["Alerts", "Zwangsversteigerung", "Suchauftrag"],
     url: "https://belowmark.com/app/alerts",

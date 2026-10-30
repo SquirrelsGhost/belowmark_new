@@ -73,9 +73,9 @@ export const AUTH_TR: IAuthTranslation = {
   Login: {
     MetaTags: {
       title: "Giriş yap — Belowmark",
-      description: "Belowmark'a giriş yapın: resmi icra ve kamu ihaleleri, her dosya için kıymet, sınırlar ve masraflarla. Tahmin değil, kaynak.",
+      description: "Belowmark hesabınıza giriş yapın: resmî icra ve cebri satış ihaleleri, her dosya için muhammen bedel, yasal sınırlar ve masraflarla kaynağından.",
       imgUrl: OG_IMAGE,
-      tags: ["Belowmark", "Giriş", "İcra ihalesi"],
+      tags: ["Belowmark", "Giriş", "Oturum aç", "İcra ihalesi"],
       url: "https://belowmark.com/login",
     },
     Intro: {
@@ -100,7 +100,7 @@ export const AUTH_TR: IAuthTranslation = {
   Signup: {
     MetaTags: {
       title: "Hesap oluştur — Belowmark",
-      description: "Ücretsiz bir Belowmark hesabı oluşturun ve erişimi 14 gün deneyin: kaynaklı icra ihaleleri, her dosya için sınırlar ve masraflar.",
+      description: "Ücretsiz bir Belowmark hesabı oluşturun ve tam erişimi 14 gün deneyin: resmi kaynaklı icra ihaleleri, her dosya için yasal sınırlar ve masraflar.",
       imgUrl: OG_IMAGE,
       tags: ["Belowmark", "Kayıt", "Hesap oluştur", "İcra ihalesi"],
       url: "https://belowmark.com/signup",
@@ -157,7 +157,7 @@ export const AUTH_TR: IAuthTranslation = {
   Reset: {
     MetaTags: {
       title: "Yeni parola belirle — Belowmark",
-      description: "Belowmark hesabınız için yeni bir parola belirleyin. Ardından diğer tüm cihazlarda oturum kapanır ve siz doğrudan giriş yapmış olursunuz.",
+      description: "Belowmark hesabınız için güvenli yeni bir parola belirleyin. Ardından diğer tüm cihazlarda oturum kapanır ve doğrudan giriş yapmış olursunuz.",
       imgUrl: OG_IMAGE,
       tags: ["Belowmark", "Yeni parola"],
       url: "https://belowmark.com/passwort-neu",
@@ -183,7 +183,7 @@ export const AUTH_TR: IAuthTranslation = {
   Verify: {
     MetaTags: {
       title: "E-posta adresini doğrula — Belowmark",
-      description: "Belowmark hesabınızı etkinleştirmek için e-posta adresinizi doğrulayın. Doğrulamayla birlikte 14 günlük ücretsiz deneme erişiminiz başlar.",
+      description: "Belowmark hesabınızı etkinleştirmek için e-posta adresinizi doğrulayın. Doğrulamayla birlikte 14 günlük ücretsiz tam deneme erişiminiz başlar.",
       imgUrl: OG_IMAGE,
       tags: ["Belowmark", "E-posta doğrulama"],
       url: "https://belowmark.com/email-bestaetigen",
@@ -230,7 +230,7 @@ export const AUTH_TR: IAuthTranslation = {
   Account: {
     MetaTags: {
       title: "Hesabınız — Belowmark",
-      description: "Belowmark hesabınız: pazar, deneme süresi ve güvenlik. Parolanızı değiştirin veya tüm cihazlarda oturumu kapatın.",
+      description: "Belowmark kişisel hesabınız: seçili pazar, deneme süresi, tarife ve güvenlik ayarları. Parolanızı değiştirin veya tüm cihazlarda oturumu kapatın.",
       imgUrl: OG_IMAGE,
       tags: ["Belowmark", "Hesap"],
       url: "https://belowmark.com/konto",

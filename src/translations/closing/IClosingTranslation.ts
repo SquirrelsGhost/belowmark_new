@@ -70,6 +70,7 @@ export interface IClosingTranslation {
       Save: string;
       Saved: string;
       Required: string;
+      Errors: Partial<Record<ClosingErrorCode, string>>;
     };
     Conditions: { Title: string; Lead: string; Items: Record<ClosingCondition, string> };
     Phases: Record<ClosingPhase, string>;

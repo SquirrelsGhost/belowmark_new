@@ -64,6 +64,20 @@
       "when": 1793050000001,
       "tag": "0008_closing_results",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1793060000000,
+      "tag": "0009_invoices",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1793070000000,
+      "tag": "0010_upgrades",
+      "breakpoints": true
     }
   ]
 }

@@ -21,6 +21,8 @@ const INITIAL_STATE: AlertActionState = { ok: true };
 
 const SUBMIT_CLASSES =
   "h-10 cursor-pointer bg-ink px-4 font-narrow text-xs font-semibold tracking-[0.1em] text-paper-bright uppercase shadow-[3px_3px_0_0_var(--signal)] disabled:opacity-60";
+const CHECKBOX_LABEL_CLASSES = "flex cursor-pointer items-center gap-2.5 text-sm text-ink-soft";
+const CHECKBOX_CLASSES = "size-4 cursor-pointer accent-ink";
 
 /** "Suche als Alert speichern" — folded away until needed, so the results stay on top. */
 export default function SaveAlertForm({ params, defaultName, summary, labels }: SaveAlertFormProps) {
@@ -49,12 +51,12 @@ export default function SaveAlertForm({ params, defaultName, summary, labels }: 
             <span className={LABEL_CLASSES}>{labels.NameLabel}</span>
             <input name="name" required maxLength={ALERTS.nameMaxLength} defaultValue={defaultName} className={CONTROL_CLASSES} />
           </label>
-          <label className="flex cursor-pointer items-center gap-2.5 text-sm text-ink-soft">
-            <input type="checkbox" name="notifyNew" value="1" defaultChecked className="size-4 cursor-pointer accent-ink" />
+          <label className={CHECKBOX_LABEL_CLASSES}>
+            <input type="checkbox" name="notifyNew" value="1" defaultChecked className={CHECKBOX_CLASSES} />
             {labels.NotifyNew}
           </label>
-          <label className="flex cursor-pointer items-center gap-2.5 text-sm text-ink-soft">
-            <input type="checkbox" name="notifyChanges" value="1" defaultChecked className="size-4 cursor-pointer accent-ink" />
+          <label className={CHECKBOX_LABEL_CLASSES}>
+            <input type="checkbox" name="notifyChanges" value="1" defaultChecked className={CHECKBOX_CLASSES} />
             {labels.NotifyChanges}
           </label>
           <p className="font-mono text-[10px] leading-relaxed text-muted">{labels.Hint}</p>

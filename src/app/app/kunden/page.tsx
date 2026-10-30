@@ -11,6 +11,7 @@ import ShareList from "@/components/app/clientShare/ShareList";
 import AppMain from "@/components/app/shell/AppMain";
 import AppPageHeader from "@/components/app/shell/AppPageHeader";
 import WatchlistEmpty from "@/components/app/watchlist/WatchlistEmpty";
+import PageStack from "@/components/ui/PageStack";
 import { APP_MAIN_ID, listingHref } from "@/lib/appConstants";
 import { fill } from "@/lib/appFormat";
 import { getAppPageContext } from "@/lib/appPage";
@@ -57,13 +58,13 @@ export default async function ClientSharesPage() {
   return (
     <AppMain id={APP_MAIN_ID}>
       <AppPageHeader eyebrow={Manage.Eyebrow} title={Manage.Title} lead={Manage.Lead} />
-      <div className="mt-8 flex flex-col gap-12">
+      <PageStack variant="col12Top">
         {isPro ? (
           <BrandSection title={Brand.Title} lead={Brand.Lead}>
-            <div className="flex flex-col gap-6">
+            <PageStack variant="col6">
               <BrandForm brand={brand} labels={labels} />
               <BrandLogoForm hasBrand={brand !== null} logoSrc={brand?.logoSrc ?? null} labels={labels} />
-            </div>
+            </PageStack>
             <BrandPreview title={Brand.Preview} brand={brand} kicker={brand ? fill(Public.PreparedBy, { name: brand.displayName }) : Public.Kicker} sheetTitle={Public.Title} object="…" />
           </BrandSection>
         ) : (
@@ -96,7 +97,7 @@ export default async function ClientSharesPage() {
         )}
 
         <ClientSharePrivacy title={Privacy.Title} items={Privacy.Items} />
-      </div>
+      </PageStack>
     </AppMain>
   );
 }

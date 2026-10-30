@@ -30,7 +30,7 @@ export const AUTH_DE: IAuthTranslation = {
     Market: "Markt",
     MarketDe: "Deutschland",
     MarketDeHint: "Zwangsversteigerungen nach ZVG",
-    MarketTr: "Türkiye",
+    MarketTr: "Türkei",
     MarketTrHint: "İcra- und Behördenauktionen",
     MarketNote: "Ein Markt pro Konto. Deutschland und Türkei werden getrennt gebucht.",
     Terms: "Ich akzeptiere die {terms} und habe die {privacy} gelesen.",
@@ -224,13 +224,13 @@ export const AUTH_DE: IAuthTranslation = {
     Label: "Nur lokal",
     Title: "Schnell-Login",
     Note: "Testkonten ohne Passwort und ohne E-Mail. Existiert nur unter npm run dev auf localhost.",
-    Accounts: { de: "Deutschland · Test läuft", tr: "Türkiye · Test läuft", free: "Free · Test abgelaufen", full: "Vollzugang · Investor", admin: "Admin · alles frei" },
+    Accounts: { de: "Deutschland · Test läuft", tr: "Türkei · Test läuft", free: "Free · Test abgelaufen", full: "Vollzugang · Investor", admin: "Admin · alles frei" },
   },
 
   Account: {
     MetaTags: {
       title: "Ihr Konto — Belowmark",
-      description: "Ihr Belowmark-Konto: Markt, Testzeitraum und Sicherheit. Ändern Sie Ihr Passwort oder melden Sie sich auf allen Geräten ab.",
+      description: "Ihr persönliches Belowmark-Konto: Markt, Testzeitraum, Tarif und Sicherheit. Ändern Sie Ihr Passwort oder melden Sie sich auf allen Geräten ab.",
       imgUrl: OG_IMAGE,
       tags: ["Belowmark", "Konto"],
       url: "https://belowmark.com/konto",

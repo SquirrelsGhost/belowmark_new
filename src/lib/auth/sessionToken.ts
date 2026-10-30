@@ -21,7 +21,7 @@ export interface SessionCookiePayload {
 function getSigningSecret(): string {
   const secret = (typeof env?.sessionSecret === "string" ? env.sessionSecret : process.env.SESSION_SECRET) ?? "";
   if (secret.length >= 32) return secret;
-  const dbUrl = process.env.DATABASE_URL ?? "";
+  const dbUrl = process.env.DATABASE_URL ?? process.env.POSTGRES_URL ?? "";
   const seed = secret || dbUrl || DEV_SECRET;
   return createHmac("sha256", seed).update("belowmark-session-hmac-v1").digest("hex");
 }

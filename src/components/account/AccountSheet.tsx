@@ -5,7 +5,7 @@ interface AccountSheetProps {
   children: ReactNode;
 }
 
-/** Right-hand column of the account page. */
+/** Right-hand column of the account page: the panels of the chosen section. */
 export default function AccountSheet({ children }: AccountSheetProps) {
-  return <div className="grid gap-12 lg:col-span-7 lg:col-start-6 xl:col-span-6 xl:col-start-7">{children}</div>;
+  return <div className="grid gap-12 lg:col-span-8 lg:col-start-5 xl:col-span-7 xl:col-start-6">{children}</div>;
 }

@@ -8,7 +8,7 @@ interface BidderFileHearingProps {
 /** The date in large type, every round, and what to have with you on the day — each with its legal basis. */
 export default function BidderFileHearing({ when, status, rounds, notes }: BidderFileHearingProps) {
   return (
-    <div className="grid grid-cols-[minmax(0,2fr)_minmax(0,3fr)] gap-6">
+    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 print:grid-cols-2">
       <div>
         <p className="font-mono text-lg font-semibold">{when}</p>
         <p className="mt-1 inline-block bg-paper-deep px-1.5 py-0.5 font-mono text-[10px] tracking-wide uppercase">{status}</p>
