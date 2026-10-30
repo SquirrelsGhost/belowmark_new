@@ -4,6 +4,7 @@ import { AUTH_PARAMS, AUTH_ROUTES, SESSION_COOKIE_NAME } from "@/lib/auth/authCo
 import { createSessionCookieToken, readCookieFromRequest, readSessionCookieToken } from "@/lib/auth/sessionToken";
 import { hasPermission } from "@/lib/permissions";
 import { findPolicy } from "@/lib/routePolicies";
+import { isAutomatedBotRequest } from "@/lib/sicherheit/antiScrapingRules";
 import { getSessionUser, type SessionUser } from "@/services/sicherheit/SessionUserService";
 
 /**
@@ -46,6 +47,11 @@ export async function proxy(req: NextRequest): Promise<NextResponse> {
   // 1. Deny by default: no policy = no access (403 Forbidden)
   if (!policy) {
     return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
+  }
+
+  // 1b. Block automated HTTP scrapers & headless bots on protected app/API surfaces
+  if (isAutomatedBotRequest(req.headers, pathname)) {
+    return NextResponse.json({ success: false, error: "Automated access forbidden" }, { status: 403 });
   }
 
   const requestHeaders = new Headers(req.headers);

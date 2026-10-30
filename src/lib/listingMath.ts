@@ -92,13 +92,18 @@ export interface ZvgFigures {
   entryAtHalf: number | null;
 }
 
-export function getZvgFigures(value: number, transferTaxPct: number | null): ZvgFigures {
-  const half = value * ZVG.absoluteLimit;
+export function getZvgFigures(
+  value: number,
+  transferTaxPct: number | null,
+  minimumBidOverride?: number | null,
+  depositOverride?: number | null,
+): ZvgFigures {
+  const half = minimumBidOverride ?? value * ZVG.absoluteLimit;
   const taxOnHalf = transferTaxPct === null ? null : (half * transferTaxPct) / 100;
   return {
     half,
     sevenTenths: value * ZVG.relativeLimit,
-    deposit: value * ZVG.deposit,
+    deposit: depositOverride ?? value * ZVG.deposit,
     taxOnHalf,
     entryAtHalf: taxOnHalf === null ? null : half + taxOnHalf,
   };
@@ -135,6 +140,7 @@ export function getIcraFigures(value: number, vatRate: number | null, bid?: numb
 
 /** Lowest amount you can win with in the first hearing / first round. */
 export function getEntryBid(listing: Listing): number | null {
+  if (listing.minimumBid && listing.minimumBid > 0) return listing.minimumBid;
   if (listing.appraisedValue === null) return null;
   if (listing.market === "TR") return listing.tr?.startingBid ?? listing.appraisedValue * TR_COSTS.startingBidShare;
   return listing.limitsWaived ? null : listing.appraisedValue * ZVG.absoluteLimit;

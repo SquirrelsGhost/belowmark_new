@@ -61,8 +61,10 @@ export const AUTH_DE: IAuthTranslation = {
     market_invalid: "Bitte wählen Sie einen Markt.",
     invalid_credentials: "E-Mail-Adresse oder Passwort stimmt nicht.",
     unverified: "Bitte bestätigen Sie zuerst Ihre E-Mail-Adresse. Den Link haben wir Ihnen bei der Registrierung geschickt.",
-    account_banned: "Dieses Konto ist gesperrt.",
-    device_banned: "Dieses Gerät wurde aufgrund eines Verstoßes gegen die Nutzungsbedingungen gesperrt.",
+    account_banned:
+      "Dieses Konto wurde wegen eines schwerwiegenden Verstoßes gegen die Nutzungsbedingungen (z. B. automatisiertes Scraping / unzulässiger Datenabzug) dauerhaft gesperrt. Bereits gezahlte Entgelte werden gemäß § 9 AGB nicht erstattet.",
+    device_banned:
+      "Dieses Gerät wurde aufgrund eines Verstoßes gegen die Nutzungsbedingungen (§ 9 AGB) dauerhaft gesperrt. Eine Rückerstattung bereits gezahlter Entgelte ist ausgeschlossen.",
     bot_detected: "Sicherheitsnachweis (Proof-of-Work) fehlt oder ist abgelaufen. Bitte versuchen Sie es erneut.",
     rate_limited: "Zu viele Versuche in kurzer Zeit. Zu Ihrem Schutz ist die Anmeldung kurz pausiert.",
     token_invalid: "Dieser Link ist ungültig, abgelaufen oder wurde bereits benutzt.",

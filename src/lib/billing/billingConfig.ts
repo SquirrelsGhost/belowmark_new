@@ -95,7 +95,7 @@ export const isOfferId = (value: unknown): value is BillingOfferId =>
  * Version of AGB + Widerrufsbelehrung the order is placed under. Bump it
  * whenever /agb or /widerruf change in substance; every order stores it.
  */
-export const TERMS_VERSION = "2026-10-26";
+export const TERMS_VERSION = "2026-10-30";
 
 /** Query parameter of /buchen that preselects an offer. */
 export const OFFER_PARAM = "tarif";

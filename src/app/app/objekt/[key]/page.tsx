@@ -9,6 +9,7 @@ import ListingHearing from "@/components/app/listing/ListingHearing";
 import ListingNotFound from "@/components/app/listing/ListingNotFound";
 import ListingOfficialDetails from "@/components/app/listing/ListingOfficialDetails";
 import ListingPurchase from "@/components/app/listing/ListingPurchase";
+import QuotaExceededNotice from "@/components/app/listing/QuotaExceededNotice";
 import NoteForm from "@/components/app/listing/NoteForm";
 import PreBidChecklist from "@/components/app/listing/PreBidChecklist";
 import CalendarLink from "@/components/app/listing/CalendarLink";
@@ -40,7 +41,12 @@ import { formatDate } from "@/lib/format";
 import { GeoService } from "@/services/GeoService";
 import { ListingService } from "@/services/ListingService";
 import { OfficialPortalService } from "@/services/OfficialPortalService";
+import { AntiScrapingService } from "@/services/sicherheit/AntiScrapingService";
 import { WatchlistService } from "@/services/WatchlistService";
+import {
+  emptyPortalDetailsForFreePlan,
+  redactListingForFreePlan,
+} from "@/lib/sicherheit/antiScrapingRules";
 import { getBiddingTranslation } from "@/translations/bidding/BiddingTranslations";
 import { getBankFileTranslation } from "@/translations/bankFile/BankFileTranslations";
 
@@ -57,9 +63,21 @@ export default async function ListingPage({ params }: PageProps<"/app/objekt/[ke
   const key = decodeURIComponent((await params).key);
   const { viewer, t, app, locale, meta } = await getAppPageContext(listingHref(key));
   const { Listing: L, Row } = app;
-  const listing = await ListingService.getByKey(viewer.market, key);
+  const isLocked = viewer.plan === "free";
 
-  if (!listing) {
+  const quota = await AntiScrapingService.enforceDetailQuota(viewer.id, isLocked, key);
+  if (!quota.allowed) {
+    return (
+      <AppMain id={APP_MAIN_ID}>
+        <ListingBackLink label={L.Back} />
+        <QuotaExceededNotice locale={locale} retryAfterMinutes={quota.retryAfterMinutes} isLocked={isLocked} />
+      </AppMain>
+    );
+  }
+
+  const rawListing = await ListingService.getByKey(viewer.market, key);
+
+  if (!rawListing) {
     return (
       <AppMain id={APP_MAIN_ID}>
         <ListingNotFound title={L.NotFound.Title} body={L.NotFound.Body} backLabel={L.Back} />
@@ -67,15 +85,17 @@ export default async function ListingPage({ params }: PageProps<"/app/objekt/[ke
     );
   }
 
+  const listing = isLocked ? redactListingForFreePlan(rawListing) : rawListing;
   const market = listing.market;
   const [entry, geo, sprite, portalDetails] = await Promise.all([
     WatchlistService.get(viewer.id, listing.key),
     GeoService.getMarket(market),
     GeoService.getLocatorSprite(market),
-    OfficialPortalService.getDetails(listing),
+    isLocked
+      ? Promise.resolve(emptyPortalDetailsForFreePlan(listing.sourcePortal ?? ""))
+      : OfficialPortalService.getDetails(listing),
   ]);
   const status = getHearingStatus(listing, viewer.now);
-  const isLocked = viewer.plan === "free";
   const hearingIso = status.round?.start ?? listing.hearingAt;
   const tr = listing.tr;
   const livingArea = portalDetails.livingAreaM2 ?? listing.livingAreaM2 ?? tr?.buildingAreaM2 ?? null;
@@ -85,7 +105,7 @@ export default async function ListingPage({ params }: PageProps<"/app/objekt/[ke
   const primaryArea = livingArea ?? netArea ?? usableArea ?? tr?.areaM2 ?? listing.areaM2 ?? landArea ?? null;
   const pricePerM2 =
     !isLocked && primaryArea && primaryArea > 0 && listing.appraisedValue && listing.appraisedValue > 0
-      ? `${formatMoney(Math.round(listing.appraisedValue / primaryArea), market, locale)} / m²`
+      ? `${formatMoney(Math.round(listing.appraisedValue / primaryArea), market, locale, listing.currency)} / m²`
       : null;
   const roomsVal = portalDetails.rooms ?? listing.rooms ?? tr?.rooms ?? null;
   const floorVal = portalDetails.floor ?? tr?.floor ?? null;

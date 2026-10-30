@@ -3,6 +3,7 @@ import { BlogArticleLangEntry, BlogClusterItem, BlogLang } from "@/types/blog.ty
 
 export const BLOG_LANGS: readonly BlogLang[] = ["de", "tr", "en", "ar", "ru"];
 export const BELOWMARK_ORIGIN = "https://belowmark.com";
+export const DEFAULT_BLOG_OG = `${BELOWMARK_ORIGIN}/og/home.png`;
 
 export function isIndexableArticle(entry: BlogArticleLangEntry | undefined): entry is BlogArticleLangEntry {
   return Boolean(entry?.hasFullBody);

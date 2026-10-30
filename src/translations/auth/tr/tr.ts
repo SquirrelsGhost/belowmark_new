@@ -61,8 +61,10 @@ export const AUTH_TR: IAuthTranslation = {
     market_invalid: "Lütfen bir pazar seçin.",
     invalid_credentials: "E-posta adresi veya parola hatalı.",
     unverified: "Lütfen önce e-posta adresinizi doğrulayın. Bağlantıyı kayıt sırasında size gönderdik.",
-    account_banned: "Bu hesap askıya alınmıştır.",
-    device_banned: "Bu cihaz kullanım koşulları ihlali nedeniyle engellenmiştir.",
+    account_banned:
+      "Bu hesap, kullanım koşullarının ağır ihlali (ör. otomatik veri çekimi / scraping) nedeniyle kalıcı olarak kapatılmıştır. Ödenmiş ücretler genel işlem şartları (§ 9 AGB) uyarınca iade edilmez.",
+    device_banned:
+      "Bu cihaz, kullanım koşulları ihlali (§ 9 AGB) nedeniyle kalıcı olarak engellenmiştir. Ödenmiş ücretlerin iadesi yapılmaz.",
     bot_detected: "Güvenlik doğrulaması (Proof-of-Work) eksik veya süresi dolmuş. Lütfen tekrar deneyin.",
     rate_limited: "Kısa sürede çok fazla deneme yapıldı. Güvenliğiniz için giriş kısa bir süre durduruldu.",
     token_invalid: "Bu bağlantı geçersiz, süresi dolmuş veya daha önce kullanılmış.",

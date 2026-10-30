@@ -8,20 +8,21 @@ import FilterSelect from "@/components/app/search/FilterSelect";
 import { SEARCH_PARAMS } from "@/lib/appConstants";
 import { LocaleOption, MarketCode } from "@/lib/constants";
 import { hasActiveFilters } from "@/lib/listingFilters";
-import { preservedParams, regionOptions, scopeOptions, segmentOptions, valueOptions } from "@/lib/searchOptions";
+import { countryOptions, preservedParams, regionOptions, scopeOptions, segmentOptions, valueOptions } from "@/lib/searchOptions";
 import { IAppTranslation } from "@/translations/app/IAppTranslation";
-import { ListingFilters, RegionFacet } from "@/types/listing.types";
+import { DachCountry, ListingFilters, RegionFacet } from "@/types/listing.types";
 
 interface SearchFilterPanelProps {
   filters: ListingFilters;
   regions: RegionFacet[];
+  countryCounts?: Record<DachCountry, number>;
   market: MarketCode;
   app: IAppTranslation;
   locale: LocaleOption;
 }
 
 /** The register on the left of the search: every filter, submitted as a GET form. */
-export default function SearchFilterPanel({ filters, regions, market, app, locale }: SearchFilterPanelProps) {
+export default function SearchFilterPanel({ filters, regions, countryCounts, market, app, locale }: SearchFilterPanelProps) {
   const F = app.Search.Filters;
   return (
     <FilterPanel title={F.Title} hidden={preservedParams(filters)}>
@@ -31,6 +32,16 @@ export default function SearchFilterPanel({ filters, regions, market, app, local
       <FilterField label={F.Scope}>
         <FilterScope name={SEARCH_PARAMS.scope} value={filters.scope} options={scopeOptions(app)} />
       </FilterField>
+      {market === "DE" && (
+        <FilterField label={locale === "tr" ? "Ülke (DACH)" : "Land (DACH)"} htmlFor="filter-country">
+          <FilterSelect
+            id="filter-country"
+            name={SEARCH_PARAMS.country}
+            value={filters.country ?? ""}
+            options={countryOptions(countryCounts, locale)}
+          />
+        </FilterField>
+      )}
       <FilterField label={F.Region[market]} htmlFor="filter-region">
         <FilterSelect id="filter-region" name={SEARCH_PARAMS.region} value={filters.region} options={regionOptions(regions, F.AllRegions, locale)} />
       </FilterField>

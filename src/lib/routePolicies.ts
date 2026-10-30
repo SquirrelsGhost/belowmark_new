@@ -43,6 +43,12 @@ const POLICY_RULES: readonly PolicyRule[] = [
   { methods: ["GET"], pattern: /^\/blog\/cover\/[^/]+\/[^/]+$/, policy: API_PUBLIC },
   { methods: ["GET"], pattern: /^\/blog\/[^/]+$/, policy: PAGE_PUBLIC },
   { methods: ["GET"], pattern: /^\/(de|tr|en|ar|ru)\/blog(\/[^/]+)?$/, policy: PAGE_PUBLIC },
+  { methods: ["GET"], pattern: /^\/zwangsversteigerungen$/, policy: PAGE_PUBLIC },
+  { methods: ["GET"], pattern: /^\/amtsgericht\/[^/]+$/, policy: PAGE_PUBLIC },
+  { methods: ["GET"], pattern: /^\/zwangsversteigerung\/[^/]+$/, policy: PAGE_PUBLIC },
+  { methods: ["GET"], pattern: /^\/tr\/icra-ihale(\/[^/]+)?$/, policy: PAGE_PUBLIC },
+  { methods: ["GET"], pattern: /^\/rechner\/5-10-und-7-10-grenze$/, policy: PAGE_PUBLIC },
+  { methods: ["GET"], pattern: /^\/tr\/hesaplama\/icra-ihale-teminat$/, policy: PAGE_PUBLIC },
   { methods: ["GET"], pattern: /^\/karten\/(de|tr)\.svg$/, policy: API_PUBLIC },
   { methods: ["GET"], pattern: /^\/(sitemap\.xml|sitemap-blog\.xml|robots\.txt|llms\.txt|llms-full\.txt|pycie2026seoindexnowkey\.txt|sw\.js)$/, policy: API_PUBLIC },
 

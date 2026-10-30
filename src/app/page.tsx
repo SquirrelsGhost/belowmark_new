@@ -251,9 +251,10 @@ export default async function HomePage() {
 
       <Footer tagline={t.Footer.Tagline} disclaimer={t.Footer.Disclaimer} rights={t.Footer.Rights} actions={<ConsumerFooterButtons tone="paper" />}>
         <FooterColumn title={t.Footer.ProductTitle}>
-          <FooterLink href={ROUTES.calculator} label={nav.CalculatorLabel} />
-          <FooterLink href={ROUTES.method} label={nav.MethodLabel} />
-          <FooterLink href={ROUTES.pricing} label={nav.PricingLabel} />
+          <FooterLink href="/zwangsversteigerungen" label={locale === "tr" ? "Almanya ZVG Rehberi (530 AG)" : "ZVG Verzeichnis (530 AG)"} />
+          <FooterLink href="/rechner/5-10-und-7-10-grenze" label={locale === "tr" ? "5/10 & 7/10 Hesaplama" : "5/10- & 7/10-Rechner"} />
+          <FooterLink href="/tr/icra-ihale" label="Türkiye İcra & İhale (81 İl)" />
+          <FooterLink href="/tr/hesaplama/icra-ihale-teminat" label="İcra Teminat Hesaplama" />
           <FooterLink href={ROUTES.blog} label={nav.BlogLabel} />
           <FooterLink href={ROUTES.login} label={nav.LoginLabel} />
         </FooterColumn>

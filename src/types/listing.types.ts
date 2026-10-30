@@ -1,6 +1,10 @@
 import { MarketCode } from "@/lib/constants";
 import { SegmentKey } from "@/lib/snapshot";
 
+export type DachCountry = "DE" | "AT" | "CH";
+export type ListingCountry = DachCountry | "TR";
+export type ListingCurrency = "EUR" | "CHF" | "TRY";
+
 /** One bidding window. DE: the hearing itself; TR: one e-auction round (1. / 2. Artırma). */
 export interface ListingRound {
   round: number;
@@ -99,18 +103,22 @@ export interface OfficialPortalDetails {
 export interface Listing {
   key: string;
   market: MarketCode;
+  /** Country of the proceeding ("DE" | "AT" | "CH" | "TR") */
+  country?: ListingCountry;
+  /** Currency of appraisedValue / bids ("EUR" | "CHF" | "TRY") */
+  currency?: ListingCurrency;
   sourcePortal?: string;
   title: string;
   segment: SegmentKey;
   segmentLabel: string | null;
-  /** Bundesland / İl */
+  /** Bundesland / Kanton / İl */
   region: string | null;
   regionCode: string | null;
   /** City or district (İlçe) */
   place: string | null;
   postcode: string | null;
   street: string | null;
-  /** Amtsgericht / İcra Dairesi */
+  /** Amtsgericht / Bezirksgericht / Betreibungsamt / İcra Dairesi */
   authority: string;
   fileNo: string;
   fileYear: number | null;
@@ -119,6 +127,10 @@ export interface Listing {
   cancelled: boolean;
   limitsWaived: boolean;
   appraisedValue: number | null;
+  /** Statutory minimum bid from the notice (AT: Geringstes Gebot § 151 EO; CH: Ausrufpreis; DE: 5/10) */
+  minimumBid?: number | null;
+  /** Statutory deposit from the notice (AT: Vadium § 147 EO; CH: Anzahlung; DE: 10% Sicherheitsleistung) */
+  depositAmount?: number | null;
   transferTaxPct: number | null;
   /** Primary living/floor area in m² (Wohnfläche / Brüt alan) */
   livingAreaM2?: number | null;
@@ -192,6 +204,7 @@ export type ListingScope = "upcoming" | "all" | "past";
 
 export interface ListingFilters {
   query: string;
+  country?: "" | DachCountry;
   region: string;
   segment: SegmentKey | "";
   minValue: number | null;
@@ -251,6 +264,8 @@ export interface ListingSearchResult {
   places: MapPlace[];
   /** Filtered results per region, ignoring the region filter itself */
   regionCounts: Record<string, number>;
+  /** Filtered results per DACH country, ignoring the country filter itself */
+  countryCounts?: Record<DachCountry, number>;
 }
 
 /** Proceedings that share one map position (same postcode / same province). */

@@ -1,11 +1,13 @@
 import { Metadata } from "next";
 import SearchAlertSave from "@/components/app/alerts/SearchAlertSave";
+import QuotaExceededNotice from "@/components/app/listing/QuotaExceededNotice";
 import RegionLocator from "@/components/app/map/RegionLocator";
 import SearchMapSection from "@/components/app/map/SearchMapSection";
 import AppMain from "@/components/app/shell/AppMain";
 import AppPageHeader from "@/components/app/shell/AppPageHeader";
 import HearingCalendar from "@/components/app/search/HearingCalendar";
 import HearingCalendarWeek from "@/components/app/search/HearingCalendarWeek";
+import HoneypotTrapRow from "@/components/app/search/HoneypotTrapRow";
 import ListingList from "@/components/app/search/ListingList";
 import ListingRow from "@/components/app/search/ListingRow";
 import Pagination from "@/components/app/search/Pagination";
@@ -26,8 +28,14 @@ import { projectPoint } from "@/lib/geo";
 import { parseFilters, searchHref, SORT_KEYS } from "@/lib/listingFilters";
 import { getHearingStatus, isNewListing } from "@/lib/listingMath";
 import { calendarEntries, quickFilters } from "@/lib/searchOptions";
+import {
+  buildHoneypotListingKey,
+  redactSearchResultForFreePlan,
+  sanitizeFiltersForPlan,
+} from "@/lib/sicherheit/antiScrapingRules";
 import { GeoService } from "@/services/GeoService";
 import { ListingService } from "@/services/ListingService";
+import { AntiScrapingService } from "@/services/sicherheit/AntiScrapingService";
 import { WatchlistService } from "@/services/WatchlistService";
 
 // Reads the session cookie and the search parameters on every request.
@@ -41,16 +49,28 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function SearchPage({ searchParams }: PageProps<"/app">) {
   const { viewer, app, locale, meta } = await getAppPageContext(APP_ROUTES.search);
-  const filters = parseFilters(await searchParams);
+  const isLocked = viewer.plan === "free";
+  const filters = sanitizeFiltersForPlan(parseFilters(await searchParams), isLocked);
   const market = viewer.market;
-  const [result, saved, geo, sprite] = await Promise.all([
+  const { Search, Row, Segments, Views } = app;
+
+  const quota = await AntiScrapingService.enforceSearchQuota(viewer.id, isLocked);
+  if (!quota.allowed) {
+    return (
+      <AppMain id={APP_MAIN_ID}>
+        <AppPageHeader eyebrow={Search.Eyebrow[market]} title={Search.Title} lead={Search.Lead[market]} />
+        <QuotaExceededNotice locale={locale} retryAfterMinutes={quota.retryAfterMinutes} isLocked={isLocked} />
+      </AppMain>
+    );
+  }
+
+  const [rawResult, saved, geo, sprite] = await Promise.all([
     ListingService.search(market, filters, viewer.now),
     WatchlistService.keys(viewer.id),
     GeoService.getMarket(market),
     GeoService.getLocatorSprite(market),
   ]);
-  const { Search, Row, Segments, Views } = app;
-  const isLocked = viewer.plan === "free";
+  const result = isLocked ? redactSearchResultForFreePlan(rawResult) : rawResult;
   const isMap = filters.view === "map";
   const count = new Intl.NumberFormat(locale).format(result.total);
   const { width, height } = geo.projection;
@@ -72,7 +92,7 @@ export default async function SearchPage({ searchParams }: PageProps<"/app">) {
       </HearingCalendar>
 
       <PageSplitGrid variant="search">
-        <SearchFilterPanel filters={filters} regions={result.regions} market={market} app={app} locale={locale} />
+        <SearchFilterPanel filters={filters} regions={result.regions} countryCounts={result.countryCounts} market={market} app={app} locale={locale} />
 
         <PageSection label={Search.Title}>
           <SearchToolbar
@@ -130,6 +150,7 @@ export default async function SearchPage({ searchParams }: PageProps<"/app">) {
                   }
                 />
               ))}
+              <HoneypotTrapRow honeypotKey={buildHoneypotListingKey(market, viewer.now)} />
             </ListingList>
           )}
 

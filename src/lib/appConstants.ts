@@ -22,6 +22,7 @@ export const listingHref = (key: string): string => `${APP_ROUTES.listing}/${enc
 /** Query parameter names of the search — every filter lives in the URL. */
 export const SEARCH_PARAMS = {
   query: "q",
+  country: "staat",
   region: "land",
   segment: "art",
   minValue: "von_wert",

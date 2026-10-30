@@ -54,9 +54,10 @@ export default async function BlogShell({ lang, children }: BlogShellProps) {
         actions={<ConsumerFooterButtons tone="paper" />}
       >
         <FooterColumn title={t.Footer.ProductTitle}>
-          <FooterLink href={`${homePrefix}${ROUTES.calculator}`} label={nav.CalculatorLabel} />
-          <FooterLink href={`${homePrefix}${ROUTES.method}`} label={nav.MethodLabel} />
-          <FooterLink href={`${homePrefix}${ROUTES.pricing}`} label={nav.PricingLabel} />
+          <FooterLink href="/zwangsversteigerungen" label="ZVG Verzeichnis (530 AG)" />
+          <FooterLink href="/rechner/5-10-und-7-10-grenze" label="5/10- & 7/10-Rechner" />
+          <FooterLink href="/tr/icra-ihale" label="Türkiye İcra & İhale (81 İl)" />
+          <FooterLink href="/tr/hesaplama/icra-ihale-teminat" label="İcra Teminat Hesaplama" />
           <FooterLink href={blogHref} label={nav.BlogLabel} />
           <FooterLink href={ROUTES.login} label={nav.LoginLabel} />
         </FooterColumn>

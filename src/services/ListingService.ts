@@ -6,6 +6,7 @@ import { MarketCode } from "@/lib/constants";
 import { getHearingState, getNextDate } from "@/lib/listingMath";
 import {
   CalendarWeek,
+  DachCountry,
   Listing,
   ListingFilters,
   ListingSearchResult,
@@ -13,6 +14,12 @@ import {
   MapPlace,
   RegionFacet,
 } from "@/types/listing.types";
+
+export function getListingDachCountry(listing: Listing): DachCountry {
+  if (listing.country === "AT" || listing.regionCode?.startsWith("at-") || listing.key.startsWith("edikte-")) return "AT";
+  if (listing.country === "CH" || listing.regionCode?.startsWith("ch-") || listing.key.startsWith("shab-")) return "CH";
+  return "DE";
+}
 
 function snapshotPath(market: MarketCode): string {
   return market === "TR"
@@ -51,6 +58,14 @@ export function normalizeText(value: string): string {
 }
 
 function buildHaystack(listing: Listing): string {
+  const countryTag =
+    listing.market === "DE"
+      ? getListingDachCountry(listing) === "AT"
+        ? "österreich austria ediktsdatei"
+        : getListingDachCountry(listing) === "CH"
+          ? "schweiz switzerland shab"
+          : "deutschland"
+      : null;
   const parts = [
     listing.title,
     listing.place,
@@ -65,6 +80,7 @@ function buildHaystack(listing: Listing): string {
     listing.rooms,
     listing.proceedingKind,
     listing.description,
+    countryTag,
     listing.tr?.adType,
     listing.tr?.source,
     listing.tr?.mahalle,
@@ -243,8 +259,8 @@ export class ListingService {
     const terms = normalizeText(filters.query).split(/\s+/).filter(Boolean);
     const nextOf = nextDates(now);
 
-    // Everything except region and date range — those two get their own facets.
-    const base = snapshot.listings.filter((listing) => {
+    // Everything except country, region and date range — those get their own facets.
+    const withoutCountryAndRegion = snapshot.listings.filter((listing) => {
       if (listing.cancelled && !filters.withCancelled) return false;
       if (filters.segment && listing.segment !== filters.segment) return false;
       if (filters.minValue !== null && (listing.appraisedValue ?? -1) < filters.minValue) return false;
@@ -255,6 +271,20 @@ export class ListingService {
       const text = haystack.get(listing.key) ?? "";
       return terms.every((term) => text.includes(term));
     });
+
+    const countryCounts: Record<DachCountry, number> = { DE: 0, AT: 0, CH: 0 };
+    if (market === "DE") {
+      for (const listing of withoutCountryAndRegion) {
+        if (ListingService.matchesRange(listing, filters, nextOf)) {
+          countryCounts[getListingDachCountry(listing)] += 1;
+        }
+      }
+    }
+
+    const base =
+      market === "DE" && filters.country
+        ? withoutCountryAndRegion.filter((listing) => getListingDachCountry(listing) === filters.country)
+        : withoutCountryAndRegion;
 
     const inRegion = filters.region ? base.filter((listing) => listing.regionCode === filters.region) : base;
     const inRange = inRegion.filter((listing) => ListingService.matchesRange(listing, filters, nextOf));
@@ -280,6 +310,7 @@ export class ListingService {
       withDocsCount: inRange.filter(hasListingDocs).length,
       places: filters.view === "map" ? ListingService.places(inRange, now, soon, nextOf) : [],
       regionCounts: ListingService.regionCounts(anyRegionInRange),
+      countryCounts: market === "DE" ? countryCounts : undefined,
     };
   };
 
@@ -288,7 +319,8 @@ export class ListingService {
     const byPosition = new Map<string, { place: MapPlace; first: Listing }>();
     for (const listing of listings) {
       if (!listing.geo) continue;
-      const id = listing.geo.precision === "postcode" ? `plz-${listing.postcode}` : `il-${listing.regionCode}`;
+      const countryPrefix = listing.market === "DE" ? getListingDachCountry(listing) : "TR";
+      const id = listing.geo.precision === "postcode" ? `plz-${countryPrefix}-${listing.postcode}` : `il-${listing.regionCode}`;
       const next = nextOf(listing);
       const imminent = next !== null && Date.parse(next) >= now && Date.parse(next) <= soon ? 1 : 0;
       const entry = byPosition.get(id);

@@ -14,6 +14,7 @@ import BidderFileToolbar from "@/components/bidderFile/BidderFileToolbar";
 import BidderFileVerdictSection from "@/components/bidderFile/BidderFileVerdictSection";
 import ListingNotFound from "@/components/app/listing/ListingNotFound";
 import LockedPanel from "@/components/app/listing/LockedPanel";
+import QuotaExceededNotice from "@/components/app/listing/QuotaExceededNotice";
 import PageNote from "@/components/ui/PageNote";
 import { listingHref } from "@/lib/appConstants";
 import { fill } from "@/lib/appFormat";
@@ -26,6 +27,7 @@ import { getHearingStatus } from "@/lib/listingMath";
 import { ComparablesService } from "@/services/ComparablesService";
 import { ListingService } from "@/services/ListingService";
 import { MetaTagService } from "@/services/MetaTagService";
+import { AntiScrapingService } from "@/services/sicherheit/AntiScrapingService";
 import { TranslationService } from "@/services/TranslationService";
 import { WatchlistService } from "@/services/WatchlistService";
 import { BiddingTranslations, getBiddingTranslation } from "@/translations/bidding/BiddingTranslations";
@@ -43,16 +45,25 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function BidderFilePage({ params, searchParams }: PageProps<"/mappe/[key]">) {
   const key = decodeURIComponent((await params).key);
   const { viewer, app, locale, meta, dataDate } = await getAppPageContext(bidderFileHref(key));
+  const isLocked = viewer.plan === "free";
+  const quota = await AntiScrapingService.enforceDetailQuota(viewer.id, isLocked, key);
+  if (!quota.allowed) {
+    return (
+      <BidderFileSheet lang={locale}>
+        <QuotaExceededNotice locale={locale} retryAfterMinutes={quota.retryAfterMinutes} isLocked={isLocked} />
+      </BidderFileSheet>
+    );
+  }
   const labels = getBiddingTranslation(locale);
   const { File } = labels;
   const L = app.Listing;
-  const listing = await ListingService.getByKey(viewer.market, key);
+  const listing = isLocked ? null : await ListingService.getByKey(viewer.market, key);
   const autoPrint = (await searchParams)[AUTO_PRINT_PARAM] === "1";
 
-  if (!listing || viewer.plan === "free") {
+  if (!listing || isLocked) {
     return (
       <BidderFileSheet lang={locale}>
-        {listing ? <LockedPanel title={File.Locked} body={L.Locked.Body} cta={L.Locked.Cta} /> : <ListingNotFound title={L.NotFound.Title} body={L.NotFound.Body} backLabel={L.Back} />}
+        {isLocked ? <LockedPanel title={File.Locked} body={L.Locked.Body} cta={L.Locked.Cta} /> : <ListingNotFound title={L.NotFound.Title} body={L.NotFound.Body} backLabel={L.Back} />}
       </BidderFileSheet>
     );
   }

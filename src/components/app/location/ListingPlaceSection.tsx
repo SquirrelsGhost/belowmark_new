@@ -25,6 +25,12 @@ export default function ListingPlaceSection({ listing, geo, sprite, labels }: Li
   const position = listing.geo;
   const zooms = position ? MAP_TILES.zooms[position.precision] : null;
   const precisionLabel = position?.precision === "postcode" ? `${listing.postcode} ${listing.place ?? ""}`.trim() : listing.region ?? "";
+  const useBasemap =
+    listing.market === "DE" &&
+    listing.country !== "AT" &&
+    listing.country !== "CH" &&
+    !listing.key.startsWith("edikte-") &&
+    !listing.key.startsWith("shab-");
 
   return (
     <>
@@ -36,7 +42,7 @@ export default function ListingPlaceSection({ listing, geo, sprite, labels }: Li
               lat={position.lat}
               lng={position.lng}
               zooms={zooms}
-              provider={listing.market === "DE" ? "basemap" : "osm"}
+              provider={useBasemap ? "basemap" : "osm"}
               radiusMetres={position.precision === "postcode" ? POSTCODE_RADIUS_M : null}
               scaleLabel={labels.Scale}
               levels={labels.Levels}

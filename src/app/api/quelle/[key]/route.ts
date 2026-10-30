@@ -3,6 +3,7 @@ import { err, ok } from "@/lib/api";
 import { ListingService } from "@/services/ListingService";
 import { OfficialPortalService } from "@/services/OfficialPortalService";
 import { SessionService } from "@/services/SessionService";
+import { AntiScrapingService } from "@/services/sicherheit/AntiScrapingService";
 import { OfficialPortalDetails } from "@/types/listing.types";
 
 interface RouteContext {
@@ -24,6 +25,17 @@ export async function GET(request: Request, { params }: RouteContext): Promise<R
     const { key: rawKey } = await params;
     const key = decodeURIComponent(rawKey);
     const market = user.market === "TR" ? "TR" : "DE";
+
+    const quota = await AntiScrapingService.enforceSourceDocumentQuota(user.id, key);
+    if (!quota.allowed) {
+      if (quota.honeypotTriggered || quota.banned) {
+        return err("Konto wegen automatisiertem Scraping gesperrt.", 403);
+      }
+      return err(
+        `Abruflimit erreicht. Bitte warten Sie ca. ${quota.retryAfterMinutes} Min.`,
+        429,
+      );
+    }
 
     const listing = await ListingService.getByKey(market, key);
 
@@ -86,7 +98,11 @@ export async function GET(request: Request, { params }: RouteContext): Promise<R
       docResult.contentType === "application/pdf" || docResult.contentType.startsWith("image/")
         ? docResult.contentType
         : "application/octet-stream";
-    return new Response(new Uint8Array(docResult.buffer), {
+    const outputBytes =
+      safeContentType === "application/pdf"
+        ? await AntiScrapingService.watermarkPdfBuffer(docResult.buffer, user.id, key)
+        : new Uint8Array(docResult.buffer);
+    return new Response(new Uint8Array(outputBytes), {
       headers: {
         "Content-Type": safeContentType,
         "Content-Disposition": `inline; filename="${safeFilename}"`,

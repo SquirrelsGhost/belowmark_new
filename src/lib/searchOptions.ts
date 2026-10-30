@@ -4,13 +4,74 @@ import { fill, formatCompactMoney, formatDayMonth, formatMoney, isoWeek } from "
 import { LocaleOption, MarketCode } from "@/lib/constants";
 import { SCOPE_KEYS, SEGMENT_KEYS, searchHref } from "@/lib/listingFilters";
 import { IAppTranslation } from "@/translations/app/IAppTranslation";
-import { CalendarWeek, ListingFilters, RegionFacet } from "@/types/listing.types";
+import { CalendarWeek, DachCountry, ListingFilters, RegionFacet } from "@/types/listing.types";
 
 /** Select options and calendar entries of the search page, built from facets and strings. */
 
+export function countryOptions(
+  countryCounts: Record<DachCountry, number> | undefined,
+  locale: LocaleOption,
+): FilterOption[] {
+  const count = new Intl.NumberFormat(locale);
+  const deCount = countryCounts?.DE ?? 0;
+  const atCount = countryCounts?.AT ?? 0;
+  const chCount = countryCounts?.CH ?? 0;
+  const total = deCount + atCount + chCount;
+
+  const isTr = locale === "tr";
+  return [
+    {
+      value: "",
+      label: isTr
+        ? `Tüm DACH Ülkeleri (${count.format(total)})`
+        : `Alle Länder · D · A · CH (${count.format(total)})`,
+    },
+    {
+      value: "DE",
+      label: isTr
+        ? `Almanya · ZVG (${count.format(deCount)})`
+        : `Deutschland · ZVG (${count.format(deCount)})`,
+    },
+    {
+      value: "AT",
+      label: isTr
+        ? `Avusturya · Ediktsdatei (${count.format(atCount)})`
+        : `Österreich · Ediktsdatei (${count.format(atCount)})`,
+    },
+    {
+      value: "CH",
+      label: isTr
+        ? `İsviçre · SHAB (${count.format(chCount)})`
+        : `Schweiz · SHAB (${count.format(chCount)})`,
+    },
+  ];
+}
+
 export function regionOptions(regions: RegionFacet[], allLabel: string, locale: LocaleOption): FilterOption[] {
   const count = new Intl.NumberFormat(locale);
-  return [{ value: "", label: allLabel }, ...regions.map((region) => ({ value: region.code, label: `${region.name} (${count.format(region.count)})` }))];
+  const hasDachSubregions = regions.some((r) => r.code.startsWith("at-") || r.code.startsWith("ch-"));
+  const isTr = locale === "tr";
+
+  return [
+    { value: "", label: allLabel },
+    ...regions.map((region) => {
+      let group: string | undefined;
+      if (hasDachSubregions) {
+        if (region.code.startsWith("at-")) {
+          group = isTr ? "Avusturya (Eyaletler)" : "Österreich (Bundesländer)";
+        } else if (region.code.startsWith("ch-")) {
+          group = isTr ? "İsviçre (Kantonlar)" : "Schweiz (Kantone)";
+        } else {
+          group = isTr ? "Almanya (Eyaletler)" : "Deutschland (Bundesländer)";
+        }
+      }
+      return {
+        value: region.code,
+        label: `${region.name} (${count.format(region.count)})`,
+        group,
+      };
+    }),
+  ];
 }
 
 export function segmentOptions(app: IAppTranslation): FilterOption[] {
@@ -86,7 +147,7 @@ export function quickFilters(
   market: MarketCode,
   locale: LocaleOption,
   now: number,
-  counts?: { opportunitiesCount: number; withDocsCount: number },
+  counts?: { opportunitiesCount: number; withDocsCount: number; countryCounts?: Record<DachCountry, number> },
 ): QuickFilter[] {
   const today = marketDay(now, market);
   const nf = new Intl.NumberFormat(locale);
@@ -99,11 +160,31 @@ export function quickFilters(
     const isActive = filters.segment === key;
     return { isActive, href: searchHref(filters, { segment: isActive ? "" : key }) };
   };
+  const countryChip = (code: DachCountry, labelDe: string, labelTr: string): QuickFilter => {
+    const isActive = filters.country === code;
+    const c = counts?.countryCounts?.[code];
+    const suffix = typeof c === "number" ? ` (${nf.format(c)})` : "";
+    return {
+      key: `country-${code.toLowerCase()}`,
+      label: `${locale === "tr" ? labelTr : labelDe}${suffix}`,
+      isActive,
+      href: searchHref(filters, { country: isActive ? "" : code, region: "" }),
+    };
+  };
   const capActive = filters.maxValue === QUICK_CAP[market];
   const Q = app.Quick;
   const oppSuffix = counts ? ` (${nf.format(counts.opportunitiesCount)})` : "";
   const docSuffix = counts ? ` (${nf.format(counts.withDocsCount)})` : "";
+  const dachChips: QuickFilter[] =
+    market === "DE"
+      ? [
+          countryChip("DE", "Deutschland", "Almanya"),
+          countryChip("AT", "Österreich", "Avusturya"),
+          countryChip("CH", "Schweiz", "İsviçre"),
+        ]
+      : [];
   return [
+    ...dachChips,
     {
       key: "opportunity",
       label: `${Q.Opportunity[market]}${oppSuffix}`,

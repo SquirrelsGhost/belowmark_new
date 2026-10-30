@@ -6,7 +6,7 @@ import BidGauge from "@/components/hero/BidGauge";
 import CalculatorControls from "@/components/hero/CalculatorControls";
 import CalculatorResults from "@/components/hero/CalculatorResults";
 import { CALCULATOR, LocaleOption, ROUTES, ZVG } from "@/lib/constants";
-import { STATES, StateCode } from "@/lib/snapshot";
+import { DACH_STATES, StateCode } from "@/lib/snapshot";
 import { ITranslation } from "@/translations/ITranslation";
 import { HearingKind, Verdict } from "@/types/calculator.types";
 
@@ -29,7 +29,7 @@ export default function BidCalculator({ t, locale }: BidCalculatorProps) {
   const [hearing, setHearing] = useState<HearingKind>("first");
   const [bidPct, setBidPct] = useState<number>(CALCULATOR.defaultBidPct);
 
-  const state = STATES.find((entry) => entry.code === stateCode) ?? STATES[0];
+  const state = DACH_STATES.find((entry) => entry.code === stateCode) ?? DACH_STATES[0];
   const bid = (value * bidPct) / 100;
   const tax = (bid * state.transferTaxPct) / 100;
   const verdict = getVerdict(bidPct / 100, hearing);

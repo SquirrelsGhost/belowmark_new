@@ -33,6 +33,8 @@ import {
   extractYearBuilt,
   parseZvgPortalHtml,
   parseZvgComData,
+  parseAtEdiktHtml,
+  parseChShabXml,
   extractTrEnrichedDetails,
 } from "./lib/propertyExtractor.mjs";
 
@@ -87,6 +89,48 @@ const GEOPORTALS_DE = {
   sh: { url: "https://danord.gdi-sh.de/viewer/resources/apps/Anonym/index.html?lang=de", name: "DigitalerAtlasNord · LVermGeo SH" },
   th: { url: "https://www.geoproxy.geoportal-th.de/geoclient/", name: "Geoportal Thüringen · TLBG" },
 };
+
+const BUNDESLAENDER_AT = [
+  { bl: 0, code: "at-w", name: "Wien (AT)", transferTaxPct: 4.6, geoportalUrl: "https://www.wien.gv.at/stadtplan/", geoportalName: "Wien Stadtplan · ViennaGIS" },
+  { bl: 1, code: "at-noe", name: "Niederösterreich (AT)", transferTaxPct: 4.6, geoportalUrl: "https://atlas.noe.gv.at/", geoportalName: "NÖ Atlas · Land NÖ" },
+  { bl: 2, code: "at-bgld", name: "Burgenland (AT)", transferTaxPct: 4.6, geoportalUrl: "https://geodaten.bgld.gv.at/", geoportalName: "GeoDaten Burgenland" },
+  { bl: 3, code: "at-ooe", name: "Oberösterreich (AT)", transferTaxPct: 4.6, geoportalUrl: "https://wo.doris.at/weboffice/synserver?project=weboffice&client=core", geoportalName: "DORIS · Land OÖ" },
+  { bl: 4, code: "at-sbg", name: "Salzburg (AT)", transferTaxPct: 4.6, geoportalUrl: "https://www.salzburg.gv.at/sagisonline/", geoportalName: "SAGIS · Land Salzburg" },
+  { bl: 5, code: "at-stmk", name: "Steiermark (AT)", transferTaxPct: 4.6, geoportalUrl: "https://gis.stmk.gv.at/", geoportalName: "GIS-Steiermark" },
+  { bl: 6, code: "at-ktn", name: "Kärnten (AT)", transferTaxPct: 4.6, geoportalUrl: "https://kagis.ktn.gv.at/", geoportalName: "KAGIS · Land Kärnten" },
+  { bl: 7, code: "at-tir", name: "Tirol (AT)", transferTaxPct: 4.6, geoportalUrl: "https://maps.tirol.gv.at/", geoportalName: "tirisMaps · Land Tirol" },
+  { bl: 8, code: "at-vbg", name: "Vorarlberg (AT)", transferTaxPct: 4.6, geoportalUrl: "https://vogis.cnv.at/atlas/init.aspx", geoportalName: "VoGIS Atlas · Vorarlberg" },
+];
+
+const KANTONE_CH = [
+  { canton: "ZH", code: "ch-zh", name: "Zürich (CH)", transferTaxPct: 0.2 },
+  { canton: "BE", code: "ch-be", name: "Bern (CH)", transferTaxPct: 1.8 },
+  { canton: "LU", code: "ch-lu", name: "Luzern (CH)", transferTaxPct: 1.5 },
+  { canton: "UR", code: "ch-ur", name: "Uri (CH)", transferTaxPct: 0.3 },
+  { canton: "SZ", code: "ch-sz", name: "Schwyz (CH)", transferTaxPct: 0.2 },
+  { canton: "OW", code: "ch-ow", name: "Obwalden (CH)", transferTaxPct: 1.5 },
+  { canton: "NW", code: "ch-nw", name: "Nidwalden (CH)", transferTaxPct: 1.0 },
+  { canton: "GL", code: "ch-gl", name: "Glarus (CH)", transferTaxPct: 0.3 },
+  { canton: "ZG", code: "ch-zg", name: "Zug (CH)", transferTaxPct: 0.2 },
+  { canton: "FR", code: "ch-fr", name: "Freiburg (CH)", transferTaxPct: 1.5 },
+  { canton: "SO", code: "ch-so", name: "Solothurn (CH)", transferTaxPct: 2.2 },
+  { canton: "BS", code: "ch-bs", name: "Basel-Stadt (CH)", transferTaxPct: 3.0 },
+  { canton: "BL", code: "ch-bl", name: "Basel-Landschaft (CH)", transferTaxPct: 2.5 },
+  { canton: "SH", code: "ch-sh", name: "Schaffhausen (CH)", transferTaxPct: 0.4 },
+  { canton: "AR", code: "ch-ar", name: "Appenzell Ausserrhoden (CH)", transferTaxPct: 2.0 },
+  { canton: "AI", code: "ch-ai", name: "Appenzell Innerrhoden (CH)", transferTaxPct: 1.0 },
+  { canton: "SG", code: "ch-sg", name: "St. Gallen (CH)", transferTaxPct: 1.0 },
+  { canton: "GR", code: "ch-gr", name: "Graubünden (CH)", transferTaxPct: 2.0 },
+  { canton: "AG", code: "ch-ag", name: "Aargau (CH)", transferTaxPct: 0.4 },
+  { canton: "TG", code: "ch-tg", name: "Thurgau (CH)", transferTaxPct: 1.0 },
+  { canton: "TI", code: "ch-ti", name: "Tessin (CH)", transferTaxPct: 1.1 },
+  { canton: "VD", code: "ch-vd", name: "Waadt (CH)", transferTaxPct: 2.2 },
+  { canton: "VS", code: "ch-vs", name: "Wallis (CH)", transferTaxPct: 1.5 },
+  { canton: "NE", code: "ch-ne", name: "Neuenburg (CH)", transferTaxPct: 3.3 },
+  { canton: "GE", code: "ch-ge", name: "Genf (CH)", transferTaxPct: 3.0 },
+  { canton: "JU", code: "ch-ju", name: "Jura (CH)", transferTaxPct: 2.1 },
+];
+const CANTON_BY_CODE_CH = new Map(KANTONE_CH.map((c) => [c.canton, c]));
 
 const DE_SEGMENT_RULES = [
   ["apartment", /Eigentumswohnung|Wohnungseigentum|Zimmer-Wohnung|Teileigentum/i],
@@ -515,6 +559,9 @@ async function buildDeLive() {
       byProceeding.set(procId, {
         key,
         market: "DE",
+        country: "DE",
+        currency: "EUR",
+        sourcePortal: "zvg-portal.de",
         title: fullTitle,
         segment: deSegment(r.kind, fullTitle),
         segmentLabel: r.kind || null,
@@ -579,6 +626,9 @@ async function buildDeLive() {
     byProceeding.set(procId, {
       key,
       market: "DE",
+      country: "DE",
+      currency: "EUR",
+      sourcePortal: "zvg.com",
       title: r.title,
       segment: deSegment(r.kind, r.title),
       segmentLabel: r.kind || null,
@@ -799,19 +849,34 @@ async function buildDeLive() {
   console.log(
     `  → DE Detail-Extraktion: ${detailFetched} neu geladen, ${detailFromCache} aus Cache, ${withAreaCount}/${listings.length} mit Flächenangabe (m²)`,
   );
+
+  // 4. Fetch Austria (edikte.justiz.gv.at — all 9 Bundesländer)
+  const atListings = await fetchAtEdikteAll(postcodes, prevByKey, portalCacheDir, nowIso);
+  listings.push(...atListings);
+
+  // 5. Fetch Switzerland (shab.ch — all 26 Kantone, SB01 & KK08)
+  const chListings = await fetchChShabAll(postcodes, prevByKey, portalCacheDir, nowIso);
+  listings.push(...chListings);
+
+  for (const s of [...BUNDESLAENDER_AT, ...KANTONE_CH]) {
+    stateCounts.set(s.code, 0);
+  }
   for (const l of listings) {
     if (l.regionCode) stateCounts.set(l.regionCode, (stateCounts.get(l.regionCode) ?? 0) + 1);
   }
 
-  console.log(`  → DE Gesamt: ${listings.length} Verfahren (${addedFromZvgCom} exklusiv über zvg.com, ${enrichedFromZvgCom} angereichert)`);
+  console.log(
+    `  → DACH Gesamt: ${listings.length} Verfahren (DE: ${listings.length - atListings.length - chListings.length}, AT: ${atListings.length}, CH: ${chListings.length})`,
+  );
 
+  const allStates = [...BUNDESLAENDER_DE, ...BUNDESLAENDER_AT, ...KANTONE_CH];
   return {
     meta: {
       market: "DE",
       generatedAt: nowIso,
-      source: "zvg-portal.de · zvg.com",
+      source: "zvg-portal.de · zvg.com · edikte.justiz.gv.at · shab.ch",
       sourceUrl: "https://www.zvg-portal.de/",
-      states: BUNDESLAENDER_DE.map((s) => ({
+      states: allStates.map((s) => ({
         code: s.code,
         name: s.name,
         status: "complete",
@@ -820,6 +885,344 @@ async function buildDeLive() {
     },
     listings,
   };
+}
+
+// ---------------------------------------------------------------------------
+// 1b. Fetch Austria Live (edikte.justiz.gv.at — all 9 Bundesländer)
+// ---------------------------------------------------------------------------
+async function fetchAtEdikteAll(postcodes, prevByKey, portalCacheDir, nowIso) {
+  console.log("  ▸ Starte Live-Abruf Österreich (edikte.justiz.gv.at · alle 9 Bundesländer) ...");
+  const candidateRows = [];
+
+  await mapLimit(BUNDESLAENDER_AT, 5, async (state) => {
+    try {
+      const url = `https://edikte.justiz.gv.at/edikte/ex/exedi3.nsf/suchedi?SearchView&subf=eex&SearchOrder=4&SearchMax=1000&retfields=~BL=${state.bl}&ftquery=&query=%28%5BBL%5D%3D%28${state.bl}%29%29`;
+      const res = await fetch(url, {
+        headers: {
+          "User-Agent": "Mozilla/5.0 (compatible; BelowmarkBot/1.0; +https://belowmark.com; contact@pycie.com)",
+          Accept: "text/html,application/xhtml+xml",
+        },
+      });
+      if (!res.ok) return;
+      const html = await res.text();
+      const trs = [...html.matchAll(/<tr[^>]*>([\s\S]*?)<\/tr>/gi)];
+      let stateCount = 0;
+      for (const tr of trs) {
+        const rowHtml = tr[1];
+        const m = /href="alldoc\/([a-f0-9]+)!OpenDocument"[^>]*>([\s\S]*?)<\/a>/i.exec(rowHtml);
+        if (!m) continue;
+        const docId = m[1];
+        const linkText = decodeHtmlText(m[2]);
+        // Only include scheduled auctions (Versteigerung / Schriftliche Anbote) and cancelled dates (Entfall des Termins)
+        if (!/^(?:Versteigerung|Entfall|Schriftliche Anbote)/i.test(linkText)) continue;
+        const cancelled = /^(?:Entfall|Aufschiebung|Einstellung)/i.test(linkText);
+        const tds = [...rowHtml.matchAll(/<td[^>]*>([\s\S]*?)<\/td>/gi)].map((x) => decodeHtmlText(x[1]));
+        candidateRows.push({
+          docId,
+          state,
+          cancelled,
+          linkText,
+          addressCol: tds[1] ?? "",
+          categoryCol: tds[2] ?? "",
+        });
+        stateCount++;
+      }
+      console.log(`    edikte.justiz.gv.at · ${state.name}: ${stateCount} Verfahren`);
+    } catch (err) {
+      console.warn(`    ! edikte.justiz.gv.at · ${state.name} Fehler: ${err.message}`);
+    }
+  });
+
+  const out = [];
+  await mapLimit(candidateRows, 20, async (item) => {
+    const key = `edikte-${item.docId}`;
+    const officialUrl = `https://edikte.justiz.gv.at/edikte/ex/exedi3.nsf/alldoc/${item.docId}!OpenDocument`;
+    const cacheFile = join(portalCacheDir, `${key}.json`);
+    let parsed = null;
+
+    if (existsSync(cacheFile)) {
+      try {
+        const cached = JSON.parse(readFileSync(cacheFile, "utf8"));
+        if (cached && cached.fileNo) parsed = cached;
+      } catch {
+        parsed = null;
+      }
+    }
+
+    if (!parsed) {
+      try {
+        const res = await fetch(officialUrl, {
+          headers: {
+            "User-Agent": "Mozilla/5.0 (compatible; BelowmarkBot/1.0; +https://belowmark.com; contact@pycie.com)",
+            Accept: "text/html,application/xhtml+xml",
+          },
+        });
+        if (res.ok) {
+          const html = await res.text();
+          parsed = parseAtEdiktHtml(html, { key });
+          if (parsed) {
+            try {
+              writeFileSync(cacheFile, JSON.stringify({ key, source: "edikte.justiz.gv.at", fetchedAt: nowIso, ...parsed }));
+            } catch {
+              // Ignore
+            }
+          }
+        }
+      } catch {
+        parsed = null;
+      }
+    }
+
+    if (!parsed) return;
+    const prev = prevByKey.get(key);
+    const postcode = parsed.postcode;
+    const place = parsed.place;
+    const street = parsed.street;
+    const title = [parsed.segmentLabel || item.categoryCol, [postcode, place].filter(Boolean).join(" "), street].filter(Boolean).join(", ") || item.linkText;
+    const hearingAt = parsed.hearingAt;
+    const endIso = hearingAt ? new Date(Date.parse(hearingAt) + 60 * 60000).toISOString() : null;
+    const fYear = fileNoYear(parsed.fileNo);
+    const pt = (postcode && postcodes[`AT-${postcode}`]) || postcodes[item.state.code.toUpperCase()] || null;
+    const precision = postcode && postcodes[`AT-${postcode}`] ? "postcode" : "province";
+
+    const attachments = parsed.attachments ?? [];
+    const findAtt = (k) => attachments.find((a) => a.kind === k)?.directUrl ?? null;
+    const livingAreaM2 = parsed.livingAreaM2 ?? null;
+    const usableAreaM2 = parsed.usableAreaM2 ?? null;
+    const landAreaM2 = parsed.landAreaM2 ?? null;
+    const areaM2 = livingAreaM2 ?? usableAreaM2 ?? landAreaM2 ?? null;
+    const areaKind = livingAreaM2 || usableAreaM2 ? "Wohn-/Nutzfläche" : landAreaM2 ? "Grundstücksfläche" : null;
+
+    const caveats = [];
+    if (parsed.appraisedValue === null) {
+      caveats.push({
+        points: 10,
+        short: "Schätzwert nicht im Kurzedikt",
+        long: "Der Schätzwert ist nur im beigefügten Gutachten ausgewiesen.",
+      });
+    }
+
+    out.push({
+      key,
+      market: "DE",
+      country: "AT",
+      currency: "EUR",
+      sourcePortal: "edikte.justiz.gv.at",
+      title,
+      segment: parsed.segment ?? "other",
+      segmentLabel: parsed.segmentLabel || item.categoryCol || null,
+      region: item.state.name,
+      regionCode: item.state.code,
+      place,
+      postcode,
+      street,
+      authority: parsed.authority || "Bezirksgericht",
+      fileNo: parsed.fileNo || item.docId.slice(-8),
+      fileYear: fYear,
+      rounds: hearingAt ? [{ round: 1, start: hearingAt, end: endIso }] : [],
+      hearingAt,
+      cancelled: item.cancelled,
+      limitsWaived: false,
+      appraisedValue: parsed.appraisedValue ?? null,
+      minimumBid: parsed.minimumBid ?? null,
+      depositAmount: parsed.depositAmount ?? null,
+      transferTaxPct: item.state.transferTaxPct,
+      livingAreaM2,
+      usableAreaM2,
+      landAreaM2,
+      areaM2,
+      areaKind,
+      rooms: parsed.rooms ?? null,
+      yearBuilt: parsed.yearBuilt ?? null,
+      grundbuch: parsed.grundbuch ?? null,
+      proceedingKind: parsed.proceedingKind ?? "Zwangsversteigerung einer Liegenschaft (EO)",
+      description: parsed.description ?? null,
+      hearingPlace: parsed.hearingPlace ?? null,
+      creditor: null,
+      officialUrl,
+      mapUrl: [street, postcode, place, "Österreich"].filter(Boolean).length > 1
+        ? `https://www.openstreetmap.org/search?query=${encodeURIComponent([street, postcode, place, "Österreich"].filter(Boolean).join(", "))}`
+        : null,
+      documentUrl: findAtt("report") ?? findAtt("expose") ?? attachments[0]?.directUrl ?? null,
+      exposeUrl: findAtt("expose") ?? null,
+      reportUrl: findAtt("report") ?? null,
+      biddingNotesUrl: null,
+      courtUrl: parsed.courtUrl ?? null,
+      geoServerUrl: null,
+      geo: geoPoint(pt, precision),
+      history: prev?.history ?? [],
+      geoportalUrl: item.state.geoportalUrl,
+      geoportalName: item.state.geoportalName,
+      caveats,
+      firstSeenAt: parsed.firstSeenAt ?? prev?.firstSeenAt ?? nowIso,
+    });
+  });
+
+  console.log(`  → AT Gesamt: ${out.length} Verfahren geladen (edikte.justiz.gv.at)`);
+  return out;
+}
+
+// ---------------------------------------------------------------------------
+// 1c. Fetch Switzerland Live (shab.ch — all 26 Kantone, SB01 & KK08)
+// ---------------------------------------------------------------------------
+async function fetchChShabAll(postcodes, prevByKey, portalCacheDir, nowIso) {
+  console.log("  ▸ Starte Live-Abruf Schweiz (shab.ch · SB01 & KK08 alle 26 Kantone) ...");
+  const startCutoff = new Date(Date.now() - 180 * 86_400_000).toISOString().slice(0, 10);
+  const pubSummaries = [];
+
+  for (let page = 0; page < 8; page++) {
+    try {
+      const url = `https://www.shab.ch/api/v1/publications?publicationStates=PUBLISHED,CANCELLED&subRubrics=SB01,KK08&publicationDate.start=${startCutoff}&pageRequest.page=${page}&pageRequest.size=100`;
+      const res = await fetch(url, {
+        headers: {
+          "User-Agent": "Mozilla/5.0 (compatible; BelowmarkBot/1.0; +https://belowmark.com; contact@pycie.com)",
+          Accept: "application/json",
+        },
+      });
+      if (!res.ok) break;
+      const data = await res.json();
+      const content = data.content ?? [];
+      pubSummaries.push(...content);
+      if (data.last || content.length < 100) break;
+    } catch (err) {
+      console.warn(`    ! shab.ch Seite ${page} Fehler: ${err.message}`);
+      break;
+    }
+  }
+
+  console.log(`    shab.ch · ${pubSummaries.length} Publikationen gefunden, lade XML-Details ...`);
+  const out = [];
+
+  await mapLimit(pubSummaries, 20, async (pub) => {
+    const meta = pub.meta ?? {};
+    const pubId = meta.id;
+    if (!pubId) return;
+    const key = `shab-${pubId}`;
+    const cacheFile = join(portalCacheDir, `${key}.json`);
+    let parsed = null;
+
+    if (existsSync(cacheFile)) {
+      try {
+        const cached = JSON.parse(readFileSync(cacheFile, "utf8"));
+        if (cached && cached.fileNo) parsed = cached;
+      } catch {
+        parsed = null;
+      }
+    }
+
+    if (!parsed) {
+      try {
+        const xmlUrl = `https://www.shab.ch/api/v1/publications/${pubId}/xml`;
+        const res = await fetch(xmlUrl, {
+          headers: {
+            "User-Agent": "Mozilla/5.0 (compatible; BelowmarkBot/1.0; +https://belowmark.com; contact@pycie.com)",
+            Accept: "application/xml,text/xml",
+          },
+        });
+        if (res.ok) {
+          const xml = await res.text();
+          parsed = parseChShabXml(xml, { key });
+          if (parsed) {
+            try {
+              writeFileSync(cacheFile, JSON.stringify({ key, source: "shab.ch", fetchedAt: nowIso, ...parsed }));
+            } catch {
+              // Ignore
+            }
+          }
+        }
+      } catch {
+        parsed = null;
+      }
+    }
+
+    if (!parsed) return;
+    const cantonCode = parsed.cantonCode || (meta.cantons?.[0] ?? "ZH");
+    const canton = CANTON_BY_CODE_CH.get(cantonCode) ?? KANTONE_CH[0];
+    const titleRaw = meta.title?.de || meta.title?.fr || meta.title?.it || meta.title?.en || "";
+    const isRevocation = /Widerruf|Révocation|Revoca|Absage|Annullation|Annullamento/i.test(titleRaw) || meta.publicationState === "CANCELLED";
+    const postcode = parsed.postcode;
+    const place = parsed.place;
+    const hearingAt = parsed.hearingAt;
+    const endIso = hearingAt ? new Date(Date.parse(hearingAt) + 60 * 60000).toISOString() : null;
+    const pt = (postcode && postcodes[`CH-${postcode}`]) || postcodes[canton.code.toUpperCase()] || null;
+    const precision = postcode && postcodes[`CH-${postcode}`] ? "postcode" : "province";
+    const prev = prevByKey.get(key);
+
+    const livingAreaM2 = parsed.livingAreaM2 ?? null;
+    const usableAreaM2 = parsed.usableAreaM2 ?? null;
+    const landAreaM2 = parsed.landAreaM2 ?? null;
+    const areaM2 = livingAreaM2 ?? usableAreaM2 ?? landAreaM2 ?? null;
+    const areaKind = livingAreaM2 || usableAreaM2 ? "Wohn-/Nutzfläche" : landAreaM2 ? "Grundstücksfläche" : null;
+    const pdfUrl = `https://www.shab.ch/api/v1/publications/${pubId}/pdf`;
+    const officialUrl = `https://www.shab.ch/#!/search/publications/detail/${pubId}`;
+
+    const caveats = [];
+    if (parsed.appraisedValue === null) {
+      caveats.push({
+        points: 10,
+        short: "Schätzung erst in Steigerungsbedingungen",
+        long: "Die betreibungs- oder konkursamtliche Schätzung liegt während der Auflagefrist beim Amt zur Einsicht auf.",
+      });
+    }
+
+    out.push({
+      key,
+      market: "DE",
+      country: "CH",
+      currency: "CHF",
+      sourcePortal: "shab.ch",
+      title: decodeHtmlText(titleRaw) || `${parsed.authority} · ${place ?? canton.name}`,
+      segment: parsed.segment ?? "other",
+      segmentLabel: meta.subRubric === "KK08" ? "Konkursamtliche Steigerung" : "Betreibungsamtliche Steigerung",
+      region: canton.name,
+      regionCode: canton.code,
+      place,
+      postcode,
+      street: null,
+      authority: parsed.authority || "Betreibungsamt",
+      fileNo: parsed.fileNo || meta.publicationNumber || pubId.slice(0, 12),
+      fileYear: parsed.firstSeenAt ? Number.parseInt(parsed.firstSeenAt.slice(0, 4), 10) : null,
+      rounds: hearingAt ? [{ round: 1, start: hearingAt, end: endIso }] : [],
+      hearingAt,
+      cancelled: isRevocation,
+      limitsWaived: true,
+      appraisedValue: parsed.appraisedValue ?? null,
+      minimumBid: null,
+      depositAmount: parsed.depositAmount ?? null,
+      transferTaxPct: canton.transferTaxPct,
+      livingAreaM2,
+      usableAreaM2,
+      landAreaM2,
+      areaM2,
+      areaKind,
+      rooms: parsed.rooms ?? null,
+      yearBuilt: parsed.yearBuilt ?? null,
+      grundbuch: parsed.grundbuch ?? null,
+      proceedingKind: parsed.proceedingKind,
+      description: parsed.description ?? null,
+      hearingPlace: parsed.hearingPlace ?? null,
+      creditor: null,
+      officialUrl,
+      mapUrl: [postcode, place, "Schweiz"].filter(Boolean).length > 1
+        ? `https://www.openstreetmap.org/search?query=${encodeURIComponent([postcode, place, "Schweiz"].filter(Boolean).join(", "))}`
+        : null,
+      documentUrl: pdfUrl,
+      exposeUrl: null,
+      reportUrl: null,
+      biddingNotesUrl: null,
+      courtUrl: null,
+      geoServerUrl: "https://map.geo.admin.ch/",
+      geo: geoPoint(pt, precision),
+      history: prev?.history ?? [],
+      geoportalUrl: "https://map.geo.admin.ch/",
+      geoportalName: "Geoportal des Bundes · swisstopo",
+      caveats,
+      firstSeenAt: parsed.firstSeenAt ?? prev?.firstSeenAt ?? nowIso,
+    });
+  });
+
+  console.log(`  → CH Gesamt: ${out.length} Verfahren geladen (shab.ch)`);
+  return out;
 }
 
 // ---------------------------------------------------------------------------

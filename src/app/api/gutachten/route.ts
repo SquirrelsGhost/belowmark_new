@@ -4,6 +4,7 @@ import { REPORT_UPLOAD } from "@/lib/report/reportConfig";
 import { ListingService } from "@/services/ListingService";
 import { OfficialPortalService } from "@/services/OfficialPortalService";
 import { ReportError, ReportService } from "@/services/ReportService";
+import { AntiScrapingService } from "@/services/sicherheit/AntiScrapingService";
 import { getSessionUser } from "@/services/sicherheit/SessionUserService";
 import { Listing } from "@/types/listing.types";
 
@@ -25,6 +26,8 @@ async function authorise(req: Request, listingId: unknown): Promise<{ userId: st
   if (user.banned) return err("banned", 403);
   if (!hasPermission(user.permissions, "gutachten:analyze")) return err("plan", 403);
   if (typeof listingId !== "string" || listingId.length > 128) return err("listing", 400);
+  const quota = await AntiScrapingService.enforceSourceDocumentQuota(user.id, listingId);
+  if (!quota.allowed) return err(quota.banned ? "banned" : "rateLimit", quota.banned ? 403 : 429);
   const listing = await ListingService.getByKey(user.market === "TR" ? "TR" : "DE", listingId);
   return listing ? { userId: user.id, listing } : err("listing", 404);
 }

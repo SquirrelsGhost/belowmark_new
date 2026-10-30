@@ -74,7 +74,10 @@ export function decodeHtmlText(html, preserveNewlines = false) {
 export function parseLocalizedNumber(raw) {
   if (raw === null || raw === undefined) return null;
   if (typeof raw === "number") return Number.isFinite(raw) && raw > 0 ? Math.round(raw * 100) / 100 : null;
-  const s = String(raw).trim().replace(/\s+/g, "");
+  const s = String(raw)
+    .trim()
+    .replace(/['’´`\s]/g, "")
+    .replace(/\.—|\.-|,-/g, "");
   if (!s) return null;
   let normalized = s;
   if (/^\d{1,3}(?:\.\d{3})+(?:,\d+)?$/.test(s)) {
@@ -607,5 +610,405 @@ export function extractTrEnrichedDetails(l) {
     arsaPayi,
     excerpt,
     zoning,
+  };
+}
+
+/**
+ * Classifies an Austrian or Swiss property text into a SegmentKey.
+ */
+export function classifyDachSegment(rawLabel = "", description = "") {
+  const s = `${rawLabel} ${description}`.toLowerCase();
+  if (
+    /wohnungseigentum|eigentumswohnung|stockwerkeigentum|\bstwe\b|wohnung|appartement|\bppe\b|appartamento|\bppp\b|maisonette|penthouse|studio|garconniere/i.test(
+      s,
+    )
+  ) {
+    return "apartment";
+  }
+  if (
+    /mehrfamilienhaus|zinshaus|miethaus|wohn-\s*und\s*gesch(?:ä|ae)ftshaus|immeuble\s*locatif|palazzina|renditeobjekt/i.test(
+      s,
+    )
+  ) {
+    return "multiFamily";
+  }
+  if (
+    /einfamilienhaus|zweifamilienhaus|reihenhaus|doppelhaush(?:ä|ae)lfte|wohnhaus|landhaus|villa|bungalow|chalet|ferienhaus|kleingarten|superf(?:ä|ae)d|maison\s+individuelle|maison\s+villageoise|maison\s+d'habitation|casa\s+unifamiliare|casa\s+d'abitazione|rustico/i.test(
+      s,
+    )
+  ) {
+    return "house";
+  }
+  if (
+    /gewerbe|betriebsliegenschaft|b(?:ü|ue)ro|lager|halle|hotel|gasthof|gastronomie|laden|gesch(?:ä|ae)ft|industrie|werkstatt|parkplatz|tiefgarage|stellplatz|local\s+commercial|edificio\s+commerciale/i.test(
+      s,
+    )
+  ) {
+    return "commercial";
+  }
+  if (/land-\s*und\s*forstwirtschaft|acker|wald|wiese|weingarten|forst|bauernhof|landwirtschaft|agricole|agricolo|bosco/i.test(s)) {
+    return "farmland";
+  }
+  if (/unbebaute\s+liegenschaft|bauland|baugrund|parzelle|grundst(?:ü|ue)ck|terrain\s+à\s+bâtir|terreno\s+edificabile/i.test(s)) {
+    return "land";
+  }
+  return "other";
+}
+
+/**
+ * Parses an Austrian Ediktsdatei (edikte.justiz.gv.at) detail HTML page.
+ */
+export function parseAtEdiktHtml(html, listing = {}) {
+  if (!html || !html.includes("col-sm-3")) return null;
+
+  const rowMap = new Map();
+  const rowRe = /<div class="row">\s*<span class="col-sm-3[^"]*">([\s\S]*?)<\/span>\s*<p class="col-sm-9[^"]*">([\s\S]*?)<\/p>\s*<\/div>/gi;
+  for (const m of html.matchAll(rowRe)) {
+    const label = decodeHtmlText(m[1]).replace(/:$/, "").trim();
+    const rawVal = m[2];
+    if (label && !rowMap.has(label.toLowerCase())) {
+      rowMap.set(label.toLowerCase(), rawVal);
+    }
+  }
+
+  const getVal = (key, keepNewlines = false) => {
+    const raw = rowMap.get(key.toLowerCase());
+    return raw ? decodeHtmlText(raw, keepNewlines) : null;
+  };
+
+  const dienststelleRaw = rowMap.get("dienststelle") ?? "";
+  const courtHref = /href="([^"]+)"/i.exec(dienststelleRaw)?.[1] ?? null;
+  const courtUrl = courtHref
+    ? courtHref.startsWith("http")
+      ? courtHref
+      : `https://edikte.justiz.gv.at${courtHref.startsWith("/") ? "" : "/"}${courtHref}`
+    : listing.courtUrl ?? null;
+  const authority = (getVal("dienststelle") ?? listing.authority ?? "Bezirksgericht").replace(/\s*\(\d+\)\s*$/, "").trim();
+  const fileNo = getVal("aktenzeichen") ?? listing.fileNo ?? "";
+  const proceedingKind = getVal("wegen") ?? "Zwangsversteigerung einer Liegenschaft";
+  const hearingPlace = getVal("versteigerungsort") ?? null;
+
+  // Dates
+  const parseAtDate = (str) => {
+    const m = /(\d{2})\.(\d{2})\.(\d{4})(?:[\s\S]*?(\d{1,2})[:.](\d{2}))?/.exec(str || "");
+    if (!m) return null;
+    const [, dd, mm, yyyy, hh, min] = m;
+    return hh ? `${yyyy}-${mm}-${dd}T${hh.padStart(2, "0")}:${min}:00` : `${yyyy}-${mm}-${dd}`;
+  };
+
+  const firstSeenAt = parseAtDate(getVal("bekannt gemacht am") ?? getVal("letzte änderung am")) ?? listing.firstSeenAt ?? null;
+  const hearingRaw = getVal("versteigerungstermin");
+  const hearingAt = parseAtDate(hearingRaw) ?? listing.hearingAt ?? null;
+
+  // Grundbuch
+  const gb = getVal("grundbuch");
+  const ez = getVal("ez");
+  const blnr = getVal("blnr");
+  const grundbuch = [gb ? `GB ${gb}` : null, ez ? `EZ ${ez}` : null, blnr ? `BLNr ${blnr}` : null].filter(Boolean).join(" · ") || null;
+
+  // Address & PLZ/Ort
+  const rawStreet = getVal("liegenschaftsadresse") ?? getVal("adresse") ?? listing.street ?? null;
+  const plzOrt = getVal("plz/ort") ?? "";
+  const plzMatch = /^(\d{4})\s+(.+)$/.exec(plzOrt.trim());
+  const postcode = plzMatch ? plzMatch[1] : listing.postcode ?? null;
+  const place = plzMatch ? plzMatch[2].trim() : plzOrt.trim() || listing.place || null;
+  const street = rawStreet && postcode
+    ? rawStreet.replace(new RegExp(`,?\\s*${postcode}\\s+${place ?? ""}\\s*$`, "i"), "").trim() || rawStreet
+    : rawStreet;
+
+  // Category & Description
+  const category = getVal("kategorie(n)") ?? listing.segmentLabel ?? null;
+  const rawDesc =
+    getVal("beschreibung", true) ??
+    getVal("beschreibung (we)", true) ??
+    getVal("liegenschaftsbeschreibung", true) ??
+    null;
+  const description = rawDesc && !/^siehe\s+(?:lang|kurz)?gutachten$/i.test(rawDesc.trim()) ? rawDesc : null;
+  const zubehoer = getVal("beschreibung des mitzuversteigernden zubehörs", true);
+  const bestand = getVal("bestandsverhältnisse", true);
+  const anschluesse = getVal("anschlüsse", true);
+  const hinweise = getVal("sonstige hinweise", true);
+  const sonstiges = getVal("sonstiges", true);
+  const anmerkung = getVal("anmerkung", true);
+  const fullDesc =
+    [
+      description,
+      bestand ? `Bestandsverhältnisse: ${bestand}` : null,
+      anschluesse ? `Anschlüsse: ${anschluesse}` : null,
+      zubehoer && !/^nicht\s+festgestellt$/i.test(zubehoer) ? `Zubehör: ${zubehoer}` : null,
+      hinweise ? `Hinweise: ${hinweise}` : null,
+      sonstiges ? `Sonstige Bedingungen: ${sonstiges}` : null,
+      anmerkung ? `Anmerkung: ${anmerkung}` : null,
+    ]
+      .filter(Boolean)
+      .join("\n\n") || null;
+
+  // Areas & Values
+  const combinedText = [category, fullDesc, street].filter(Boolean).join(" \n ");
+  const landAreaM2 = parseLocalizedNumber(getVal("grundstücksgröße")) ?? extractDeLandArea(combinedText);
+  const objAreaM2 = parseLocalizedNumber(getVal("objektgröße"));
+  const livingAreaM2 = objAreaM2 ?? extractDeLivingArea(combinedText);
+  const usableAreaM2 = extractDeUsableArea(combinedText);
+  const rooms = extractDeRooms(combinedText);
+  const yearBuilt = extractYearBuilt(combinedText);
+
+  const appraisedValue = parseLocalizedNumber(getVal("schätzwert")) ?? listing.appraisedValue ?? null;
+  const minimumBid = parseLocalizedNumber(getVal("geringstes gebot")) ?? listing.minimumBid ?? null;
+  const depositAmount = parseLocalizedNumber(getVal("vadium")) ?? listing.depositAmount ?? null;
+
+  // Attachments (downloadable files containing /$file/ in URL)
+  const attachments = [];
+  const seenUrls = new Set();
+  const encodedKey = encodeURIComponent(listing.key ?? "");
+  const linkRe = /<a[^>]*href="(\/edikte\/ex\/exedi3\.nsf\/[^"]*\/\$file\/[^"]+)"[^>]*>([\s\S]*?)<\/a>/gi;
+  let attIdx = 1;
+  for (const m of html.matchAll(linkRe)) {
+    const relHref = m[1].replace(/&amp;/g, "&").trim();
+    if (seenUrls.has(relHref)) continue;
+    seenUrls.add(relHref);
+    const labelText = decodeHtmlText(m[2]).trim();
+    const directUrl = `https://edikte.justiz.gv.at${relHref}`;
+    const lower = `${labelText} ${relHref}`.toLowerCase();
+    const kind = lower.includes("langgutachten") || lower.includes("gutachten")
+      ? "report"
+      : lower.includes("kurzgutachten") || lower.includes("exposé")
+        ? "expose"
+        : lower.includes("foto") || lower.includes("bild") || lower.includes("ansicht")
+          ? "photos"
+          : "announcement";
+    const attId = `at-${attIdx++}`;
+    const fileName = decodeURIComponent(relHref.split("/").pop() || `${labelText || "Dokument"}.pdf`).replace(/[?#].*$/, "");
+    attachments.push({
+      id: attId,
+      kind,
+      label: labelText || "Gerichtsdokument",
+      fileName: fileName.endsWith(".pdf") || fileName.endsWith(".jpg") ? fileName : `${fileName}.pdf`,
+      proxyUrl: `/api/quelle/${encodedKey}?fileId=${encodeURIComponent(attId)}`,
+      directUrl,
+    });
+  }
+
+  return {
+    authority,
+    fileNo,
+    proceedingKind,
+    grundbuch,
+    description: fullDesc,
+    hearingPlace,
+    courtUrl,
+    firstSeenAt,
+    hearingAt,
+    street,
+    postcode,
+    place,
+    segmentLabel: category,
+    segment: classifyDachSegment(category ?? "", fullDesc ?? ""),
+    livingAreaM2,
+    usableAreaM2,
+    landAreaM2,
+    rooms,
+    yearBuilt,
+    appraisedValue,
+    minimumBid,
+    depositAmount,
+    attachments,
+  };
+}
+
+/**
+ * Extracts CHF appraisal value from Swiss SHAB <auctionObjects> / <remarks> text (DE / FR / IT).
+ */
+export function extractChAppraisedValue(text) {
+  if (!text) return null;
+  const cleaned = decodeHtmlText(text);
+
+  // Number pattern supporting Swiss apostrophes: 1'600'000.00, 395'000.-, 450 000, 1250000
+  const chNum = "(\\d{1,3}(?:['’´`\\s]\\d{3})+(?:[.,]\\d{1,2}|\\.-)?|\\d{4,8}(?:[.,]\\d{1,2}|\\.-)?)";
+
+  const patterns = [
+    new RegExp(
+      `(?:betreibungsamtliche|konkursamtliche|amtliche|gerichtliche|experten)?\\s*(?:Sch(?:ä|ae|a)tzung(?:swert)?|Verkehrswert|Marktwert|Valeur\\s+v(?:é|e)nale|Estimation(?:\\s+officielle|\\s+de\\s+l'office|\\s+d'expert)?|Valore\\s+di\\s+stima(?:\\s+venale|\\s+peritale|\\s+ufficiale)?|Stima\\s+(?:ufficiale|peritale))[^0-9\\n]{0,45}?(?:CHF|Fr\\.?|SFr\\.?)?\\s*${chNum}`,
+      "i",
+    ),
+    new RegExp(
+      `(?:CHF|Fr\\.?|SFr\\.?)\\s*${chNum}[^.\\n]{0,35}?(?:Sch(?:ä|ae|a)tzung|Verkehrswert|Valeur\\s+v(?:é|e)nale|Estimation|Valore\\s+di\\s+stima|Stima)`,
+      "i",
+    ),
+    new RegExp(`(?:CHF|Fr\\.?|SFr\\.?)\\s*${chNum}`, "gi"),
+  ];
+
+  for (let i = 0; i < 2; i++) {
+    const m = patterns[i].exec(cleaned);
+    if (m) {
+      const val = parseLocalizedNumber(m[1]);
+      if (val && val >= 5000 && val <= 250_000_000) return val;
+    }
+  }
+
+  // Fallback: collect all CHF amounts >= 25,000 and pick the largest (avoiding deposit/Anzahlung amounts)
+  const candidates = [];
+  for (const m of cleaned.matchAll(patterns[2])) {
+    const val = parseLocalizedNumber(m[1]);
+    if (val && val >= 25_000 && val <= 250_000_000) candidates.push(val);
+  }
+  if (candidates.length > 0) {
+    return Math.max(...candidates);
+  }
+  return null;
+}
+
+/**
+ * Extracts CHF deposit (Anzahlung / Sicherheitsleistung / Acompte / Cauzione) from Swiss SHAB text.
+ */
+export function extractChDeposit(text) {
+  if (!text) return null;
+  const cleaned = decodeHtmlText(text);
+  const chNum = "(\\d{1,3}(?:['’´`\\s]\\d{3})+(?:[.,]\\d{1,2}|\\.-)?|\\d{4,7}(?:[.,]\\d{1,2}|\\.-)?)";
+  const m = new RegExp(
+    `(?:Anzahlung|Sicherheitsleistung|Barkaution|Kaution|Acompte|Sûret(?:é|e)s|Cauzione|Deposito)[^0-9\\n]{0,45}?(?:CHF|Fr\\.?|SFr\\.?)\\s*${chNum}`,
+    "i",
+  ).exec(cleaned);
+  if (m) {
+    const val = parseLocalizedNumber(m[1]);
+    if (val && val >= 1000 && val <= 10_000_000) return val;
+  }
+  return null;
+}
+
+/**
+ * Parses a Swiss SHAB XML publication (SB01 / KK08) into structured fields.
+ */
+export function parseChShabXml(xml, listing = {}) {
+  if (!xml || !xml.includes("<publication")) return null;
+
+  const getTag = (tag, src = xml) => {
+    const m = new RegExp(`<${tag}(?:\\s[^>]*)?>([\\s\\S]*?)<\\/${tag}>`, "i").exec(src);
+    return m ? m[1].trim() : null;
+  };
+
+  const subRubric = getTag("subRubric") ?? "SB01";
+  const pubId = getTag("id") ?? (listing.key ? listing.key.replace(/^shab-/, "") : "");
+  const fileNo = getTag("publicationNumber") ?? listing.fileNo ?? "";
+  const firstSeenAt = (getTag("publicationDate") ?? "").slice(0, 10) || listing.firstSeenAt || null;
+  const cantonCode = (getTag("cantons") ?? "").toUpperCase();
+  const titleDe = decodeHtmlText(getTag("de", getTag("title") ?? "") || getTag("fr", getTag("title") ?? "") || getTag("it", getTag("title") ?? "") || "");
+
+  // Registration office (Betreibungsamt / Konkursamt)
+  const regBlock = getTag("registrationOffice") ?? "";
+  const authority = decodeHtmlText(getTag("displayName", regBlock) ?? listing.authority ?? "Betreibungsamt");
+  const officeZip = getTag("swissZipCode", regBlock);
+  const officeTown = decodeHtmlText(getTag("town", regBlock) ?? "");
+
+  // Content
+  const contentBlock = getTag("content") ?? xml;
+  const auctionBlock = getTag("auction", contentBlock) ?? "";
+  const auctionDate = getTag("date", auctionBlock);
+  const auctionTime = getTag("time", auctionBlock);
+  const hearingAt = auctionDate ? (auctionTime ? `${auctionDate}T${auctionTime.slice(0, 5)}:00` : `${auctionDate}T10:00:00`) : listing.hearingAt ?? null;
+  const hearingPlace = decodeHtmlText(getTag("location", auctionBlock) ?? "") || null;
+
+  const rawObjects = getTag("auctionObjects", contentBlock) ?? "";
+  const rawRemarks = getTag("remarks", contentBlock) ?? "";
+  const objectsText = decodeHtmlText(rawObjects, true);
+  const remarksText = decodeHtmlText(rawRemarks, true);
+  const description = [objectsText, remarksText ? `Hinweise: ${remarksText}` : null].filter(Boolean).join("\n\n") || null;
+
+  const proceedingKind =
+    subRubric === "KK08"
+      ? "Konkursamtliche Grundstücksteigerung (SchKG)"
+      : "Betreibungsamtliche Grundstücksteigerung (SchKG)";
+
+  // Extract property postcode & place from auctionObjects or title, fallback to registrationOffice
+  let postcode = null;
+  let place = null;
+  const plzTownMatch =
+    /\b([1-9]\d{3})\s+([A-ZÄÖÜÉÈÀ][A-Za-zÄÖÜäöüéèàêîôûç.-]+(?:\s+[A-ZÄÖÜa-zäöüéèàêîôûç.-]+)?)/.exec(objectsText) ??
+    /\b([1-9]\d{3})\s+([A-ZÄÖÜÉÈÀ][A-Za-zÄÖÜäöüéèàêîôûç.-]+)/.exec(titleDe);
+  if (plzTownMatch) {
+    postcode = plzTownMatch[1];
+    place = plzTownMatch[2].replace(/[.,;:]$/, "").trim();
+  } else {
+    postcode = officeZip || listing.postcode || null;
+    place = officeTown || listing.place || null;
+  }
+
+  // Extract Grundbuch / Parzelle / E-GRID
+  const gbParts = [];
+  const egridMatch = /\bE-GRID\s*:?\s*(CH[0-9A-Z]+)/i.exec(objectsText);
+  if (egridMatch) gbParts.push(`E-GRID ${egridMatch[1]}`);
+  const parzMatch = /\b(?:Grundstück|Liegenschaft|Parzelle|Feuillet|Bien-fonds|Particella|Fondo)\s*(?:Nr\.?|n°|no)?\s*(\d+(?:[\s,/+-]\d+)*)/i.exec(objectsText);
+  if (parzMatch) gbParts.push(`Parzelle ${parzMatch[1].trim()}`);
+  const grundbuch = gbParts.join(" · ") || null;
+
+  // Areas (DE / FR / IT)
+  let livingAreaM2 = extractDeLivingArea(objectsText);
+  if (!livingAreaM2) {
+    const frItLiving = /(?:surface\s+habitable|superficie\s+abitabile)[^0-9\n]{0,25}?(\d{2,4}(?:[.,]\d{1,2})?)\s*(?:m²|m2|mq\b)/i.exec(objectsText);
+    if (frItLiving) livingAreaM2 = parseLocalizedNumber(frItLiving[1]);
+  }
+
+  let landAreaM2 = extractDeLandArea(objectsText);
+  if (!landAreaM2) {
+    const chLand =
+      /(?:Haltenfl(?:ä|ae)che|Gesamtfl(?:ä|ae)che|Fl(?:ä|ae)che|surface\s+totale|surface|superficie\s+totale|superficie(?:\s+del\s+fondo)?)[^0-9\n]{0,25}?(\d{1,6}(?:['’]\d{3})*(?:[.,]\d{1,2})?)\s*(?:m²|m2|mq\b)/i.exec(
+        objectsText,
+      ) ?? /\b(\d{2,6}(?:['’]\d{3})*)\s*(?:m²|m2|mq\b)/i.exec(objectsText);
+    if (chLand) {
+      const v = parseLocalizedNumber(chLand[1]);
+      if (v && v >= 20 && v <= 5_000_000) landAreaM2 = v;
+    }
+  }
+
+  const usableAreaM2 = extractDeUsableArea(objectsText);
+  const rooms =
+    extractDeRooms(objectsText) ??
+    (() => {
+      const frRooms = /\b(\d+(?:[.,]5)?)\s*pi(?:è|e)ces\b/i.exec(objectsText);
+      if (frRooms) return `${frRooms[1]} Zi.`;
+      const itRooms = /\b(\d+(?:[.,]5)?)\s*locali\b/i.exec(objectsText);
+      if (itRooms) return `${itRooms[1]} Zi.`;
+      return null;
+    })();
+  const yearBuilt = extractYearBuilt(objectsText);
+
+  const appraisedValue = extractChAppraisedValue(`${objectsText}\n${remarksText}`) ?? listing.appraisedValue ?? null;
+  const depositAmount = extractChDeposit(`${objectsText}\n${remarksText}`) ?? listing.depositAmount ?? null;
+
+  const encodedKey = encodeURIComponent(listing.key || `shab-${pubId}`);
+  const pdfUrl = pubId ? `https://www.shab.ch/api/v1/publications/${pubId}/pdf` : null;
+  const attachments = pdfUrl
+    ? [
+        {
+          id: "shab-pdf",
+          kind: "announcement",
+          label: "Amtliche SHAB-Publikation (Signiertes PDF)",
+          fileName: `${fileNo || pubId}.pdf`,
+          proxyUrl: `/api/quelle/${encodedKey}?fileId=shab-pdf`,
+          directUrl: pdfUrl,
+        },
+      ]
+    : [];
+
+  return {
+    cantonCode,
+    authority,
+    fileNo,
+    firstSeenAt,
+    hearingAt,
+    hearingPlace,
+    proceedingKind,
+    description,
+    postcode,
+    place,
+    grundbuch,
+    segment: classifyDachSegment(titleDe, objectsText),
+    livingAreaM2,
+    usableAreaM2,
+    landAreaM2,
+    rooms,
+    yearBuilt,
+    appraisedValue,
+    depositAmount,
+    attachments,
   };
 }

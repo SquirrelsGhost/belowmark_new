@@ -27,13 +27,13 @@ export const DE: ITranslation = {
     },
 
     Hero: {
-      Dateline: "Bekanntmachung · Zwangsversteigerungen in Deutschland",
-      LiveLabel: "Täglich aus den amtlichen Justizportalen",
+      Dateline: "Bekanntmachung · Zwangsversteigerungen in Deutschland, Österreich & Schweiz",
+      LiveLabel: "Täglich aus den amtlichen Justizportalen (D · A · CH)",
       HeadlineTop: "Zwangs­versteigerungen.",
       HeadlineBelow: "Jetzt unter Marktwert holen.",
       LineLabel: "Marktniveau",
       Description:
-        "Jeden Tag setzen deutsche Amtsgerichte Immobilien zur Versteigerung an. Belowmark bündelt die amtlichen Aushänge und rechnet je Verfahren aus, was zählt: Verkehrswert, 5/10- und 7/10-Grenze, Sicherheitsleistung und Grunderwerbsteuer.",
+        "Jeden Tag setzen Amts- und Bezirksgerichte sowie Betreibungsämter in Deutschland (ZVG), Österreich (Ediktsdatei) und der Schweiz (SHAB) Immobilien zur Versteigerung an. Belowmark bündelt alle amtlichen Aushänge und rechnet je Verfahren aus, was zählt: Verkehrswert, Wertgrenzen, Sicherheitsleistung und Grunderwerbsteuer.",
       Principle: "Nichts wird geschätzt. Fehlt der Beleg, steht dort keine Zahl, sondern der Grund.",
       PrimaryCta: "Zugang kostenlos testen",
       SecondaryCta: "Rechner ausprobieren",
@@ -42,9 +42,9 @@ export const DE: ITranslation = {
 
     Calculator: {
       Title: "Gebotsrechner",
-      Subtitle: "Nach §§ 68, 74a, 85a ZVG",
-      ValueLabel: "Verkehrswert laut Amtsgericht",
-      StateLabel: "Bundesland",
+      Subtitle: "Nach §§ 68, 74a, 85a ZVG · EO · SchKG",
+      ValueLabel: "Verkehrswert laut Gericht / Schätzung",
+      StateLabel: "Land / Kanton",
       HearingLabel: "Termin",
       FirstHearing: "Erster Termin",
       FollowUpHearing: "Folgetermin",

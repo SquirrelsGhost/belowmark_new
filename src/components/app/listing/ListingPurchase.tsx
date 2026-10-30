@@ -8,6 +8,7 @@ import ValueLineFigure from "@/components/app/listing/ValueLineFigure";
 import { fill, formatMoney } from "@/lib/appFormat";
 import { LocaleOption } from "@/lib/constants";
 import { formatPercent } from "@/lib/format";
+import { getDachPurchaseLabels } from "@/lib/listingLabels";
 import { getIcraFigures, getZvgFigures } from "@/lib/listingMath";
 import { ITranslation } from "@/translations/ITranslation";
 import { Listing } from "@/types/listing.types";
@@ -27,12 +28,13 @@ export default function ListingPurchase({ listing, t, locale, isLocked }: Listin
   const L = t.App.Listing;
   const market = listing.market;
   const value = listing.appraisedValue;
-  const money = (amount: number) => formatMoney(amount, market, locale);
+  const money = (amount: number) => formatMoney(amount, market, locale, listing.currency);
   const lockedLabel = t.App.Row.Locked;
+  const dach = getDachPurchaseLabels(listing, L, locale);
 
   const valueLine = (children?: ReactNode) => (
     <ValueLine
-      label={L.Value[market]}
+      label={dach.valueLabel}
       value={value === null ? null : money(value)}
       basis={L.ValueBasis[market]}
       notStated={L.NotStated}
@@ -70,15 +72,16 @@ export default function ListingPurchase({ listing, t, locale, isLocked }: Listin
     );
   }
 
-  const figures = getZvgFigures(value, listing.transferTaxPct);
+  const figures = getZvgFigures(value, listing.transferTaxPct, listing.minimumBid, listing.depositAmount);
   const taxPct = listing.transferTaxPct ?? 0;
+
   return (
     <>
       {valueLine(
         listing.limitsWaived ? (
           <>
             <ValueLineFigure label={L.LimitsTitle} value="0 €" note={L.WaivedNote} isLocked={false} lockedLabel={lockedLabel} isKey />
-            <ValueLineFigure label={L.Deposit} value={money(figures.deposit)} isLocked={isLocked} lockedLabel={lockedLabel} />
+            <ValueLineFigure label={dach.depositLabel} value={money(figures.deposit)} isLocked={isLocked} lockedLabel={lockedLabel} />
             <ValueLineFigure
               label={L.EntryAtHalf}
               value={figures.entryAtHalf === null ? L.NotStated : money(figures.entryAtHalf)}
@@ -89,9 +92,9 @@ export default function ListingPurchase({ listing, t, locale, isLocked }: Listin
           </>
         ) : (
           <>
-            <ValueLineFigure label={L.Half} value={money(figures.half)} isLocked={isLocked} lockedLabel={lockedLabel} isKey />
-            <ValueLineFigure label={L.SevenTenths} value={money(figures.sevenTenths)} isLocked={isLocked} lockedLabel={lockedLabel} />
-            <ValueLineFigure label={L.Deposit} value={money(figures.deposit)} isLocked={isLocked} lockedLabel={lockedLabel} />
+            <ValueLineFigure label={dach.halfLabel} value={money(figures.half)} isLocked={isLocked} lockedLabel={lockedLabel} isKey />
+            {!dach.isCh && <ValueLineFigure label={dach.secondLimitLabel} value={money(dach.secondLimitVal(value, figures.sevenTenths))} isLocked={isLocked} lockedLabel={lockedLabel} />}
+            <ValueLineFigure label={dach.depositLabel} value={money(figures.deposit)} isLocked={isLocked} lockedLabel={lockedLabel} />
             <ValueLineFigure
               label={L.EntryAtHalf}
               value={figures.entryAtHalf === null ? L.NotStated : money(figures.entryAtHalf)}

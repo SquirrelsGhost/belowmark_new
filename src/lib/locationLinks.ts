@@ -74,6 +74,9 @@ export function officialDocumentHref(listing: Listing): string | null {
     const q = fMatch ? `?fileId=${fMatch[1]}` : "";
     return `/api/quelle/${encodeURIComponent(listing.key)}${q}`;
   }
+  if (raw.includes("edikte.justiz.gv.at") || raw.includes("shab.ch")) {
+    return `/api/quelle/${encodeURIComponent(listing.key)}`;
+  }
   return raw;
 }
 
@@ -98,6 +101,18 @@ const BORIS_BY_STATE: Record<string, { name: string; url: string }> = {
 
 export function getBorisPortal(listing: Listing): { name: string; url: string } | null {
   if (listing.market === "TR") return null;
+  if (listing.country === "AT" || listing.key.startsWith("edikte-")) {
+    return {
+      name: listing.geoportalName ?? "Geoland.at · Österreichisches Kataster- & Geoportal",
+      url: listing.geoportalUrl ?? "https://www.geoland.at/",
+    };
+  }
+  if (listing.country === "CH" || listing.key.startsWith("shab-")) {
+    return {
+      name: listing.geoportalName ?? "geo.admin.ch · Amtliche Vermessung & ÖREB-Kataster",
+      url: listing.geoportalUrl ?? "https://map.geo.admin.ch/",
+    };
+  }
   const code = (listing.regionCode ?? "").toLowerCase();
   return BORIS_BY_STATE[code] ?? { name: "BORIS-D Bodenrichtwert-Portal", url: "https://www.bodenrichtwerte-boris.de/" };
 }
@@ -132,7 +147,6 @@ export function getMarketComparisonLinks(listing: Listing): ComparisonPortalLink
   }
 
   const loc = [listing.postcode, listing.place].filter(Boolean).join(" ").trim();
-  const encLoc = encodeURIComponent(loc || listing.region || "Deutschland");
   const segWord =
     listing.segment === "apartment"
       ? "Eigentumswohnung kaufen"
@@ -142,6 +156,47 @@ export function getMarketComparisonLinks(listing: Listing): ComparisonPortalLink
           ? "Gewerbeimmobilie kaufen"
           : "Haus kaufen";
 
+  if (listing.country === "AT" || listing.key.startsWith("edikte-")) {
+    return [
+      {
+        name: "Willhaben Immobilien",
+        sub: loc || "Standort-Angebote (AT)",
+        href: `https://www.google.com/search?q=${encodeURIComponent(`site:willhaben.at/iad/immobilien ${segWord} ${loc}`)}`,
+      },
+      {
+        name: "ImmoScout24 Österreich",
+        sub: loc || "Marktpreise vor Ort",
+        href: `https://www.google.com/search?q=${encodeURIComponent(`site:immobilienscout24.at ${segWord} ${loc}`)}`,
+      },
+      {
+        name: "Immobilienpreisspiegel & Lage",
+        sub: `${listing.place ?? listing.region ?? "Gemeinde"}`,
+        href: `https://www.google.com/search?q=${encodeURIComponent(`Quadratmeterpreis ${loc || listing.region || "Österreich"}`)}`,
+      },
+    ];
+  }
+
+  if (listing.country === "CH" || listing.key.startsWith("shab-")) {
+    return [
+      {
+        name: "Homegate.ch Vergleich",
+        sub: loc || "Standort-Angebote (CH)",
+        href: `https://www.google.com/search?q=${encodeURIComponent(`site:homegate.ch ${segWord} ${loc}`)}`,
+      },
+      {
+        name: "ImmoScout24 Schweiz",
+        sub: loc || "Marktpreise vor Ort",
+        href: `https://www.google.com/search?q=${encodeURIComponent(`site:immoscout24.ch ${segWord} ${loc}`)}`,
+      },
+      {
+        name: "Quadratmeterpreise & Kanton",
+        sub: `${listing.place ?? listing.region ?? "Gemeinde"}`,
+        href: `https://www.google.com/search?q=${encodeURIComponent(`Quadratmeterpreis Immobilien ${loc || listing.region || "Schweiz"}`)}`,
+      },
+    ];
+  }
+
+  const encLoc = encodeURIComponent(loc || listing.region || "Deutschland");
   return [
     {
       name: "ImmoScout24 Vergleich",

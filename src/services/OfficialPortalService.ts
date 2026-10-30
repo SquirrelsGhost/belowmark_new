@@ -27,6 +27,8 @@ const MAX_EXTRACTED_PHOTOS = 12;
 
 const ZVG_PORTAL_REFERER = "https://www.zvg-portal.de/index.php?button=Suchen";
 const ZVG_COM_REFERER = "https://www.zvg.com/";
+const EDIKTE_AT_REFERER = "https://edikte.justiz.gv.at/";
+const SHAB_CH_REFERER = "https://www.shab.ch/";
 const USER_AGENT =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
 
@@ -791,6 +793,122 @@ async function fetchTrDetails(listing: Listing): Promise<OfficialPortalDetails> 
   };
 }
 
+async function fetchAtEdiktDetails(listing: Listing): Promise<OfficialPortalDetails> {
+  const encodedKey = encodeURIComponent(listing.key);
+  const base: OfficialPortalDetails = {
+    sourcePortal: "edikte.justiz.gv.at",
+    portalEntryUrl: listing.officialUrl || "https://edikte.justiz.gv.at/",
+    proceedingKind: listing.proceedingKind ?? "Zwangsversteigerung einer Liegenschaft (EO)",
+    grundbuch: listing.grundbuch ?? null,
+    description: listing.description ?? null,
+    hearingPlace: listing.hearingPlace ?? null,
+    creditor: listing.creditor ?? null,
+    courtUrl: listing.courtUrl ?? null,
+    geoServerUrl: listing.geoServerUrl ?? listing.geoportalUrl ?? null,
+    livingAreaM2: listing.livingAreaM2 ?? null,
+    usableAreaM2: listing.usableAreaM2 ?? null,
+    landAreaM2: listing.landAreaM2 ?? null,
+    rooms: listing.rooms ?? null,
+    yearBuilt: listing.yearBuilt ?? null,
+    attachments: [],
+    galleryUrls: listing.imageUrl ? [listing.imageUrl] : [],
+    tkgmParcelUrl: null,
+  };
+
+  if (listing.officialUrl) {
+    try {
+      const res = await fetch(listing.officialUrl, {
+        headers: {
+          Referer: EDIKTE_AT_REFERER,
+          "User-Agent": USER_AGENT,
+        },
+        signal: AbortSignal.timeout(6500),
+      });
+      if (res.ok) {
+        const html = await res.text();
+        const linkRe = /<a[^>]*href="(\/edikte\/ex\/exedi3\.nsf\/[^"]*\/\$file\/[^"]+)"[^>]*>([\s\S]*?)<\/a>/gi;
+        const seen = new Set<string>();
+        let idx = 1;
+        for (const m of html.matchAll(linkRe)) {
+          const relHref = m[1].replace(/&amp;/g, "&").trim();
+          if (seen.has(relHref)) continue;
+          seen.add(relHref);
+          const labelText = cleanHtmlText(m[2], false) || "Gerichtsdokument";
+          const directUrl = `https://edikte.justiz.gv.at${relHref}`;
+          const fileName = decodeURIComponent(relHref.split("/").pop() || `${labelText}.pdf`).replace(/[?#].*$/, "");
+          const kind = classifyAttachment(labelText, fileName);
+          const id = `at-${idx++}`;
+          base.attachments.push({
+            id,
+            kind,
+            label: labelText,
+            fileName: fileName.endsWith(".pdf") || fileName.endsWith(".jpg") ? fileName : `${fileName}.pdf`,
+            proxyUrl: `/api/quelle/${encodedKey}?fileId=${encodeURIComponent(id)}`,
+            directUrl,
+          });
+        }
+      }
+    } catch {
+      // Fallback to snapshot fields
+    }
+  }
+
+  if (base.attachments.length === 0 && listing.documentUrl) {
+    base.attachments.push({
+      id: "at-1",
+      kind: listing.reportUrl ? "report" : "announcement",
+      label: listing.reportUrl ? "Sachverständigengutachten (Ediktsdatei)" : "Amtliches Edikt / Gutachten",
+      fileName: `${listing.key}.pdf`,
+      proxyUrl: `/api/quelle/${encodedKey}?fileId=at-1`,
+      directUrl: listing.documentUrl,
+    });
+  }
+
+  if (base.galleryUrls.length === 0 && base.attachments.length > 0) {
+    const extracted = await extractAndCachePortalPhotos(listing, base.attachments, listing.officialUrl || EDIKTE_AT_REFERER);
+    base.galleryUrls.push(...extracted);
+  }
+
+  return base;
+}
+
+async function fetchChShabDetails(listing: Listing): Promise<OfficialPortalDetails> {
+  const encodedKey = encodeURIComponent(listing.key);
+  const pubId = listing.key.replace(/^shab-/, "");
+  const pdfUrl = listing.documentUrl || `https://www.shab.ch/api/v1/publications/${pubId}/pdf`;
+
+  const attachments: OfficialAttachment[] = [
+    {
+      id: "shab-pdf",
+      kind: "announcement",
+      label: "Amtliche SHAB-Publikation (SchKG)",
+      fileName: `SHAB_${listing.fileNo || pubId}.pdf`,
+      proxyUrl: `/api/quelle/${encodedKey}?fileId=shab-pdf`,
+      directUrl: pdfUrl,
+    },
+  ];
+
+  return {
+    sourcePortal: "shab.ch",
+    portalEntryUrl: listing.officialUrl || "https://www.shab.ch/",
+    proceedingKind: listing.proceedingKind ?? "Betreibungsamtliche Grundstücksteigerung (SchKG)",
+    grundbuch: listing.grundbuch ?? null,
+    description: listing.description ?? null,
+    hearingPlace: listing.hearingPlace ?? null,
+    creditor: listing.creditor ?? null,
+    courtUrl: listing.courtUrl ?? "https://www.shab.ch/",
+    geoServerUrl: listing.geoServerUrl ?? listing.geoportalUrl ?? "https://map.geo.admin.ch/",
+    livingAreaM2: listing.livingAreaM2 ?? null,
+    usableAreaM2: listing.usableAreaM2 ?? null,
+    landAreaM2: listing.landAreaM2 ?? null,
+    rooms: listing.rooms ?? null,
+    yearBuilt: listing.yearBuilt ?? null,
+    attachments,
+    galleryUrls: listing.imageUrl ? [listing.imageUrl] : [],
+    tkgmParcelUrl: null,
+  };
+}
+
 function resolveCourtUrl(rawCourtUrl: string | null | undefined): string | null {
   if (!rawCourtUrl) return null;
   try {
@@ -802,20 +920,27 @@ function resolveCourtUrl(rawCourtUrl: string | null | undefined): string | null 
 
 function mergeListingFallback(details: OfficialPortalDetails, listing: Listing): OfficialPortalDetails {
   const tr = listing.tr;
+  const isAt = listing.country === "AT" || listing.key.startsWith("edikte-");
+  const isCh = listing.country === "CH" || listing.key.startsWith("shab-");
+  const isZvgCom = listing.key.startsWith("zvgcom-");
   const sourcePortal =
     details.sourcePortal ||
     (listing.market === "TR"
       ? tr?.source ?? "ilan.gov.tr"
-      : listing.key.startsWith("zvgcom-")
-        ? "zvg.com"
-        : "zvg-portal.de");
+      : isAt
+        ? "edikte.justiz.gv.at"
+        : isCh
+          ? "shab.ch"
+          : isZvgCom
+            ? "zvg.com"
+            : "zvg-portal.de");
   const rawCourtUrl = details.courtUrl ?? listing.courtUrl ?? null;
   return {
     ...details,
     sourcePortal,
     portalEntryUrl:
       details.portalEntryUrl ||
-      (listing.market === "DE" && !listing.key.startsWith("zvgcom-")
+      (listing.market === "DE" && !isZvgCom && !isAt && !isCh
         ? `/api/quelle/${encodeURIComponent(listing.key)}?mode=portal`
         : listing.officialUrl),
     proceedingKind: details.proceedingKind ?? listing.proceedingKind ?? null,
@@ -854,6 +979,9 @@ function mergeListingFallback(details: OfficialPortalDetails, listing: Listing):
 
 export class OfficialPortalService {
   static async getDetails(listing: Listing): Promise<OfficialPortalDetails> {
+    const isAt = listing.country === "AT" || listing.key.startsWith("edikte-") || Boolean(listing.officialUrl?.includes("edikte.justiz.gv.at"));
+    const isCh = listing.country === "CH" || listing.key.startsWith("shab-") || Boolean(listing.officialUrl?.includes("shab.ch"));
+
     const cached = await readCache(listing.key);
     const isCacheComplete =
       cached !== null &&
@@ -863,12 +991,22 @@ export class OfficialPortalService {
         Boolean(cached.landAreaM2) ||
         listing.market === "TR");
     if (cached && isCacheComplete) {
-      return mergeListingFallback(cached, listing);
+      const merged = mergeListingFallback(cached, listing);
+      if (isAt && merged.galleryUrls.length === 0 && merged.attachments.length > 0 && !(cached as { photoChecked?: boolean }).photoChecked) {
+        const extracted = await extractAndCachePortalPhotos(listing, merged.attachments, listing.officialUrl || EDIKTE_AT_REFERER);
+        merged.galleryUrls.push(...extracted);
+        await writeCache(listing.key, { ...merged, photoChecked: true } as OfficialPortalDetails);
+      }
+      return merged;
     }
 
     let details: OfficialPortalDetails;
     if (listing.market === "TR") {
       details = await fetchTrDetails(listing);
+    } else if (isAt) {
+      details = await fetchAtEdiktDetails(listing);
+    } else if (isCh) {
+      details = await fetchChShabDetails(listing);
     } else if (listing.key.startsWith("zvgcom-") || listing.officialUrl?.includes("zvg.com")) {
       details = await fetchZvgComDetails(listing);
     } else {
@@ -938,15 +1076,25 @@ export class OfficialPortalService {
     if (!directUrl) return null;
 
     const isZvgPortal = directUrl.includes("zvg-portal.de");
+    const isEdikteAt = directUrl.includes("edikte.justiz.gv.at");
+    const isShabCh = directUrl.includes("shab.ch");
     const zvgIdMatch = /zvg_id=(\d+)/.exec(listing.officialUrl ?? "") ?? /^zvgportal-(\d+)$/.exec(listing.key);
     const landMatch = /land_abk=([a-z]{2})/i.exec(listing.officialUrl ?? "");
     const showZvgReferer = zvgIdMatch
       ? `https://www.zvg-portal.de/index.php?button=showZvg&zvg_id=${zvgIdMatch[1]}&land_abk=${landMatch?.[1] ?? listing.regionCode ?? "nw"}`
       : ZVG_PORTAL_REFERER;
 
+    const referer = isZvgPortal
+      ? showZvgReferer
+      : isEdikteAt
+        ? listing.officialUrl || EDIKTE_AT_REFERER
+        : isShabCh
+          ? SHAB_CH_REFERER
+          : ZVG_COM_REFERER;
+
     const res = await fetch(directUrl, {
       headers: {
-        Referer: isZvgPortal ? showZvgReferer : ZVG_COM_REFERER,
+        Referer: referer,
         "User-Agent": USER_AGENT,
       },
       signal: AbortSignal.timeout(15000),

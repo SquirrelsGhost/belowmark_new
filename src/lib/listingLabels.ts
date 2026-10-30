@@ -44,7 +44,8 @@ export function getPlaceTitle(listing: Listing): string {
 /** Search text for a general map service: the address as the notice gives it. */
 export function getMapQuery(listing: Listing): string {
   if (listing.market === "TR") return [listing.tr?.mahalle, listing.place, listing.region, "Türkiye"].filter(Boolean).join(", ");
-  return [getAddressLine(listing), "Deutschland"].filter(Boolean).join(", ");
+  const countryName = listing.country === "AT" ? "Österreich" : listing.country === "CH" ? "Schweiz" : "Deutschland";
+  return [getAddressLine(listing), countryName].filter(Boolean).join(", ");
 }
 
 /** Compact area, €/m², room, and parcel badges for search list rows. */
@@ -77,7 +78,7 @@ export function getPropertyMetricsChips(listing: Listing, locale: LocaleOption):
   if (primaryArea && primaryArea > 0 && listing.appraisedValue && listing.appraisedValue > 0) {
     const perM2 = Math.round(listing.appraisedValue / primaryArea);
     if (perM2 > 0) {
-      chips.push(`${formatMoney(perM2, listing.market, locale)}/m²`);
+      chips.push(`${formatMoney(perM2, listing.market, locale, listing.currency)}/m²`);
     }
   }
 
@@ -94,4 +95,43 @@ export function getPropertyMetricsChips(listing: Listing, locale: LocaleOption):
   }
 
   return chips;
+}
+
+export function getDachPurchaseLabels(
+  listing: Listing,
+  L: IAppTranslation["Listing"],
+  locale: LocaleOption,
+): {
+  isCh: boolean;
+  valueLabel: string;
+  halfLabel: string;
+  depositLabel: string;
+  secondLimitLabel: string;
+  secondLimitVal: (value: number, sevenTenths: number) => number;
+} {
+  const isAt = listing.country === "AT" || listing.key.startsWith("edikte-");
+  const isCh = listing.country === "CH" || listing.key.startsWith("shab-");
+  const isTr = locale === "tr";
+  return {
+    isCh,
+    valueLabel: isAt
+      ? isTr ? "Ekspertiz Değeri (§ 140 EO)" : "Schätzwert (§ 140 EO)"
+      : isCh
+        ? isTr ? "Tahmini Değer (SchKG)" : "Betreibungsamtliche Schätzung (SchKG)"
+        : L.Value[listing.market],
+    halfLabel: isAt
+      ? isTr ? "Asgari Teklif (§ 151 EO)" : "Geringstes Gebot (§ 151 EO)"
+      : isCh
+        ? isTr ? "Tahmini Başlangıç (SchKG)" : "Richtwert Einstieg (SchKG)"
+        : L.Half,
+    depositLabel: isAt
+      ? isTr ? "Teminat / Vadium (§ 147 EO)" : "Vadium (§ 147 EO · 10 %)"
+      : isCh
+        ? isTr ? "Teminat / Peşinat (SchKG)" : "Sicherheitsleistung / Anzahlung"
+        : L.Deposit,
+    secondLimitLabel: isAt
+      ? isTr ? "3/4 Üst Teklif Sınırı (§ 195 EO)" : "3/4-Überbotsgrenze (§ 195 EO)"
+      : L.SevenTenths,
+    secondLimitVal: (value, sevenTenths) => (isAt ? Math.round(value * 0.75) : sevenTenths),
+  };
 }

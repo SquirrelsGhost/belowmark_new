@@ -9,6 +9,7 @@ import ExposePhotoManager from "@/components/expose/ExposePhotoManager";
 import ExposeWorkbench from "@/components/expose/ExposeWorkbench";
 import ListingNotFound from "@/components/app/listing/ListingNotFound";
 import LockedPanel from "@/components/app/listing/LockedPanel";
+import QuotaExceededNotice from "@/components/app/listing/QuotaExceededNotice";
 import { listingHref } from "@/lib/appConstants";
 import { getAppPageContext } from "@/lib/appPage";
 import { CURRENCY_SUFFIX } from "@/lib/bankFile/bankFileConstants";
@@ -19,6 +20,7 @@ import { ListingService } from "@/services/ListingService";
 import { MetaTagService } from "@/services/MetaTagService";
 import { OfficialPortalService } from "@/services/OfficialPortalService";
 import { ReportService } from "@/services/ReportService";
+import { AntiScrapingService } from "@/services/sicherheit/AntiScrapingService";
 import { TranslationService } from "@/services/TranslationService";
 import { ExposeTranslations, getExposeTranslation } from "@/translations/expose/ExposeTranslations";
 
@@ -35,14 +37,23 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function ExposePage({ params, searchParams }: PageProps<"/expose/[key]">) {
   const key = decodeURIComponent((await params).key);
   const { viewer, app, locale } = await getAppPageContext(exposeHref(key));
-  const labels = getExposeTranslation(locale);
-  const L = app.Listing;
-  const listing = await ListingService.getByKey(viewer.market, key);
-
-  if (!listing || viewer.plan === "free") {
+  const isLocked = viewer.plan === "free";
+  const quota = await AntiScrapingService.enforceDetailQuota(viewer.id, isLocked, key);
+  if (!quota.allowed) {
     return (
       <BidderFileSheet lang={locale}>
-        {listing ? (
+        <QuotaExceededNotice locale={locale} retryAfterMinutes={quota.retryAfterMinutes} isLocked={isLocked} />
+      </BidderFileSheet>
+    );
+  }
+  const labels = getExposeTranslation(locale);
+  const L = app.Listing;
+  const listing = isLocked ? null : await ListingService.getByKey(viewer.market, key);
+
+  if (!listing || isLocked) {
+    return (
+      <BidderFileSheet lang={locale}>
+        {isLocked ? (
           <LockedPanel title={labels.Sheet.Locked} body={L.Locked.Body} cta={L.Locked.Cta} />
         ) : (
           <ListingNotFound title={L.NotFound.Title} body={L.NotFound.Body} backLabel={L.Back} />

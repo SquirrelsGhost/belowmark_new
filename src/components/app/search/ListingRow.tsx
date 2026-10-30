@@ -34,7 +34,7 @@ const CONFIDENCE_TR: Record<string, string> = { belastbar: "güvenilir", mittel:
 /** One proceeding on the board: date sheet, map stamp, place and file, figures, watch button. */
 export default function ListingRow({ listing, status, labels, segmentLabel, locale, isSaved, isNew, isLocked, locator }: ListingRowProps) {
   const date = getDateParts((status.state === "running" ? status.round?.end : status.round?.start) ?? listing.hearingAt ?? listing.firstSeenAt ?? "", listing.market, locale);
-  const money = (value: number) => formatMoney(value, listing.market, locale);
+  const money = (value: number) => formatMoney(value, listing.market, locale, listing.currency);
   const entry = getEntryBid(listing);
   const discount = listing.tr?.discountPct;
   const rawConfidence = listing.tr?.confidence ?? "";
@@ -52,9 +52,13 @@ export default function ListingRow({ listing, status, labels, segmentLabel, loca
       ? listing.tr?.adType && listing.tr.adType !== "İCRA"
         ? listing.tr.adType
         : null
-      : listing.sourcePortal === "zvg.com" || listing.key.startsWith("zvgcom-")
-        ? "zvg.com"
-        : null;
+      : listing.country === "AT" || listing.key.startsWith("edikte-")
+        ? "AT · Ediktsdatei"
+        : listing.country === "CH" || listing.key.startsWith("shab-")
+          ? "CH · SHAB"
+          : listing.sourcePortal === "zvg.com" || listing.key.startsWith("zvgcom-")
+            ? "zvg.com"
+            : null;
 
   return (
     <li className="group relative flex gap-4 py-5 transition-colors hover:bg-paper-bright/60 sm:gap-6 sm:px-2">

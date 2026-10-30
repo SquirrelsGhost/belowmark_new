@@ -1,6 +1,6 @@
 import { CALCULATOR, LocaleOption } from "@/lib/constants";
 import { formatEuro, formatPercent } from "@/lib/format";
-import { STATES, StateCode } from "@/lib/snapshot";
+import { AT_STATES, CH_CANTONS, STATES, StateCode } from "@/lib/snapshot";
 import { ITranslation } from "@/translations/ITranslation";
 import { HearingKind } from "@/types/calculator.types";
 
@@ -44,11 +44,27 @@ export default function CalculatorControls(props: CalculatorControlsProps) {
       <label className="flex flex-col gap-2">
         <span className={LABEL_CLASSES}>{t.StateLabel}</span>
         <select className={FIELD_CLASSES} value={props.stateCode} onChange={(event) => props.onStateChange(event.target.value as StateCode)}>
-          {STATES.map((state) => (
-            <option key={state.code} value={state.code}>
-              {state.name} · {formatPercent(state.transferTaxPct, locale)}
-            </option>
-          ))}
+          <optgroup label="Deutschland (ZVG)">
+            {STATES.filter((s) => s.country === "DE").map((state) => (
+              <option key={state.code} value={state.code}>
+                {state.name} · {formatPercent(state.transferTaxPct, locale)}
+              </option>
+            ))}
+          </optgroup>
+          <optgroup label="Österreich (EO)">
+            {AT_STATES.map((state) => (
+              <option key={state.code} value={state.code}>
+                {state.name} · {formatPercent(state.transferTaxPct, locale)}
+              </option>
+            ))}
+          </optgroup>
+          <optgroup label="Schweiz (SchKG)">
+            {CH_CANTONS.map((state) => (
+              <option key={state.code} value={state.code}>
+                {state.name} · {formatPercent(state.transferTaxPct, locale)}
+              </option>
+            ))}
+          </optgroup>
         </select>
       </label>
       <fieldset className="flex flex-col gap-2">

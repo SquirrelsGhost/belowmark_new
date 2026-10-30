@@ -1,8 +1,9 @@
 import { MARKET_TIME_ZONES } from "@/lib/appConstants";
 import { LocaleOption, MarketCode } from "@/lib/constants";
+import { ListingCurrency } from "@/types/listing.types";
 
 /**
- * Formatting for the app area. Amounts follow the market (€ / ₺), dates the
+ * Formatting for the app area. Amounts follow the market (€ / CHF / ₺), dates the
  * time zone of the court — a hearing at 9:00 in Dortmund is 9:00 for everyone.
  */
 
@@ -10,11 +11,17 @@ const INTL_LOCALES: Record<LocaleOption, string> = { de: "de-DE", tr: "tr-TR" };
 const CURRENCY: Record<MarketCode, string> = { DE: "EUR", TR: "TRY" };
 const TIME_ZONE: Record<MarketCode, string> = MARKET_TIME_ZONES;
 
-export function formatMoney(value: number, market: MarketCode, locale: LocaleOption): string {
+export function formatMoney(
+  value: number,
+  market: MarketCode,
+  locale: LocaleOption,
+  currencyOverride?: ListingCurrency,
+): string {
+  const curr = currencyOverride ?? CURRENCY[market];
   return new Intl.NumberFormat(INTL_LOCALES[locale], {
     style: "currency",
-    currency: CURRENCY[market],
-    currencyDisplay: "narrowSymbol",
+    currency: curr,
+    currencyDisplay: curr === "CHF" ? "code" : "narrowSymbol",
     maximumFractionDigits: 0,
   }).format(value);
 }

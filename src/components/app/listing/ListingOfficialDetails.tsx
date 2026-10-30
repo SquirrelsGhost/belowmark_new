@@ -46,8 +46,8 @@ export default function ListingOfficialDetails({ listing, details, locale, isLoc
     net && net !== living ? `${isTr ? "Net Alan" : "Nettofläche"}: ${formatArea(net, locale)}` : null,
     usable && usable !== living ? `${isTr ? "Kullanım Alanı" : "Nutz-/Gewerbefläche"}: ${formatArea(usable, locale)}` : null,
     land ? `${isTr ? "Arsa Yüzölçümü" : "Grundstücksfläche"}: ${formatArea(land, locale)}` : null,
-    pricePerM2 ? `${isTr ? "Muhammen / m²" : "Verkehrswert / m²"}: ${formatMoney(pricePerM2, listing.market, locale)}/m²` : null,
-    entryPerM2 ? `${isTr ? "Başlangıç / m²" : "5/10-Grenze / m²"}: ${formatMoney(entryPerM2, listing.market, locale)}/m²` : null,
+    pricePerM2 ? `${isTr ? "Muhammen / m²" : "Verkehrswert / m²"}: ${formatMoney(pricePerM2, listing.market, locale, listing.currency)}/m²` : null,
+    entryPerM2 ? `${isTr ? "Başlangıç / m²" : "5/10-Grenze / m²"}: ${formatMoney(entryPerM2, listing.market, locale, listing.currency)}/m²` : null,
   ].filter(Boolean);
 
   const objectMetaLines = [

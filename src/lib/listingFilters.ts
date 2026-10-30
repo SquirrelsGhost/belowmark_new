@@ -1,6 +1,6 @@
 import { APP_ROUTES, SEARCH, SEARCH_PARAMS, VIEW_VALUES } from "@/lib/appConstants";
 import { SegmentKey } from "@/lib/snapshot";
-import { ListingFilters, ListingScope, ListingSort, SearchView } from "@/types/listing.types";
+import { DachCountry, ListingFilters, ListingScope, ListingSort, SearchView } from "@/types/listing.types";
 
 /**
  * Every filter lives in the URL, so a search is a bookmark and can be sent on.
@@ -9,6 +9,7 @@ import { ListingFilters, ListingScope, ListingSort, SearchView } from "@/types/l
 
 type RawParams = Record<string, string | string[] | undefined>;
 
+const DACH_COUNTRIES: DachCountry[] = ["DE", "AT", "CH"];
 const SEGMENTS: SegmentKey[] = ["house", "apartment", "multiFamily", "land", "farmland", "commercial", "other"];
 const SORTS: ListingSort[] = ["hearing", "discount", "valueAsc", "valueDesc", "newest"];
 const SCOPES: ListingScope[] = ["upcoming", "all", "past"];
@@ -17,6 +18,7 @@ const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
 export const DEFAULT_FILTERS: ListingFilters = {
   query: "",
+  country: "",
   region: "",
   segment: "",
   minValue: null,
@@ -32,6 +34,7 @@ export const DEFAULT_FILTERS: ListingFilters = {
   page: 1,
 };
 
+export const DACH_COUNTRY_KEYS = DACH_COUNTRIES;
 export const SEGMENT_KEYS = SEGMENTS;
 export const SORT_KEYS = SORTS;
 export const SCOPE_KEYS = SCOPES;
@@ -52,6 +55,7 @@ export function parseFilters(params: RawParams): ListingFilters {
   const to = first(params[SEARCH_PARAMS.to]);
   return {
     query: first(params[SEARCH_PARAMS.query]).slice(0, SEARCH.maxQueryLength),
+    country: pick(first(params[SEARCH_PARAMS.country]).toUpperCase(), [...DACH_COUNTRIES, ""] as const, ""),
     region: first(params[SEARCH_PARAMS.region]).toLowerCase(),
     segment: pick(first(params[SEARCH_PARAMS.segment]), [...SEGMENTS, ""] as const, ""),
     minValue: amount(first(params[SEARCH_PARAMS.minValue])),
@@ -75,6 +79,7 @@ export function toSearchQuery(filters: ListingFilters): string {
     if (value !== fallback && value !== "" && value !== null) query.set(name, value === true ? "1" : String(value));
   };
   set(SEARCH_PARAMS.query, filters.query, DEFAULT_FILTERS.query);
+  set(SEARCH_PARAMS.country, filters.country ?? "", DEFAULT_FILTERS.country ?? "");
   set(SEARCH_PARAMS.region, filters.region, DEFAULT_FILTERS.region);
   set(SEARCH_PARAMS.segment, filters.segment, DEFAULT_FILTERS.segment);
   set(SEARCH_PARAMS.minValue, filters.minValue, DEFAULT_FILTERS.minValue);

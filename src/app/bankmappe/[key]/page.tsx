@@ -18,6 +18,7 @@ import BidderFileSources from "@/components/bidderFile/BidderFileSources";
 import BidderFileToolbar from "@/components/bidderFile/BidderFileToolbar";
 import ListingNotFound from "@/components/app/listing/ListingNotFound";
 import LockedPanel from "@/components/app/listing/LockedPanel";
+import QuotaExceededNotice from "@/components/app/listing/QuotaExceededNotice";
 import PageNote from "@/components/ui/PageNote";
 import PageStack from "@/components/ui/PageStack";
 import { listingHref } from "@/lib/appConstants";
@@ -34,6 +35,7 @@ import { buildRiskCheck } from "@/lib/report/riskCheck";
 import { ListingService } from "@/services/ListingService";
 import { MetaTagService } from "@/services/MetaTagService";
 import { ReportService } from "@/services/ReportService";
+import { AntiScrapingService } from "@/services/sicherheit/AntiScrapingService";
 import { TranslationService } from "@/services/TranslationService";
 import { BankFileTranslations, getBankFileTranslation } from "@/translations/bankFile/BankFileTranslations";
 import { getBiddingTranslation } from "@/translations/bidding/BiddingTranslations";
@@ -53,18 +55,27 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function BankFilePage({ params, searchParams }: PageProps<"/bankmappe/[key]">) {
   const key = decodeURIComponent((await params).key);
   const { viewer, app, locale, dataDate } = await getAppPageContext(bankFileHref(key));
+  const isLocked = viewer.plan === "free";
+  const quota = await AntiScrapingService.enforceDetailQuota(viewer.id, isLocked, key);
+  if (!quota.allowed) {
+    return (
+      <BidderFileSheet lang={locale}>
+        <QuotaExceededNotice locale={locale} retryAfterMinutes={quota.retryAfterMinutes} isLocked={isLocked} />
+      </BidderFileSheet>
+    );
+  }
   const labels = getBankFileTranslation(locale);
   const bidding = getBiddingTranslation(locale);
   const reportLabels = ReportTranslations[locale === "tr" ? Locale.TR : Locale.DE];
   const { File } = labels;
   const L = app.Listing;
-  const listing = await ListingService.getByKey(viewer.market, key);
+  const listing = isLocked ? null : await ListingService.getByKey(viewer.market, key);
   const context = listing ? getBidContext(listing) : null;
 
-  if (!listing || !context || viewer.plan === "free") {
+  if (!listing || !context || isLocked) {
     return (
       <BidderFileSheet lang={locale}>
-        {listing && viewer.plan === "free" ? (
+        {isLocked ? (
           <LockedPanel title={File.Locked} body={L.Locked.Body} cta={L.Locked.Cta} />
         ) : listing ? (
           <PageNote variant="mutedSmall" text={L.NotStated} />

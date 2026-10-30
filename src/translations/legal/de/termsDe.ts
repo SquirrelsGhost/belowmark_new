@@ -10,7 +10,7 @@ export function vatSentenceDe(vatMode: "inclusive" | "kleinunternehmer" | null):
 export function termsDe(vatMode: "inclusive" | "kleinunternehmer" | null): LegalDocument {
   return {
     title: "Allgemeine Geschäftsbedingungen",
-    asOf: "Stand 26. Oktober 2026",
+    asOf: "Stand 30. Oktober 2026",
     basis: "Für die Nutzung von Belowmark (belowmark.com).",
     sections: [
       {
@@ -89,9 +89,11 @@ export function termsDe(vatMode: "inclusive" | "kleinunternehmer" | null): Legal
       },
       {
         id: "nutzung",
-        heading: "9. Nutzungsrechte und unzulässige Nutzung",
+        heading: "9. Nutzungsrechte, Verbot von Scraping und Kontosperrung ohne Rückerstattung",
         paragraphs: [
-          "Der Kunde erhält ein einfaches, nicht übertragbares Recht, den Dienst während der Vertragslaufzeit für eigene Zwecke zu nutzen. Untersagt sind insbesondere die Weitergabe der Zugangsdaten, die gemeinsame Nutzung eines Kontos durch mehrere Personen, das systematische automatisierte Auslesen des Bestands sowie die Weiterveräußerung oder öffentliche Zugänglichmachung der aufbereiteten Daten. Bei erheblichen Verstößen darf der Anbieter den Zugang nach vorheriger Abmahnung sperren, bei schwerwiegenden Verstößen auch ohne.",
+          "Der Kunde erhält ein einfaches, nicht übertragbares Recht, den Dienst während der Vertragslaufzeit ausschließlich für eigene Recherchezwecke über einen regulären Webbrowser zu nutzen. Untersagt sind insbesondere: (a) die Weitergabe der Zugangsdaten oder die gemeinsame Nutzung eines Kontos durch mehrere Personen außerhalb gebuchter Team-Plätze, (b) jedes systematische, automatisierte oder skriptgestützte Auslesen, Abrufen, Kopieren oder Indexieren von Daten, Texten, Kennzahlen oder Dokumenten (insbesondere mittels Bots, Crawlern, Scrapern, Headless-Browsern oder Skripten), (c) die Umgehung technischer Schutzmaßnahmen, Abruflimits (Rate-Limits) oder Sicherheitsmechanismen (einschließlich des Auslösens von Honeypot-Schutzfallen) sowie (d) der Massen-Download, die Weiterveräußerung, Unterlizenzierung oder öffentliche Zugänglichmachung der aufbereiteten Daten oder Dokumente.",
+          "Ein Verstoß gegen die vorstehenden Verbote stellt eine schwerwiegende Verletzung wesentlicher Vertragspflichten dar und berechtigt den Anbieter zur sofortigen außerordentlichen Kündigung aus wichtigem Grund (§ 314 BGB) sowie zur unmittelbaren, dauerhaften Sperrung des Nutzerkontos und der verwendeten Endgeräte-Kennung ohne vorherige Abmahnung.",
+          "Im Falle einer solchen durch den Vertragsverstoß des Kunden (insbesondere durch Scraping, automatisierten Datenabzug oder Umgehung von Schutzmechanismen) verursachten Kontosperrung oder außerordentlichen Kündigung erlischt das Nutzungsrecht mit sofortiger Wirkung. Ein Anspruch des Kunden auf Rückerstattung oder anteilige Erstattung bereits gezahlter Entgelte für den laufenden Abrechnungsmonat oder gebuchte mehrteilige Festlaufzeiten ist in diesem Fall ausgeschlossen. Weitergehende Schadensersatz- und Unterlassungsansprüche des Anbieters bleiben unberührt.",
         ],
       },
       {

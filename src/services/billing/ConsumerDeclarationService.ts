@@ -23,10 +23,21 @@ export interface WithdrawalInput {
   statement: string;
 }
 
-async function findUserId(email: string, sessionUserId: string | null): Promise<string | null> {
-  const [row] = await db.select({ id: users.id }).from(users).where(eq(users.email, normalizeEmail(email)));
-  if (row?.id) return row.id;
-  return sessionUserId ?? null;
+async function findUserAccount(
+  email: string,
+  sessionUserId: string | null,
+): Promise<{ id: string; bannedAt: Date | null; banReason: string | null } | null> {
+  const [row] = await db
+    .select({ id: users.id, bannedAt: users.gesperrtAm, banReason: users.sperrGrund })
+    .from(users)
+    .where(eq(users.email, normalizeEmail(email)));
+  if (row?.id) return row;
+  if (!sessionUserId) return null;
+  const [bySession] = await db
+    .select({ id: users.id, bannedAt: users.gesperrtAm, banReason: users.sperrGrund })
+    .from(users)
+    .where(eq(users.id, sessionUserId));
+  return bySession ?? null;
 }
 
 /** Stores, confirms and reports a declaration. Mails never block the receipt: the row is the proof. */
@@ -56,11 +67,12 @@ async function record(values: typeof consumerDeclarations.$inferInsert, lang: Lo
  */
 export class ConsumerDeclarationService {
   static cancel = async (input: CancellationInput, sessionUserId: string | null, lang: LocaleOption): Promise<ConsumerDeclaration> => {
-    const userId = await findUserId(input.email, sessionUserId);
+    const account = await findUserAccount(input.email, sessionUserId);
+    const userId = account?.id ?? null;
     let effectiveEnd: Date | null = null;
     let status: "processed" | "manual" = "manual";
 
-    if (userId && sessionUserId && userId === sessionUserId && input.type === "ordinary") {
+    if (userId && !account?.bannedAt && sessionUserId && userId === sessionUserId && input.type === "ordinary") {
       const access = await BillingService.access(userId);
       const wantsLater = input.requestedEnd && access.endsAt && input.requestedEnd.getTime() > access.endsAt.getTime();
       if (access.isActive && !wantsLater) {
@@ -68,6 +80,10 @@ export class ConsumerDeclarationService {
         status = effectiveEnd ? "processed" : "manual";
       }
     }
+
+    const reasonText = account?.bannedAt
+      ? `[KONTO GESPERRT GEM. § 9 AGB — KEINE ERSTATTUNG: ${account.banReason ?? "Verstoß gegen Nutzungsbedingungen"}] ${input.reason ?? ""}`.trim()
+      : input.reason;
 
     return record(
       {
@@ -77,7 +93,7 @@ export class ConsumerDeclarationService {
         email: input.email,
         contractReference: input.contractReference,
         cancellationType: input.type,
-        reason: input.reason,
+        reason: reasonText,
         requestedEnd: input.requestedEnd,
         effectiveEnd,
         status,
@@ -87,7 +103,12 @@ export class ConsumerDeclarationService {
   };
 
   static withdraw = async (input: WithdrawalInput, sessionUserId: string | null, lang: LocaleOption): Promise<ConsumerDeclaration> => {
-    const userId = await findUserId(input.email, sessionUserId);
+    const account = await findUserAccount(input.email, sessionUserId);
+    const userId = account?.id ?? null;
+    const reasonText = account?.bannedAt
+      ? `[KONTO GESPERRT GEM. § 9 AGB — KEINE RÜCKERSTATTUNG: ${account.banReason ?? "Scraping / AGB-Verstoß"}] ${input.statement}`
+      : input.statement;
+
     return record(
       {
         kind: "withdrawal",
@@ -95,7 +116,7 @@ export class ConsumerDeclarationService {
         name: input.name,
         email: input.email,
         contractReference: input.contractReference,
-        reason: input.statement,
+        reason: reasonText,
         status: "manual",
       },
       lang,
