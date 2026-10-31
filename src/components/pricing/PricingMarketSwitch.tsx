@@ -34,42 +34,31 @@ export default function PricingMarketSwitch({ current, label, detectedLabel, hin
   };
 
   return (
-    <div className="mt-12">
-      <p className="flex flex-wrap items-baseline gap-x-3 gap-y-1 font-mono text-xs tracking-[0.2em] uppercase">
+    <div className="mt-12 max-w-xl">
+      <label htmlFor="pricing-market-select" className="flex flex-wrap items-baseline gap-x-3 gap-y-1 font-mono text-xs tracking-[0.2em] uppercase">
         <span>{label}</span>
         {detectedLabel && <span className="tracking-normal text-signal normal-case">· {detectedLabel}</span>}
-      </p>
-      <div role="radiogroup" aria-label={label} className={`mt-3 grid grid-cols-2 border-2 border-ink sm:grid-cols-4 ${isPending ? "opacity-60" : ""}`}>
-        {PRICING_COUNTRIES.map((market, index) => {
-          const isActive = market === current;
-          const borderClasses = [
-            index >= 2 ? "border-t-2 border-ink" : "",
-            index >= 2 && index < 4 ? "sm:border-t-0" : "",
-            index % 2 === 1 ? "border-l-2 border-ink" : "",
-            index % 4 !== 0 ? "sm:border-l-2 sm:border-ink" : "sm:border-l-0",
-          ]
-            .filter(Boolean)
-            .join(" ");
-          return (
-            <button
-              key={market}
-              type="button"
-              role="radio"
-              aria-checked={isActive}
-              onClick={() => select(market)}
-              className={`group relative flex items-center gap-3.5 px-4 py-3.5 text-left transition-colors duration-200 ${borderClasses} ${
-                isActive ? "bg-ink text-paper-bright" : "bg-paper-bright text-ink hover:bg-paper-deep"
-              }`}
-            >
-              <span className={`font-display text-3xl leading-none ${isActive ? "text-signal" : "text-muted group-hover:text-ink"}`}>{market}</span>
-              <span className="flex min-w-0 flex-col">
-                <span className="truncate text-base leading-tight font-semibold">{options[market].label}</span>
-                <span className={`truncate font-mono text-[11px] ${isActive ? "text-paper/65" : "text-muted"}`}>{options[market].scope}</span>
-              </span>
-              {isActive && <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-1 bg-signal" />}
-            </button>
-          );
-        })}
+      </label>
+      <div className={`relative mt-3 ${isPending ? "opacity-60" : ""}`}>
+        <select
+          id="pricing-market-select"
+          value={current}
+          onChange={(e) => select(e.target.value as PricingCountryCode)}
+          className="w-full cursor-pointer appearance-none border-2 border-ink bg-paper-bright px-5 py-4 pr-24 font-sans text-base font-semibold text-ink shadow-[4px_4px_0_var(--color-ink)] transition-colors hover:bg-paper-deep focus:outline-2 focus:outline-offset-2 focus:outline-signal"
+        >
+          {PRICING_COUNTRIES.map((market) => (
+            <option key={market} value={market}>
+              {options[market].label} ({market}) — {options[market].scope}
+            </option>
+          ))}
+        </select>
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-y-0 right-4 flex items-center gap-2.5 font-display text-2xl leading-none text-signal"
+        >
+          <span>{current}</span>
+          <span className="font-sans text-sm text-ink">▾</span>
+        </span>
       </div>
       <p className="mt-3 font-mono text-xs text-muted">{hint}</p>
     </div>

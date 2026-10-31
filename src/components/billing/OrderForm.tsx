@@ -60,17 +60,32 @@ export default function OrderForm({ offersByMarket, markets, initialMarket, init
   return (
     <form action={action} className="grid gap-7" noValidate>
       {formError && <AuthErrorSummary title={labels.ErrorTitle} message={formError} />}
-      <fieldset className="grid gap-2">
-        <legend className={STEP_LEGEND_CLASSES}>
+      <div className="grid gap-2">
+        <label htmlFor="order-market-select" className={STEP_LEGEND_CLASSES}>
           <span className="text-signal">01</span> {labels.Market}
-        </legend>
-        <div className="grid gap-2.5 sm:grid-cols-2">
-          {PRICING_COUNTRIES.map((code) => (
-            <OrderMarketOption key={code} {...markets[code]} isSelected={code === selectedMarket} onSelect={() => chooseMarket(code)} />
-          ))}
+        </label>
+        <div className="relative">
+          <select
+            id="order-market-select"
+            name="market"
+            value={selectedMarket}
+            onChange={(e) => chooseMarket(e.target.value as PricingCountryCode)}
+            className="w-full cursor-pointer appearance-none border-2 border-ink bg-paper px-4 py-3 pr-20 font-sans text-sm font-semibold text-ink transition-colors hover:bg-paper-bright focus:outline-2 focus:outline-offset-2 focus:outline-signal"
+          >
+            {PRICING_COUNTRIES.map((code) => (
+              <OrderMarketOption key={code} {...markets[code]} />
+            ))}
+          </select>
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-y-0 right-3.5 flex items-center gap-2 font-mono text-xs font-semibold tracking-widest text-signal"
+          >
+            <span>{selectedMarket}</span>
+            <span className="text-ink">▾</span>
+          </span>
         </div>
         <p className="text-xs leading-relaxed text-muted">{labels.MarketNote}</p>
-      </fieldset>
+      </div>
 
       {currentMarket.blocker ? (
         <BillingNotice message={currentMarket.blocker} />

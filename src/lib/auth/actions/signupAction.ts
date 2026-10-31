@@ -1,10 +1,12 @@
 "use server";
 
+import { cookies } from "next/headers";
 import { limitOrNull, mayMail, requestLocale, unknownError } from "@/lib/auth/actionHelpers";
 import { RATE_LIMITS } from "@/lib/auth/authConfig";
 import { verifyLoginPoW } from "@/lib/auth/loginPow";
 import { getRequestInfo } from "@/lib/auth/requestInfo";
 import { field, signupSchema, toFieldErrors } from "@/lib/auth/validation";
+import { MARKET_COOKIE_NAME, pricingCountryToMarket, REGION_COOKIE_MAX_AGE } from "@/lib/constants";
 import { AuthService } from "@/services/AuthService";
 import { MailService } from "@/services/MailService";
 import { AuthFormState } from "@/types/auth.types";
@@ -51,8 +53,16 @@ export async function signupAction(_prev: AuthFormState, formData: FormData): Pr
       return { status: "error", fieldErrors: { password: "password_breached" }, values };
     }
     if (await mayMail(email)) {
-      await AuthService.signup({ email, password, market, locale: await requestLocale(), hardwareFingerprint });
+      await AuthService.signup({
+        email,
+        password,
+        market: pricingCountryToMarket(market),
+        locale: await requestLocale(),
+        hardwareFingerprint,
+      });
     }
+    const cookieStore = await cookies();
+    cookieStore.set(MARKET_COOKIE_NAME, market, { path: "/", maxAge: REGION_COOKIE_MAX_AGE, sameSite: "lax" });
   } catch (error) {
     return unknownError("signupAction", error, values);
   }

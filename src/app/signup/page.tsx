@@ -33,7 +33,7 @@ export default async function SignupPage() {
         description={t.Signup.Description}
         footer={<AuthCardFooter question={t.Signup.HaveAccount} href={AUTH_ROUTES.login} label={t.Signup.LoginLink} />}
       >
-        <SignupForm t={{ Fields: t.Fields, Errors: t.Errors, Signup: t.Signup }} defaultMarket={region.market} />
+        <SignupForm t={{ Fields: t.Fields, Errors: t.Errors, Signup: t.Signup }} defaultMarket={region.pricingCountry} />
       </AuthCard>
     </AuthLayout>
   );

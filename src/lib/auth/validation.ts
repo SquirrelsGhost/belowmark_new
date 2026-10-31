@@ -2,7 +2,7 @@ import { z } from "zod";
 import { EMAIL_MAX_LENGTH, PASSWORD_RULES } from "@/lib/auth/authConfig";
 import { isDisposableEmail, normalizeEmail } from "@/lib/auth/normalizeEmail";
 import { MIN_PASSWORD_SCORE, scorePassword } from "@/lib/auth/passwordStrength";
-import { MARKETS } from "@/lib/constants";
+import { PRICING_COUNTRIES } from "@/lib/constants";
 import { AuthErrorCode, AuthFieldName, AuthFormState } from "@/types/auth.types";
 
 /**
@@ -55,7 +55,7 @@ export const signupSchema = notEmail(
   z.object({
     email: nonDisposableEmail,
     password: newPassword,
-    market: z.enum(MARKETS, { message: "market_invalid" }),
+    market: z.enum(PRICING_COUNTRIES, { message: "market_invalid" }),
     terms: z.literal(true, { message: "terms_required" }),
   }),
 );

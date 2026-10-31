@@ -57,7 +57,7 @@ export default async function AccountPage({ searchParams }: PageProps<"/konto">)
   const user = await SessionService.getCurrentUser();
   if (!user) redirect(`${AUTH_ROUTES.login}?${AUTH_PARAMS.next}=${encodeURIComponent(AUTH_ROUTES.account)}`);
 
-  const { t, lang } = await getAuthPageContext();
+  const { t, lang, region } = await getAuthPageContext();
   const { Account } = t;
   const account = AccountTranslations[await TranslationService.GetUserLocale()];
   const params = await searchParams;
@@ -85,7 +85,8 @@ export default async function AccountPage({ searchParams }: PageProps<"/konto">)
 
   const trialEnded = user.hasTrialEnded;
   const trialValue = user.trialEndsAt ? `${formatDate(user.trialEndsAt.toISOString(), lang)}${trialEnded ? ` · ${Account.Details.TrialEnded}` : ""}` : "—";
-  const marketLabel = user.market === "TR" ? t.Fields.MarketTr : t.Fields.MarketDe;
+  const activePricingCountry = user.market === "TR" ? "TR" : region.pricingCountry === "TR" ? "DE" : region.pricingCountry;
+  const marketLabel = `${t.Fields.Markets[activePricingCountry].Label} (${activePricingCountry})`;
   const isAdmin = hasPermission(user.permissions, "*");
   const accessValue = isAdmin
     ? Account.Details.AccessAdmin

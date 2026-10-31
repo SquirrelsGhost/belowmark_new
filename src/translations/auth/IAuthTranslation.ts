@@ -1,3 +1,4 @@
+import { PricingCountryCode } from "../../lib/constants";
 import { IMetaTags } from "../../services/MetaTagService";
 import { AuthErrorCode } from "../../types/auth.types";
 
@@ -68,6 +69,7 @@ export interface IAuthTranslation {
     MarketDeHint: string;
     MarketTr: string;
     MarketTrHint: string;
+    Markets: Record<PricingCountryCode, { Label: string; Hint: string }>;
     MarketNote: string;
     /** "{terms}" and "{privacy}" are replaced by links */
     Terms: string;

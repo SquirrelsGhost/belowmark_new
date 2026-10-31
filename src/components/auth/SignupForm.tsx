@@ -15,7 +15,7 @@ import TermsConsent from "@/components/auth/TermsConsent";
 import { useFocusFirstError } from "@/hooks/useFocusFirstError";
 import { signupAction } from "@/lib/auth/actions/signupAction";
 import { errorMessage } from "@/lib/auth/errorMessage";
-import { MarketCode } from "@/lib/constants";
+import { isPricingCountry, PRICING_COUNTRIES, PricingCountryCode } from "@/lib/constants";
 import { fill } from "@/translations/auth/AuthTranslations";
 import { IAuthTranslation } from "@/translations/auth/IAuthTranslation";
 import { AuthFieldName, INITIAL_AUTH_STATE } from "@/types/auth.types";
@@ -23,7 +23,7 @@ import { AuthFieldName, INITIAL_AUTH_STATE } from "@/types/auth.types";
 interface SignupFormProps {
   t: Pick<IAuthTranslation, "Fields" | "Errors" | "Signup">;
   /** Pre-selected from the visitor's region or pricing choice */
-  defaultMarket: MarketCode;
+  defaultMarket: PricingCountryCode;
 }
 
 /** Sign-up: e-mail, password, market, consent — then "check your inbox". */
@@ -49,7 +49,8 @@ export default function SignupForm({ t, defaultMarket }: SignupFormProps) {
     const code = state.fieldErrors?.[name];
     return code ? t.Errors[code] : undefined;
   };
-  const market = state.values?.market ?? defaultMarket;
+  const rawMarket = state.values?.market;
+  const market: PricingCountryCode = isPricingCountry(rawMarket) ? rawMarket : defaultMarket;
 
   return (
     <form ref={formRef} action={formAction} noValidate className="grid gap-5">
@@ -78,9 +79,10 @@ export default function SignupForm({ t, defaultMarket }: SignupFormProps) {
         error={fieldError("password")}
         withStrength
       />
-      <MarketPicker number="03" legend={t.Fields.Market} note={t.Fields.MarketNote} error={fieldError("market")}>
-        <MarketOption value="DE" code="DE" label={t.Fields.MarketDe} hint={t.Fields.MarketDeHint} defaultChecked={market === "DE"} />
-        <MarketOption value="TR" code="TR" label={t.Fields.MarketTr} hint={t.Fields.MarketTrHint} defaultChecked={market === "TR"} />
+      <MarketPicker number="03" legend={t.Fields.Market} note={t.Fields.MarketNote} defaultValue={market} error={fieldError("market")}>
+        {PRICING_COUNTRIES.map((code) => (
+          <MarketOption key={code} value={code} code={code} label={t.Fields.Markets[code].Label} hint={t.Fields.Markets[code].Hint} />
+        ))}
       </MarketPicker>
       <TermsConsent fields={t.Fields} defaultChecked={state.values?.terms} error={fieldError("terms")} />
       <AuthSubmit label={t.Signup.Submit} pendingLabel={t.Signup.Pending} variant="signal" />
