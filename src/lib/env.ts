@@ -147,9 +147,9 @@ export const env = {
   },
 
   // ── Auth ───────────────────────────────────────────────────
-  /** Check new passwords against known breaches (k-anonymity). On unless "off". SERVER ONLY. */
+  /** Check new passwords against known breaches (k-anonymity). Opt-in via AUTH_BREACH_CHECK="strict". SERVER ONLY. */
   get authBreachCheck(): boolean {
-    return optionalEnv("AUTH_BREACH_CHECK", "on") !== "off";
+    return optionalEnv("AUTH_BREACH_CHECK", "off") === "strict";
   },
   /** Secret for HMAC-SHA256 session cookie signing. SERVER ONLY. */
   get sessionSecret(): string {

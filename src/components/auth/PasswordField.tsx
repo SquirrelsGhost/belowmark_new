@@ -31,19 +31,35 @@ export default function PasswordField({ id, name, label, number, autoComplete, f
   const [visible, setVisible] = useState(false);
   const [capsLock, setCapsLock] = useState(false);
   const [value, setValue] = useState("");
+  const [editedSinceError, setEditedSinceError] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const valueRef = useRef("");
 
-  // React resets the form after each submit — keep the meter in step with the empty field.
+  useEffect(() => {
+    setEditedSinceError(false);
+  }, [error]);
+
+  // React 19 resets uncontrolled/DOM form inputs after a Server Action submit.
+  // Preserve the typed password in the field when a validation error returns so
+  // the user does not see an error message below a wiped-out empty input.
   useEffect(() => {
     const form = inputRef.current?.form;
-    const clear = () => setValue("");
-    form?.addEventListener("reset", clear);
-    return () => form?.removeEventListener("reset", clear);
+    const preserveOnReset = () => {
+      setEditedSinceError(false);
+      queueMicrotask(() => {
+        if (inputRef.current) {
+          inputRef.current.value = valueRef.current;
+        }
+      });
+    };
+    form?.addEventListener("reset", preserveOnReset);
+    return () => form?.removeEventListener("reset", preserveOnReset);
   }, []);
 
   const checkCaps = (event: KeyboardEvent<HTMLInputElement>) => setCapsLock(event.getModifierState("CapsLock"));
   const capsId = `${id}-caps`;
   const strengthId = `${id}-strength`;
+  const activeError = editedSinceError ? undefined : error;
 
   return (
     <div className="grid gap-1.5">
@@ -59,17 +75,23 @@ export default function PasswordField({ id, name, label, number, autoComplete, f
           id={id}
           name={name}
           type={visible ? "text" : "password"}
+          value={value}
           autoComplete={autoComplete}
           required
           spellCheck={false}
           autoCapitalize="none"
           maxLength={128}
-          onChange={(event) => setValue(event.target.value)}
+          onChange={(event) => {
+            const next = event.target.value;
+            valueRef.current = next;
+            setValue(next);
+            setEditedSinceError(true);
+          }}
           onKeyDown={checkCaps}
           onKeyUp={checkCaps}
           onBlur={() => setCapsLock(false)}
-          aria-invalid={error ? true : undefined}
-          aria-describedby={describedBy(id, hint, error, [capsLock && capsId, withStrength && strengthId].filter(Boolean).join(" ") || undefined)}
+          aria-invalid={activeError ? true : undefined}
+          aria-describedby={describedBy(id, hint, activeError, [capsLock && capsId, withStrength && strengthId].filter(Boolean).join(" ") || undefined)}
           className={`${FIELD_INPUT_CLASSES} pr-12 [&::-ms-clear]:hidden [&::-ms-reveal]:hidden`}
         />
         <button
@@ -89,7 +111,7 @@ export default function PasswordField({ id, name, label, number, autoComplete, f
         </p>
       )}
       {withStrength && <PasswordStrength id={strengthId} password={value} strength={fields.Strength} />}
-      <FieldMessages id={id} hint={hint} error={error} />
+      <FieldMessages id={id} hint={hint} error={activeError} />
     </div>
   );
 }

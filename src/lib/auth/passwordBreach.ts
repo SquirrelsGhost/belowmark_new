@@ -4,6 +4,7 @@ import { env } from "@/lib/env";
 
 const HIBP_RANGE_URL = "https://api.pwnedpasswords.com/range/";
 const TIMEOUT_MS = 1500;
+const MIN_BREACH_COUNT = 1000;
 
 /**
  * Checks a password against the Have I Been Pwned breach corpus using
@@ -26,7 +27,7 @@ export async function isBreachedPassword(password: string): Promise<boolean> {
     const body = await response.text();
     return body.split("\n").some((line) => {
       const [hashSuffix, count] = line.trim().split(":");
-      return hashSuffix === suffix && Number(count) > 0;
+      return hashSuffix === suffix && Number(count) >= MIN_BREACH_COUNT;
     });
   } catch {
     return false;
