@@ -1,11 +1,13 @@
 import { Metadata } from "next";
+import { redirect } from "next/navigation";
 import AuthCard from "@/components/auth/AuthCard";
 import AuthIntro from "@/components/auth/AuthIntro";
 import AuthLayout from "@/components/auth/AuthLayout";
 import VerifyEmailForm from "@/components/auth/VerifyEmailForm";
 import RegionDetector from "@/components/region/RegionDetector";
-import { AUTH_PARAMS } from "@/lib/auth/authConfig";
+import { AUTH_PARAMS, AUTH_ROUTES } from "@/lib/auth/authConfig";
 import { authMetadata, getAuthPageContext } from "@/lib/auth/authPage";
+import { SessionService } from "@/services/SessionService";
 
 // This page reads request-time data (cookies/headers) for locale detection.
 // instant = false opts it out of prerender validation — rendering is still server-side.
@@ -18,6 +20,9 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function VerifyEmailPage({ searchParams }: PageProps<"/email-bestaetigen">) {
   const { t, lang, region } = await getAuthPageContext();
+  if (await SessionService.getCurrentUser()) {
+    redirect(`${AUTH_ROUTES.account}?${AUTH_PARAMS.status}=verified`);
+  }
   const raw = (await searchParams)[AUTH_PARAMS.token];
   const token = typeof raw === "string" ? raw : "";
 
@@ -30,7 +35,7 @@ export default async function VerifyEmailPage({ searchParams }: PageProps<"/emai
         title={t.Verify.Title}
         description={token ? t.Verify.Description : undefined}
       >
-        <VerifyEmailForm t={{ Errors: t.Errors, Verify: t.Verify }} token={token} />
+        <VerifyEmailForm t={{ Fields: t.Fields, Errors: t.Errors, Verify: t.Verify }} token={token} />
       </AuthCard>
     </AuthLayout>
   );

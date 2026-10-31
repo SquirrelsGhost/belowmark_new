@@ -133,10 +133,10 @@ export const AUTH_TR: IAuthTranslation = {
     LoginLink: "Giriş yap",
     SuccessStamp: "Alındı",
     SuccessTitle: "Lütfen e-posta adresinizi doğrulayın.",
-    SuccessBody: "{email} adresine bir bağlantı gönderdik. Bağlantı 24 saat geçerlidir.",
-    SuccessHint: "Bir şey gelmedi mi? İstenmeyen klasörünüze bakın veya bağlantıyı yeniden isteyin.",
-    Resend: "Bağlantıyı yeniden gönder",
-    ResendSent: "Yeni bir bağlantı yola çıktı.",
+    SuccessBody: "{email} adresine bir doğrulama bağlantısı ve 6 haneli güvenlik kodu gönderdik (24 saat geçerlidir).",
+    SuccessHint: "E-postadaki bağlantıya tıklayın veya 6 haneli kodu doğrudan aşağıya girin. Gelen kutusunda yok mu? İstenmeyen (Spam) klasörünüze bakın.",
+    Resend: "Bağlantı ve kodu yeniden gönder",
+    ResendSent: "Yeni doğrulama bağlantısı ve kod yola çıktı.",
   },
 
   Forgot: {

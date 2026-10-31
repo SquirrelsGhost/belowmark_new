@@ -65,6 +65,7 @@ export class DeadlineTimelineService {
         id: users.id,
         email: users.email,
         locale: users.locale,
+        emailVerifiedAt: users.emailVerifiedAt,
         plan: activePlanSql,
         permissions: users.permissions,
         trialEndsAt: users.trialEndsAt,
@@ -76,7 +77,7 @@ export class DeadlineTimelineService {
 
     return new Map(
       rows
-        .filter((row) => !row.gesperrtAm)
+        .filter((row) => !row.gesperrtAm && Boolean(row.emailVerifiedAt))
         .map((row) => {
           const permissions = effectiveUserPermissions({ permissions: row.permissions, plan: row.plan, trialEndsAt: row.trialEndsAt, bannedAt: row.gesperrtAm, teamSeat: seats.has(row.id) });
           const locale = TranslationService.ToLocaleOption(TranslationService.NormalizeLocale(row.locale));

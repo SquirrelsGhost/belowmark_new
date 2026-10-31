@@ -133,10 +133,10 @@ export const AUTH_DE: IAuthTranslation = {
     LoginLink: "Anmelden",
     SuccessStamp: "Eingegangen",
     SuccessTitle: "Bitte bestätigen Sie Ihre E-Mail-Adresse.",
-    SuccessBody: "Wir haben einen Link an {email} geschickt. Er gilt 24 Stunden.",
-    SuccessHint: "Nichts angekommen? Sehen Sie im Spam-Ordner nach oder fordern Sie den Link erneut an.",
-    Resend: "Link erneut senden",
-    ResendSent: "Ein neuer Link ist unterwegs.",
+    SuccessBody: "Wir haben einen Bestätigungslink und einen 6-stelligen Sicherheitscode an {email} geschickt (24 Stunden gültig).",
+    SuccessHint: "Klicken Sie auf den Link in der E-Mail oder geben Sie den 6-stelligen Code direkt unten ein. Nichts im Posteingang? Prüfen Sie den Spam-Ordner.",
+    Resend: "Link & Code erneut senden",
+    ResendSent: "Ein neuer Bestätigungslink und Code sind unterwegs.",
   },
 
   Forgot: {

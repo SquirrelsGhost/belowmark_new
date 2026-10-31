@@ -10,6 +10,7 @@ import AuthSubmit from "@/components/auth/AuthSubmit";
 import AuthTextLink from "@/components/auth/AuthTextLink";
 import PasswordField from "@/components/auth/PasswordField";
 import ResendVerificationForm from "@/components/auth/ResendVerificationForm";
+import VerifyOtpForm from "@/components/auth/VerifyOtpForm";
 import { useFocusFirstError } from "@/hooks/useFocusFirstError";
 import { loginAction } from "@/lib/auth/actions/loginAction";
 import { AUTH_PARAMS, AUTH_ROUTES } from "@/lib/auth/authConfig";
@@ -68,7 +69,15 @@ export default function LoginForm({ t, next }: LoginFormProps) {
         <AuthSubmit label={t.Login.Submit} pendingLabel={t.Login.Pending} />
       </form>
       {state.code === "unverified" && state.values?.email && (
-        <ResendVerificationForm email={state.values.email} label={t.Login.ResendVerification} sentLabel={t.Login.ResendSent} errors={t.Errors} />
+        <div className="grid gap-3">
+          <VerifyOtpForm
+            email={state.values.email}
+            errors={t.Errors}
+            emailLabel={t.Fields.Email}
+            emailPlaceholder={t.Fields.EmailPlaceholder}
+          />
+          <ResendVerificationForm email={state.values.email} label={t.Login.ResendVerification} sentLabel={t.Login.ResendSent} errors={t.Errors} />
+        </div>
       )}
     </div>
   );

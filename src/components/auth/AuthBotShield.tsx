@@ -32,6 +32,9 @@ export default function AuthBotShield({ refreshKey }: AuthBotShieldProps) {
 
     refreshChallenge();
 
+    const interval = setInterval(refreshChallenge, 4 * 60 * 1000);
+    window.addEventListener("focus", refreshChallenge);
+
     const form = wrapperRef.current?.closest("form");
     const handleSubmit = () => {
       if (submitTimer) clearTimeout(submitTimer);
@@ -44,6 +47,8 @@ export default function AuthBotShield({ refreshKey }: AuthBotShieldProps) {
 
     return () => {
       active = false;
+      clearInterval(interval);
+      window.removeEventListener("focus", refreshChallenge);
       if (submitTimer) clearTimeout(submitTimer);
       form?.removeEventListener("submit", handleSubmit);
     };

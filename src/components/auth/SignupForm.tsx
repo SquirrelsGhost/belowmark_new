@@ -11,6 +11,7 @@ import MarketPicker from "@/components/auth/MarketPicker";
 import PasswordField from "@/components/auth/PasswordField";
 import ResendVerificationForm from "@/components/auth/ResendVerificationForm";
 import TermsConsent from "@/components/auth/TermsConsent";
+import VerifyOtpForm from "@/components/auth/VerifyOtpForm";
 import { useFocusFirstError } from "@/hooks/useFocusFirstError";
 import { signupAction } from "@/lib/auth/actions/signupAction";
 import { errorMessage } from "@/lib/auth/errorMessage";
@@ -39,7 +40,15 @@ export default function SignupForm({ t, defaultMarket }: SignupFormProps) {
         body={fill(t.Signup.SuccessBody, { email: state.values.email })}
         hint={t.Signup.SuccessHint}
       >
-        <ResendVerificationForm email={state.values.email} label={t.Signup.Resend} sentLabel={t.Signup.ResendSent} errors={t.Errors} />
+        <div className="grid gap-3">
+          <VerifyOtpForm
+            email={state.values.email}
+            errors={t.Errors}
+            emailLabel={t.Fields.Email}
+            emailPlaceholder={t.Fields.EmailPlaceholder}
+          />
+          <ResendVerificationForm email={state.values.email} label={t.Signup.Resend} sentLabel={t.Signup.ResendSent} errors={t.Errors} />
+        </div>
       </AuthNotice>
     );
   }

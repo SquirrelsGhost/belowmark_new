@@ -86,9 +86,9 @@ const POLICY_RULES: readonly PolicyRule[] = [
 
   // ─── 4. API Endpoints (Method-exact separation & capabilities) ──────────────
   { methods: ["GET"], pattern: /^\/api\/health$/, policy: API_PUBLIC },
-  { methods: ["POST"], pattern: /^\/api\/alerts\/run$/, policy: API_PUBLIC },
+  { methods: ["GET", "POST"], pattern: /^\/api\/alerts\/run$/, policy: API_PUBLIC },
   // Termin-Begleiter: the run checks the cron secret, the feed its secret token (calendar apps have no session)
-  { methods: ["POST"], pattern: /^\/api\/termine\/run$/, policy: API_PUBLIC },
+  { methods: ["GET", "POST"], pattern: /^\/api\/termine\/run$/, policy: API_PUBLIC },
   { methods: ["GET"], pattern: /^\/api\/termine\/feed\/[A-Za-z0-9_-]{43}(\.ics)?$/, policy: API_PUBLIC },
   // Signed by Stripe; the route verifies the signature itself
   { methods: ["POST"], pattern: /^\/api\/billing\/webhook$/, policy: API_PUBLIC },

@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { APP_ROUTES, listingHref } from "@/lib/appConstants";
 import { RATE_LIMITS } from "@/lib/auth/authConfig";
 import { DEADLINE_ROUTES } from "@/lib/deadlines/deadlineConstants";
@@ -48,7 +49,9 @@ export async function toggleFollowAction(_: DeadlineActionState, formData: FormD
       // Only proceedings of the user's market that exist in the data
       if (!(await ListingService.getByKey(user.market, listingKey))) return { ok: false };
       if (!(await DeadlineService.follow(user.id, listingKey, user.market))) return { ok: false };
-      void DeadlineRunService.run(Date.now(), user.id).catch((err) => console.error("[toggleFollowAction:run]", err));
+      after(async () => {
+        await DeadlineRunService.run(Date.now(), user.id).catch((err) => console.error("[toggleFollowAction:run]", err));
+      });
     }
   } catch (error) {
     console.error("[toggleFollowAction]", error);
@@ -74,7 +77,9 @@ export async function setDeadlineMailAction(_: DeadlineActionState, formData: Fo
     }
     await DeadlineService.setMail(user.id, listingKey, mailOn);
     if (mailOn) {
-      void DeadlineRunService.run(Date.now(), user.id).catch((err) => console.error("[setDeadlineMailAction:run]", err));
+      after(async () => {
+        await DeadlineRunService.run(Date.now(), user.id).catch((err) => console.error("[setDeadlineMailAction:run]", err));
+      });
     }
   } catch (error) {
     console.error("[setDeadlineMailAction]", error);

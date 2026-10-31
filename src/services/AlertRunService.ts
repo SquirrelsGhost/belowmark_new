@@ -47,6 +47,7 @@ async function recipients(userIds: string[]): Promise<Map<string, Recipient>> {
       id: users.id,
       email: users.email,
       locale: users.locale,
+      emailVerifiedAt: users.emailVerifiedAt,
       plan: activePlanSql,
       permissions: users.permissions,
       trialEndsAt: users.trialEndsAt,
@@ -58,7 +59,7 @@ async function recipients(userIds: string[]): Promise<Map<string, Recipient>> {
 
   return new Map(
     rows
-      .filter((row) => !row.gesperrtAm)
+      .filter((row) => !row.gesperrtAm && Boolean(row.emailVerifiedAt))
       .map((row) => {
         const perms = effectiveUserPermissions({
           permissions: row.permissions,
@@ -177,7 +178,11 @@ export class AlertRunService {
         const withHits = results.filter((result) => result.hits.length > 0);
         try {
           if (recipient && withHits.length > 0) {
-            await MailService.send({ to: recipient.email, ...mailFor(recipient, withHits) });
+            await MailService.send({
+              to: recipient.email,
+              unsubscribeUrl: absolute(ALERT_ROUTES.manage),
+              ...mailFor(recipient, withHits),
+            });
             report.mailed += 1;
             for (const { hits } of withHits) {
               report.newHits += hits.filter((hit) => hit.kind === "new").length;

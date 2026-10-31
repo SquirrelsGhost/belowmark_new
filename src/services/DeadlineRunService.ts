@@ -98,7 +98,11 @@ export class DeadlineRunService {
             }
           }
           if (groups.length === 0) continue;
-          await MailService.send({ to: recipient.email, ...mailFor(recipient, groups) });
+          await MailService.send({
+            to: recipient.email,
+            unsubscribeUrl: absolute(DEADLINE_ROUTES.overview),
+            ...mailFor(recipient, groups),
+          });
           await DeadlineService.markSent(
             userId,
             groups.flatMap(({ due }) => due.map(({ listingKey, sentKey }) => ({ listingKey, sentKey }))),

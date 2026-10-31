@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { limitOrNull, unknownError } from "@/lib/auth/actionHelpers";
 import { AUTH_PARAMS, AUTH_ROUTES, RATE_LIMITS } from "@/lib/auth/authConfig";
+import { normalizeEmail } from "@/lib/auth/normalizeEmail";
 import { getRequestInfo } from "@/lib/auth/requestInfo";
 import { field } from "@/lib/auth/validation";
 import { AuthService } from "@/services/AuthService";
@@ -10,9 +11,8 @@ import { SessionService } from "@/services/SessionService";
 import { AuthFormState } from "@/types/auth.types";
 
 /**
- * Server Action: confirm the e-mail address and sign in.
- * A button press instead of a plain GET, so mail scanners that open every
- * link cannot use the token up before the person clicks it.
+ * Server Action: confirm the e-mail address (via 1-click link token OR 6-digit OTP code)
+ * and sign in immediately.
  */
 export async function verifyEmailAction(_prev: AuthFormState, formData: FormData): Promise<AuthFormState> {
   const { ip, userAgent } = await getRequestInfo();
@@ -20,10 +20,18 @@ export async function verifyEmailAction(_prev: AuthFormState, formData: FormData
   const ipLimit = await limitOrNull(`token:ip:${ip}`, RATE_LIMITS.tokenIp);
   if (ipLimit) return ipLimit;
 
-  const token = field(formData, AUTH_PARAMS.token);
+  const token = field(formData, AUTH_PARAMS.token).trim();
+  const emailRaw = field(formData, "email").trim();
+  const codeRaw = field(formData, "code").trim();
+
   try {
-    const userId = token ? await AuthService.verifyEmail(token) : null;
-    if (!userId) return { status: "error", code: "token_invalid" };
+    let userId: string | null = null;
+    if (token) {
+      userId = await AuthService.verifyEmail(token);
+    } else if (emailRaw && codeRaw) {
+      userId = await AuthService.verifyEmailByCode(normalizeEmail(emailRaw), codeRaw);
+    }
+    if (!userId) return { status: "error", code: "token_invalid", values: emailRaw ? { email: emailRaw } : undefined };
     await SessionService.create(userId, true, userAgent, { ip });
   } catch (error) {
     return unknownError("verifyEmailAction", error);
