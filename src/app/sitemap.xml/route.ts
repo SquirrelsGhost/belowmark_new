@@ -71,6 +71,21 @@ export async function GET(): Promise<Response> {
       addUrl(`${BELOWMARK_ORIGIN}/tr/icra-ihale/${loc.slug}`, loc.kind === "province" ? "0.85" : "0.75", "daily");
     }
 
+    // 6. All 6 European Partner Markets (AT, CH, IT, ES, FR, GB): Hubs, Calculators, Regions, Cities & Courts
+    for (const euCat of Object.values(catalog.euMarkets)) {
+      addUrl(`${BELOWMARK_ORIGIN}${euCat.hubPath}`, "0.95", "daily");
+      addUrl(`${BELOWMARK_ORIGIN}${euCat.calcPath}`, "0.90", "weekly");
+      for (const reg of euCat.regions) {
+        addUrl(`${BELOWMARK_ORIGIN}${euCat.hubPath}/${reg.slug}`, "0.88", "daily");
+      }
+      for (const city of euCat.cities) {
+        addUrl(`${BELOWMARK_ORIGIN}${euCat.hubPath}/${city.slug}`, "0.80", "daily");
+      }
+      for (const court of euCat.courts) {
+        addUrl(`${BELOWMARK_ORIGIN}${euCat.hubPath}/${court.slug}`, "0.80", "daily");
+      }
+    }
+
     const rows = [...byLoc.values()].map(
       (u) =>
         `  <url><loc>${escapeXml(u.loc)}</loc><lastmod>${u.lastmod}</lastmod><changefreq>${u.changefreq}</changefreq><priority>${u.priority}</priority></url>`,

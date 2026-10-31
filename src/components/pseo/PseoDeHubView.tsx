@@ -69,6 +69,15 @@ export default function PseoDeHubView({ catalog }: PseoDeHubViewProps) {
             🇹🇷 Türkei İcra &amp; E-İhale ({formatNumber(catalog.trTotalListings, "de")} Objekte)
           </Link>
         </div>
+
+        <div className="mt-4 flex flex-wrap gap-2 pt-2 font-mono text-[11px]">
+          <Link href="/oesterreich/ediktsdatei" className="border border-rule-strong bg-paper px-2.5 py-1 text-ink-soft hover:border-ink hover:text-ink">🇦🇹 Österreich · Ediktsdatei (9 Länder)</Link>
+          <Link href="/schweiz/shab-versteigerungen" className="border border-rule-strong bg-paper px-2.5 py-1 text-ink-soft hover:border-ink hover:text-ink">🇨🇭 Schweiz · SHAB (26 Kantone)</Link>
+          <Link href="/it/aste-giudiziarie" className="border border-rule-strong bg-paper px-2.5 py-1 text-ink-soft hover:border-ink hover:text-ink">🇮🇹 Italia · Aste PVP (20 Regioni)</Link>
+          <Link href="/es/subastas-boe" className="border border-rule-strong bg-paper px-2.5 py-1 text-ink-soft hover:border-ink hover:text-ink">🇪🇸 España · BOE (17 CCAA)</Link>
+          <Link href="/fr/encheres-immobilieres" className="border border-rule-strong bg-paper px-2.5 py-1 text-ink-soft hover:border-ink hover:text-ink">🇫🇷 France · Licitor (13 Régions)</Link>
+          <Link href="/en/uk-property-auctions" className="border border-rule-strong bg-paper px-2.5 py-1 text-ink-soft hover:border-ink hover:text-ink">🇬🇧 UK · Property Auctions (12 Regions)</Link>
+        </div>
       </header>
 
       <section className="mt-12">

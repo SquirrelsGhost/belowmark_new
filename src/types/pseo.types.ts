@@ -1,3 +1,6 @@
+export type EuPseoMarketCode = "AT" | "CH" | "IT" | "ES" | "FR" | "GB";
+export type PseoLocale = "de" | "tr" | "en" | "it" | "es" | "fr";
+
 export interface PseoPreviewListing {
   key: string;
   title: string;
@@ -62,6 +65,41 @@ export interface TrLocationPseoEntry {
   listings: PseoPreviewListing[];
 }
 
+export interface EuMarketLocationEntry {
+  slug: string;
+  aliases: string[];
+  market: EuPseoMarketCode;
+  locale: PseoLocale;
+  kind: "region" | "court" | "city";
+  name: string;
+  nativeRegionName: string;
+  regionSlug: string;
+  transferTaxPct: number;
+  currency: "EUR" | "CHF" | "GBP";
+  totalCount: number;
+  limitsWaivedCount: number;
+  withDocsCount: number;
+  avgAppraisedValue: number | null;
+  minAppraisedValue: number | null;
+  nextHearingDate: string | null;
+  subLinks: Array<{ name: string; slug: string; count: number }>;
+  courtLinks: Array<{ name: string; slug: string; count: number }>;
+  listings: PseoPreviewListing[];
+}
+
+export interface EuMarketCatalog {
+  market: EuPseoMarketCode;
+  locale: PseoLocale;
+  currency: "EUR" | "CHF" | "GBP";
+  hubPath: string;
+  calcPath: string;
+  totalListings: number;
+  regions: EuMarketLocationEntry[];
+  courts: EuMarketLocationEntry[];
+  cities: EuMarketLocationEntry[];
+  bySlug: Map<string, EuMarketLocationEntry>;
+}
+
 export interface PseoCatalog {
   generatedAt: string;
   deTotalListings: number;
@@ -72,4 +110,5 @@ export interface PseoCatalog {
   cityBySlug: Map<string, CityPseoEntry>;
   trLocations: TrLocationPseoEntry[];
   trBySlug: Map<string, TrLocationPseoEntry>;
+  euMarkets: Record<EuPseoMarketCode, EuMarketCatalog>;
 }

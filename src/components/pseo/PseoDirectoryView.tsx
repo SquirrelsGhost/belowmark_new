@@ -2,10 +2,10 @@ import Link from "next/link";
 import BlogArticleCta from "@/components/blog/BlogArticleCta";
 import PseoListingPreviewCard from "@/components/pseo/PseoListingPreviewCard";
 import PseoStatsBanner from "@/components/pseo/PseoStatsBanner";
-import { PseoPreviewListing } from "@/types/pseo.types";
+import { PseoLocale, PseoPreviewListing } from "@/types/pseo.types";
 
 interface PseoDirectoryViewProps {
-  locale: "de" | "tr";
+  locale: PseoLocale;
   eyebrow: string;
   title: string;
   lead: string;
@@ -18,6 +18,10 @@ interface PseoDirectoryViewProps {
   secondaryTitle?: string;
   secondaryLinks?: ReadonlyArray<{ label: string; href: string; count?: number }>;
   faqs: ReadonlyArray<{ q: string; a: string }>;
+  calcHref?: string;
+  calcLabel?: string;
+  listingsHeading?: string;
+  faqHeading?: string;
 }
 
 export default function PseoDirectoryView({
@@ -34,12 +38,19 @@ export default function PseoDirectoryView({
   secondaryTitle,
   secondaryLinks,
   faqs,
+  calcHref,
+  calcLabel,
+  listingsHeading,
+  faqHeading,
 }: PseoDirectoryViewProps) {
   const isTr = locale === "tr";
-  const calcHref = isTr ? "/tr/hesaplama/icra-ihale-teminat" : "/rechner/5-10-und-7-10-grenze";
-  const calcLabel = isTr
-    ? "🧮 Ücretsiz İcra İhale %10 Teminat & %50 Sınır Hesaplayıcı →"
-    : "🧮 Kostenloser 5/10- & 7/10-Grenze + Sicherheitsleistung Rechner →";
+  const resolvedCalcHref =
+    calcHref ?? (isTr ? "/tr/hesaplama/icra-ihale-teminat" : "/rechner/5-10-und-7-10-grenze");
+  const resolvedCalcLabel =
+    calcLabel ??
+    (isTr
+      ? "🧮 Ücretsiz İcra İhale %10 Teminat & %50 Sınır Hesaplayıcı →"
+      : "🧮 Kostenloser 5/10- & 7/10-Grenze + Sicherheitsleistung Rechner →");
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -100,8 +111,8 @@ export default function PseoDirectoryView({
         <h1 className="mt-3 font-display text-3xl leading-tight text-ink sm:text-5xl">{title}</h1>
         <p className="mt-3 max-w-3xl font-serif text-lg leading-relaxed text-ink-soft">{lead}</p>
         <div className="mt-4">
-          <Link href={calcHref} className="inline-flex items-center border-2 border-ink bg-paper-deep px-4 py-2 font-narrow text-xs font-semibold uppercase tracking-wider text-ink hover:bg-ink hover:text-paper-bright">
-            {calcLabel}
+          <Link href={resolvedCalcHref} className="inline-flex items-center border-2 border-ink bg-paper-deep px-4 py-2 font-narrow text-xs font-semibold uppercase tracking-wider text-ink hover:bg-ink hover:text-paper-bright">
+            {resolvedCalcLabel}
           </Link>
         </div>
         <PseoStatsBanner stats={stats} />
@@ -109,7 +120,7 @@ export default function PseoDirectoryView({
 
       <div className="mt-10">
         <h2 className="font-display text-2xl text-ink sm:text-3xl">
-          {isTr ? "Güncel İcra & İhale Gayrimenkul Listesi" : "Aktuelle Zwangsversteigerungstermine & Objekte"}
+          {listingsHeading ?? (isTr ? "Güncel İcra & İhale Gayrimenkul Listesi" : "Aktuelle Zwangsversteigerungstermine & Objekte")}
         </h2>
         <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {listings.map((item) => <PseoListingPreviewCard key={item.key} item={item} locale={locale} />)}
@@ -144,7 +155,9 @@ export default function PseoDirectoryView({
 
       {faqs.length > 0 && (
         <div className="mt-12 border-2 border-ink bg-paper-bright p-6 sm:p-8">
-          <h2 className="font-display text-2xl text-ink sm:text-3xl">{isTr ? "Sıkça Sorulan Sorular (SSS)" : "Häufig gestellte Fragen (FAQ)"}</h2>
+          <h2 className="font-display text-2xl text-ink sm:text-3xl">
+            {faqHeading ?? (isTr ? "Sıkça Sorulan Sorular (SSS)" : "Häufig gestellte Fragen (FAQ)")}
+          </h2>
           <div className="mt-5 space-y-4">
             {faqs.map((f) => (
               <div key={f.q} className="border-b border-rule-strong pb-4 last:border-b-0">
