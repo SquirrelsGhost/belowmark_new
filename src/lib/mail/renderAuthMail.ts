@@ -13,14 +13,41 @@ interface MailParts {
   signature: string;
   footer: string;
   lang: string;
+  /** Optional 6-digit verification code (OTP) shown alongside the confirmation button */
+  verificationCode?: string;
+  /** Optional bulleted highlights (e.g. for the Welcome / Trial Activated mail) */
+  highlights?: string[];
+  /** Optional custom document header code */
+  docCode?: string;
+  /** Optional custom eyebrow label */
+  eyebrow?: string;
+  /** Optional base URL for frame links */
+  baseUrl?: string;
+}
+
+function formatOtpDisplay(code: string): string {
+  const digits = code.replace(/\D/g, "");
+  if (digits.length === 6) return `${digits.slice(0, 3)} ${digits.slice(3)}`;
+  return digits;
 }
 
 /**
- * Renders all account & security mails (E-Mail-Bestätigung, Passwort-Reset,
- * Sicherheitshinweis) in the structured "Amtlicher Aushang / Official Dossier"
- * layout, paired with a clean plain-text twin.
+ * Renders all account & security mails (E-Mail-Bestätigung, Willkommens-Mail,
+ * Passwort-Reset, Sicherheitshinweis) in the structured "Amtlicher Aushang /
+ * Official Dossier" layout, paired with a clean plain-text twin.
  */
-export function renderAuthMail({ template, url, signature, footer, lang }: MailParts): RenderedMail {
+export function renderAuthMail({
+  template,
+  url,
+  signature,
+  footer,
+  lang,
+  verificationCode,
+  highlights,
+  docCode,
+  eyebrow,
+  baseUrl,
+}: MailParts): RenderedMail {
   const C = MAIL_COLORS;
   const isTr = lang === "tr";
 
@@ -32,16 +59,67 @@ export function renderAuthMail({ template, url, signature, footer, lang }: MailP
     "",
     template.Body,
     "",
-    `▸ ${template.Action}:`,
-    url,
-    "",
   ];
+  if (verificationCode) {
+    const codeHeading = isTr ? "6 Haneli Doğrulama Kodunuz" : "Ihr 6-stelliger Bestätigungscode";
+    lines.push(`┌──────────────────────────────────────────────┐`);
+    lines.push(`│  ${codeHeading}: ${formatOtpDisplay(verificationCode)}`);
+    lines.push(`└──────────────────────────────────────────────┘`, "");
+  }
+  if (highlights && highlights.length > 0) {
+    for (const point of highlights) {
+      lines.push(`  • ${point}`);
+    }
+    lines.push("");
+  }
+  lines.push(`▸ ${template.Action}:`, url, "");
   if (template.Expiry) lines.push(`ℹ ${template.Expiry}`, "");
   lines.push(template.Ignore, "", "—", signature, footer);
 
   const safeUrl = escapeHtml(url);
   const copyLabel = isTr ? "Kopyalamak için doğrudan bağlantı" : "Direktlink (falls die Schaltfläche nicht öffnet)";
   const securityLabel = isTr ? "Güvenlik Notu" : "Sicherheitshinweis";
+  const otpLabel = isTr ? "Alternatif: 6 Haneli Doğrulama Kodu" : "Alternativ: 6-stelliger Bestätigungscode";
+  const otpHint = isTr
+    ? "Bu kodu kayıt veya doğrulama ekranına doğrudan girebilirsiniz."
+    : "Sie können diesen Code auch direkt auf der Registrierungs- oder Bestätigungsseite eingeben.";
+
+  const otpHtml = verificationCode
+    ? `
+        <!-- 6-Digit Verification Code Box -->
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:${C.paper};border:1.5px solid ${C.ink};margin-bottom:20px;">
+          <tr>
+            <td style="padding:16px 20px;">
+              <div style="font-family:'Courier New',Courier,monospace;font-size:11px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:${C.inkSoft};margin-bottom:8px;">
+                ${escapeHtml(otpLabel)}
+              </div>
+              <div style="display:inline-block;font-family:'Courier New',Courier,monospace;font-size:26px;font-weight:900;letter-spacing:6px;color:${C.ink};background-color:${C.bright};border:1px solid ${C.ink};padding:10px 18px;">
+                ${escapeHtml(formatOtpDisplay(verificationCode))}
+              </div>
+              <div style="margin-top:8px;font-size:12px;line-height:1.5;color:${C.muted};">
+                ${escapeHtml(otpHint)}
+              </div>
+            </td>
+          </tr>
+        </table>`
+    : "";
+
+  const highlightsHtml =
+    highlights && highlights.length > 0
+      ? `
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:${C.paper};border:1px solid ${C.rule};border-left:4px solid ${C.verdict};margin-bottom:20px;">
+          <tr>
+            <td style="padding:14px 18px;">
+              ${highlights
+                .map(
+                  (item, idx) =>
+                    `<div style="font-size:13.5px;line-height:1.55;color:${C.ink};${idx > 0 ? "margin-top:6px;" : ""}"><strong>&#10003;</strong> ${escapeHtml(item)}</div>`,
+                )
+                .join("")}
+            </td>
+          </tr>
+        </table>`
+      : "";
 
   const bodyHtml = `
     <tr>
@@ -77,6 +155,9 @@ export function renderAuthMail({ template, url, signature, footer, lang }: MailP
           </tr>
         </table>
 
+        ${otpHtml}
+        ${highlightsHtml}
+
         <!-- Fallback URL Copy Box -->
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:${C.paper};border:1px solid ${C.rule};margin-bottom:20px;">
           <tr>
@@ -105,13 +186,14 @@ export function renderAuthMail({ template, url, signature, footer, lang }: MailP
 
   const html = renderMailFrame({
     lang,
-    docCode: isTr ? "BM-HESAP · GÜVENLİK" : "BM-KONTO · SICHERHEIT",
-    eyebrow: isTr ? "Hesap ve Erişim Doğrulaması" : "Konto- & Zugangsbestätigung",
+    docCode: docCode ?? (isTr ? "BM-HESAP · GÜVENLİK" : "BM-KONTO · SICHERHEIT"),
+    eyebrow: eyebrow ?? (isTr ? "Hesap ve Erişim Doğrulaması" : "Konto- & Zugangsbestätigung"),
     subject: template.Subject,
     preheader: template.Preheader,
     bodyHtml,
     signature,
     footer,
+    baseUrl,
   });
 
   return { subject: template.Subject, text: lines.join("\n"), html };

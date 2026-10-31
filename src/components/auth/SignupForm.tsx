@@ -52,7 +52,7 @@ export default function SignupForm({ t, defaultMarket }: SignupFormProps) {
   const market: PricingCountryCode = isPricingCountry(rawMarket) ? rawMarket : defaultMarket;
 
   return (
-    <form ref={formRef} action={formAction} noValidate className="grid gap-5">
+    <form ref={formRef} action={formAction} noValidate className="grid min-w-0 gap-5">
       <AuthBotShield refreshKey={state} />
       {state.code && <AuthErrorSummary title={t.Errors.SummaryTitle} message={errorMessage(state.code, t.Errors, state.retryAfterMinutes)} />}
       <AuthField

@@ -24,6 +24,7 @@ export const TOKEN_TTL = {
 
 export const TOKEN_PURPOSE = {
   verifyEmail: "verify_email",
+  verifyEmailCode: "verify_email_code",
   resetPassword: "reset_password",
 } as const;
 export type TokenPurpose = (typeof TOKEN_PURPOSE)[keyof typeof TOKEN_PURPOSE];
@@ -45,14 +46,14 @@ export const EMAIL_MAX_LENGTH = 254;
 
 /** Rate limits: `limit` hits per `windowMs`. */
 export const RATE_LIMITS = {
-  loginIp: { limit: 20, windowMs: 15 * MINUTE },
+  loginIp: { limit: 25, windowMs: 15 * MINUTE },
   /** Failed attempts per account before it pauses — protects against guessing. */
-  loginAccount: { limit: 5, windowMs: 15 * MINUTE },
-  signupIp: { limit: 5, windowMs: HOUR },
-  mailIp: { limit: 6, windowMs: 15 * MINUTE },
-  /** Mails per address — silently capped so nobody can flood an inbox. */
-  mailAccount: { limit: 3, windowMs: HOUR },
-  tokenIp: { limit: 20, windowMs: 15 * MINUTE },
+  loginAccount: { limit: 6, windowMs: 15 * MINUTE },
+  signupIp: { limit: 15, windowMs: HOUR },
+  mailIp: { limit: 15, windowMs: 15 * MINUTE },
+  /** Mails per address — generous enough for retries, capped against inbox flooding. */
+  mailAccount: { limit: 10, windowMs: HOUR },
+  tokenIp: { limit: 25, windowMs: 15 * MINUTE },
   changePassword: { limit: 5, windowMs: 15 * MINUTE },
   /** Orders per account — enough for retries, not for scripted checkout spam. */
   order: { limit: 10, windowMs: 15 * MINUTE },

@@ -23,13 +23,13 @@ interface MarketDropdownProps {
 }
 
 const TRIGGER_BASE = [
-  "group relative flex w-full cursor-pointer items-center justify-between gap-3 border-2 border-ink bg-paper-bright px-4 py-3 text-left",
-  "transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)]",
-  "hover:bg-paper-deep focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-signal",
+  "group relative flex w-full min-w-0 max-w-full cursor-pointer items-center justify-between gap-3 overflow-hidden border border-ink/70 bg-paper px-3.5 py-2.5 text-left",
+  "outline-none transition-[border-color,box-shadow,background-color] duration-150",
+  "hover:border-ink focus-visible:border-ink focus-visible:bg-paper-bright focus-visible:shadow-[inset_0_-3px_0_0_var(--signal)]",
 ].join(" ");
 
 const MENU_BASE = [
-  "absolute left-0 right-0 z-50 mt-1.5 max-h-80 overflow-y-auto border-2 border-ink bg-paper-bright",
+  "absolute left-0 right-0 z-50 mt-1.5 max-h-72 overflow-y-auto overflow-x-hidden border-2 border-ink bg-paper-bright",
   "shadow-[8px_8px_0_var(--ink)] divide-y divide-rule",
   "origin-top transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)]",
 ].join(" ");
@@ -99,7 +99,7 @@ export default function MarketDropdown({
   };
 
   return (
-    <div ref={rootRef} className={`relative ${disabled ? "opacity-60" : ""}`} onKeyDown={handleKeyDown}>
+    <div ref={rootRef} className={`relative w-full min-w-0 max-w-full ${disabled ? "opacity-60" : ""}`} onKeyDown={handleKeyDown}>
       {name && <input type="hidden" name={name} value={selected.code} />}
       <button
         id={triggerId}
@@ -111,28 +111,25 @@ export default function MarketDropdown({
         aria-invalid={hasError || undefined}
         aria-describedby={describedBy}
         onClick={() => setOpen((prev) => !prev)}
-        className={`${TRIGGER_BASE} ${open ? "shadow-[4px_4px_0_var(--ink)] bg-paper-bright" : "shadow-[3px_3px_0_var(--ink)]"} ${hasError ? "border-signal" : ""}`}
+        className={`${TRIGGER_BASE} ${open ? "border-ink bg-paper-bright shadow-[inset_0_-3px_0_0_var(--signal)]" : ""} ${hasError ? "border-signal shadow-[inset_0_-3px_0_0_var(--signal)]" : ""}`}
       >
-        <span className="flex min-w-0 items-center gap-3.5">
-          <span className="flex h-9 w-11 shrink-0 items-center justify-center border border-ink bg-ink font-display text-xl leading-none tracking-wider text-signal">
+        <span className="flex min-w-0 flex-1 items-center gap-3 overflow-hidden">
+          <span className="flex h-8 w-10 shrink-0 items-center justify-center border border-ink bg-ink font-display text-lg leading-none tracking-wider text-signal">
             {selected.code}
           </span>
-          <span className="flex min-w-0 flex-col">
-            <span className="truncate font-narrow text-base font-semibold tracking-wide text-ink uppercase">{selected.label}</span>
+          <span className="flex min-w-0 flex-1 flex-col overflow-hidden">
+            <span className="truncate font-narrow text-sm font-semibold tracking-wide text-ink uppercase">{selected.label}</span>
             <span className="truncate font-mono text-[11px] text-muted">{selected.hint}</span>
           </span>
         </span>
-        <span className="flex shrink-0 items-center gap-2 pl-2">
-          <span
-            aria-hidden="true"
-            className={`flex size-7 items-center justify-center border border-ink/30 bg-paper text-ink transition-transform duration-200 ${open ? "rotate-180 bg-ink text-paper-bright" : "group-hover:border-ink"}`}
-          >
-            <svg viewBox="0 0 16 16" className="size-3.5 fill-none stroke-current stroke-2">
-              <path d="M3.5 6L8 10.5L12.5 6" strokeLinecap="square" />
-            </svg>
-          </span>
+        <span
+          aria-hidden="true"
+          className={`flex size-7 shrink-0 items-center justify-center border border-ink/30 bg-paper-bright text-ink transition-transform duration-200 ${open ? "rotate-180 border-ink bg-ink text-paper-bright" : "group-hover:border-ink"}`}
+        >
+          <svg viewBox="0 0 16 16" className="size-3.5 fill-none stroke-current stroke-2">
+            <path d="M3.5 6L8 10.5L12.5 6" strokeLinecap="square" />
+          </svg>
         </span>
-        <span aria-hidden="true" className={`absolute inset-x-0 bottom-0 h-[3px] transition-colors ${open ? "bg-signal" : "bg-transparent group-hover:bg-signal/60"}`} />
       </button>
 
       <div
@@ -157,7 +154,7 @@ export default function MarketDropdown({
               aria-selected={isSelected}
               onMouseEnter={() => setActiveIndex(idx)}
               onClick={() => pick(option.code)}
-              className={`group/item relative flex w-full cursor-pointer items-center justify-between gap-3 px-4 py-3 text-left transition-colors duration-150 ${
+              className={`group/item relative flex w-full min-w-0 cursor-pointer items-center justify-between gap-3 overflow-hidden px-3.5 py-2.5 text-left transition-colors duration-150 ${
                 isSelected
                   ? "bg-ink text-paper-bright"
                   : isFocused
@@ -165,21 +162,21 @@ export default function MarketDropdown({
                     : "bg-paper-bright text-ink hover:bg-paper-deep"
               }`}
             >
-              <span className="flex min-w-0 items-center gap-3.5">
+              <span className="flex min-w-0 flex-1 items-center gap-3 overflow-hidden">
                 <span
-                  className={`flex h-8 w-10 shrink-0 items-center justify-center border font-display text-lg leading-none tracking-wider transition-colors ${
+                  className={`flex h-7 w-9 shrink-0 items-center justify-center border font-display text-base leading-none tracking-wider transition-colors ${
                     isSelected ? "border-signal bg-signal text-paper-bright" : "border-ink/40 bg-paper text-ink group-hover/item:border-ink"
                   }`}
                 >
                   {option.code}
                 </span>
-                <span className="flex min-w-0 flex-col">
+                <span className="flex min-w-0 flex-1 flex-col overflow-hidden">
                   <span className="truncate font-narrow text-sm font-semibold tracking-wide uppercase">{option.label}</span>
                   <span className={`truncate font-mono text-[11px] ${isSelected ? "text-paper/75" : "text-muted"}`}>{option.hint}</span>
                 </span>
               </span>
               {isSelected && (
-                <span className="shrink-0 font-mono text-[10px] font-semibold tracking-widest text-signal uppercase">✓</span>
+                <span className="shrink-0 font-mono text-xs font-semibold tracking-widest text-signal uppercase">✓</span>
               )}
               {isSelected && <span aria-hidden="true" className="absolute inset-y-0 left-0 w-1 bg-signal" />}
             </button>

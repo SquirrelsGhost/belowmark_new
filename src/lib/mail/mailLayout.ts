@@ -31,6 +31,7 @@ export interface MailFrameOptions {
   footer: string;
   manageLabel?: string;
   manageUrl?: string;
+  baseUrl?: string;
 }
 
 /**
@@ -41,6 +42,7 @@ export interface MailFrameOptions {
 export function renderMailFrame(opts: MailFrameOptions): string {
   const C = MAIL_COLORS;
   const isTr = opts.lang === "tr";
+  const base = (opts.baseUrl || "https://belowmark.com").replace(/\/+$/, "");
   const preheaderText = escapeHtml(opts.preheader || opts.subject);
   const navLabels = isTr
     ? { app: "Arama", deadlines: "Süreler", alerts: "Alarmlar", account: "Hesap", legal: "Künye & Gizlilik" }
@@ -85,7 +87,7 @@ export function renderMailFrame(opts: MailFrameOptions): string {
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                 <tr>
                   <td align="left" style="vertical-align:middle;">
-                    <a href="https://belowmark.com" style="text-decoration:none;color:${C.ink};display:inline-block;">
+                    <a href="${escapeHtml(base)}" style="text-decoration:none;color:${C.ink};display:inline-block;">
                       <span style="font-size:19px;font-weight:900;letter-spacing:3.5px;text-transform:uppercase;color:${C.ink};display:block;">BELOWMARK</span>
                       <span style="display:block;height:3px;width:100%;background-color:${C.signal};margin-top:3px;"></span>
                     </a>
@@ -147,15 +149,15 @@ export function renderMailFrame(opts: MailFrameOptions): string {
             <td align="center" style="padding:0 16px;font-family:'Courier New',Courier,monospace;font-size:11px;line-height:1.6;color:${C.muted};">
               <div>${escapeHtml(opts.footer)}</div>
               <div style="margin-top:6px;">
-                <a href="https://belowmark.com/app" style="color:${C.inkSoft};text-decoration:underline;">${navLabels.app}</a>
+                <a href="${escapeHtml(`${base}/app`)}" style="color:${C.inkSoft};text-decoration:underline;">${navLabels.app}</a>
                 &nbsp;·&nbsp;
-                <a href="https://belowmark.com/app/termine" style="color:${C.inkSoft};text-decoration:underline;">${navLabels.deadlines}</a>
+                <a href="${escapeHtml(`${base}/app/termine`)}" style="color:${C.inkSoft};text-decoration:underline;">${navLabels.deadlines}</a>
                 &nbsp;·&nbsp;
-                <a href="https://belowmark.com/app/alerts" style="color:${C.inkSoft};text-decoration:underline;">${navLabels.alerts}</a>
+                <a href="${escapeHtml(`${base}/app/alerts`)}" style="color:${C.inkSoft};text-decoration:underline;">${navLabels.alerts}</a>
                 &nbsp;·&nbsp;
-                <a href="https://belowmark.com/konto" style="color:${C.inkSoft};text-decoration:underline;">${navLabels.account}</a>
+                <a href="${escapeHtml(`${base}/konto`)}" style="color:${C.inkSoft};text-decoration:underline;">${navLabels.account}</a>
                 &nbsp;·&nbsp;
-                <a href="https://belowmark.com/impressum" style="color:${C.inkSoft};text-decoration:underline;">${navLabels.legal}</a>
+                <a href="${escapeHtml(`${base}/impressum`)}" style="color:${C.inkSoft};text-decoration:underline;">${navLabels.legal}</a>
               </div>
               <div style="margin-top:4px;color:${C.muted};">
                 Belowmark · Emre Ak · <a href="mailto:contact@belowmark.com" style="color:${C.muted};text-decoration:none;">contact@belowmark.com</a>

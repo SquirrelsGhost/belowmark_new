@@ -122,7 +122,7 @@ export const AUTH_DE: IAuthTranslation = {
       HeadlineTop: "Ein Konto.",
       HeadlineBelow: "14 Tage voller Zugang, ohne Zahlungsdaten.",
       Lede: "Der Test beginnt, sobald Sie Ihre E-Mail-Adresse bestätigt haben. Danach entscheiden Sie selbst.",
-      Points: ["Keine Kreditkarte nötig", "Endet automatisch, kein Abo", "Ein Markt pro Konto: Deutschland oder Türkei"],
+      Points: ["Keine Kreditkarte nötig", "Endet automatisch, kein Abo", "8 Märkte wählbar: DE · AT · CH · IT · ES · FR · UK · TR"],
     },
     CardLabel: "Antrag auf Zugang",
     Title: "Konto anlegen",

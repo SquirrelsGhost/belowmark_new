@@ -58,9 +58,9 @@ export default function OrderForm({ offersByMarket, markets, initialMarket, init
   };
 
   return (
-    <form action={action} className="grid gap-7" noValidate>
+    <form action={action} className="grid min-w-0 gap-7" noValidate>
       {formError && <AuthErrorSummary title={labels.ErrorTitle} message={formError} />}
-      <div className="grid gap-2">
+      <div className="grid min-w-0 gap-2">
         <label htmlFor="order-market-select" className={STEP_LEGEND_CLASSES}>
           <span className="text-signal">01</span> {labels.Market}
         </label>

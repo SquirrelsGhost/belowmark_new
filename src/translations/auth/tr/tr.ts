@@ -122,7 +122,7 @@ export const AUTH_TR: IAuthTranslation = {
       HeadlineTop: "Tek hesap.",
       HeadlineBelow: "14 gün tam erişim, ödeme bilgisi olmadan.",
       Lede: "Deneme, e-posta adresinizi doğruladığınız anda başlar. Sonrasına siz karar verirsiniz.",
-      Points: ["Kredi kartı gerekmez", "Kendiliğinden biter, abonelik yok", "Her hesap için bir pazar: Almanya veya Türkiye"],
+      Points: ["Kredi kartı gerekmez", "Kendiliğinden biter, abonelik yok", "8 ülke pazarı: DE · AT · CH · IT · ES · FR · UK · TR"],
     },
     CardLabel: "Erişim başvurusu",
     Title: "Hesap oluştur",

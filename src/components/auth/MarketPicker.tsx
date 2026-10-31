@@ -21,7 +21,7 @@ export default function MarketPicker({ number, legend, note, defaultValue, optio
   const [selected, setSelected] = useState<PricingCountryCode>(defaultValue);
 
   return (
-    <div className="grid gap-1.5">
+    <div className="grid min-w-0 gap-1.5">
       <label htmlFor="signup-market" className={FIELD_LABEL_CLASSES}>
         <span className="text-signal">{number}</span> {legend}
       </label>

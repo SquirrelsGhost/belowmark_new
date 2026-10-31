@@ -52,15 +52,17 @@ export async function signupAction(_prev: AuthFormState, formData: FormData): Pr
     if (await AuthService.isBreached(password)) {
       return { status: "error", fieldErrors: { password: "password_breached" }, values };
     }
-    if (await mayMail(email)) {
-      await AuthService.signup({
+    const canMail = await mayMail(email);
+    await AuthService.signup(
+      {
         email,
         password,
         market: pricingCountryToMarket(market),
         locale: await requestLocale(),
         hardwareFingerprint,
-      });
-    }
+      },
+      canMail,
+    );
     const cookieStore = await cookies();
     cookieStore.set(MARKET_COOKIE_NAME, market, { path: "/", maxAge: REGION_COOKIE_MAX_AGE, sameSite: "lax" });
   } catch (error) {
