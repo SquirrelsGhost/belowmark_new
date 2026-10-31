@@ -43,7 +43,7 @@ export default async function ClientSharesPage() {
   const { Manage, Brand, Links, Privacy, Public } = labels;
   const isPro = (await getProUser())?.isPro ?? false;
   const [brand, shares] = await Promise.all([BrokerBrandService.get(viewer.id), ClientShareService.list(viewer.id, viewer.now)]);
-  const listings = await Promise.all(shares.map((share) => ListingService.getByKey(share.market, share.listingKey)));
+  const listings = await Promise.all(shares.map((share) => ListingService.getByKey(viewer.countries, share.listingKey)));
   const date = (value: Date) => formatDate(value.toISOString(), locale);
   const open = shares.filter((share) => share.status === "active").length;
   const meta = (share: ClientShareView) =>

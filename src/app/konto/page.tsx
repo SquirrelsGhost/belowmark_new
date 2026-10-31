@@ -27,7 +27,7 @@ import { buildAccountPlanView } from "@/lib/billing/accountPlanView";
 import { BILLING_ROUTES, BILLING_STATUS } from "@/lib/billing/billingConfig";
 import { fill } from "@/lib/billing/billingFormat";
 import { BILLING_ACCOUNT_PARAM } from "@/lib/billing/billingRoutes";
-import { ROUTES } from "@/lib/constants";
+import { PricingCountryCode, ROUTES } from "@/lib/constants";
 import { formatDate } from "@/lib/format";
 import { buildInvoiceListView, invoiceCount } from "@/lib/invoice/invoiceView";
 import { getLegalPageContext } from "@/lib/legal/legalPage";
@@ -38,6 +38,7 @@ import { SessionService } from "@/services/SessionService";
 import { TranslationService } from "@/services/TranslationService";
 import { AccountTranslations } from "@/translations/account/AccountTranslations";
 import { AccountSectionKey } from "@/translations/account/IAccountTranslation";
+import { accountCountry } from "@/lib/listingCountry";
 
 /** ?zahlung=… value → notice key and tone */
 const PAYMENT_NOTICES = {
@@ -61,7 +62,7 @@ export default async function AccountPage({ searchParams }: PageProps<"/konto">)
   const user = await SessionService.getCurrentUser();
   if (!user) redirect(`${AUTH_ROUTES.login}?${AUTH_PARAMS.next}=${encodeURIComponent(AUTH_ROUTES.account)}`);
 
-  const { t, lang, region } = await getAuthPageContext();
+  const { t, lang } = await getAuthPageContext();
   const { Account } = t;
   const account = AccountTranslations[await TranslationService.GetUserLocale()];
   const params = await searchParams;
@@ -90,11 +91,12 @@ export default async function AccountPage({ searchParams }: PageProps<"/konto">)
 
   const trialEnded = user.hasTrialEnded;
   const trialValue = user.trialEndsAt ? `${formatDate(user.trialEndsAt.toISOString(), lang)}${trialEnded ? ` · ${Account.Details.TrialEnded}` : ""}` : "—";
-  const activePricingCountry = user.market === "TR" ? "TR" : region.pricingCountry === "TR" ? "DE" : region.pricingCountry;
+  // The account's own country: every country is its own plan, so the packages shown are the ones for it
+  const activePricingCountry: PricingCountryCode = accountCountry(user.country, user.market === "TR" ? "TR" : "DE");
   const marketLabel = `${t.Fields.Markets[activePricingCountry].Label} (${activePricingCountry})`;
   // Packages in the account's own country, with the same order gates as /buchen
   const marketAvailability = BillingService.availability(activePricingCountry === "TR" ? "TR" : "DE");
-  const offerCards = buildAccountOfferCards(billing, access, lang, activePricingCountry, user.market === "TR" ? "TR" : "DE", BillingService.orderBlocker, !marketAvailability.blocker);
+  const offerCards = buildAccountOfferCards(billing, access, lang, activePricingCountry, activePricingCountry, BillingService.orderBlocker, !marketAvailability.blocker);
   const isAdmin = hasPermission(user.permissions, "*");
   const accessValue = isAdmin
     ? Account.Details.AccessAdmin

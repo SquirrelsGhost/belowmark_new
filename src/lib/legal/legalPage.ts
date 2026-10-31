@@ -30,8 +30,8 @@ export async function getLegalPageContext(): Promise<LegalPageContext> {
   };
 }
 
-export function getLegalDocument(key: LegalDocumentKey): LegalDocument {
-  return legalDocument(key, env.billingVatMode);
+export function getLegalDocument(key: LegalDocumentKey, lang: LocaleOption = "de"): LegalDocument {
+  return legalDocument(key, env.billingVatMode, lang);
 }
 
 export async function legalMetadata(pick: (t: IBillingTranslation) => IMetaTags, isPrivate = false): Promise<Metadata> {

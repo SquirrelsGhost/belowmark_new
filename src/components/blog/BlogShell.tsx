@@ -51,7 +51,6 @@ export default async function BlogShell({ lang, children }: BlogShellProps) {
         tagline={t.Footer.Tagline}
         disclaimer={t.Footer.Disclaimer}
         rights={t.Footer.Rights}
-        actions={<ConsumerFooterButtons tone="paper" />}
       >
         <FooterColumn title={t.Footer.ProductTitle}>
           <FooterLink href="/zwangsversteigerungen" label="🇩🇪 DE · ZVG Verzeichnis (16 Länder)" />
@@ -78,6 +77,7 @@ export default async function BlogShell({ lang, children }: BlogShellProps) {
           <FooterLink href={ROUTES.terms} label={t.Footer.Terms} />
           <FooterLink href={ROUTES.withdrawal} label={t.Footer.Withdrawal} />
           <FooterLink href={ROUTES.privacy} label={t.Footer.Privacy} />
+          <ConsumerFooterButtons tone="paper" />
         </FooterColumn>
       </Footer>
     </div>

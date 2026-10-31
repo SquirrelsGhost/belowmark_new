@@ -8,7 +8,7 @@ export const APP_NAME = "Belowmark";
 export const DEFAULT_LOCALE = "de";
 
 /** Locales the page is written in; used for Intl formatting and the lang attribute. */
-export const LOCALE_OPTIONS = ["de", "tr"] as const;
+export const LOCALE_OPTIONS = ["de", "tr", "en", "it", "es", "fr"] as const;
 export type LocaleOption = (typeof LOCALE_OPTIONS)[number];
 
 /** The two separately booked markets: German/European ZVG & Turkish İcra/İhale. */
@@ -27,6 +27,24 @@ export const isPricingCountry = (value: unknown): value is PricingCountryCode =>
 /** Maps any of the 8 pricing countries to its platform snapshot market (7 European countries → DE, Turkey → TR). */
 export const pricingCountryToMarket = (country: PricingCountryCode): MarketCode =>
   country === "TR" ? "TR" : "DE";
+
+/** Maps any of the 8 pricing countries to its native UI language. */
+export const pricingCountryToLocale = (country: PricingCountryCode): LocaleOption => {
+  switch (country) {
+    case "TR":
+      return "tr";
+    case "GB":
+      return "en";
+    case "IT":
+      return "it";
+    case "ES":
+      return "es";
+    case "FR":
+      return "fr";
+    default:
+      return "de";
+  }
+};
 
 /** Country detected from the browser time zone when the host sends no geo header. */
 export const COUNTRY_COOKIE_NAME = "BELOWMARK_COUNTRY";

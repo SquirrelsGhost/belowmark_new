@@ -22,7 +22,7 @@ export const WITHDRAWAL_DE: LegalDocument = {
         "1. Sie ausdrücklich zugestimmt haben, dass wir mit der Ausführung des Vertrags vor Ablauf der Widerrufsfrist beginnen,",
         "2. Sie Ihre Kenntnis davon bestätigt haben, dass durch Ihre Zustimmung mit Beginn der Ausführung des Vertrags Ihr Widerrufsrecht erlischt, und",
         "3. wir Ihnen eine Bestätigung gemäß § 312f Abs. 2 BGB auf einem dauerhaften Datenträger (per E-Mail) zur Verfügung gestellt haben.",
-        "Da Sie diese Zustimmung und Bestätigung im Bestellprozess vor Klick auf „Zahlungspflichtig bestellen“ abgeben und Ihr Vollzugang unmittelbar nach Zahlungsbestätigung freigeschaltet wird, ist ein Widerruf nach erfolgter Freischaltung des digitalen Zugangs gemäß § 356 Abs. 5 BGB ausgeschlossen.",
+        "Da Sie diese Zustimmung und Bestätigung im Bestellprozess vor Klick auf „Zahlungspflichtig bestellen“ mit Akzeptieren der AGB abgeben und Ihr Vollzugang unmittelbar nach Zahlungsbestätigung freigeschaltet wird, ist ein Widerruf nach erfolgter Freischaltung des digitalen Zugangs gemäß § 356 Abs. 5 BGB ausgeschlossen.",
       ],
     },
     {

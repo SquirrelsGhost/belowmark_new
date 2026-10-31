@@ -6,9 +6,9 @@ import { RATE_LIMITS } from "@/lib/auth/authConfig";
 import { CLOSING_DATE_FIELDS, CLOSING_ROUTES, closingHref, HEARING_OUTCOMES, RESULT_LIMITS, RESULT_RATIO_BOUNDS, RESULT_SOURCES } from "@/lib/closing/closingConstants";
 import { addDays, isIsoDate, todayIn } from "@/lib/closing/closingSchedule";
 import { closingTaskIds } from "@/lib/closing/closingTasks";
-import { MarketCode } from "@/lib/constants";
 import { ClosingCaseService } from "@/services/ClosingCaseService";
 import { HearingResultService } from "@/services/HearingResultService";
+import { CountryAccessService } from "@/services/CountryAccessService";
 import { ListingService } from "@/services/ListingService";
 import { RateLimitService } from "@/services/RateLimitService";
 import { SessionService } from "@/services/SessionService";
@@ -32,12 +32,12 @@ interface Target {
   listing: Listing;
 }
 
-/** Only signed-in users, and only proceedings of their market. */
+/** Only signed-in users, and only proceedings of their country. */
 async function authorise(listingKey: unknown): Promise<Target | null> {
   const user = await SessionService.getCurrentUser();
   if (!user || typeof listingKey !== "string" || listingKey.length > 128) return null;
-  const market: MarketCode = user.market === "TR" ? "TR" : "DE";
-  const listing = await ListingService.getByKey(market, listingKey);
+  const { countries } = await CountryAccessService.forUser(user);
+  const listing = await ListingService.getByKey(countries, listingKey);
   return listing ? { userId: user.id, hasFullAccess: user.hasFullAccess, listing } : null;
 }
 

@@ -25,7 +25,7 @@ export class VerdictService {
       evidence: buildVerdictEvidence(listing, report, now),
       context: getBidContext(listing),
       names: {
-        risks: ReportTranslations[locale === "tr" ? Locale.TR : Locale.DE].Risk.Names,
+        risks: (ReportTranslations[(locale.toUpperCase() as Locale)] ?? ReportTranslations[Locale.DE]).Risk.Names,
         criteria: getBiddingTranslation(locale).Limit.Result.Criteria,
       },
     };

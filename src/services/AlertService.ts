@@ -7,8 +7,9 @@ import { alertSeen, searchAlerts } from "@/db/schema";
 import { ALERTS } from "@/lib/alerts/alertConfig";
 import { diffAlert, matchesAlert, scheduleOf } from "@/lib/alerts/alertMatch";
 import { MarketCode } from "@/lib/constants";
+import { getListingCountry } from "@/lib/listingCountry";
 import { AlertHit, AlertSchedule, AlertView, StoredAlertFilters } from "@/types/alert.types";
-import { Listing, ListingSnapshot } from "@/types/listing.types";
+import { Listing, ListingCountry, ListingSnapshot } from "@/types/listing.types";
 
 /** Read fresh on every run, not from ListingService's cache — the run exists to notice a new file. */
 async function readListings(market: MarketCode): Promise<Listing[]> {
@@ -66,9 +67,9 @@ export class AlertService {
    * Saves the search and remembers every proceeding that matches right now,
    * so the first mail brings what is new from here on — not the whole list.
    */
-  static create = async (alert: NewAlert, now: number): Promise<string> => {
+  static create = async (alert: NewAlert, countries: readonly ListingCountry[], now: number): Promise<string> => {
     const [row] = await db.insert(searchAlerts).values({ ...alert, lastCheckedAt: new Date(now) }).returning({ id: searchAlerts.id });
-    const matches = (await readListings(alert.market)).filter((listing) => matchesAlert(listing, alert.filters, now));
+    const matches = (await readListings(alert.market)).filter((listing) => countries.includes(getListingCountry(listing)) && matchesAlert(listing, alert.filters, now));
     await AlertService.remember(row.id, matches);
     return row.id;
   };

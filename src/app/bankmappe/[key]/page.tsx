@@ -66,10 +66,10 @@ export default async function BankFilePage({ params, searchParams }: PageProps<"
   }
   const labels = getBankFileTranslation(locale);
   const bidding = getBiddingTranslation(locale);
-  const reportLabels = ReportTranslations[locale === "tr" ? Locale.TR : Locale.DE];
+  const reportLabels = ReportTranslations[TranslationService.NormalizeLocale(locale)];
   const { File } = labels;
   const L = app.Listing;
-  const listing = isLocked ? null : await ListingService.getByKey(viewer.market, key);
+  const listing = isLocked ? null : await ListingService.getByKey(viewer.countries, key);
   const context = listing ? getBidContext(listing) : null;
 
   if (!listing || !context || isLocked) {

@@ -10,14 +10,14 @@ interface OrderTermsNoteProps {
 
 const HREFS = { terms: ROUTES.terms, withdrawal: ROUTES.withdrawal, privacy: ROUTES.privacy } as const;
 
-/** The sentence that brings AGB, Widerrufsbelehrung and Datenschutz into the order, each as a link (new tab). */
+/** Inline sentence that turns {terms}, {withdrawal} and {privacy} placeholders into links (new tab). */
 export default function OrderTermsNote({ template, labels }: OrderTermsNoteProps) {
   return (
-    <p className="text-sm leading-relaxed text-ink-soft">
+    <>
       {template.split(/(\{terms\}|\{withdrawal\}|\{privacy\})/).map((part, index) => {
         const key = part.slice(1, -1) as keyof typeof HREFS;
         return <Fragment key={index}>{part.startsWith("{") && HREFS[key] ? <AuthTextLink href={HREFS[key]} label={labels[key]} newTab /> : part}</Fragment>;
       })}
-    </p>
+    </>
   );
 }

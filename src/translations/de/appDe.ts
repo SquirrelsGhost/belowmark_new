@@ -65,6 +65,19 @@ export const APP_DE: IAppTranslation = {
   Search: {
     Eyebrow: { DE: "Aushangtafel · DE · AT · CH · IT · ES · FR · UK", TR: "İlan panosu · İcra satışları" },
     Title: "Aushänge",
+    Countries: {
+      DE: { Name: "Deutschland", Source: "ZVG-Portal", Region: "Bundesland" },
+      AT: { Name: "Österreich", Source: "Ediktsdatei", Region: "Bundesland" },
+      CH: { Name: "Schweiz", Source: "SHAB", Region: "Kanton" },
+      IT: { Name: "Italien", Source: "Aste Giudiziarie / PVP", Region: "Region" },
+      ES: { Name: "Spanien", Source: "Portal BOE", Region: "Region" },
+      FR: { Name: "Frankreich", Source: "Licitor TJ", Region: "Region" },
+      GB: { Name: "Vereinigtes Königreich", Source: "Auktionen", Region: "Region" },
+      TR: { Name: "Türkei", Source: "İcra / ilan.gov.tr", Region: "Provinz" },
+    },
+    CountryEyebrow: "Aushangtafel · {country} · {source}",
+    CountryLead: "Amtliche Versteigerungstermine in {country} aus {source} — mit Verkehrswert, Mindestgebot und den Fristen bis zum Termin. Andere Länder sind eigene Tarife und erscheinen hier nicht.",
+    CountrySwitch: "Land",
     Lead: {
       DE: "Amtliche Zwangsversteigerungen und Gerichtsauktionen in Deutschland (ZVG), Österreich (Ediktsdatei), der Schweiz (SHAB), Italien (Aste Giudiziarie / PVP), Spanien (Portal BOE), Frankreich (Licitor TJ) und UK — mit Verkehrswert, Mindestgebot, Sicherheitsleistung und Grunderwerbsteuer.",
       TR: "Türkische Vollstreckungsverfahren mit Startgebot, Sicherheit und Kaufnebenkosten. Rot ist der Schätzwert, darunter liegt das gesetzliche Startgebot.",

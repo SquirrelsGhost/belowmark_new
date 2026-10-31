@@ -1,7 +1,14 @@
 import { LocaleOption } from "@/lib/constants";
 import { OfferPrice } from "@/lib/billing/billingConfig";
 
-const INTL_LOCALES: Record<LocaleOption, string> = { de: "de-DE", tr: "tr-TR" };
+const INTL_LOCALES: Record<LocaleOption, string> = {
+  de: "de-DE",
+  tr: "tr-TR",
+  en: "en-GB",
+  it: "it-IT",
+  es: "es-ES",
+  fr: "fr-FR",
+};
 
 /** Contract dates are Berlin calendar dates — the provider sits in Germany. */
 export const BILLING_TIME_ZONE = "Europe/Berlin";

@@ -58,10 +58,11 @@ export function buildMapView(
   const market: MarketCode = geo.market;
   const { width, height } = geo.projection;
   const selected = geo.regions.find((region) => region.code === filters.region);
-  const [minX, minY, maxX, maxY] = selected?.bbox ?? [0, 0, width, height];
+  const [minX, minY, maxX, maxY] = selected?.bbox ?? geo.frame ?? [0, 0, width, height];
   const padX = selected ? (maxX - minX) * PAD_SHARE : 0;
   const padY = selected ? (maxY - minY) * PAD_SHARE : 0;
   const boxWidth = maxX - minX + 2 * padX;
+  // Dots keep their size relative to the whole projection, also on a country frame
   const zoom = width / boxWidth;
   const max = Math.max(1, ...Object.values(regionCounts));
   const count = new Intl.NumberFormat(locale);

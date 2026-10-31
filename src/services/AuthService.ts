@@ -6,7 +6,7 @@ import { TOKEN_PURPOSE, TOKEN_TTL, TokenPurpose, TRIAL_MS } from "@/lib/auth/aut
 import { hashPassword, needsRehash, simulatePasswordCheck, verifyPassword } from "@/lib/auth/password";
 import { isBreachedPassword } from "@/lib/auth/passwordBreach";
 import { generateToken, generateVerificationCode, hashToken, hashVerificationCode } from "@/lib/auth/tokens";
-import { MarketCode } from "@/lib/constants";
+import { MarketCode, PricingCountryCode } from "@/lib/constants";
 import { AuthMailService } from "@/services/AuthMailService";
 
 export type LoginResult =
@@ -17,6 +17,8 @@ export interface SignupInput {
   email: string;
   password: string;
   market: MarketCode;
+  /** Country picked at sign-up (DE, AT, … TR) — the only country the account sees */
+  country: PricingCountryCode;
   locale: string;
   hardwareFingerprint?: string;
 }
@@ -129,14 +131,14 @@ export class AuthService {
 
   /** Creates the account (or re-sends mail if it exists) — same outcome either way. */
   static signup = async (
-    { email, password, market, locale, hardwareFingerprint }: SignupInput,
+    { email, password, market, country, locale, hardwareFingerprint }: SignupInput,
     allowExistingMail = true,
   ): Promise<void> => {
     const passwordHash = await hashPassword(password);
     const hw = hardwareFingerprint && HARDWARE_FP_REGEX.test(hardwareFingerprint) ? hardwareFingerprint : null;
     const [created] = await db
       .insert(users)
-      .values({ email, passwordHash, market, locale, hardwareFingerprint: hw })
+      .values({ email, passwordHash, market, country, locale, hardwareFingerprint: hw })
       .onConflictDoNothing({ target: users.email })
       .returning({ id: users.id });
 
@@ -157,6 +159,7 @@ export class AuthService {
       .set({
         passwordHash,
         market,
+        country,
         locale,
         ...(hw ? { hardwareFingerprint: hw } : {}),
       })

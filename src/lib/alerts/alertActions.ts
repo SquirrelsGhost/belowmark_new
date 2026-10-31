@@ -6,6 +6,7 @@ import { toStoredFilters } from "@/lib/alerts/alertMatch";
 import { RATE_LIMITS } from "@/lib/auth/authConfig";
 import { parseFilters } from "@/lib/listingFilters";
 import { AlertService } from "@/services/AlertService";
+import { CountryAccessService } from "@/services/CountryAccessService";
 import { ListingService } from "@/services/ListingService";
 import { RateLimitService } from "@/services/RateLimitService";
 import { SessionService } from "@/services/SessionService";
@@ -42,9 +43,13 @@ export async function createAlertAction(_: AlertActionState, formData: FormData)
     if (!rl.allowed) return { ok: false, error: "failed" };
     if ((await AlertService.countForUser(user.id)) >= ALERTS.maxPerUser) return { ok: false, error: "limit" };
     // The region name comes from the data, not from the form
-    const region = filters.region ? (await ListingService.search(user.market, { ...filters, page: 1 }, Date.now())).regions.find((facet) => facet.code === filters.region) : undefined;
+    const access = await CountryAccessService.current();
+    if (!access) return { ok: false, error: "failed" };
+    const country = access.country;
+    const region = filters.region ? (await ListingService.search(country, { ...filters, page: 1 }, Date.now())).regions.find((facet) => facet.code === filters.region) : undefined;
     await AlertService.create(
       { userId: user.id, market: user.market, name, filters: toStoredFilters(filters, region?.name ?? null), notifyNew, notifyChanges },
+      [country],
       Date.now(),
     );
   } catch (error) {

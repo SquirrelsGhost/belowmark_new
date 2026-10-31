@@ -146,7 +146,7 @@ export interface IAuthTranslation {
     Label: string;
     Title: string;
     Note: string;
-    Accounts: { de: string; tr: string; free: string; full: string; admin: string };
+    Accounts: { de: string; at: string; tr: string; free: string; full: string; admin: string };
   };
 
   Account: {

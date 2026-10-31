@@ -76,7 +76,7 @@ export function termsDe(vatMode: "inclusive" | "kleinunternehmer" | null): Legal
         id: "widerruf",
         heading: "7. Widerrufsrecht und Erlöschen bei digitalen Inhalten (§ 356 Abs. 5 BGB)",
         paragraphs: [
-          "Bei Verträgen über die Bereitstellung von nicht auf einem körperlichen Datenträger befindlichen digitalen Inhalten erlischt das gesetzliche Widerrufsrecht gemäß § 356 Abs. 5 BGB sofort mit Beginn der Vertragsausführung (Freischaltung des kostenpflichtigen Zugangs), nachdem der Kunde im Bestellprozess ausdrücklich zugestimmt hat, dass der Anbieter vor Ablauf der Widerrufsfrist mit der Ausführung des Vertrags beginnt, und seine Kenntnis vom dadurch eintretenden Verlust des Widerrufsrechts bestätigt hat.",
+          "Bei Belowmark handelt es sich um ein digitales Produkt mit sofortiger Freischaltung nach Zahlungseingang. Mit Akzeptieren dieser AGB im Bestellprozess stimmt der Kunde ausdrücklich zu, dass der Anbieter vor Ablauf der Widerrufsfrist sofort mit der Vertragsausführung (Bereitstellung und Freischaltung des kostenpflichtigen Zugangs) beginnt, und bestätigt seine Kenntnis davon, dass sein gesetzliches Widerrufsrecht mit der Freischaltung sofort erlischt (§ 356 Abs. 5 BGB).",
           "Die vollständige Belehrung zum Erlöschen des Widerrufsrechts nach § 356 Abs. 5 BGB ist unter belowmark.com/widerruf abrufbar und wird dem Kunden mit der Vertragsbestätigung per E-Mail übermittelt.",
         ],
       },

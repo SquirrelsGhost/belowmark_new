@@ -1,4 +1,6 @@
 import "server-only";
+import { countryMarket, getListingCountry } from "@/lib/listingCountry";
+import { ListingCountry } from "@/types/listing.types";
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { hearingResults } from "@/db/schema";
@@ -76,7 +78,9 @@ export class HearingResultService {
   };
 
   /** Shared results of a market as anonymous samples for the statistics. */
-  static samples = async (market: MarketCode): Promise<ResultSample[]> => {
+  /** Shared results of one country — other countries' prices are another product. */
+  static samples = async (country: ListingCountry): Promise<ResultSample[]> => {
+    const market = countryMarket(country);
     const rows = await db
       .select({
         listingKey: hearingResults.listingKey,
@@ -91,7 +95,8 @@ export class HearingResultService {
       })
       .from(hearingResults)
       .where(and(eq(hearingResults.market, market), eq(hearingResults.shared, true)));
-    return rows.map(({ listingKey, hearingDate, ...row }) => ({
+    const inCountry = rows.filter((row) => getListingCountry({ key: row.listingKey, regionCode: row.regionCode, market }) === country);
+    return inCountry.map(({ listingKey, hearingDate, ...row }) => ({
       ...row,
       hearingId: `${listingKey}|${hearingDate}`,
       segment: row.segment as SegmentKey,

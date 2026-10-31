@@ -44,12 +44,9 @@ export default function UpgradeForm({ view, labels }: UpgradeFormProps) {
         ))}
         <OrderSummaryRow label={labels.Today} value={view.total} note={view.totalNote} isTotal />
       </dl>
-      <div className="grid gap-4">
-        <AuthCheckbox id="upgrade-consent" name="consent" required error={state.code === "consent_required" ? labels.ConsentRequired : undefined}>
-          {labels.ConsentLabel}
-        </AuthCheckbox>
-        <OrderTermsNote template={labels.TermsNote} labels={{ terms: labels.TermsLink, withdrawal: labels.WithdrawalLink, privacy: labels.PrivacyLink }} />
-      </div>
+      <AuthCheckbox id="upgrade-consent" name="consent" required error={state.code === "consent_required" ? labels.ConsentRequired : undefined}>
+        <OrderTermsNote template={labels.ConsentLabel} labels={{ terms: labels.TermsLink, withdrawal: labels.WithdrawalLink, privacy: labels.PrivacyLink }} />
+      </AuthCheckbox>
       <div className="grid gap-3">
         <AuthSubmit label={labels.Submit} pendingLabel={labels.Pending} variant="signal" />
         <p className="flex items-start gap-2 font-mono text-[11px] leading-relaxed text-muted">

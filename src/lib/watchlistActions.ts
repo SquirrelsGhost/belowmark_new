@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { APP_ROUTES } from "@/lib/appConstants";
 import { RATE_LIMITS } from "@/lib/auth/authConfig";
+import { CountryAccessService } from "@/services/CountryAccessService";
 import { ListingService } from "@/services/ListingService";
 import { RateLimitService } from "@/services/RateLimitService";
 import { SessionService } from "@/services/SessionService";
@@ -14,14 +15,12 @@ export interface WatchlistActionState {
   saved?: boolean;
 }
 
-const MARKETS = { DE: "DE", TR: "TR" } as const;
-
-/** Only signed-in users, and only keys that exist in their market. */
+/** Only signed-in users, and only keys of their own country. */
 async function authorise(listingId: unknown): Promise<{ userId: string; listingId: string } | null> {
   const user = await SessionService.getCurrentUser();
   if (!user || typeof listingId !== "string" || listingId.length > 128) return null;
-  const market = user.market === "TR" ? MARKETS.TR : MARKETS.DE;
-  const listing = await ListingService.getByKey(market, listingId);
+  const { countries } = await CountryAccessService.forUser(user);
+  const listing = await ListingService.getByKey(countries, listingId);
   return listing ? { userId: user.id, listingId } : null;
 }
 

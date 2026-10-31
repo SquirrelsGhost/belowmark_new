@@ -18,7 +18,14 @@ interface TrCurrencyConverterProps {
   initialLira: number;
 }
 
-const INTL_LOCALES: Record<LocaleOption, string> = { de: "de-DE", tr: "tr-TR" };
+const INTL_LOCALES: Record<LocaleOption, string> = {
+  de: "de-DE",
+  tr: "tr-TR",
+  en: "en-GB",
+  it: "it-IT",
+  es: "es-ES",
+  fr: "fr-FR",
+};
 
 /** Accepts "2.500.000", "2 500 000" or "2500000,50" — digits and one decimal comma. */
 function parseAmount(text: string): number | null {

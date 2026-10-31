@@ -95,6 +95,7 @@ export class SessionService {
       name: sessionUser.name,
       email: sessionUser.email,
       market: sessionUser.market,
+      country: sessionUser.country,
       locale: sessionUser.locale,
       emailVerifiedAt: sessionUser.emailVerifiedAt,
       trialEndsAt: sessionUser.trialEndsAt,

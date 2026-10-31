@@ -4,6 +4,7 @@ import { RATE_LIMITS } from "@/lib/auth/authConfig";
 import { currentActor, fail, failed, field, refreshTeamViews, uuidField } from "@/lib/team/teamActionHelpers";
 import { isTeamStatus, TEAMS } from "@/lib/team/teamConfig";
 import { canDo, TeamAction } from "@/lib/team/teamRoles";
+import { CountryAccessService } from "@/services/CountryAccessService";
 import { ListingService } from "@/services/ListingService";
 import { RateLimitService } from "@/services/RateLimitService";
 import { TeamAccessService, TeamMembership } from "@/services/team/TeamAccessService";
@@ -16,7 +17,7 @@ interface BoardTarget {
   listingId: string;
 }
 
-/** Signed in, allowed to do `action` in the team, and — unless `allowMissing` — a key that exists in the team's market. */
+/** Signed in, allowed to do `action` in the team, and — unless `allowMissing` — a key of a country the actor may see. */
 async function target(formData: FormData, action: TeamAction, allowMissing = false): Promise<BoardTarget | TeamErrorCode> {
   const actor = await currentActor();
   const teamId = uuidField(formData, "teamId");
@@ -26,7 +27,7 @@ async function target(formData: FormData, action: TeamAction, allowMissing = fal
   if (!rl.allowed) return "rate_limited";
   const access = await TeamAccessService.authorise(teamId, actor.id, action);
   if (!access.ok) return access.reason;
-  if (!allowMissing && !(await ListingService.getByKey(access.membership.market, listingId))) return "invalid";
+  if (!allowMissing && !(await ListingService.getByKey((await CountryAccessService.current())?.countries ?? [], listingId))) return "invalid";
   return { actorId: actor.id, membership: access.membership, listingId };
 }
 

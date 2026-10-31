@@ -236,7 +236,7 @@ export const AUTH_TR: IAuthTranslation = {
     Label: "Yalnızca yerel",
     Title: "Hızlı giriş",
     Note: "Parola ve e-posta olmadan test hesapları. Yalnızca localhost'ta npm run dev ile vardır.",
-    Accounts: { de: "Almanya · deneme sürüyor", tr: "Türkiye · deneme sürüyor", free: "Free · deneme bitti", full: "Tam erişim · Investor", admin: "Yönetici · her şey açık" },
+    Accounts: { de: "Almanya · deneme sürüyor", at: "Avusturya · deneme sürüyor", tr: "Türkiye · deneme sürüyor", free: "Free · deneme bitti", full: "Tam erişim · Investor", admin: "Yönetici · her şey açık" },
   },
 
   Account: {

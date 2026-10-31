@@ -3,6 +3,7 @@ import { err } from "@/lib/api";
 import { buildDeadlineCalendar } from "@/lib/deadlines/deadlineIcs";
 import { DeadlineService } from "@/services/DeadlineService";
 import { DeadlineTimelineService } from "@/services/DeadlineTimelineService";
+import { CountryAccessService } from "@/services/CountryAccessService";
 import { ListingService } from "@/services/ListingService";
 import { getDeadlineTranslation } from "@/translations/deadlines/DeadlineTranslations";
 
@@ -25,9 +26,9 @@ export async function GET(_: Request, { params }: RouteContext<"/api/termine/fee
     // A lapsed plan keeps the address but the calendar stays empty until the plan is back
     const follows = recipient.hasFullAccess ? await DeadlineService.list(userId) : [];
     const now = Date.now();
-    const listings = (
-      await Promise.all((["DE", "TR"] as const).map((market) => ListingService.getMany(market, follows.filter((follow) => follow.market === market).map((follow) => follow.listingKey))))
-    ).flat();
+    // Only the account's own country, also for proceedings followed before a change of country
+    const access = await CountryAccessService.forUserId(userId);
+    const listings = access ? await ListingService.getMany(access.countries, follows.map((follow) => follow.listingKey)) : [];
     const entries = await DeadlineTimelineService.icsEntries(userId, listings, recipient.locale, now);
     const body = buildDeadlineCalendar(entries, getDeadlineTranslation(recipient.locale).Ics, now);
     return new Response(body, {

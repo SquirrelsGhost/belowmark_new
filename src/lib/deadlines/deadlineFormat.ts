@@ -4,7 +4,14 @@ import { LocaleOption, MarketCode } from "@/lib/constants";
 import { dayIn, daysBetween } from "@/lib/deadlines/deadlineDates";
 import { DeadlineItem } from "@/types/deadline.types";
 
-const INTL = { de: "de-DE", tr: "tr-TR" } as const;
+const INTL: Record<LocaleOption, string> = {
+  de: "de-DE",
+  tr: "tr-TR",
+  en: "en-GB",
+  it: "it-IT",
+  es: "es-ES",
+  fr: "fr-FR",
+};
 
 /** "Mo, 26.10.2026" for a day, "Mo, 26.10.2026, 09:00" when the entry has a time. */
 export function formatDeadlineWhen(item: DeadlineItem, market: MarketCode, locale: LocaleOption): string {

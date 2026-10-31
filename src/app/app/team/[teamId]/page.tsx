@@ -54,7 +54,7 @@ export default async function TeamPage({ params, searchParams }: PageProps<"/app
       {isMembers ? (
         <TeamMembersView team={team} viewerId={viewer.id} t={t} locale={locale} />
       ) : (
-        <TeamBoardView team={team} filter={isTeamStatus(status) ? status : null} t={t} app={app} locale={locale} now={viewer.now} />
+        <TeamBoardView team={team} countries={viewer.countries} filter={isTeamStatus(status) ? status : null} t={t} app={app} locale={locale} now={viewer.now} />
       )}
     </AppMain>
   );

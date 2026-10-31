@@ -6,6 +6,7 @@ import { CLIENT_SHARE, CLIENT_SHARE_ROUTES, clientShareHref, isExpiryDays } from
 import { buildPayload, parseSections } from "@/lib/clientShare/clientSharePayload";
 import { getProUser } from "@/lib/clientShare/proAccess";
 import { ClientShareService } from "@/services/ClientShareService";
+import { CountryAccessService } from "@/services/CountryAccessService";
 import { ListingService } from "@/services/ListingService";
 import { RateLimitService } from "@/services/RateLimitService";
 import { VerdictService } from "@/services/VerdictService";
@@ -48,7 +49,7 @@ export async function createClientShareAction(_: ClientShareActionState, formDat
     const rl = await RateLimitService.hit(`clientShare:user:${user.id}`, RATE_LIMITS.profileUpdate);
     if (!rl.allowed) return { ok: false, error: "failed" };
     const now = Date.now();
-    const listing = await ListingService.getByKey(user.market, listingKey);
+    const listing = await ListingService.getByKey((await CountryAccessService.current())?.countries ?? [], listingKey);
     if (!listing) return { ok: false, error: "notFound" };
     if ((await ClientShareService.countOpen(user.id, now)) >= CLIENT_SHARE.maxOpenPerOwner) return { ok: false, error: "limit" };
 

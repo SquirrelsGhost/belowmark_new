@@ -22,11 +22,13 @@ export interface AppPageContext {
 
 /** Everything an app page needs: the signed-in viewer (or a login redirect), strings and data date. */
 export async function getAppPageContext(returnTo: string): Promise<AppPageContext> {
-  const viewer = await AppSessionService.requireViewer(returnTo);
-  const userLocale = await TranslationService.GetUserLocale();
+  const [viewer, userLocale] = await Promise.all([
+    AppSessionService.requireViewer(returnTo),
+    TranslationService.GetUserLocale(),
+  ]);
   const t = TranslationService.GetTranslations(userLocale);
   const locale = TranslationService.ToLocaleOption(userLocale);
-  const meta = await ListingService.getMeta(viewer.market);
+  const meta = await ListingService.getMeta(viewer.country);
   return { viewer, t, app: t.App, locale, meta, dataDate: formatDate(meta.generatedAt, locale) };
 }
 

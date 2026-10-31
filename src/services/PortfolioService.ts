@@ -27,7 +27,7 @@ export interface PortfolioData {
 export class PortfolioService {
   static getSources = async (viewer: AppViewer, app: IAppTranslation): Promise<PortfolioData> => {
     const entries = await WatchlistService.list(viewer.id);
-    const listings = await ListingService.getMany(viewer.market, entries.map((entry) => entry.listingId));
+    const listings = await ListingService.getMany(viewer.countries, entries.map((entry) => entry.listingId));
     const notes = new Map(entries.map((entry) => [entry.listingId, entry.note]));
     const found = new Set(listings.map((listing) => listing.key));
 

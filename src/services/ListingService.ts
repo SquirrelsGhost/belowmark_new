@@ -4,10 +4,12 @@ import { join } from "node:path";
 import { DAY_MS, SEARCH } from "@/lib/appConstants";
 import { MarketCode } from "@/lib/constants";
 import { getHearingState, getNextDate } from "@/lib/listingMath";
+import { countryMarket, getListingCountry, getListingDachCountry, marketsOfScope, regionCountry } from "@/lib/listingCountry";
 import {
   CalendarWeek,
   DachCountry,
   Listing,
+  ListingCountry,
   ListingFilters,
   ListingSearchResult,
   ListingSnapshot,
@@ -15,15 +17,10 @@ import {
   RegionFacet,
 } from "@/types/listing.types";
 
-export function getListingDachCountry(listing: Listing): DachCountry {
-  if (listing.country === "AT" || listing.regionCode?.startsWith("at-") || listing.key.startsWith("edikte-")) return "AT";
-  if (listing.country === "CH" || listing.regionCode?.startsWith("ch-") || listing.key.startsWith("shab-")) return "CH";
-  if (listing.country === "IT" || listing.regionCode?.startsWith("it-") || listing.key.startsWith("it-aste-")) return "IT";
-  if (listing.country === "ES" || listing.regionCode?.startsWith("es-") || listing.key.startsWith("es-boe-")) return "ES";
-  if (listing.country === "FR" || listing.regionCode?.startsWith("fr-") || listing.key.startsWith("fr-licitor-")) return "FR";
-  if (listing.country === "GB" || listing.regionCode?.startsWith("gb-") || listing.key.startsWith("gb-eig-")) return "GB";
-  return "DE";
-}
+export { getListingDachCountry } from "@/lib/listingCountry";
+
+/** The countries a request may see. Anything outside is treated as if it did not exist. */
+export type CountryScope = readonly ListingCountry[];
 
 function snapshotPath(market: MarketCode): string {
   return market === "TR"
@@ -41,6 +38,8 @@ function readSnapshot(market: MarketCode): Promise<string> {
 interface LoadedMarket {
   snapshot: ListingSnapshot;
   byKey: Map<string, Listing>;
+  /** Proceedings per country — the unit everything else is cut from */
+  byCountry: Map<ListingCountry, Listing[]>;
   /** Normalised search text per listing key */
   haystack: Map<string, string>;
   mtimeMs: number;
@@ -177,7 +176,14 @@ async function loadMarket(market: MarketCode): Promise<LoadedMarket> {
   snapshot.listings = snapshot.listings.map(sanitizeSnapshotListing);
   const byKey = new Map(snapshot.listings.map((listing) => [listing.key, listing]));
   const haystack = new Map(snapshot.listings.map((listing) => [listing.key, buildHaystack(listing)]));
-  return { snapshot, byKey, haystack, mtimeMs: fileStat.mtimeMs, checkedAt: Date.now() };
+  const byCountry = new Map<ListingCountry, Listing[]>();
+  for (const listing of snapshot.listings) {
+    const country = getListingCountry(listing);
+    const bucket = byCountry.get(country);
+    if (bucket) bucket.push(listing);
+    else byCountry.set(country, [listing]);
+  }
+  return { snapshot, byKey, byCountry, haystack, mtimeMs: fileStat.mtimeMs, checkedAt: Date.now() };
 }
 
 const refreshing = new Set<MarketCode>();
@@ -246,27 +252,49 @@ function weekStart(time: number): number {
  * moves to Postgres.
  */
 export class ListingService {
-  static getMeta = async (market: MarketCode): Promise<ListingSnapshot["meta"]> => {
-    return (await getMarket(market)).snapshot.meta;
+  /**
+   * Data date and source of the country's snapshot. The region list is cut
+   * to the country, so no other country's regions or counts leave here.
+   */
+  static getMeta = async (country: ListingCountry): Promise<ListingSnapshot["meta"]> => {
+    const { snapshot, byCountry } = await getMarket(countryMarket(country));
+    const { meta } = snapshot;
+    if (country === "TR") return meta;
+    // The source line names only this country's portals
+    const portals = [...new Set((byCountry.get(country) ?? []).map((listing) => listing.sourcePortal).filter((portal): portal is string => Boolean(portal)))];
+    return {
+      ...meta,
+      source: portals.length > 0 ? portals.join(" · ") : meta.source,
+      sourceUrl: country === "DE" ? meta.sourceUrl : portals.length > 0 ? `https://${portals[0]}/` : meta.sourceUrl,
+      states: meta.states.filter((state) => regionCountry(state.code) === country),
+    };
   };
 
-  static getByKey = async (market: MarketCode, key: string): Promise<Listing | null> => {
-    return (await getMarket(market)).byKey.get(key) ?? null;
+  /** One proceeding, only when its country is in `scope` — a key from another country is "not found". */
+  static getByKey = async (scope: CountryScope, key: string): Promise<Listing | null> => {
+    for (const market of marketsOfScope(scope)) {
+      const listing = (await getMarket(market)).byKey.get(key);
+      if (listing && scope.includes(getListingCountry(listing))) return listing;
+    }
+    return null;
   };
 
-  /** Several proceedings by key, in the given order; unknown keys are skipped. */
-  static getMany = async (market: MarketCode, keys: string[]): Promise<Listing[]> => {
-    const { byKey } = await getMarket(market);
-    return keys.map((key) => byKey.get(key)).filter((listing): listing is Listing => Boolean(listing));
+  /** Several proceedings by key, in the given order; unknown keys and keys outside `scope` are skipped. */
+  static getMany = async (scope: CountryScope, keys: string[]): Promise<Listing[]> => {
+    const loadedMarkets = await Promise.all(marketsOfScope(scope).map((market) => getMarket(market)));
+    return keys
+      .map((key) => loadedMarkets.map(({ byKey }) => byKey.get(key)).find(Boolean))
+      .filter((listing): listing is Listing => Boolean(listing) && scope.includes(getListingCountry(listing as Listing)));
   };
 
-  static search = async (market: MarketCode, filters: ListingFilters, now: number): Promise<ListingSearchResult> => {
-    const { snapshot, haystack } = await getMarket(market);
+  /** Search inside one country. There is no cross-country search: every country is its own product. */
+  static search = async (country: ListingCountry, filters: ListingFilters, now: number): Promise<ListingSearchResult> => {
+    const { byCountry, haystack } = await getMarket(countryMarket(country));
     const terms = normalizeText(filters.query).split(/\s+/).filter(Boolean);
     const nextOf = nextDates(now);
 
-    // Everything except country, region and date range — those get their own facets.
-    const withoutCountryAndRegion = snapshot.listings.filter((listing) => {
+    // Everything except region and date range — those get their own facets.
+    const base = (byCountry.get(country) ?? []).filter((listing) => {
       if (listing.cancelled && !filters.withCancelled) return false;
       if (filters.segment && listing.segment !== filters.segment) return false;
       if (filters.minValue !== null && (listing.appraisedValue ?? -1) < filters.minValue) return false;
@@ -277,20 +305,6 @@ export class ListingService {
       const text = haystack.get(listing.key) ?? "";
       return terms.every((term) => text.includes(term));
     });
-
-    const countryCounts: Record<DachCountry, number> = { DE: 0, AT: 0, CH: 0, IT: 0, ES: 0, FR: 0, GB: 0 };
-    if (market === "DE") {
-      for (const listing of withoutCountryAndRegion) {
-        if (ListingService.matchesRange(listing, filters, nextOf)) {
-          countryCounts[getListingDachCountry(listing)] += 1;
-        }
-      }
-    }
-
-    const base =
-      market === "DE" && filters.country
-        ? withoutCountryAndRegion.filter((listing) => getListingDachCountry(listing) === filters.country)
-        : withoutCountryAndRegion;
 
     const inRegion = filters.region ? base.filter((listing) => listing.regionCode === filters.region) : base;
     const inRange = inRegion.filter((listing) => ListingService.matchesRange(listing, filters, nextOf));
@@ -316,7 +330,6 @@ export class ListingService {
       withDocsCount: inRange.filter(hasListingDocs).length,
       places: filters.view === "map" ? ListingService.places(inRange, now, soon, nextOf) : [],
       regionCounts: ListingService.regionCounts(anyRegionInRange),
-      countryCounts: market === "DE" ? countryCounts : undefined,
     };
   };
 
@@ -397,18 +410,26 @@ export class ListingService {
     }
   }
 
-  /** Hearings per week for the next weeks, starting with the current one. */
+  /** Hearings per week for the next weeks, starting with the current one (or next Monday on weekends if no weekend auctions remain). */
   private static calendar(listings: Listing[], now: number, nextOf: NextDateOf): CalendarWeek[] {
-    const first = weekStart(now);
-    const weeks: CalendarWeek[] = Array.from({ length: SEARCH.calendarWeeks }, (_, index) => {
-      const start = first + index * 7 * DAY_MS;
-      return { start: toDay(new Date(start).toISOString()), end: toDay(new Date(start + 6 * DAY_MS).toISOString()), count: 0 };
-    });
-    for (const listing of listings) {
-      const next = nextOf(listing);
-      if (!next) continue;
-      const index = Math.floor((Date.parse(next) - first) / (7 * DAY_MS));
-      if (index >= 0 && index < weeks.length) weeks[index].count += 1;
+    const buildFrom = (first: number): CalendarWeek[] => {
+      const weeks: CalendarWeek[] = Array.from({ length: SEARCH.calendarWeeks }, (_, index) => {
+        const start = first + index * 7 * DAY_MS;
+        return { start: toDay(new Date(start).toISOString()), end: toDay(new Date(start + 6 * DAY_MS).toISOString()), count: 0 };
+      });
+      for (const listing of listings) {
+        const next = nextOf(listing);
+        if (!next) continue;
+        const index = Math.floor((Date.parse(next) - first) / (7 * DAY_MS));
+        if (index >= 0 && index < weeks.length) weeks[index].count += 1;
+      }
+      return weeks;
+    };
+    const currentWeekStart = weekStart(now);
+    const weeks = buildFrom(currentWeekStart);
+    const utcDay = new Date(now).getUTCDay();
+    if ((utcDay === 6 || utcDay === 0) && weeks[0]?.count === 0) {
+      return buildFrom(currentWeekStart + 7 * DAY_MS);
     }
     return weeks;
   }

@@ -25,8 +25,11 @@ const globalForDb = globalThis as unknown as {
   dbInstance: DatabaseInstance | undefined;
   dbInitPromise: Promise<DatabaseInstance> | undefined;
   lastMigratedJournalSignature: string | undefined;
+  lastJournalCheckAt: number | undefined;
   isRemotePg: boolean | undefined;
 };
+
+const JOURNAL_CHECK_TTL_MS = 30_000;
 
 const MIGRATIONS_FOLDER = path.join(process.cwd(), "drizzle");
 const JOURNAL_FILE = path.join(MIGRATIONS_FOLDER, "meta", "_journal.json");
@@ -48,7 +51,7 @@ function readJournalSignature(): string {
   try {
     const raw = fs.readFileSync(JOURNAL_FILE, "utf8");
     const parsed = JSON.parse(raw) as JournalFile;
-    return parsed.entries.map((e) => `${e.idx}:${e.tag}:${e.when}`).join("|");
+    return `${parsed.entries.map((e) => `${e.idx}:${e.tag}:${e.when}`).join("|")}|schema-check-v6`;
   } catch {
     return "";
   }
@@ -61,6 +64,7 @@ function readJournalSignature(): string {
  * `42701` duplicate_column, `42710` duplicate_object).
  */
 async function ensureSchemaOnDb(dbInst: DatabaseInstance, isRemotePg = false): Promise<void> {
+  globalForDb.lastJournalCheckAt = Date.now();
   if (!fs.existsSync(JOURNAL_FILE)) return;
 
   const signature = readJournalSignature();
@@ -71,10 +75,10 @@ async function ensureSchemaOnDb(dbInst: DatabaseInstance, isRemotePg = false): P
   if (isRemotePg) {
     try {
       const check = await dbInst.execute(
-        sql.raw(`SELECT count(*)::int AS cnt FROM information_schema.columns WHERE table_schema = 'public' AND ((table_name = 'users' AND column_name = 'sitzungs_version') OR (table_name = 'sessions' AND column_name = 'aktives_token_id') OR (table_name = 'billing_invoices' AND column_name = 'seq') OR (table_name = 'closing_cases' AND column_name = 'done') OR (table_name = 'billing_orders' AND column_name = 'upgrade_from')) AND EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname = 'public' AND indexname = 'billing_invoices_order_kind_unique' AND indexdef ILIKE '%upgrade%')`),
+        sql.raw(`SELECT count(*)::int AS cnt FROM information_schema.columns WHERE table_schema = 'public' AND ((table_name = 'users' AND column_name = 'sitzungs_version') OR (table_name = 'users' AND column_name = 'country') OR (table_name = 'sessions' AND column_name = 'aktives_token_id') OR (table_name = 'billing_invoices' AND column_name = 'seq') OR (table_name = 'closing_cases' AND column_name = 'done') OR (table_name = 'billing_orders' AND column_name = 'upgrade_from')) AND EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname = 'public' AND indexname = 'billing_invoices_order_kind_unique' AND indexdef ILIKE '%upgrade%')`),
       );
       const rows = (check as unknown as { rows?: Array<{ cnt: number }> }).rows;
-      if (rows && rows[0]?.cnt === 5) {
+      if (rows && rows[0]?.cnt === 6) {
         globalForDb.lastMigratedJournalSignature = signature;
         return;
       }
@@ -161,6 +165,12 @@ async function initOrSyncDatabase(): Promise<DatabaseInstance> {
 
 function getDbPromise(): Promise<DatabaseInstance> {
   if (globalForDb.dbInstance) {
+    if (
+      process.env.NODE_ENV === "production" ||
+      Date.now() - (globalForDb.lastJournalCheckAt ?? 0) < JOURNAL_CHECK_TTL_MS
+    ) {
+      return Promise.resolve(globalForDb.dbInstance);
+    }
     return initOrSyncDatabase();
   }
   if (!globalForDb.dbInitPromise) {

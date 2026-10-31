@@ -20,7 +20,7 @@
  *   node --use-system-ca scripts/sync-live.mjs
  */
 
-import { mkdirSync, readFileSync, writeFileSync, existsSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync, existsSync, renameSync, unlinkSync, appendFileSync } from "node:fs";
 import { join } from "node:path";
 import tls from "node:tls";
 import { slug } from "./lib/slug.mjs";
@@ -40,6 +40,7 @@ import {
   parseFrLicitorHtml,
   parseGbAuctionHtml,
   extractTrEnrichedDetails,
+  parseTrIlanGovDetail,
 } from "./lib/propertyExtractor.mjs";
 
 if (process.platform === "win32" && typeof tls.getCACertificates === "function" && typeof tls.setDefaultCACertificates === "function") {
@@ -51,8 +52,258 @@ if (process.platform === "win32" && typeof tls.getCACertificates === "function" 
 }
 
 const OUT_DIR = join(process.cwd(), "data", "snapshots");
+const PORTAL_CACHE_DIR = join(process.cwd(), ".data", "portal-cache");
+const LOG_DIR = join(process.cwd(), ".data", "logs");
+const LOCK_FILE = join(process.cwd(), ".data", "sync-live.lock");
 const IMMO_DATA_DIR = "C:\\Users\\emrea\\Desktop\\1_Projekte_und_Apps\\immo\\data";
 const TR_OFFSET = "+03:00";
+const FORCE_FULL_REFRESH = process.argv.includes("--full-refresh");
+
+function atomicWriteJson(filePath, payload) {
+  const tmpPath = `${filePath}.${process.pid}.${Date.now()}.tmp`;
+  writeFileSync(tmpPath, JSON.stringify(payload));
+  try {
+    renameSync(tmpPath, filePath);
+  } catch {
+    writeFileSync(filePath, JSON.stringify(payload));
+    try {
+      unlinkSync(tmpPath);
+    } catch {
+      // Ignore cleanup error
+    }
+  }
+}
+
+function formatShortDateDe(iso) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return String(iso).slice(0, 10);
+  const dd = String(d.getDate()).padStart(2, "0");
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const yyyy = d.getFullYear();
+  return `${dd}.${mm}.${yyyy}`;
+}
+
+function formatShortDateTimeDe(iso) {
+  if (!iso) return "unbekannt";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return String(iso).slice(0, 16);
+  const dd = String(d.getDate()).padStart(2, "0");
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const yyyy = d.getFullYear();
+  const hh = String(d.getHours()).padStart(2, "0");
+  const min = String(d.getMinutes()).padStart(2, "0");
+  return `${dd}.${mm}.${yyyy} ${hh}:${min}`;
+}
+
+/**
+ * Decides whether a cached detail file should be re-fetched from the official portal.
+ * - Brand-new listings (!cached) ALWAYS return true immediately (no budget limit).
+ * - Existing listings ("die, die bleiben") refresh on a rolling TTL budget:
+ *   * >= 2h old if important fields (appraisedValue, area, or documents) are still missing
+ *   * >= 4h old if the auction hearing is within the next 14 days
+ *   * >= 12h old for general periodic re-verification
+ */
+function shouldRefreshCachedDetails(cached, prevListing, { nowMs = Date.now(), forceRefresh = FORCE_FULL_REFRESH, budget = null } = {}) {
+  if (!cached) return { refresh: true, isNew: true, reason: "new" };
+  if (forceRefresh) return { refresh: true, isNew: false, reason: "forced" };
+  if (budget && budget.remaining <= 0) return { refresh: false, isNew: false, reason: "budget_exhausted" };
+
+  const fetchedMs = cached.fetchedAt ? Date.parse(cached.fetchedAt) : 0;
+  const ageMs = Number.isFinite(fetchedMs) && fetchedMs > 0 ? nowMs - fetchedMs : Number.POSITIVE_INFINITY;
+
+  const hasArea = Boolean(cached.livingAreaM2 || cached.usableAreaM2 || cached.landAreaM2 || cached.areaM2 || prevListing?.areaM2);
+  const hasDocs = Boolean((Array.isArray(cached.attachments) && cached.attachments.length > 0) || prevListing?.documentUrl);
+  const hasAppraised = Boolean(cached.appraisedValue || prevListing?.appraisedValue);
+  const missingKeyInfo = !hasArea || !hasDocs || !hasAppraised;
+
+  const hearingIso = prevListing?.hearingAt ?? cached.hearingAt ?? null;
+  const hearingMs = hearingIso ? Date.parse(hearingIso) : 0;
+  const isUpcomingSoon = Number.isFinite(hearingMs) && hearingMs > nowMs && hearingMs - nowMs <= 14 * 86_400_000;
+
+  if (missingKeyInfo && ageMs >= 2 * 3_600_000) {
+    if (budget) budget.remaining--;
+    return { refresh: true, isNew: false, reason: "missing_fields" };
+  }
+  if (isUpcomingSoon && ageMs >= 4 * 3_600_000) {
+    if (budget) budget.remaining--;
+    return { refresh: true, isNew: false, reason: "upcoming_hearing" };
+  }
+  if (ageMs >= 12 * 3_600_000) {
+    if (budget) budget.remaining--;
+    return { refresh: true, isNew: false, reason: "periodic_12h" };
+  }
+  return { refresh: false, isNew: false, reason: "fresh" };
+}
+
+function pushUniqueHistory(history, entry) {
+  if (!entry) return false;
+  if (!history.includes(entry)) {
+    history.push(entry);
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Reconciles a freshly scraped listing with its previous snapshot state:
+ * - Preserves firstSeenAt
+ * - Detects and logs changes to hearingAt, cancelled, appraisedValue, minimumBid, limitsWaived, and newly uploaded PDFs
+ * - Preserves previously extracted non-null detail fields if a portal detail request was skipped or transiently failed
+ */
+function reconcileExistingListing(prev, next, nowIso, stats = null) {
+  if (!prev) {
+    if (stats) stats.newCount = (stats.newCount ?? 0) + 1;
+    return next;
+  }
+  if (stats) stats.existingCount = (stats.existingCount ?? 0) + 1;
+
+  next.firstSeenAt = prev.firstSeenAt ?? next.firstSeenAt ?? nowIso;
+  const history = Array.isArray(prev.history) ? [...prev.history] : [];
+  for (const h of next.history ?? []) {
+    pushUniqueHistory(history, h);
+  }
+
+  const today = formatShortDateDe(nowIso);
+  let changed = false;
+
+  if (!prev.cancelled && next.cancelled) {
+    changed = pushUniqueHistory(history, `Termin aufgehoben (Stand ${today})`) || changed;
+  } else if (prev.cancelled && !next.cancelled) {
+    changed = pushUniqueHistory(history, `Neuer Versteigerungstermin angesetzt (Stand ${today})`) || changed;
+  }
+
+  if (prev.hearingAt && next.hearingAt && prev.hearingAt.slice(0, 16) !== next.hearingAt.slice(0, 16)) {
+    changed =
+      pushUniqueHistory(
+        history,
+        `Termin geändert: ${formatShortDateTimeDe(prev.hearingAt)} → ${formatShortDateTimeDe(next.hearingAt)} (${today})`,
+      ) || changed;
+  }
+
+  const currLabel = next.currency ?? (next.market === "TR" ? "TRY" : "EUR");
+  if (!prev.appraisedValue && next.appraisedValue) {
+    changed =
+      pushUniqueHistory(
+        history,
+        `Verkehrswert / Schätzwert ergänzt: ${Math.round(next.appraisedValue).toLocaleString("de-DE")} ${currLabel} (${today})`,
+      ) || changed;
+  } else if (prev.appraisedValue && next.appraisedValue && Math.abs(prev.appraisedValue - next.appraisedValue) >= 100) {
+    changed =
+      pushUniqueHistory(
+        history,
+        `Verkehrswert angepasst: ${Math.round(prev.appraisedValue).toLocaleString("de-DE")} → ${Math.round(next.appraisedValue).toLocaleString("de-DE")} ${currLabel} (${today})`,
+      ) || changed;
+  }
+
+  if (prev.minimumBid && next.minimumBid && Math.abs(prev.minimumBid - next.minimumBid) >= 100) {
+    changed =
+      pushUniqueHistory(
+        history,
+        `Mindestgebot angepasst: ${Math.round(prev.minimumBid).toLocaleString("de-DE")} → ${Math.round(next.minimumBid).toLocaleString("de-DE")} ${currLabel} (${today})`,
+      ) || changed;
+  }
+
+  if (!prev.limitsWaived && next.limitsWaived) {
+    changed = pushUniqueHistory(history, `Wertgrenzen (5/10 und 7/10) entfallen (${today})`) || changed;
+  }
+
+  if (!prev.reportUrl && next.reportUrl) {
+    changed = pushUniqueHistory(history, `Verkehrswertgutachten (PDF) hinterlegt (${today})`) || changed;
+  } else if (!prev.exposeUrl && next.exposeUrl) {
+    changed = pushUniqueHistory(history, `Exposé (PDF) hinterlegt (${today})`) || changed;
+  } else if (!prev.documentUrl && next.documentUrl) {
+    changed = pushUniqueHistory(history, `Amtliche Bekanntmachung hinterlegt (${today})`) || changed;
+  }
+
+  if (changed && stats) {
+    stats.updatedCount = (stats.updatedCount ?? 0) + 1;
+  }
+  next.history = history;
+
+  // Preserve non-null enriched fields from previous snapshot so existing listings never lose data
+  const preserveFields = [
+    "appraisedValue",
+    "minimumBid",
+    "depositAmount",
+    "livingAreaM2",
+    "usableAreaM2",
+    "landAreaM2",
+    "areaM2",
+    "areaKind",
+    "rooms",
+    "yearBuilt",
+    "grundbuch",
+    "proceedingKind",
+    "description",
+    "hearingPlace",
+    "creditor",
+    "documentUrl",
+    "exposeUrl",
+    "reportUrl",
+    "biddingNotesUrl",
+    "imageUrl",
+    "courtUrl",
+    "geoServerUrl",
+    "geo",
+    "postcode",
+    "street",
+    "place",
+  ];
+  for (const field of preserveFields) {
+    if ((next[field] === null || next[field] === undefined || next[field] === "") && prev[field] !== null && prev[field] !== undefined && prev[field] !== "") {
+      next[field] = prev[field];
+    }
+  }
+
+  if (prev.tr && next.tr) {
+    for (const [k, v] of Object.entries(prev.tr)) {
+      if ((next.tr[k] === null || next.tr[k] === undefined || next.tr[k] === "") && v !== null && v !== undefined && v !== "") {
+        next.tr[k] = v;
+      }
+    }
+  }
+
+  return next;
+}
+
+/**
+ * Retains existing ("die, die bleiben") listings for a country if:
+ * - The portal had a transient error/outage (freshListings.length < minValidCount), OR
+ * - The listing is still upcoming or within the grace window (e.g. paginated portals or temporary court edits).
+ */
+function retainRemainingCountryListings(freshListings, prevListingsForCountry, { nowMs = Date.now(), minValidCount = 5, graceDays = 45, stats = null } = {}) {
+  if (!prevListingsForCountry || prevListingsForCountry.length === 0) return freshListings;
+
+  const seenKeys = new Set(freshListings.map((l) => l.key));
+  const seenIdentities = new Set(
+    freshListings.map((l) => `${l.regionCode ?? ""}|${l.authority ?? ""}|${canonicalFileNo(l.fileNo ?? "")}`),
+  );
+  const portalUnhealthy = freshListings.length < minValidCount;
+  const cutoffMs = nowMs - graceDays * 86_400_000;
+  const combined = [...freshListings];
+  let retainedCount = 0;
+
+  for (const prev of prevListingsForCountry) {
+    const id = `${prev.regionCode ?? ""}|${prev.authority ?? ""}|${canonicalFileNo(prev.fileNo ?? "")}`;
+    if (seenKeys.has(prev.key) || (prev.fileNo && seenIdentities.has(id))) continue;
+
+    const lastRoundEnd = Array.isArray(prev.rounds) && prev.rounds.length > 0
+      ? prev.rounds.reduce((max, r) => (r.end && r.end > max ? r.end : max), prev.hearingAt ?? "")
+      : prev.hearingAt ?? "";
+    const endMs = lastRoundEnd ? Date.parse(lastRoundEnd) : 0;
+
+    if (portalUnhealthy || !endMs || endMs >= cutoffMs) {
+      seenKeys.add(prev.key);
+      seenIdentities.add(id);
+      combined.push(prev);
+      retainedCount++;
+    }
+  }
+
+  if (stats) stats.retainedCount = (stats.retainedCount ?? 0) + retainedCount;
+  return combined;
+}
 
 const BUNDESLAENDER_DE = [
   { code: "bw", portalCode: "bw", name: "Baden-Württemberg", transferTaxPct: 5.0 },
@@ -1384,7 +1635,7 @@ async function fetchItAsteAll(prevByKey, portalCacheDir, nowIso) {
       idTipologiaVendita: null,
       idModalitaVendita: null,
       idPubblicazione: null,
-      dataVenditaDa: null,
+      dataVenditaDa: `${new Date().toISOString().slice(0, 10)}T00:00:00`,
       dataVenditaA: null,
       codiceAsta: null,
       hasFoto: null,
@@ -1407,7 +1658,7 @@ async function fetchItAsteAll(prevByKey, portalCacheDir, nowIso) {
       numeroPubblicazioni: null,
       listaIdLotto: null,
       idProcedura: null,
-      orderBy: 6,
+      orderBy: 1,
     };
 
     const rMap = await fetch("https://webapi.astegiudiziarie.it/api/search/map", {
@@ -1422,9 +1673,14 @@ async function fetchItAsteAll(prevByKey, portalCacheDir, nowIso) {
     });
     if (!rMap.ok) return out;
     const mapRaw = await rMap.json();
-    const mapItems = (Array.isArray(mapRaw) ? mapRaw : Object.values(mapRaw ?? {}))
-      .filter((m) => m && m.idLotto && m.geolocalizzato && m.latitudine && m.longitudine)
-      .slice(0, 300);
+    const allGeoItems = (Array.isArray(mapRaw) ? mapRaw : Object.values(mapRaw ?? {}))
+      .filter((m) => m && m.idLotto && m.geolocalizzato && m.latitudine && m.longitudine);
+    const targetCount = 350;
+    const step = Math.max(1, Math.floor(allGeoItems.length / targetCount));
+    const mapItems = [];
+    for (let i = 0; i < allGeoItems.length && mapItems.length < targetCount; i += step) {
+      mapItems.push(allGeoItems[i]);
+    }
 
     const coordsById = new Map(mapItems.map((m) => [m.idLotto, { lat: Number(m.latitudine), lng: Number(m.longitudine) }]));
     const chunks = [];
@@ -1545,42 +1801,74 @@ async function fetchEsBoeAll(prevByKey, portalCacheDir, nowIso) {
   const ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
 
   try {
-    const rForm = await fetch("https://subastas.boe.es/subastas_ava.php", { headers: { "User-Agent": ua } });
-    const setCookies = rForm.headers.getSetCookie ? rForm.headers.getSetCookie() : [];
-    const cookieHeader = setCookies.map((c) => c.split(";")[0]).join("; ");
-    const htmlForm = await rForm.text();
+    const queries = [
+      ["EJ", "SUBASTA.FECHA_FIN", "asc"],
+      ["EJ", "SUBASTA.FECHA_FIN", "desc"],
+      ["EJ", "SUBASTA.ID_SUBASTA_ORDENAR", "desc"],
+      ["EJ", "SUBASTA.ID_SUBASTA_ORDENAR", "asc"],
+    ];
+    const byId = new Map();
 
-    const params = new URLSearchParams();
-    for (const m of htmlForm.matchAll(/<input[^>]+type="hidden"[^>]+name="([^"]+)"[^>]+value="([^"]*)"/gi)) {
-      params.set(m[1], m[2]);
+    for (const [estado, sortField, sortOrder] of queries) {
+      const rForm = await fetch("https://subastas.boe.es/subastas_ava.php", { headers: { "User-Agent": ua } });
+      const setCookies = rForm.headers.getSetCookie ? rForm.headers.getSetCookie() : [];
+      const cookieHeader = setCookies.map((c) => c.split(";")[0]).join("; ");
+      const htmlForm = await rForm.text();
+
+      const params = new URLSearchParams();
+      for (const m of htmlForm.matchAll(/<input[^>]+type="hidden"[^>]+name="([^"]+)"[^>]+value="([^"]*)"/gi)) {
+        params.set(m[1], m[2]);
+      }
+      params.set("dato[2]", estado);
+      params.set("dato[3]", "I");
+      params.set("page_hits", "500");
+      params.set("sort_field[0]", sortField);
+      params.set("sort_order[0]", sortOrder);
+      params.set("accion", "Buscar");
+
+      const rSearch = await fetch("https://subastas.boe.es/subastas_ava.php", {
+        method: "POST",
+        headers: {
+          "User-Agent": ua,
+          "Content-Type": "application/x-www-form-urlencoded",
+          Cookie: cookieHeader,
+          Referer: "https://subastas.boe.es/subastas_ava.php",
+        },
+        body: params.toString(),
+      });
+      const htmlSearch = await rSearch.text();
+      for (const m of htmlSearch.matchAll(/<li class="resultado-busqueda">([\s\S]*?)<\/li>/gi)) {
+        const card = m[1];
+        const idSub = /SUBASTA\s+(SUB-[A-Z0-9-]+)/i.exec(card)?.[1];
+        if (!idSub || byId.has(idSub)) continue;
+        const authority = decodeHtmlText(/<h4>([\s\S]*?)<\/h4>/i.exec(card)?.[1] ?? "");
+        const exp = decodeHtmlText(/Expediente:\s*([^<]+)/i.exec(card)?.[1] ?? "");
+        const conclusionText = decodeHtmlText(/Conclusión prevista:\s*([^\]]+)/i.exec(card)?.[1] ?? "");
+        const pTags = [...card.matchAll(/<p[^>]*>([\s\S]*?)<\/p>/gi)].map((x) => decodeHtmlText(x[1]));
+        const summary = pTags[pTags.length - 1] || "";
+        byId.set(idSub, { idSub, authority, expediente: exp, conclusionText, summary });
+      }
     }
-    params.set("dato[2]", "EJ"); // Celebrándose (active bidding)
-    params.set("dato[3]", "I"); // Inmuebles (real estate)
-    params.set("page_hits", "200");
-    params.set("accion", "Buscar");
 
-    const rSearch = await fetch("https://subastas.boe.es/subastas_ava.php", {
-      method: "POST",
-      headers: {
-        "User-Agent": ua,
-        "Content-Type": "application/x-www-form-urlencoded",
-        Cookie: cookieHeader,
-        Referer: "https://subastas.boe.es/subastas_ava.php",
-      },
-      body: params.toString(),
-    });
-    const htmlSearch = await rSearch.text();
+    const byBucket = new Map();
+    for (const stub of byId.values()) {
+      const bucketKey = stub.conclusionText ? stub.conclusionText.slice(0, 10) : "other";
+      if (!byBucket.has(bucketKey)) byBucket.set(bucketKey, []);
+      byBucket.get(bucketKey).push(stub);
+    }
     const stubs = [];
-    for (const m of htmlSearch.matchAll(/<li class="resultado-busqueda">([\s\S]*?)<\/li>/gi)) {
-      const card = m[1];
-      const idSub = /SUBASTA\s+(SUB-[A-Z0-9-]+)/i.exec(card)?.[1];
-      if (!idSub) continue;
-      const authority = decodeHtmlText(/<h4>([\s\S]*?)<\/h4>/i.exec(card)?.[1] ?? "");
-      const exp = decodeHtmlText(/Expediente:\s*([^<]+)/i.exec(card)?.[1] ?? "");
-      const conclusionText = decodeHtmlText(/Conclusión prevista:\s*([^\]]+)/i.exec(card)?.[1] ?? "");
-      const pTags = [...card.matchAll(/<p[^>]*>([\s\S]*?)<\/p>/gi)].map((x) => decodeHtmlText(x[1]));
-      const summary = pTags[pTags.length - 1] || "";
-      stubs.push({ idSub, authority, expediente: exp, conclusionText, summary });
+    const maxTotal = 360;
+    let round = 0;
+    while (stubs.length < maxTotal) {
+      let added = false;
+      for (const list of byBucket.values()) {
+        if (round < list.length && stubs.length < maxTotal) {
+          stubs.push(list[round]);
+          added = true;
+        }
+      }
+      if (!added) break;
+      round++;
     }
 
     console.log(`    subastas.boe.es · ${stubs.length} aktive Immobilien-Auktionen gefunden, lade Details ...`);
@@ -1705,11 +1993,11 @@ async function fetchFrLicitorAll(prevByKey, portalCacheDir, nowIso) {
     const rHome = await fetch("https://www.licitor.com/ventes-aux-encheres-immobilieres/france.html", { headers: { "User-Agent": ua } });
     if (!rHome.ok) return out;
     const htmlHome = await rHome.text();
-    const sessionLinks = [...new Set([...htmlHome.matchAll(/href="(\/ventes-judiciaires-immobilieres\/[^"]+)"/gi)].map((m) => m[1]))].slice(0, 48);
+    const sessionLinks = [...new Set([...htmlHome.matchAll(/href="(\/ventes-judiciaires-immobilieres\/[^"]+)"/gi)].map((m) => m[1]))];
 
     const adStubs = [];
     const seenAdNos = new Set();
-    await mapLimit(sessionLinks, 8, async (sessHref) => {
+    await mapLimit(sessionLinks, 10, async (sessHref) => {
       try {
         const rSess = await fetch(`https://www.licitor.com${sessHref}`, { headers: { "User-Agent": ua } });
         if (!rSess.ok) return;
@@ -1738,7 +2026,7 @@ async function fetchFrLicitorAll(prevByKey, portalCacheDir, nowIso) {
       }
     });
 
-    const targetAds = adStubs.slice(0, 220);
+    const targetAds = adStubs.slice(0, 400);
     console.log(`    licitor.com · ${targetAds.length} gerichtliche Versteigerungen gefunden, lade Details ...`);
     await mapLimit(targetAds, 12, async (stub) => {
       const key = `fr-licitor-${stub.adNo}`;
@@ -2466,6 +2754,39 @@ async function run() {
   mkdirSync(OUT_DIR, { recursive: true });
   const trOnly = process.argv.includes("--tr-only");
   const deOnly = process.argv.includes("--de-only");
+  const euFast = process.argv.includes("--eu-fast");
+
+  if (euFast) {
+    const dePath = join(OUT_DIR, "de.json");
+    const existing = JSON.parse(readFileSync(dePath, "utf8"));
+    const prevByKey = new Map(existing.listings.map((l) => [l.key, l]));
+    const portalCacheDir = join(PORTAL_CACHE_DIR, "de");
+    mkdirSync(portalCacheDir, { recursive: true });
+    const nowIso = new Date().toISOString();
+    const kept = existing.listings.filter((l) => !["IT", "ES", "FR", "GB"].includes(l.country));
+    const [itListings, esListings, frListings, gbListings] = await Promise.all([
+      fetchItAsteAll(prevByKey, portalCacheDir, nowIso),
+      fetchEsBoeAll(prevByKey, portalCacheDir, nowIso),
+      fetchFrLicitorAll(prevByKey, portalCacheDir, nowIso),
+      fetchGbAuctionsAll(prevByKey, portalCacheDir, nowIso),
+    ]);
+    const listings = [...kept, ...itListings, ...esListings, ...frListings, ...gbListings];
+    const stateCounts = new Map();
+    for (const l of listings) {
+      if (l.regionCode) stateCounts.set(l.regionCode, (stateCounts.get(l.regionCode) ?? 0) + 1);
+    }
+    const updated = {
+      meta: {
+        ...existing.meta,
+        generatedAt: nowIso,
+        states: existing.meta.states.map((s) => ({ ...s, included: stateCounts.get(s.code) ?? 0 })),
+      },
+      listings,
+    };
+    atomicWriteJson(dePath, updated);
+    console.log(`✓ data/snapshots/de.json aktualisiert (${listings.length} Objekte, IT=${itListings.length}, ES=${esListings.length}, FR=${frListings.length}, GB=${gbListings.length})`);
+    return;
+  }
 
   if (!trOnly) {
     const de = await buildDeLive();

@@ -1,6 +1,13 @@
 import { LocaleOption } from "@/lib/constants";
 
-const INTL_LOCALES: Record<LocaleOption, string> = { de: "de-DE", tr: "tr-TR" };
+const INTL_LOCALES: Record<LocaleOption, string> = {
+  de: "de-DE",
+  tr: "tr-TR",
+  en: "en-GB",
+  it: "it-IT",
+  es: "es-ES",
+  fr: "fr-FR",
+};
 
 /** Whole-euro amount, e.g. "240.000 €". */
 export function formatEuro(value: number, locale: LocaleOption): string {

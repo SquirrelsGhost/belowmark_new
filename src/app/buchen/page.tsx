@@ -15,7 +15,6 @@ import { env } from "@/lib/env";
 import { getLegalPageContext, legalMetadata } from "@/lib/legal/legalPage";
 import { AppSessionService } from "@/services/AppSessionService";
 import { BillingService } from "@/services/billing/BillingService";
-import { RegionService } from "@/services/RegionService";
 import { TranslationService } from "@/services/TranslationService";
 import { AuthTranslations } from "@/translations/auth/AuthTranslations";
 import { openLegalGaps } from "@/translations/legal/LegalDocuments";
@@ -37,9 +36,8 @@ export default async function OrderPage({ searchParams }: PageProps<"/buchen">) 
     .filter(Boolean)
     .join("&");
   const viewer = await AppSessionService.requireViewer(`${BILLING_ROUTES.order}${returnQuery ? `?${returnQuery}` : ""}`);
-  const [{ t, layout, lang }, region, userLocale, homeTranslations] = await Promise.all([
+  const [{ t, layout, lang }, userLocale, homeTranslations] = await Promise.all([
     getLegalPageContext(),
-    RegionService.GetRegion(),
     TranslationService.GetUserLocale(),
     TranslationService.GetUserTranslations(),
   ]);
@@ -48,13 +46,13 @@ export default async function OrderPage({ searchParams }: PageProps<"/buchen">) 
   const pricingMarkets = homeTranslations.HomePage.Pricing.Markets;
 
   const initialMarket: PricingCountryCode =
-    isPricingCountry(rawMarket) ? rawMarket : region.isMarketChosen ? region.pricingCountry : viewer.market;
+    isPricingCountry(rawMarket) ? rawMarket : viewer.country;
 
   const availabilityDe = BillingService.availability("DE");
   const availabilityTr = BillingService.availability("TR");
   const availability = initialMarket === "TR" ? availabilityTr : availabilityDe;
   const access = await BillingService.access(viewer.id);
-  const offersByMarket = buildOrderOffersByMarket(t, viewer.market, lang, access, BillingService.orderBlocker);
+  const offersByMarket = buildOrderOffersByMarket(t, viewer.country, lang, access, BillingService.orderBlocker);
   const allBlocked = PRICING_COUNTRIES.every((code) => offersByMarket[code].every((offer) => offer.blockedReason));
   const bothMarketsClosed = Boolean(availabilityDe.blocker && availabilityTr.blocker);
   const canUpgrade = access.isActive && access.plan === "investor" && Boolean(access.offer && UPGRADES[access.offer]);

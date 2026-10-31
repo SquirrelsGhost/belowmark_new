@@ -1,5 +1,5 @@
 import Button from "@/components/ui/Button";
-import { openPortalAction } from "@/lib/billing/actions/accountBillingActions";
+import { cancelSubscriptionAction, openPortalAction } from "@/lib/billing/actions/accountBillingActions";
 
 interface AccountPlanActionsProps {
   /** Shown while the monthly subscription renews */
@@ -21,7 +21,11 @@ export default function AccountPlanActions({ cancel, portalLabel, portalHint, po
             <Button type="submit" label={portalLabel} variant="outline" />
           </form>
         )}
-        {cancel && <Button href={cancel.href} label={cancel.label} variant="outline" />}
+        {cancel && (
+          <form action={cancelSubscriptionAction}>
+            <Button type="submit" label={cancel.label} variant="outline" />
+          </form>
+        )}
       </div>
       )}
       <p className="max-w-lg text-sm leading-relaxed text-muted">{portalUnavailable ?? portalHint}</p>

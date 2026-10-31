@@ -1,4 +1,5 @@
 import { cookies, headers } from "next/headers";
+import { cache } from "react";
 import {
   COUNTRY_COOKIE_NAME,
   DEFAULT_MARKET,
@@ -37,13 +38,28 @@ export interface IRegion {
  * The market follows the country until the visitor picks one in the pricing section.
  */
 export class RegionService {
-  static GetRegion = async (): Promise<IRegion> => {
+  static GetRegion = cache(async (): Promise<IRegion> => {
     const headersList = await headers();
     const cookieStore = await cookies();
 
     const geoCountry = GEO_COUNTRY_HEADERS.map((name) => headersList.get(name)).find(Boolean);
     const cookieCountry = cookieStore.get(COUNTRY_COOKIE_NAME)?.value;
-    const languageCountry = headersList.get("accept-language")?.toLowerCase().startsWith("tr") ? "TR" : undefined;
+    const acceptLang = headersList.get("accept-language")?.toLowerCase() ?? "";
+    const languageCountry = acceptLang.startsWith("tr")
+      ? "TR"
+      : acceptLang.startsWith("it")
+        ? "IT"
+        : acceptLang.startsWith("es")
+          ? "ES"
+          : acceptLang.startsWith("fr")
+            ? "FR"
+            : acceptLang.startsWith("en")
+              ? "GB"
+              : acceptLang.startsWith("de-at")
+                ? "AT"
+                : acceptLang.startsWith("de-ch")
+                  ? "CH"
+                  : undefined;
 
     const detectedCountryCode = geoCountry ?? cookieCountry ?? languageCountry;
     const country = RegionService.ToMarket(detectedCountryCode);
@@ -59,7 +75,7 @@ export class RegionService {
       isFromGeoHeader: Boolean(geoCountry),
       country,
     };
-  };
+  });
 
   static IsMarket = (value: string | undefined): value is MarketCode => {
     return MARKETS.includes(value as MarketCode);

@@ -20,6 +20,7 @@ export class DevLoginService {
     const trialEndsAt = new Date(account.trial === "ended" ? now - DAY_MS : now + TRIAL_MS);
     const state = {
       market: account.market,
+      country: account.country,
       locale: account.locale,
       emailVerifiedAt: new Date(now),
       trialEndsAt,

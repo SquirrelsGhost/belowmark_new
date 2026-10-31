@@ -29,10 +29,10 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function HearingResultsPage() {
   const { viewer, app, locale, meta } = await getAppPageContext(CLOSING_ROUTES.results);
   const { Results, Result } = getClosingTranslation(locale);
-  const [samples, own] = await Promise.all([HearingResultService.samples(viewer.market), HearingResultService.listOwn(viewer.id, viewer.market)]);
+  const [samples, own] = await Promise.all([HearingResultService.samples(viewer.country), HearingResultService.listOwn(viewer.id, viewer.market)]);
   const regionNames = new Map(meta.states.map((state) => [state.code, state.name]));
   const stats = buildPriceStats(viewer.market, samples, regionNames, Results.OtherRegion);
-  const ownRows = await Promise.all(own.map(async (entry) => ({ entry, listing: await ListingService.getByKey(viewer.market, entry.listingKey) })));
+  const ownRows = await Promise.all(own.map(async (entry) => ({ entry, listing: await ListingService.getByKey(viewer.countries, entry.listingKey) })));
 
   return (
     <AppMain id={APP_MAIN_ID}>

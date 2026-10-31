@@ -28,6 +28,12 @@ export const users = pgTable("users", {
   passwordHash: text("password_hash").notNull(),
   /** Booked market: DE (ZVG) or TR (İcra). */
   market: varchar("market", { length: 2 }).notNull().default("DE"),
+  /**
+   * Country the account is for (DE, AT, CH, IT, ES, FR, GB, TR). Every country is
+   * its own product: the app shows only this country's proceedings. Set at
+   * sign-up and by a paid order; null on older accounts = the market's home country.
+   */
+  country: varchar("country", { length: 2 }),
   /** Language for e-mails, taken from the UI at sign-up. */
   locale: varchar("locale", { length: 2 }).notNull().default("de"),
   /** null until the address is confirmed — no sign-in before that. */

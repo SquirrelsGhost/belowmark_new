@@ -55,10 +55,11 @@ export default function ListingPlaceSection({ listing, geo, sprite, labels }: Li
           )
         }
         locator={
-          <RegionLocator
+          geo.regions.length > 0 && <RegionLocator
             sprite={sprite}
             width={geo.projection.width}
             height={geo.projection.height}
+            frame={geo.frame}
             regionCode={listing.regionCode}
             point={position ? projectPoint(geo.projection, position.lat, position.lng) : null}
             label={fill(labels.Locator, { region: listing.region ?? "" })}

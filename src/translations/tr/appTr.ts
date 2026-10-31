@@ -65,6 +65,19 @@ export const APP_TR: IAppTranslation = {
   Search: {
     Eyebrow: { DE: "İlan panosu · DE · AT · CH · IT · ES · FR · UK", TR: "İlan panosu · İcra satışları" },
     Title: "İlanlar",
+    Countries: {
+      DE: { Name: "Almanya", Source: "ZVG portalı", Region: "Eyalet" },
+      AT: { Name: "Avusturya", Source: "Ediktsdatei", Region: "Eyalet" },
+      CH: { Name: "İsviçre", Source: "SHAB", Region: "Kanton" },
+      IT: { Name: "İtalya", Source: "Aste Giudiziarie / PVP", Region: "Bölge" },
+      ES: { Name: "İspanya", Source: "Portal BOE", Region: "Bölge" },
+      FR: { Name: "Fransa", Source: "Licitor TJ", Region: "Bölge" },
+      GB: { Name: "Birleşik Krallık", Source: "Açık artırmalar", Region: "Bölge" },
+      TR: { Name: "Türkiye", Source: "İcra / ilan.gov.tr", Region: "İl" },
+    },
+    CountryEyebrow: "İlan panosu · {country} · {source}",
+    CountryLead: "{country} resmi ihale ilanları ({source}) — ekspertiz değeri, asgari teklif ve ihaleye kadar olan sürelerle. Diğer ülkeler ayrı tarifelerdir ve burada görünmez.",
+    CountrySwitch: "Ülke",
     Lead: {
       DE: "Almanya (ZVG), Avusturya (Ediktsdatei), İsviçre (SHAB), İtalya (Aste Giudiziarie), İspanya (Portal BOE), Fransa (Licitor TJ) ve İngiltere / UK mahkeme ve icra dairelerinin tüm taşınmaz ihaleleri — ekspertiz değeri, asgari teklif, teminat ve tapu vergisiyle.",
       TR: "Başlangıç fiyatı, teminat ve masraflarıyla icra satışları. Kırmızı çizgi muhammen bedel, altında yasal başlangıç fiyatı.",

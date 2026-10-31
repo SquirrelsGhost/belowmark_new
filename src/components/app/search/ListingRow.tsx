@@ -82,7 +82,7 @@ export default function ListingRow({ listing, status, labels, segmentLabel, loca
             {isNew && <span className="bg-ink px-1.5 py-px text-paper-bright">{labels.New}</span>}
           </p>
           <h3 className="mt-1 font-narrow text-2xl leading-tight font-bold">
-            <Link href={href} className="after:absolute after:inset-0 hover:text-signal">
+            <Link href={href} prefetch={false} className="after:absolute after:inset-0 hover:text-signal">
               {getPlaceTitle(listing)}
             </Link>
           </h3>
@@ -118,7 +118,7 @@ export default function ListingRow({ listing, status, labels, segmentLabel, loca
       </div>
       <div className="relative z-10 flex shrink-0 flex-col items-end justify-between gap-2">
         <WatchButton listingId={listing.key} isSaved={isSaved} watchLabel={labels.Watch} unwatchLabel={labels.Unwatch} errorLabel={labels.WatchError} />
-        <Link href={href} className="hidden font-narrow text-[11px] font-semibold tracking-[0.1em] text-ink-soft uppercase hover:text-signal sm:inline">
+        <Link href={href} prefetch={false} className="hidden font-narrow text-[11px] font-semibold tracking-[0.1em] text-ink-soft uppercase hover:text-signal sm:inline">
           {labels.Open} →
         </Link>
       </div>

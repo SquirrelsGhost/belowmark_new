@@ -8,6 +8,7 @@ import { DEADLINE_ROUTES } from "@/lib/deadlines/deadlineConstants";
 import { env } from "@/lib/env";
 import { DeadlineRunService } from "@/services/DeadlineRunService";
 import { DeadlineService } from "@/services/DeadlineService";
+import { CountryAccessService } from "@/services/CountryAccessService";
 import { ListingService } from "@/services/ListingService";
 import { RateLimitService } from "@/services/RateLimitService";
 import { SessionService } from "@/services/SessionService";
@@ -24,7 +25,8 @@ const MAX_KEY_LENGTH = 128;
 async function signedInUser() {
   const user = await SessionService.getCurrentUser();
   if (!user || !user.hasFullAccess) return null;
-  return { id: user.id, market: user.market === "TR" ? ("TR" as const) : ("DE" as const) };
+  const { countries } = await CountryAccessService.forUser(user);
+  return { id: user.id, market: user.market === "TR" ? ("TR" as const) : ("DE" as const), countries };
 }
 
 const keyOf = (formData: FormData): string => String(formData.get("listingKey") ?? "").slice(0, MAX_KEY_LENGTH);
@@ -46,8 +48,8 @@ export async function toggleFollowAction(_: DeadlineActionState, formData: FormD
     if (formData.get("intent") === "unfollow") {
       await DeadlineService.unfollow(user.id, listingKey);
     } else {
-      // Only proceedings of the user's market that exist in the data
-      if (!(await ListingService.getByKey(user.market, listingKey))) return { ok: false };
+      // Only proceedings of the user's country that exist in the data
+      if (!(await ListingService.getByKey(user.countries, listingKey))) return { ok: false };
       if (!(await DeadlineService.follow(user.id, listingKey, user.market))) return { ok: false };
       after(async () => {
         await DeadlineRunService.run(Date.now(), user.id).catch((err) => console.error("[toggleFollowAction:run]", err));
@@ -71,7 +73,7 @@ export async function setDeadlineMailAction(_: DeadlineActionState, formData: Fo
     const rl = await RateLimitService.hit(`deadlines:user:${user.id}`, RATE_LIMITS.profileUpdate);
     if (!rl.allowed) return { ok: false };
     if (mailOn) {
-      if (!(await ListingService.getByKey(user.market, listingKey))) return { ok: false };
+      if (!(await ListingService.getByKey(user.countries, listingKey))) return { ok: false };
       const existing = await DeadlineService.get(user.id, listingKey);
       if (!existing && !(await DeadlineService.follow(user.id, listingKey, user.market))) return { ok: false };
     }

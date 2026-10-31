@@ -7,7 +7,7 @@ import ListingBackLink from "@/components/app/listing/ListingBackLink";
 import ListingHeader from "@/components/app/listing/ListingHeader";
 import ListingHearing from "@/components/app/listing/ListingHearing";
 import ListingNotFound from "@/components/app/listing/ListingNotFound";
-import ListingOfficialDetails from "@/components/app/listing/ListingOfficialDetails";
+import ListingPortalSections from "@/components/app/listing/ListingPortalSections";
 import ListingPurchase from "@/components/app/listing/ListingPurchase";
 import QuotaExceededNotice from "@/components/app/listing/QuotaExceededNotice";
 import NoteForm from "@/components/app/listing/NoteForm";
@@ -15,17 +15,15 @@ import PreBidChecklist from "@/components/app/listing/PreBidChecklist";
 import CalendarLink from "@/components/app/listing/CalendarLink";
 import ListingHistory from "@/components/app/listing/ListingHistory";
 import ListingEvidenceSection from "@/components/app/evidence/ListingEvidenceSection";
-import ListingPlaceSection from "@/components/app/location/ListingPlaceSection";
 import ListingBiddingSection from "@/components/app/bidding/ListingBiddingSection";
 import BankFileTeaser from "@/components/app/bankFile/BankFileTeaser";
 import ListingClosingSection from "@/components/app/closing/ListingClosingSection";
 import ClientShareArea from "@/components/app/clientShare/ClientShareArea";
-import ListingMediaSection from "@/components/app/media/ListingMediaSection";
-import ListingReportArea from "@/components/app/report/ListingReportArea";
 import ListingVerdictSection from "@/components/app/verdict/ListingVerdictSection";
 import ListingTeamSection from "@/components/app/team/ListingTeamSection";
 import ListingDeadlineSection from "@/components/app/deadlines/ListingDeadlineSection";
 import AppMain from "@/components/app/shell/AppMain";
+import AppSectionSuspense from "@/components/app/shell/AppSectionSuspense";
 import TrListingExtras from "@/components/app/tr/TrListingExtras";
 import WatchButton from "@/components/app/watchlist/WatchButton";
 import PageAside from "@/components/ui/PageAside";
@@ -38,6 +36,7 @@ import { appMetadata, getAppPageContext } from "@/lib/appPage";
 import { getAddressLine, getPlaceTitle, getStatusLabel } from "@/lib/listingLabels";
 import { getHearingStatus, isNewListing } from "@/lib/listingMath";
 import { formatDate } from "@/lib/format";
+import { getListingCountry } from "@/lib/listingCountry";
 import { GeoService } from "@/services/GeoService";
 import { ListingService } from "@/services/ListingService";
 import { OfficialPortalService } from "@/services/OfficialPortalService";
@@ -75,7 +74,7 @@ export default async function ListingPage({ params }: PageProps<"/app/objekt/[ke
     );
   }
 
-  const rawListing = await ListingService.getByKey(viewer.market, key);
+  const rawListing = await ListingService.getByKey(viewer.countries, key);
 
   if (!rawListing) {
     return (
@@ -87,14 +86,14 @@ export default async function ListingPage({ params }: PageProps<"/app/objekt/[ke
 
   const listing = isLocked ? redactListingForFreePlan(rawListing) : rawListing;
   const market = listing.market;
-  const [entry, geo, sprite, portalDetails] = await Promise.all([
+  const [entry, geo, sprite] = await Promise.all([
     WatchlistService.get(viewer.id, listing.key),
-    GeoService.getMarket(market),
+    GeoService.getCountry(getListingCountry(listing)),
     GeoService.getLocatorSprite(market),
-    isLocked
-      ? Promise.resolve(emptyPortalDetailsForFreePlan(listing.sourcePortal ?? ""))
-      : OfficialPortalService.getDetails(listing),
   ]);
+  const portalDetails = isLocked
+    ? emptyPortalDetailsForFreePlan(listing.sourcePortal ?? "")
+    : OfficialPortalService.getInstantFallback(listing);
   const status = getHearingStatus(listing, viewer.now);
   const hearingIso = status.round?.start ?? listing.hearingAt;
   const tr = listing.tr;
@@ -151,22 +150,40 @@ export default async function ListingPage({ params }: PageProps<"/app/objekt/[ke
         }
       />
 
-      <ListingVerdictSection listing={listing} userId={viewer.id} locale={locale} isLocked={isLocked} now={viewer.now} lockedCta={L.Locked.Cta} />
+      <AppSectionSuspense variant="panel">
+        <ListingVerdictSection listing={listing} userId={viewer.id} locale={locale} isLocked={isLocked} now={viewer.now} lockedCta={L.Locked.Cta} />
+      </AppSectionSuspense>
       <ListingPurchase listing={listing} t={t} locale={locale} isLocked={isLocked} />
       {market === "TR" && <TrListingExtras listing={listing} app={app} locale={locale} now={viewer.now} isLocked={isLocked} />}
       <ListingBiddingSection listing={listing} labels={getBiddingTranslation(locale)} locked={L.Locked} locale={locale} isLocked={isLocked} snapshotDate={meta.generatedAt} />
       <BankFileTeaser listingKey={listing.key} market={market} labels={getBankFileTranslation(locale).Teaser} isLocked={isLocked} />
-      <ListingClosingSection listing={listing} userId={viewer.id} locale={locale} isLocked={isLocked} now={viewer.now} />
-      <ListingTeamSection listingKey={listing.key} market={market} userId={viewer.id} locale={locale} />
-      <ListingDeadlineSection listing={listing} userId={viewer.id} locale={locale} isLocked={isLocked} now={viewer.now} />
-      <ClientShareArea listingKey={listing.key} locale={locale} isLocked={isLocked} />
+      <AppSectionSuspense variant="panel">
+        <ListingClosingSection listing={listing} userId={viewer.id} locale={locale} isLocked={isLocked} now={viewer.now} />
+      </AppSectionSuspense>
+      <AppSectionSuspense variant="panel">
+        <ListingTeamSection listingKey={listing.key} market={market} userId={viewer.id} locale={locale} />
+      </AppSectionSuspense>
+      <AppSectionSuspense variant="panel">
+        <ListingDeadlineSection listing={listing} userId={viewer.id} locale={locale} isLocked={isLocked} now={viewer.now} />
+      </AppSectionSuspense>
+      <AppSectionSuspense variant="panel">
+        <ClientShareArea listingKey={listing.key} locale={locale} isLocked={isLocked} />
+      </AppSectionSuspense>
 
       <PageSplitGrid variant="listing">
         <PageStack variant="col10Min">
-          <ListingOfficialDetails listing={listing} details={portalDetails} locale={locale} isLocked={isLocked} />
-          <ListingReportArea listing={listing} userId={viewer.id} locale={locale} isLocked={isLocked} attachments={portalDetails.attachments} />
-          <ListingPlaceSection listing={listing} geo={geo} sprite={sprite.href} labels={app.Location} />
-          <ListingMediaSection listing={listing} labels={app.Media} portalDetails={portalDetails} />
+          <AppSectionSuspense variant="panel">
+            <ListingPortalSections
+              listing={listing}
+              userId={viewer.id}
+              locale={locale}
+              isLocked={isLocked}
+              geo={geo}
+              spriteHref={sprite.href}
+              locationLabels={app.Location}
+              mediaLabels={app.Media}
+            />
+          </AppSectionSuspense>
           <ListingEvidenceSection listing={listing} labels={app.Evidence} />
           {listing.history.length > 0 && <ListingHistory title={app.History.Title} hint={app.History.Hint} entries={listing.history} />}
           <CaveatList title={L.Caveats.Title} emptyLabel={L.Caveats.Empty} pointsLabel={(points) => fill(L.Caveats.Points, { points })} caveats={listing.caveats} />

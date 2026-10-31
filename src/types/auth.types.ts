@@ -51,6 +51,8 @@ export interface CurrentUser {
   name: string;
   email: string;
   market: string;
+  /** Country the account is for (DE, AT, … TR); null on older accounts = the market's home country */
+  country: string | null;
   locale: string;
   emailVerifiedAt: Date | null;
   trialEndsAt: Date | null;

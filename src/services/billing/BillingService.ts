@@ -13,7 +13,7 @@ import {
   OFFERS,
   TERMS_VERSION,
 } from "@/lib/billing/billingConfig";
-import { MarketCode, PricingCountryCode, pricingCountryToMarket } from "@/lib/constants";
+import { PricingCountryCode, pricingCountryToMarket } from "@/lib/constants";
 import { env } from "@/lib/env";
 import { isStripeTestKey, stripeClient } from "@/services/billing/StripeClient";
 import { BillingAccess, BillingAvailability, OrderBlocker, OrderResult } from "@/types/billing.types";
@@ -100,11 +100,12 @@ export class BillingService {
   static orderBlocker = (
     access: BillingAccess,
     offerId: BillingOfferId,
-    currentMarket?: MarketCode,
-    targetMarket?: MarketCode,
+    currentCountry?: PricingCountryCode,
+    targetCountry?: PricingCountryCode,
   ): OrderBlocker | null => {
     if (!access.isActive || !access.endsAt) return null;
-    if (currentMarket && targetMarket && currentMarket !== targetMarket) return access.renews ? "other_market" : null;
+    // Every country is its own product: no second country while one is paid for
+    if (currentCountry && targetCountry && currentCountry !== targetCountry) return "other_market";
     const wanted = OFFERS[offerId].plan;
     if (access.plan === "investor" && wanted === "pro") return "use_upgrade";
     if (access.plan === "pro" && wanted === "investor") return "pro_running";
@@ -118,13 +119,14 @@ export class BillingService {
     user: OrderingUser,
     offerId: BillingOfferId,
     consentAt: Date,
-    currentMarket: MarketCode = pricingCountryToMarket(user.market),
+    currentCountry: PricingCountryCode = user.market,
   ): Promise<OrderResult> => {
+    const currentMarket = pricingCountryToMarket(currentCountry);
     const availability = BillingService.availability(user.market);
     if (availability.blocker) throw new Error(`billing unavailable: ${availability.blocker}`);
     const access = await BillingService.access(user.id);
     const targetPlatformMarket = pricingCountryToMarket(user.market);
-    const blocker = BillingService.orderBlocker(access, offerId, currentMarket, targetPlatformMarket);
+    const blocker = BillingService.orderBlocker(access, offerId, currentCountry, user.market);
     if (blocker) throw new Error(`order blocked: ${blocker}`);
     if (!access.isActive && currentMarket !== targetPlatformMarket) {
       await db.update(users).set({ market: targetPlatformMarket }).where(eq(users.id, user.id));

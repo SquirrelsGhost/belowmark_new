@@ -9,15 +9,17 @@ import { listingHref } from "@/lib/appConstants";
 import { fill, formatHearing, formatMoney } from "@/lib/appFormat";
 import { MarketCode } from "@/lib/constants";
 import { env } from "@/lib/env";
+import { getListingCountry } from "@/lib/listingCountry";
 import { getPlaceTitle } from "@/lib/listingLabels";
 import { AlertMailItem, AlertMailSection, renderAlertMail } from "@/lib/mail/renderAlertMail";
 import { effectiveUserPermissions, hasFullAppAccess } from "@/lib/permissions";
 import { AlertService } from "@/services/AlertService";
+import { CountryAccessService } from "@/services/CountryAccessService";
 import { MailService } from "@/services/MailService";
 import { TranslationService } from "@/services/TranslationService";
 import { AlertsTranslations } from "@/translations/alerts/AlertsTranslations";
 import { AlertHit, AlertRunReport } from "@/types/alert.types";
-import { Listing } from "@/types/listing.types";
+import { Listing, ListingCountry } from "@/types/listing.types";
 import { activePlanSql } from "@/services/billing/activePlanSql";
 import { TeamSeatService } from "@/services/team/TeamSeatService";
 
@@ -164,10 +166,18 @@ export class AlertRunService {
         return snapshots.get(market) as Promise<Listing[]>;
       };
 
+      // An alert only ever reports proceedings of the owner's own country
+      const scopes = new Map<string, Promise<readonly ListingCountry[]>>();
+      const countriesOf = (userId: string) => {
+        if (!scopes.has(userId)) scopes.set(userId, CountryAccessService.forUserId(userId).then((access) => access?.countries ?? []));
+        return scopes.get(userId) as Promise<readonly ListingCountry[]>;
+      };
+
       const byUser = new Map<string, AlertResult[]>();
       for (const alert of alerts) {
         const market: MarketCode = alert.market === "TR" ? "TR" : "DE";
-        const matches = (await listingsOf(market)).filter((listing) => matchesAlert(listing, alert.filters, now));
+        const countries = await countriesOf(alert.userId);
+        const matches = (await listingsOf(market)).filter((listing) => countries.includes(getListingCountry(listing)) && matchesAlert(listing, alert.filters, now));
         const hits = wanted(alert, await AlertService.diff(alert.id, matches, now));
         byUser.set(alert.userId, [...(byUser.get(alert.userId) ?? []), { alert, matches, hits }]);
         report.checked += 1;

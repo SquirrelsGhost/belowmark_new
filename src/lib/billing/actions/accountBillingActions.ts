@@ -7,8 +7,10 @@ import { DeleteAccountState } from "@/lib/billing/billingForm.types";
 import { ROUTES } from "@/lib/constants";
 import { AccountDataService } from "@/services/AccountDataService";
 import { BillingService } from "@/services/billing/BillingService";
+import { ConsumerDeclarationService } from "@/services/billing/ConsumerDeclarationService";
 import { RateLimitService } from "@/services/RateLimitService";
 import { SessionService } from "@/services/SessionService";
+import { clearSessionResolutionCache } from "@/services/sicherheit/SessionUserService";
 import { TranslationService } from "@/services/TranslationService";
 
 /** Server Action: opens Stripe's customer portal (invoices, payment method, billing address). */
@@ -22,6 +24,31 @@ export async function openPortalAction(): Promise<void> {
     console.error("[openPortalAction]", error);
   }
   redirect(url ?? `${AUTH_ROUTES.account}?${BILLING_ACCOUNT_PARAM}=portal_failed#${BILLING_ACCOUNT_ANCHOR}`);
+}
+
+/** Server Action: 1-click cancellation of the running monthly subscription directly inside /konto. */
+export async function cancelSubscriptionAction(): Promise<void> {
+  const user = await SessionService.getCurrentUser();
+  if (!user) redirect(AUTH_ROUTES.login);
+  const lang = TranslationService.ToLocaleOption(await TranslationService.GetUserLocale());
+  try {
+    await ConsumerDeclarationService.cancel(
+      {
+        name: user.email.split("@")[0] || user.email,
+        email: user.email,
+        contractReference: null,
+        type: "ordinary",
+        reason: null,
+        requestedEnd: null,
+      },
+      user.id,
+      lang,
+    );
+    clearSessionResolutionCache();
+  } catch (error) {
+    console.error("[cancelSubscriptionAction]", error);
+  }
+  redirect(`${AUTH_ROUTES.account}?bereich=tarif#${BILLING_ACCOUNT_ANCHOR}`);
 }
 
 /** Server Action: deletes the account after password and confirmation (Art. 17 DSGVO). */

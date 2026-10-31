@@ -19,7 +19,7 @@ export default function ListingLocation({ title, map, locator, precision, childr
       <div className="mt-3 grid gap-4 sm:grid-cols-[minmax(0,1fr)_9rem]">
         {map}
         <div className="flex flex-col gap-3">
-          <div className="border border-rule bg-paper-bright p-2">{locator}</div>
+          {locator && <div className="border border-rule bg-paper-bright p-2">{locator}</div>}
           <p className="font-mono text-[11px] leading-relaxed text-ink-soft">{precision}</p>
           {children}
         </div>

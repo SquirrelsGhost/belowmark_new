@@ -19,6 +19,31 @@ export async function register(): Promise<void> {
   if (globalForScheduler.reminderSchedulerStarted) return;
   globalForScheduler.reminderSchedulerStarted = true;
 
+  // Warm up in-memory snapshots, geo outlines, pSEO catalog, and blog feed
+  // immediately after server start so the first page transition is 0ms.
+  setTimeout(async () => {
+    try {
+      const [{ ListingService }, { GeoService }, { PseoService }, { BlogService }] = await Promise.all([
+        import("@/services/ListingService"),
+        import("@/services/GeoService"),
+        import("@/services/PseoService"),
+        import("@/services/BlogService"),
+      ]);
+      await Promise.all([
+        ListingService.getMeta("DE").catch(() => undefined),
+        ListingService.getMeta("TR").catch(() => undefined),
+        GeoService.getCountry("DE").catch(() => undefined),
+        GeoService.getCountry("TR").catch(() => undefined),
+        GeoService.getLocatorSprite("DE").catch(() => undefined),
+        GeoService.getLocatorSprite("TR").catch(() => undefined),
+        PseoService.GetCatalog().catch(() => undefined),
+        BlogService.GetFeed().catch(() => undefined),
+      ]);
+    } catch {
+      // Ignore warmup errors
+    }
+  }, 500).unref?.();
+
   const runChecks = async () => {
     try {
       const [{ AlertRunService }, { DeadlineRunService }] = await Promise.all([

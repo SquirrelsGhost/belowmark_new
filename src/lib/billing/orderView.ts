@@ -1,6 +1,6 @@
 import { BILLING_OFFERS, BillingOfferId, OFFERS, VatMode } from "@/lib/billing/billingConfig";
 import { fill, formatCardPrice, formatContractDate, formatPrice } from "@/lib/billing/billingFormat";
-import { LocaleOption, MarketCode, PRICING_COUNTRIES, PricingCountryCode, pricingCountryToMarket } from "@/lib/constants";
+import { LocaleOption, PRICING_COUNTRIES, PricingCountryCode } from "@/lib/constants";
 import { BillingAccess, OrderBlocker } from "@/types/billing.types";
 import { IBillingTranslation } from "@/translations/billing/IBillingTranslation";
 import type { OrderOfferView } from "@/components/billing/OrderForm";
@@ -8,8 +8,8 @@ import type { OrderOfferView } from "@/components/billing/OrderForm";
 type OrderBlockerFn = (
   access: BillingAccess,
   offer: BillingOfferId,
-  currentMarket?: MarketCode,
-  targetMarket?: MarketCode,
+  currentCountry?: PricingCountryCode,
+  targetCountry?: PricingCountryCode,
 ) => OrderBlocker | null;
 
 /** The offers for one country/market as the order form shows them, with honest reasons where one cannot be ordered. */
@@ -19,12 +19,11 @@ export function buildOrderOffers(
   lang: LocaleOption,
   access: BillingAccess,
   blockerFor: OrderBlockerFn,
-  currentMarket: MarketCode = pricingCountryToMarket(country),
+  currentCountry: PricingCountryCode = country,
 ): OrderOfferView[] {
-  const targetMarket = pricingCountryToMarket(country);
   return BILLING_OFFERS.map((id) => {
     const text = t.Order.Offers[id];
-    const blocker = blockerFor(access, id, currentMarket, targetMarket);
+    const blocker = blockerFor(access, id, currentCountry, country);
     const date = access.endsAt ? formatContractDate(access.endsAt, lang) : "";
     const rawPrice = OFFERS[id].prices[country];
     return {
@@ -44,13 +43,13 @@ export function buildOrderOffers(
 /** Offers for all 8 countries so the country switch on /buchen updates prices immediately. */
 export function buildOrderOffersByMarket(
   t: IBillingTranslation,
-  currentMarket: MarketCode,
+  currentCountry: PricingCountryCode,
   lang: LocaleOption,
   access: BillingAccess,
   blockerFor: OrderBlockerFn,
 ): Record<PricingCountryCode, OrderOfferView[]> {
   return Object.fromEntries(
-    PRICING_COUNTRIES.map((code) => [code, buildOrderOffers(t, code, lang, access, blockerFor, currentMarket)]),
+    PRICING_COUNTRIES.map((code) => [code, buildOrderOffers(t, code, lang, access, blockerFor, currentCountry)]),
   ) as Record<PricingCountryCode, OrderOfferView[]>;
 }
 

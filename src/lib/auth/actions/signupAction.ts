@@ -58,6 +58,7 @@ export async function signupAction(_prev: AuthFormState, formData: FormData): Pr
         email,
         password,
         market: pricingCountryToMarket(market),
+        country: market,
         locale: await requestLocale(),
         hardwareFingerprint,
       },

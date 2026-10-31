@@ -236,7 +236,7 @@ export const AUTH_DE: IAuthTranslation = {
     Label: "Nur lokal",
     Title: "Schnell-Login",
     Note: "Testkonten ohne Passwort und ohne E-Mail. Existiert nur unter npm run dev auf localhost.",
-    Accounts: { de: "Deutschland · Test läuft", tr: "Türkei · Test läuft", free: "Free · Test abgelaufen", full: "Vollzugang · Investor", admin: "Admin · alles frei" },
+    Accounts: { de: "Deutschland · Test läuft", at: "Österreich · Test läuft", tr: "Türkei · Test läuft", free: "Free · Test abgelaufen", full: "Vollzugang · Investor", admin: "Admin · alles frei" },
   },
 
   Account: {

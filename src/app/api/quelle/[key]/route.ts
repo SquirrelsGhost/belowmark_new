@@ -1,5 +1,6 @@
 import { connection } from "next/server";
 import { err, ok } from "@/lib/api";
+import { CountryAccessService } from "@/services/CountryAccessService";
 import { ListingService } from "@/services/ListingService";
 import { OfficialPortalService } from "@/services/OfficialPortalService";
 import { SessionService } from "@/services/SessionService";
@@ -24,7 +25,6 @@ export async function GET(request: Request, { params }: RouteContext): Promise<R
 
     const { key: rawKey } = await params;
     const key = decodeURIComponent(rawKey);
-    const market = user.market === "TR" ? "TR" : "DE";
 
     const quota = await AntiScrapingService.enforceSourceDocumentQuota(user.id, key);
     if (!quota.allowed) {
@@ -37,7 +37,8 @@ export async function GET(request: Request, { params }: RouteContext): Promise<R
       );
     }
 
-    const listing = await ListingService.getByKey(market, key);
+    const { countries } = await CountryAccessService.forUser(user);
+    const listing = await ListingService.getByKey(countries, key);
 
     if (!listing) return err("Verfahren nicht gefunden", 404);
 

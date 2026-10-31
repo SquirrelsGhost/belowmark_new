@@ -5,9 +5,11 @@ import { db } from "@/db";
 import { billingEvents, billingOrders, users } from "@/db/schema";
 import { BillingOffer, BillingOfferId, isOfferId, OFFERS } from "@/lib/billing/billingConfig";
 import { addCalendarMonths, laterOf } from "@/lib/billing/billingDates";
+import { isPricingCountry } from "@/lib/constants";
 import { BillingMailService } from "@/services/billing/BillingMailService";
 import { stripeClient } from "@/services/billing/StripeClient";
 import { InvoiceService } from "@/services/invoice/InvoiceService";
+import { clearSessionResolutionCache } from "@/services/sicherheit/SessionUserService";
 
 /** Stripe statuses that end the access of a subscription. */
 const ENDED_STATUSES = new Set<Stripe.Subscription.Status>(["canceled", "unpaid", "incomplete_expired"]);
@@ -64,6 +66,8 @@ export class BillingFulfillment {
       .update(users)
       .set({
         market: claimed.market === "TR" ? "TR" : "DE",
+        // The booked country is the one the account sees from now on
+        country: isPricingCountry(claimed.market) ? claimed.market : null,
         plan: offer.plan,
         planOffer: offer.id,
         planEndsAt: endsAt,
@@ -71,6 +75,7 @@ export class BillingFulfillment {
         stripeSubscriptionId: details.subscription?.id ?? null,
       })
       .where(eq(users.id, claimed.userId));
+    clearSessionResolutionCache();
     await db.update(billingOrders).set({ accessEndsAt: endsAt }).where(eq(billingOrders.id, orderId));
     // Access first; a failed invoice is issued again when the account opens its invoices
     await InvoiceService.issueForOrder(orderId).catch((error) => console.error("[billing] invoice", error));

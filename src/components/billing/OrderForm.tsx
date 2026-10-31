@@ -105,12 +105,9 @@ export default function OrderForm({ offersByMarket, markets, initialMarket, init
             </dl>
           </section>
 
-          <div className="grid gap-4">
-            <AuthCheckbox id="order-consent" name="consent" required error={state.code === "consent_required" ? labels.ConsentRequired : undefined}>
-              {labels.ConsentLabel}
-            </AuthCheckbox>
-            <OrderTermsNote template={labels.TermsNote} labels={{ terms: labels.TermsLink, withdrawal: labels.WithdrawalLink, privacy: labels.PrivacyLink }} />
-          </div>
+          <AuthCheckbox id="order-consent" name="consent" required error={state.code === "consent_required" ? labels.ConsentRequired : undefined}>
+            <OrderTermsNote template={labels.ConsentLabel} labels={{ terms: labels.TermsLink, withdrawal: labels.WithdrawalLink, privacy: labels.PrivacyLink }} />
+          </AuthCheckbox>
 
           <div className="grid gap-3">
             <AuthSubmit label={labels.Submit} pendingLabel={labels.Pending} variant="signal" />

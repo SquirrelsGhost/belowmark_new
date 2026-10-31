@@ -48,7 +48,7 @@ export default async function ExposePage({ params, searchParams }: PageProps<"/e
   }
   const labels = getExposeTranslation(locale);
   const L = app.Listing;
-  const listing = isLocked ? null : await ListingService.getByKey(viewer.market, key);
+  const listing = isLocked ? null : await ListingService.getByKey(viewer.countries, key);
 
   if (!listing || isLocked) {
     return (

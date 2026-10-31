@@ -1,4 +1,5 @@
-import { DEFAULT_LOCALE, LocaleOption } from "@/lib/constants";
+import { cache } from "react";
+import { LocaleOption, pricingCountryToLocale } from "@/lib/constants";
 import { RegionService } from "@/services/RegionService";
 import { ITranslation } from "@/translations/ITranslation";
 import { Locale, Translations } from "@/translations/Translations";
@@ -6,37 +7,41 @@ import { Locale, Translations } from "@/translations/Translations";
 /**
  * TranslationService
  *
- * The language follows where the visitor is, not the system language:
- * Turkey → TR, everywhere else → DE. See RegionService for how the country
- * is detected (geo header → browser time zone → Accept-Language → DE).
- *
- * Usage in a Server Component:
- *
- *   const t = await TranslationService.GetUserTranslations();
- *   return <h1>{t.HomePage.Headline}</h1>;
+ * The language follows the active country/market (DE/AT/CH → DE, TR → TR,
+ * GB → EN, IT → IT, ES → ES, FR → FR).
  */
 export class TranslationService {
-  static GetUserLocale = async (): Promise<Locale> => {
+  static GetUserLocale = cache(async (): Promise<Locale> => {
     const region = await RegionService.GetRegion();
-    return TranslationService.NormalizeLocale(region.country === "TR" ? "tr" : DEFAULT_LOCALE);
-  };
+    return TranslationService.NormalizeLocale(pricingCountryToLocale(region.pricingCountry));
+  });
 
-  static NormalizeLocale = (code: string): Locale => {
-    switch (code) {
-      case "tr-TR":
-      case "tr":
-        return Locale.TR;
-      case "de-DE":
-      case "de":
-        return Locale.DE;
-      default:
-        return Locale.DE;
-    }
+  static NormalizeLocale = (code: string | null | undefined): Locale => {
+    const lower = (code ?? "").toLowerCase();
+    if (lower.startsWith("tr")) return Locale.TR;
+    if (lower.startsWith("en") || lower === "gb" || lower === "uk") return Locale.EN;
+    if (lower.startsWith("it")) return Locale.IT;
+    if (lower.startsWith("es")) return Locale.ES;
+    if (lower.startsWith("fr")) return Locale.FR;
+    return Locale.DE;
   };
 
   /** Lower-case locale code as used by the locale cookie and Intl helpers. */
   static ToLocaleOption = (locale: Locale): LocaleOption => {
-    return locale === Locale.TR ? "tr" : "de";
+    switch (locale) {
+      case Locale.TR:
+        return "tr";
+      case Locale.EN:
+        return "en";
+      case Locale.IT:
+        return "it";
+      case Locale.ES:
+        return "es";
+      case Locale.FR:
+        return "fr";
+      default:
+        return "de";
+    }
   };
 
   static GetTranslations = (locale: Locale): ITranslation => {

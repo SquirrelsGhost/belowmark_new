@@ -22,8 +22,8 @@ export default async function AppFooter({ className }: AppFooterProps = {}) {
           <Link href={ROUTES.terms} className={LINK_CLASSES}>{Footer.Terms}</Link>
           <Link href={ROUTES.withdrawal} className={LINK_CLASSES}>{Footer.Withdrawal}</Link>
           <Link href={ROUTES.privacy} className={LINK_CLASSES}>{Footer.Privacy}</Link>
+          <ConsumerFooterButtons />
         </span>
-        <ConsumerFooterButtons />
       </Container>
     </footer>
   );

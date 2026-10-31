@@ -8,6 +8,7 @@ import { isPricingCountry, MarketCode, PricingCountryCode } from "@/lib/constant
 import { RateLimitService } from "@/services/RateLimitService";
 import { BillingService } from "@/services/billing/BillingService";
 import { SessionService } from "@/services/SessionService";
+import { accountCountry } from "@/lib/listingCountry";
 
 /** "Zahlungspflichtig bestellen": records the order and sends the browser to the payment page. */
 export async function placeOrderAction(_previous: OrderFormState, formData: FormData): Promise<OrderFormState> {
@@ -24,7 +25,8 @@ export async function placeOrderAction(_previous: OrderFormState, formData: Form
   }
 
   const currentMarket: MarketCode = user.market === "TR" ? "TR" : "DE";
-  const market: PricingCountryCode = isPricingCountry(rawMarket) ? rawMarket : currentMarket;
+  const currentCountry: PricingCountryCode = accountCountry(user.country, currentMarket);
+  const market: PricingCountryCode = isPricingCountry(rawMarket) ? rawMarket : currentCountry;
 
   if (formData.get("consent") !== "on") return { status: "error", code: "consent_required", offer, market };
 
@@ -37,7 +39,7 @@ export async function placeOrderAction(_previous: OrderFormState, formData: Form
       { id: user.id, email: user.email, market, locale: user.locale },
       offer,
       new Date(),
-      currentMarket,
+      currentCountry,
     ));
   } catch (error) {
     console.error("[placeOrderAction]", error);

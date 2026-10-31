@@ -15,8 +15,16 @@ import { IBillingTranslation } from "@/translations/billing/IBillingTranslation"
 import { legalDocument, legalDocumentText } from "@/translations/legal/LegalDocuments";
 import { Locale } from "@/translations/Translations";
 
-const toLang = (locale: string | null | undefined): LocaleOption => (locale === "tr" ? "tr" : "de");
-const textsFor = (lang: LocaleOption): IBillingTranslation => BillingTranslations[lang === "tr" ? Locale.TR : Locale.DE];
+const toLang = (locale: string | null | undefined): LocaleOption => {
+  const lower = (locale ?? "").toLowerCase();
+  if (lower.startsWith("tr")) return "tr";
+  if (lower.startsWith("en") || lower === "gb") return "en";
+  if (lower.startsWith("it")) return "it";
+  if (lower.startsWith("es")) return "es";
+  if (lower.startsWith("fr")) return "fr";
+  return "de";
+};
+const textsFor = (lang: LocaleOption): IBillingTranslation => BillingTranslations[(lang.toUpperCase() as Locale)] ?? BillingTranslations[Locale.DE];
 
 const vatLabel = (t: IBillingTranslation, market: string): string => vatNote(t, env.billingVatMode, market === "TR" ? "TR" : "DE", env.billingTrKdvIncluded);
 
@@ -63,7 +71,7 @@ export class BillingMailService {
       term: offerText.Term,
       order: row.order.id,
     });
-    const appendix = [legalDocumentText(legalDocument("terms", env.billingVatMode)), legalDocumentText(legalDocument("withdrawal", env.billingVatMode))].join("\n\n");
+    const appendix = [legalDocumentText(legalDocument("terms", env.billingVatMode, lang)), legalDocumentText(legalDocument("withdrawal", env.billingVatMode, lang))].join("\n\n");
     const mail = renderBillingMail({
       subject: fill(t.Mail.Order.Subject, { offer: offerText.Name }),
       blocks: [

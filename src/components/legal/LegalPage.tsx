@@ -13,7 +13,7 @@ interface LegalPageProps {
 /** Shared body of /impressum, /agb, /widerruf and /datenschutz. */
 export default async function LegalPage({ documentKey, after }: LegalPageProps) {
   const { t, layout, lang, isApproved } = await getLegalPageContext();
-  const document = getLegalDocument(documentKey);
+  const document = getLegalDocument(documentKey, lang);
   const notices = (
     <>
       {!isApproved && <LegalNotice title={t.Legal.DraftTitle} body={t.Legal.DraftBody} />}

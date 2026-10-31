@@ -48,6 +48,8 @@ export interface SitzungPruefErgebnis {
  * sessions of the user if token reuse (cookie theft) is detected.
  */
 export class Sitzungswachdienst {
+  static onInvalidate?: () => void;
+
   static async erstelleSitzung(params: {
     userId: string;
     ttlMs: number;
@@ -163,6 +165,7 @@ export class Sitzungswachdienst {
   }
 
   static async widerrufe(sitzungId: string, grund = "Manuell abgemeldet"): Promise<void> {
+    Sitzungswachdienst.onInvalidate?.();
     await db
       .update(sessions)
       .set({ widerrufenAm: new Date(), widerrufGrund: grund })
@@ -174,6 +177,7 @@ export class Sitzungswachdienst {
     grund = "Alle Geräte abgemeldet",
     ausnahmeSitzungId?: string,
   ): Promise<void> {
+    Sitzungswachdienst.onInvalidate?.();
     const rows = await db
       .select({ id: sessions.id })
       .from(sessions)

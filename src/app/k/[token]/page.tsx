@@ -23,6 +23,7 @@ import { CLIENT_SHARE_PRINT_PARAM } from "@/lib/clientShare/clientShareConfig";
 import { publicSections } from "@/lib/clientShare/publicSections";
 import { APP_NAME } from "@/lib/constants";
 import { formatDate } from "@/lib/format";
+import { getListingCountry, MARKET_COUNTRIES } from "@/lib/listingCountry";
 import { getAddressLine, getPlaceTitle, getStatusLabel } from "@/lib/listingLabels";
 import { getHearingStatus } from "@/lib/listingMath";
 import { ClientShareService } from "@/services/ClientShareService";
@@ -44,14 +45,14 @@ export const instant = false;
 export async function generateMetadata({ params }: PageProps<"/k/[token]">): Promise<Metadata> {
   await connection();
   const share = await ClientShareService.open((await params).token, false);
-  const { MetaTags } = ClientShareTranslations[share?.locale === "tr" ? Locale.TR : Locale.DE];
+  const { MetaTags } = ClientShareTranslations[TranslationService.NormalizeLocale(share?.locale)];
   return { ...MetaTagService.CreateMetaTags(MetaTags.Public), robots: { index: false, follow: false }, referrer: "no-referrer" };
 }
 
 export default async function ClientSharePage({ params, searchParams }: PageProps<"/k/[token]">) {
   await connection();
   const share = await ClientShareService.open((await params).token, true);
-  const listing = share ? await ListingService.getByKey(share.market, share.listingKey) : null;
+  const listing = share ? await ListingService.getByKey(MARKET_COUNTRIES[share.market === "TR" ? "TR" : "DE"], share.listingKey) : null;
   const locale = share?.locale ?? "de";
   const labels = getClientShareTranslation(locale);
   const P = labels.Public;
@@ -64,13 +65,13 @@ export default async function ClientSharePage({ params, searchParams }: PageProp
     );
   }
 
-  const t = TranslationService.GetTranslations(locale === "tr" ? Locale.TR : Locale.DE);
+  const t = TranslationService.GetTranslations(TranslationService.NormalizeLocale(locale));
   const bidding = getBiddingTranslation(locale);
   const verdictLabels = getVerdictTranslation(locale);
   const { payload, brand, openedAt: now } = share;
   const L = t.App.Listing;
   const market = listing.market;
-  const meta = await ListingService.getMeta(market);
+  const meta = await ListingService.getMeta(getListingCountry(listing));
   const hearing = getHearingLines(listing, getHearingStatus(listing, now), locale, t.App.Row);
   const numbers = publicSections(payload);
   const name = brand?.displayName ?? APP_NAME;
@@ -98,7 +99,7 @@ export default async function ClientSharePage({ params, searchParams }: PageProp
             payload={payload}
             evidence={payload.evidence}
             labels={verdictLabels}
-            names={{ risks: ReportTranslations[locale === "tr" ? Locale.TR : Locale.DE].Risk.Names, criteria: bidding.Limit.Result.Criteria }}
+            names={{ risks: ReportTranslations[TranslationService.NormalizeLocale(locale)].Risk.Names, criteria: bidding.Limit.Result.Criteria }}
             locale={locale}
           />
         </BidderFileSection>

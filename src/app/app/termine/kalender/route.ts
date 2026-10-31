@@ -3,6 +3,7 @@ import { err } from "@/lib/api";
 import { buildDeadlineCalendar } from "@/lib/deadlines/deadlineIcs";
 import { DeadlineService } from "@/services/DeadlineService";
 import { DeadlineTimelineService } from "@/services/DeadlineTimelineService";
+import { CountryAccessService } from "@/services/CountryAccessService";
 import { ListingService } from "@/services/ListingService";
 import { SessionService } from "@/services/SessionService";
 import { TranslationService } from "@/services/TranslationService";
@@ -24,7 +25,8 @@ export async function GET(request: Request): Promise<Response> {
     const market = user.market === "TR" ? "TR" : "DE";
     const key = new URL(request.url).searchParams.get("key");
     const keys = key ? [key] : (await DeadlineService.list(user.id)).filter((follow) => follow.market === market).map((follow) => follow.listingKey);
-    const listings = await ListingService.getMany(market, keys);
+    const { countries } = await CountryAccessService.forUser(user);
+    const listings = await ListingService.getMany(countries, keys);
     if (key && listings.length === 0) return err("Verfahren nicht gefunden", 404);
 
     const locale = TranslationService.ToLocaleOption(await TranslationService.GetUserLocale());

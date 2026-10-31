@@ -1,5 +1,5 @@
 import "server-only";
-import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import tls from "node:tls";
 import { inflateSync } from "node:zlib";
@@ -246,22 +246,30 @@ function classifyAttachment(label: string, fileName: string): OfficialAttachment
   return "announcement";
 }
 
+const portalMemoryCache = new Map<string, OfficialPortalDetails>();
+
 function safeCacheName(key: string): string {
   return key.replace(/[^a-zA-Z0-9_-]/g, "_");
 }
 
 async function readCache(key: string): Promise<OfficialPortalDetails | null> {
+  const mem = portalMemoryCache.get(key);
+  if (mem) return mem;
   try {
     const file = join(CACHE_DIR, `${safeCacheName(key)}.json`);
-    await stat(file);
     const raw = await readFile(file, "utf8");
-    return JSON.parse(raw) as OfficialPortalDetails;
+    const parsed = JSON.parse(raw) as OfficialPortalDetails;
+    if (portalMemoryCache.size > 1000) portalMemoryCache.clear();
+    portalMemoryCache.set(key, parsed);
+    return parsed;
   } catch {
     return null;
   }
 }
 
 async function writeCache(key: string, details: OfficialPortalDetails): Promise<void> {
+  if (portalMemoryCache.size > 1000) portalMemoryCache.clear();
+  portalMemoryCache.set(key, details);
   try {
     await mkdir(CACHE_DIR, { recursive: true });
     const file = join(CACHE_DIR, `${safeCacheName(key)}.json`);
@@ -996,6 +1004,37 @@ function mergeListingFallback(details: OfficialPortalDetails, listing: Listing):
 }
 
 export class OfficialPortalService {
+  /**
+   * Synchronous 0ms fallback using memory cache or snapshot fields so the
+   * Aktenblatt shell and FactSheet never have to wait on external court portals.
+   */
+  static getInstantFallback(listing: Listing): OfficialPortalDetails {
+    const cached = portalMemoryCache.get(listing.key);
+    if (cached) return mergeListingFallback(cached, listing);
+    return mergeListingFallback(
+      {
+        sourcePortal: listing.sourcePortal ?? "",
+        portalEntryUrl: listing.officialUrl ?? "",
+        proceedingKind: listing.proceedingKind ?? null,
+        grundbuch: listing.grundbuch ?? null,
+        description: listing.description ?? null,
+        hearingPlace: listing.hearingPlace ?? null,
+        creditor: listing.creditor ?? null,
+        courtUrl: listing.courtUrl ?? null,
+        geoServerUrl: listing.geoServerUrl ?? null,
+        livingAreaM2: listing.livingAreaM2 ?? extractLivingArea(listing.title),
+        usableAreaM2: listing.usableAreaM2 ?? extractUsableArea(listing.title),
+        landAreaM2: listing.landAreaM2 ?? extractLandArea(listing.title),
+        rooms: listing.rooms ?? extractRooms(listing.title),
+        yearBuilt: listing.yearBuilt ?? extractYearBuilt(listing.title),
+        attachments: [],
+        galleryUrls: listing.imageUrl ? [listing.imageUrl] : [],
+        tkgmParcelUrl: null,
+      },
+      listing,
+    );
+  }
+
   static async getDetails(listing: Listing): Promise<OfficialPortalDetails> {
     const isAt = listing.country === "AT" || listing.key.startsWith("edikte-") || Boolean(listing.officialUrl?.includes("edikte.justiz.gv.at"));
     const isCh = listing.country === "CH" || listing.key.startsWith("shab-") || Boolean(listing.officialUrl?.includes("shab.ch"));

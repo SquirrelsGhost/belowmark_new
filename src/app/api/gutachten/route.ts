@@ -1,6 +1,7 @@
 import { err, ok } from "@/lib/api";
 import { hasPermission } from "@/lib/permissions";
 import { REPORT_UPLOAD } from "@/lib/report/reportConfig";
+import { CountryAccessService } from "@/services/CountryAccessService";
 import { ListingService } from "@/services/ListingService";
 import { OfficialPortalService } from "@/services/OfficialPortalService";
 import { ReportError, ReportService } from "@/services/ReportService";
@@ -19,7 +20,7 @@ interface ReportDeleteResponse {
   removed: true;
 }
 
-/** Signed-in users with capability `gutachten:analyze`, and only proceedings of their own market. */
+/** Signed-in users with capability `gutachten:analyze`, and only proceedings of their own country. */
 async function authorise(req: Request, listingId: unknown): Promise<{ userId: string; listing: Listing } | Response> {
   const user = await getSessionUser(req, false);
   if (!user) return err("unauthorized", 401);
@@ -28,7 +29,8 @@ async function authorise(req: Request, listingId: unknown): Promise<{ userId: st
   if (typeof listingId !== "string" || listingId.length > 128) return err("listing", 400);
   const quota = await AntiScrapingService.enforceSourceDocumentQuota(user.id, listingId);
   if (!quota.allowed) return err(quota.banned ? "banned" : "rateLimit", quota.banned ? 403 : 429);
-  const listing = await ListingService.getByKey(user.market === "TR" ? "TR" : "DE", listingId);
+  const { countries } = await CountryAccessService.forUser(user);
+  const listing = await ListingService.getByKey(countries, listingId);
   return listing ? { userId: user.id, listing } : err("listing", 404);
 }
 

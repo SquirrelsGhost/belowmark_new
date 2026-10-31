@@ -204,7 +204,8 @@ export type ListingScope = "upcoming" | "all" | "past";
 
 export interface ListingFilters {
   query: string;
-  country?: "" | DachCountry;
+  /** Board country — only kept in the URL for accounts that hold several countries */
+  country?: "" | ListingCountry;
   region: string;
   segment: SegmentKey | "";
   minValue: number | null;
@@ -264,8 +265,6 @@ export interface ListingSearchResult {
   places: MapPlace[];
   /** Filtered results per region, ignoring the region filter itself */
   regionCounts: Record<string, number>;
-  /** Filtered results per DACH country, ignoring the country filter itself */
-  countryCounts?: Record<DachCountry, number>;
 }
 
 /** Proceedings that share one map position (same postcode / same province). */
@@ -315,4 +314,8 @@ export interface MarketGeo {
   projection: GeoProjection;
   regions: GeoRegion[];
   sources: GeoSource[];
+  /** Set on a country map: the country it shows */
+  country?: ListingCountry;
+  /** Set on a country map: the part of the projection it shows (minX, minY, maxX, maxY) */
+  frame?: [number, number, number, number];
 }

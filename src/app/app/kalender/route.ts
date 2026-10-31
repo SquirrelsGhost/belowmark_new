@@ -1,6 +1,7 @@
 import { connection } from "next/server";
 import { err } from "@/lib/api";
 import { buildCalendar } from "@/lib/ics";
+import { CountryAccessService } from "@/services/CountryAccessService";
 import { ListingService } from "@/services/ListingService";
 import { SessionService } from "@/services/SessionService";
 import { TranslationService } from "@/services/TranslationService";
@@ -19,10 +20,10 @@ export async function GET(request: Request): Promise<Response> {
     const user = await SessionService.getCurrentUser();
     if (!user) return err("Nicht angemeldet", 401);
 
-    const market = user.market === "TR" ? "TR" : "DE";
     const key = new URL(request.url).searchParams.get("key");
     const keys = key ? [key] : (await WatchlistService.list(user.id)).map((item) => item.listingId);
-    const listings = await ListingService.getMany(market, keys);
+    const { countries } = await CountryAccessService.forUser(user);
+    const listings = await ListingService.getMany(countries, keys);
     if (key && listings.length === 0) return err("Verfahren nicht gefunden", 404);
 
     const t = await TranslationService.GetUserTranslations();

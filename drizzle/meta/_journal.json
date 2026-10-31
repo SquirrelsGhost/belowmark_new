@@ -78,6 +78,13 @@
       "when": 1793070000000,
       "tag": "0010_upgrades",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1793080000000,
+      "tag": "0011_user_country",
+      "breakpoints": true
     }
   ]
 }

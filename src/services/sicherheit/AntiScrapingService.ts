@@ -1,6 +1,7 @@
 import "server-only";
 import { createHash } from "node:crypto";
 import { eq, sql } from "drizzle-orm";
+import { headers } from "next/headers";
 import { PDFDocument } from "pdf-lib";
 import { db } from "@/db";
 import { users } from "@/db/schema";
@@ -71,6 +72,14 @@ export class AntiScrapingService {
 
   /** Velocity and hourly check for search/list requests (`/app`). */
   static enforceSearchQuota = async (userId: string, isLocked: boolean): Promise<ScrapingQuotaStatus> => {
+    try {
+      const hdrs = await headers();
+      if (hdrs.get("next-router-prefetch") === "1" || hdrs.get("purpose") === "prefetch") {
+        return { allowed: true, retryAfterMinutes: 0 };
+      }
+    } catch {
+      // Ignore outside request context
+    }
     const minRule = isLocked ? SCRAPING_LIMITS.searchFreeMinute : SCRAPING_LIMITS.searchPaidMinute;
     const hourRule = isLocked ? SCRAPING_LIMITS.searchFreeHour : SCRAPING_LIMITS.searchPaidHour;
 
@@ -104,6 +113,15 @@ export class AntiScrapingService {
         `Automatisiertes Scraping erkannt (Honeypot-Falle ${listingKey})`,
       );
       return { allowed: false, retryAfterMinutes: 60, honeypotTriggered: true, banned: true };
+    }
+
+    try {
+      const hdrs = await headers();
+      if (hdrs.get("next-router-prefetch") === "1" || hdrs.get("purpose") === "prefetch") {
+        return { allowed: true, retryAfterMinutes: 0 };
+      }
+    } catch {
+      // Ignore outside request context
     }
 
     const minRule = isLocked ? SCRAPING_LIMITS.detailFreeMinute : SCRAPING_LIMITS.detailPaidMinute;

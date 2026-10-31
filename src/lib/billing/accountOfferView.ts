@@ -1,6 +1,6 @@
 import { BILLING_OFFERS, BILLING_ROUTES, BillingOfferId, MARKET_PARAM, OFFER_PARAM, OFFERS, UPGRADES } from "@/lib/billing/billingConfig";
 import { fill, formatCardPrice, formatContractDate } from "@/lib/billing/billingFormat";
-import { LocaleOption, MarketCode, PricingCountryCode, pricingCountryToMarket } from "@/lib/constants";
+import { LocaleOption, PricingCountryCode } from "@/lib/constants";
 import { BillingAccess, OrderBlocker } from "@/types/billing.types";
 import { IBillingTranslation } from "@/translations/billing/IBillingTranslation";
 
@@ -26,7 +26,7 @@ export interface AccountPlanCardView {
   rows: AccountOfferRowView[];
 }
 
-type OrderBlockerFn = (access: BillingAccess, offer: BillingOfferId, currentMarket?: MarketCode, targetMarket?: MarketCode) => OrderBlocker | null;
+type OrderBlockerFn = (access: BillingAccess, offer: BillingOfferId, currentCountry?: PricingCountryCode, targetCountry?: PricingCountryCode) => OrderBlocker | null;
 
 const PLANS: PlanKey[] = ["investor", "pro"];
 
@@ -42,19 +42,18 @@ export function buildAccountOfferCards(
   access: BillingAccess,
   lang: LocaleOption,
   country: PricingCountryCode,
-  currentMarket: MarketCode,
+  currentCountry: PricingCountryCode,
   blockerFor: OrderBlockerFn,
   marketOpen: boolean,
 ): AccountPlanCardView[] {
   const { Account, Order } = t;
-  const targetMarket = pricingCountryToMarket(country);
   const date = access.endsAt ? formatContractDate(access.endsAt, lang) : "";
   const upgradeTarget = access.isActive && access.offer ? UPGRADES[access.offer] : undefined;
 
   const row = (id: BillingOfferId): AccountOfferRowView => {
     const offer = OFFERS[id];
     const text = Order.Offers[id];
-    const blocker = blockerFor(access, id, currentMarket, targetMarket);
+    const blocker = blockerFor(access, id, currentCountry, country);
     const isCurrent = access.isActive && access.offer === id;
     const base = {
       id,

@@ -1,10 +1,13 @@
 import { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import AuthCard from "@/components/auth/AuthCard";
 import AuthLayout from "@/components/auth/AuthLayout";
 import OrderIntro from "@/components/billing/OrderIntro";
 import CancelForm from "@/components/consumer/CancelForm";
 import DeclarationReceipt from "@/components/consumer/DeclarationReceipt";
+import { AUTH_ROUTES } from "@/lib/auth/authConfig";
+import { BILLING_ACCOUNT_ANCHOR } from "@/lib/billing/billingRoutes";
 import { loadDeclarationReceipt } from "@/lib/billing/declarationView";
 import { getLegalPageContext, legalMetadata } from "@/lib/legal/legalPage";
 import { SessionService } from "@/services/SessionService";
@@ -18,12 +21,15 @@ export async function generateMetadata(): Promise<Metadata> {
   return legalMetadata((t) => t.Meta.Cancel, true);
 }
 
-/** "Verträge hier kündigen" (§ 312k BGB): reachable without sign-in, receipt right after sending. */
+/** "Verträge hier kündigen" (§ 312k BGB): reachable without sign-in, or redirects signed-in users straight to /konto. */
 export default async function CancelPage({ searchParams }: PageProps<"/kuendigen">) {
   await connection();
   const { t, layout, lang } = await getLegalPageContext();
   const receipt = await loadDeclarationReceipt(await searchParams, "cancellation", t, lang);
   const user = receipt ? null : await SessionService.getCurrentUser();
+  if (user) {
+    redirect(`${AUTH_ROUTES.account}?bereich=tarif#${BILLING_ACCOUNT_ANCHOR}`);
+  }
 
   return (
     <AuthLayout lang={lang} layout={layout}>
@@ -32,7 +38,7 @@ export default async function CancelPage({ searchParams }: PageProps<"/kuendigen
         {receipt ? (
           <DeclarationReceipt {...receipt} />
         ) : (
-          <CancelForm t={t.Cancel} errorTitle={t.Order.ErrorTitle} pendingLabel={t.Legal.Sending} email={user?.email} />
+          <CancelForm t={t.Cancel} errorTitle={t.Order.ErrorTitle} pendingLabel={t.Legal.Sending} />
         )}
       </AuthCard>
     </AuthLayout>

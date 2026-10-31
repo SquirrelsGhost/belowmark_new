@@ -57,7 +57,7 @@ export default async function BidderFilePage({ params, searchParams }: PageProps
   const labels = getBiddingTranslation(locale);
   const { File } = labels;
   const L = app.Listing;
-  const listing = isLocked ? null : await ListingService.getByKey(viewer.market, key);
+  const listing = isLocked ? null : await ListingService.getByKey(viewer.countries, key);
   const autoPrint = (await searchParams)[AUTO_PRINT_PARAM] === "1";
 
   if (!listing || isLocked) {

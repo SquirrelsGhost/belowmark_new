@@ -33,4 +33,20 @@ export class TeamSeatService {
   };
 
   static has = async (userId: string): Promise<boolean> => (await TeamSeatService.holders([userId])).has(userId);
+
+  /**
+   * Country a seat covers: the owner's country, of the first working team.
+   * A seat is a share of the owner's plan, so it never reaches further than
+   * the owner's own country. null when the account holds no seat.
+   */
+  static seatCountry = async (userId: string): Promise<{ country: string | null; market: string } | null> => {
+    const rows = await db
+      .select({ country: users.country, market: users.market, permissions: users.permissions, plan: activePlanSql, trialEndsAt: users.trialEndsAt, bannedAt: users.gesperrtAm })
+      .from(teamMembers)
+      .innerJoin(owners, and(eq(owners.teamId, teamMembers.teamId), eq(owners.role, "owner")))
+      .innerJoin(users, eq(users.id, owners.userId))
+      .where(and(eq(teamMembers.userId, userId), ne(teamMembers.role, "owner")));
+    const working = rows.find((row) => hasPermission(effectiveUserPermissions(row), TEAM_PLAN_PERMISSION));
+    return working ? { country: working.country, market: working.market } : null;
+  };
 }

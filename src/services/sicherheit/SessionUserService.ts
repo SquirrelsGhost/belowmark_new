@@ -15,6 +15,8 @@ export interface SessionUser {
   name: string;
   email: string;
   market: string;
+  /** Country the account is for (users.country), null on older accounts */
+  country: string | null;
   locale: string;
   emailVerifiedAt: Date | null;
   trialEndsAt: Date | null;
@@ -32,6 +34,15 @@ export interface SessionUser {
   neuesTokenId?: string;
 }
 
+const SESSION_DEDUP_TTL_MS = 1_500;
+const recentSessionResolutions = new Map<string, { expiresAt: number; user: SessionUser | null }>();
+
+export function clearSessionResolutionCache(): void {
+  recentSessionResolutions.clear();
+}
+
+Sitzungswachdienst.onInvalidate = clearSessionResolutionCache;
+
 /**
  * Resolves a raw cookie token + User-Agent into a verified `SessionUser`.
  * Enforces real-time ban check (`gesperrtAm`), `sitzungsVersion` check,
@@ -42,8 +53,17 @@ export async function resolveSessionToken(
   userAgent?: string | null,
   erlaubeRotation = false,
 ): Promise<SessionUser | null> {
-  const daten = readSessionCookieToken(rawToken, Date.now());
+  const nowMs = Date.now();
+  const daten = readSessionCookieToken(rawToken, nowMs);
   if (!daten?.sessionId || !daten.tokenId) return null;
+
+  const cacheKey = `${daten.id}:${daten.version}:${daten.sessionId}:${daten.tokenId}:${userAgent ?? ""}`;
+  if (!erlaubeRotation) {
+    const cached = recentSessionResolutions.get(cacheKey);
+    if (cached && cached.expiresAt > nowMs) {
+      return cached.user;
+    }
+  }
 
   const [user] = await db
     .select({
@@ -51,6 +71,7 @@ export async function resolveSessionToken(
       email: users.email,
       name: users.name,
       market: users.market,
+      country: users.country,
       locale: users.locale,
       emailVerifiedAt: users.emailVerifiedAt,
       trialEndsAt: users.trialEndsAt,
@@ -79,6 +100,7 @@ export async function resolveSessionToken(
       name: displayName,
       email: user.email,
       market: user.market,
+      country: user.country,
       locale: user.locale,
       emailVerifiedAt: user.emailVerifiedAt,
       trialEndsAt: user.trialEndsAt,
@@ -117,11 +139,12 @@ export async function resolveSessionToken(
   const teamSeat = !hasFullAppAccess(ownPerms) && (await TeamSeatService.has(user.id));
   const effectivePerms = teamSeat ? effectiveUserPermissions({ permissions: user.permissions, plan: user.plan, bannedAt: user.gesperrtAm, teamSeat }) : ownPerms;
 
-  return {
+  const resolved: SessionUser = {
     id: user.id,
     name: displayName,
     email: user.email,
     market: user.market,
+    country: user.country,
     locale: user.locale,
     emailVerifiedAt: user.emailVerifiedAt,
     trialEndsAt: user.trialEndsAt,
@@ -136,6 +159,18 @@ export async function resolveSessionToken(
     sitzungsVersion: user.sitzungsVersion,
     neuesTokenId: pruefung.neuesTokenId,
   };
+
+  const expiresAt = Date.now() + SESSION_DEDUP_TTL_MS;
+  if (recentSessionResolutions.size > 200) {
+    recentSessionResolutions.clear();
+  }
+  recentSessionResolutions.set(cacheKey, { expiresAt, user: resolved });
+  if (pruefung.neuesTokenId) {
+    const rotatedKey = `${daten.id}:${daten.version}:${daten.sessionId}:${pruefung.neuesTokenId}:${userAgent ?? ""}`;
+    recentSessionResolutions.set(rotatedKey, { expiresAt, user: { ...resolved, neuesTokenId: undefined } });
+  }
+
+  return resolved;
 }
 
 /**

@@ -20,9 +20,12 @@ import { TeamBoardService } from "@/services/team/TeamBoardService";
 import { IAppTranslation } from "@/translations/app/IAppTranslation";
 import { ITeamTranslation } from "@/translations/team/ITeamTranslation";
 import { TeamView } from "@/types/team.types";
+import { ListingCountry } from "@/types/listing.types";
 
 interface TeamBoardViewProps {
   team: TeamView;
+  /** Countries the viewer may see (AppViewer.countries) */
+  countries: readonly ListingCountry[];
   filter: TeamStatus | null;
   t: ITeamTranslation;
   app: IAppTranslation;
@@ -31,10 +34,10 @@ interface TeamBoardViewProps {
 }
 
 /** The team's shared list, filtered by status, newest status change first. */
-export default async function TeamBoardView({ team, filter, t, app, locale, now }: TeamBoardViewProps) {
+export default async function TeamBoardView({ team, countries, filter, t, app, locale, now }: TeamBoardViewProps) {
   const { Team: T } = t;
   const entries = await TeamBoardService.list(team.id);
-  const listings = new Map((await ListingService.getMany(team.market, entries.map((entry) => entry.listingId))).map((listing) => [listing.key, listing]));
+  const listings = new Map((await ListingService.getMany(countries, entries.map((entry) => entry.listingId))).map((listing) => [listing.key, listing]));
   const shown = filter ? entries.filter((entry) => entry.status === filter) : entries;
   const canEdit = team.isActive && canDo(team.role, "setStatus");
   const date = (value: Date) => formatDate(value.toISOString(), locale);

@@ -35,7 +35,7 @@ export default async function ClosingTasksPage({ params }: PageProps<"/app/zusch
   const key = decodeURIComponent((await params).key);
   const { viewer, app, locale } = await getAppPageContext(closingHref(key));
   const { Tasks } = getClosingTranslation(locale);
-  const listing = await ListingService.getByKey(viewer.market, key);
+  const listing = await ListingService.getByKey(viewer.countries, key);
 
   if (!listing) {
     return (

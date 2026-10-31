@@ -29,7 +29,7 @@ export default async function ListingReportArea({
   isLocked,
   attachments = [],
 }: ListingReportAreaProps) {
-  const labels = ReportTranslations[locale === "tr" ? Locale.TR : Locale.DE];
+  const labels = ReportTranslations[(locale.toUpperCase() as Locale)] ?? ReportTranslations[Locale.DE];
   const report = isLocked ? null : await ReportService.get(userId, listing.key);
   const { Report: R } = labels;
   const directTitle =

@@ -20,8 +20,19 @@ function link(path: string, token?: string): string {
   return url.toString();
 }
 
-function formatTrialEndDate(trialEndsAt: Date, lang: "de" | "tr"): string {
-  return new Intl.DateTimeFormat(lang === "tr" ? "tr-TR" : "de-DE", {
+import { LocaleOption } from "@/lib/constants";
+
+const INTL_LOCALES: Record<LocaleOption, string> = {
+  de: "de-DE",
+  tr: "tr-TR",
+  en: "en-GB",
+  it: "it-IT",
+  es: "es-ES",
+  fr: "fr-FR",
+};
+
+function formatTrialEndDate(trialEndsAt: Date, lang: LocaleOption): string {
+  return new Intl.DateTimeFormat(INTL_LOCALES[lang], {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",

@@ -1,6 +1,6 @@
 import { SegmentKey } from "../../lib/snapshot";
 import { IMetaTags } from "../../services/MetaTagService";
-import { ListingScope, ListingSort } from "../../types/listing.types";
+import { ListingCountry, ListingScope, ListingSort } from "../../types/listing.types";
 
 /**
  * Strings of the signed-in app area (/app). Lives in its own file so the app
@@ -41,6 +41,14 @@ export interface IAppTranslation {
     Eyebrow: Record<"DE" | "TR", string>;
     Title: string;
     Lead: Record<"DE" | "TR", string>;
+    /** Every country is its own board: name, official source and what its regions are called */
+    Countries: Record<ListingCountry, { Name: string; Source: string; Region: string }>;
+    /** Eyebrow of a country board, {country} · {source} */
+    CountryEyebrow: string;
+    /** Lead of a European country board, {country} and {source} */
+    CountryLead: string;
+    /** Label of the country switch (only accounts with several countries see it) */
+    CountrySwitch: string;
     Filters: {
       Title: string;
       Query: string;

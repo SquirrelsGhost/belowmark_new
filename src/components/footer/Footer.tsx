@@ -9,12 +9,10 @@ interface FooterProps {
   rights: string;
   /** <FooterColumn /> elements */
   children: ReactNode;
-  /** Consumer buttons (kündigen / widerrufen), set apart from the plain links */
-  actions?: ReactNode;
 }
 
 /** Ink footer with the oversized wordmark sitting on the market line. */
-export default function Footer({ tagline, disclaimer, rights, children, actions }: FooterProps) {
+export default function Footer({ tagline, disclaimer, rights, children }: FooterProps) {
   return (
     <footer className="relative overflow-hidden bg-ink text-paper-bright">
       <Container className="grid gap-12 pt-16 pb-12 md:grid-cols-[1.4fr_repeat(3,1fr)]">
@@ -24,7 +22,6 @@ export default function Footer({ tagline, disclaimer, rights, children, actions 
         </div>
         {children}
       </Container>
-      {actions && <Container className="border-t border-paper/20 py-5">{actions}</Container>}
       <Container className="flex flex-col gap-3 border-t border-paper/20 py-6 font-mono text-[11px] text-paper/50 sm:flex-row sm:justify-between">
         <span>{disclaimer}</span>
         <span>© {CURRENT_YEAR} {APP_NAME}. {rights}</span>

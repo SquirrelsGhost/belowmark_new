@@ -7,7 +7,14 @@ import { ListingCurrency } from "@/types/listing.types";
  * time zone of the court — a hearing at 9:00 in Dortmund is 9:00 for everyone.
  */
 
-const INTL_LOCALES: Record<LocaleOption, string> = { de: "de-DE", tr: "tr-TR" };
+const INTL_LOCALES: Record<LocaleOption, string> = {
+  de: "de-DE",
+  tr: "tr-TR",
+  en: "en-GB",
+  it: "it-IT",
+  es: "es-ES",
+  fr: "fr-FR",
+};
 const CURRENCY: Record<MarketCode, string> = { DE: "EUR", TR: "TRY" };
 const TIME_ZONE: Record<MarketCode, string> = MARKET_TIME_ZONES;
 

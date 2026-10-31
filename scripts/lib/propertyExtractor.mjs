@@ -1620,3 +1620,130 @@ export function parseGbAuctionHtml(html, stub = {}) {
   };
 }
 
+/**
+ * Parses full official announcement HTML from ilan.gov.tr (AdDetail/GetAdDetail)
+ * into one or more parcel records with auction rounds, Ada/Parsel, Mahalle, Kıymet, and m².
+ */
+export function parseTrIlanGovDetail(contentHtml, stub = {}) {
+  const text = decodeHtmlText(contentHtml || "", true);
+  if (!text) return [];
+
+  const parseDateTimeTr = (dateStr, timeStr) => {
+    if (!dateStr) return null;
+    const m = /(\d{1,2})[./-](\d{1,2})[./-](\d{4})/.exec(String(dateStr));
+    if (!m) return null;
+    const [, d, mo, y] = m;
+    const t = /(\d{1,2}):(\d{2})/.exec(String(timeStr ?? ""));
+    const hh = t ? t[1].padStart(2, "0") : "10";
+    const mm = t ? t[2] : "00";
+    return `${y}-${mo.padStart(2, "0")}-${d.padStart(2, "0")}T${hh}:${mm}:00+03:00`;
+  };
+
+  const extractRoundsFromBlock = (src) => {
+    const rounds = [];
+    const roundRe =
+      /(\d)\s*\.\s*Artırma[\s\S]{0,400}?Başlangıç\s*Tarih\s*ve\s*Saati\s*:?\s*([\d./-]{8,12})\s*-?\s*([\d:]{4,5})?[\s\S]{0,400}?Bitiş\s*Tarih\s*ve\s*Saati\s*:?\s*([\d./-]{8,12})\s*-?\s*([\d:]{4,5})?/gi;
+    for (const m of src.matchAll(roundRe)) {
+      const start = parseDateTimeTr(m[2], m[3]);
+      const end = parseDateTimeTr(m[4], m[5]);
+      if (start && end) {
+        rounds.push({ round: Number(m[1]), start, end });
+      }
+    }
+    if (rounds.length === 0) {
+      const tender =
+        /İhale\s*Tarih(?:i)?\s*ve\s*Saati\s*:?\s*([\d./-]{8,12})\s*(?:saat\s*:?\s*)?([\d:]{4,5})?/i.exec(src) ??
+        /Birinci\s*Satış\s*Günü\s*:?\s*([\d./-]{8,12})\s*([\d:]{4,5})?/i.exec(src);
+      if (tender) {
+        const start = parseDateTimeTr(tender[1], tender[2]);
+        if (start) {
+          const end = new Date(Date.parse(start) + 7 * 86400000).toISOString();
+          rounds.push({ round: 1, start, end });
+        }
+      }
+    }
+    return rounds;
+  };
+
+  const globalRounds = extractRoundsFromBlock(text);
+  const fileNoMatch =
+    /(\d{4}\/\d{1,6}\s*(?:E\.?S\.?A\.?S|ESAS|TLMT\.?|SATIŞ|VESAYET\s*SATIŞ|İCRA))/i.exec(text) ??
+    /Dosya\s*No\s*:?\s*([^\n]{3,40})/i.exec(text);
+  const fileNo = fileNoMatch ? fileNoMatch[1].trim() : stub.fileNo ?? null;
+
+  const markers = [...text.matchAll(/(\d{1,2})\s*NO['’´`]?LU\s+TAŞINMAZ(?:IN)?/gi)];
+  const blocks = [];
+  if (markers.length > 0) {
+    for (let i = 0; i < markers.length; i++) {
+      const start = markers[i].index;
+      const end = i + 1 < markers.length ? markers[i + 1].index : text.length;
+      blocks.push({ parcelIndex: Number(markers[i][1]) || i + 1, block: text.slice(start, end) });
+    }
+  } else {
+    blocks.push({ parcelIndex: 1, block: text });
+  }
+
+  return blocks.map(({ parcelIndex, block }) => {
+    const adaParselMatch =
+      /(\d{1,6})\s*Ada[\s,/-]*(\d{1,6})\s*Parsel/i.exec(block) ??
+      /Ada\s*[:=]\s*(\d{1,6})[\s,;/-]*Parsel\s*[:=]\s*(\d{1,6})/i.exec(block);
+    const parselOnly = !adaParselMatch ? /(?:^|[^\d/.,])(\d{1,6})\s*Parsel/i.exec(block) : null;
+    const ada = adaParselMatch ? (adaParselMatch[1] === "0" ? null : adaParselMatch[1]) : null;
+    const parsel = adaParselMatch ? adaParselMatch[2] : parselOnly ? parselOnly[1] : null;
+
+    const mahMatch =
+      /([^\n,;:]{2,45}?)\s*Mahalle\s*\/\s*Köy/i.exec(block) ??
+      /([^\n,;:]{2,45}?)\s*Mah(?:allesi|alle|\.)/i.exec(block);
+    let mahalle = null;
+    if (mahMatch) {
+      const parts = mahMatch[1].split(/(?:İl[çc]esi|İl[çc]e|İli|İl|Köyü)\s*[,]?\s*/i);
+      const cand = parts[parts.length - 1].split(/[.;:!?]/).pop().trim();
+      if (cand && cand.length >= 2 && cand.length <= 40) mahalle = cand;
+    }
+
+    const adresMatch = /Adresi\s*:?\s*([^\n]{4,220})/i.exec(block);
+    const street = adresMatch ? adresMatch[1].trim() : null;
+    const kiymetMatch =
+      /(?:K[ıi]ymeti|Muhammen\s+Bedeli?)\s*:?\s*([\d.,]+)\s*(?:TL|Türk\s*Liras[ıi])/i.exec(block) ??
+      /([\d.,]+)\s*TL\s*muhammen\s+bedel/i.exec(block);
+    const appraisedValue = kiymetMatch ? parseLocalizedNumber(kiymetMatch[1]) : null;
+    const vatMatch = /KDV\s*Oranı\s*:?\s*%\s*(\d{1,2})/i.exec(block);
+    const vatRate = vatMatch ? Number(vatMatch[1]) : null;
+    const shareMatch = /(\d[\d.]*\s*\/\s*\d[\d.]*)\s*HİSSE/i.exec(block);
+    const ownershipShare = shareMatch ? shareMatch[1].replace(/\s+/g, "") : null;
+    const nitelikMatch =
+      /([A-Za-zÇĞİÖŞÜçğıöşü ]{3,32})\s+vasıflı\s+taşınmaz/i.exec(block) ??
+      /Bağımsız\s*bölümün\s*niteliği\s*:?\s*([A-Za-zÇĞİÖŞÜçğıöşü ]{3,32})/i.exec(block);
+    const nitelik = nitelikMatch ? nitelikMatch[1].trim() : null;
+    const isCondo = /bağımsız\s*böl/i.test(block);
+
+    const ext = extractTrEnrichedDetails({
+      key: `${stub.adId ?? "tr"}#${parcelIndex}`,
+      parcelIndex,
+      title: stub.title ?? "",
+      rawText: text,
+      parcel: { mahalle, ada, parsel, address: street, nitelik, isCondo, appraisedValue, vatRate },
+    });
+
+    const blockRounds = extractRoundsFromBlock(block);
+    const rounds = blockRounds.length > 0 ? blockRounds : globalRounds;
+
+    return {
+      parcelIndex,
+      fileNo,
+      ada,
+      parsel,
+      mahalle,
+      street,
+      appraisedValue,
+      vatRate,
+      ownershipShare,
+      nitelik,
+      isCondo,
+      rounds,
+      ...ext,
+    };
+  });
+}
+
+
