@@ -8,10 +8,10 @@ import AuthErrorSummary from "@/components/auth/AuthErrorSummary";
 import AuthIcon from "@/components/auth/AuthIcon";
 import AuthSubmit from "@/components/auth/AuthSubmit";
 import BillingNotice from "@/components/billing/BillingNotice";
-import OrderMarketOption from "@/components/billing/OrderMarketOption";
 import OrderOfferList from "@/components/billing/OrderOfferList";
 import OrderSummaryRow from "@/components/billing/OrderSummaryRow";
 import OrderTermsNote from "@/components/billing/OrderTermsNote";
+import MarketDropdown from "@/components/ui/MarketDropdown";
 import { placeOrderAction } from "@/lib/billing/actions/placeOrderAction";
 import { INITIAL_ORDER_STATE, OrderFormLabels, OrderMarketView, OrderOfferView } from "@/lib/billing/billingForm.types";
 import { PRICING_COUNTRIES, PricingCountryCode } from "@/lib/constants";
@@ -64,26 +64,17 @@ export default function OrderForm({ offersByMarket, markets, initialMarket, init
         <label htmlFor="order-market-select" className={STEP_LEGEND_CLASSES}>
           <span className="text-signal">01</span> {labels.Market}
         </label>
-        <div className="relative">
-          <select
-            id="order-market-select"
-            name="market"
-            value={selectedMarket}
-            onChange={(e) => chooseMarket(e.target.value as PricingCountryCode)}
-            className="w-full cursor-pointer appearance-none border-2 border-ink bg-paper px-4 py-3 pr-20 font-sans text-sm font-semibold text-ink transition-colors hover:bg-paper-bright focus:outline-2 focus:outline-offset-2 focus:outline-signal"
-          >
-            {PRICING_COUNTRIES.map((code) => (
-              <OrderMarketOption key={code} {...markets[code]} />
-            ))}
-          </select>
-          <span
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-y-0 right-3.5 flex items-center gap-2 font-mono text-xs font-semibold tracking-widest text-signal"
-          >
-            <span>{selectedMarket}</span>
-            <span className="text-ink">▾</span>
-          </span>
-        </div>
+        <MarketDropdown
+          id="order-market-select"
+          name="market"
+          value={selectedMarket}
+          onChange={chooseMarket}
+          options={PRICING_COUNTRIES.map((code) => ({
+            code,
+            label: markets[code].label,
+            hint: markets[code].hint,
+          }))}
+        />
         <p className="text-xs leading-relaxed text-muted">{labels.MarketNote}</p>
       </div>
 

@@ -1,9 +1,10 @@
-// Needs controlled select state to display the active country code badge alongside the dropdown
+// Needs state to drive the custom animated MarketDropdown
 "use client";
 
-import { ReactNode, useState } from "react";
+import { useState } from "react";
 import FieldMessages from "@/components/auth/FieldMessages";
-import { FIELD_INPUT_CLASSES, FIELD_LABEL_CLASSES } from "@/lib/auth/fieldStyles";
+import MarketDropdown, { MarketDropdownOption } from "@/components/ui/MarketDropdown";
+import { FIELD_LABEL_CLASSES } from "@/lib/auth/fieldStyles";
 import { PricingCountryCode } from "@/lib/constants";
 
 interface MarketPickerProps {
@@ -11,40 +12,28 @@ interface MarketPickerProps {
   legend: string;
   note: string;
   defaultValue: PricingCountryCode;
+  options: readonly MarketDropdownOption[];
   error?: string;
-  /** <MarketOption /> elements */
-  children: ReactNode;
 }
 
-/** Dropdown selector for the primary market / country (DE, AT, CH, IT, ES, FR, GB, TR). */
-export default function MarketPicker({ number, legend, note, defaultValue, error, children }: MarketPickerProps) {
-  const [selected, setSelected] = useState<string>(defaultValue);
+/** Custom animated "Amtlicher Aushang" dropdown selector for the primary market / country. */
+export default function MarketPicker({ number, legend, note, defaultValue, options, error }: MarketPickerProps) {
+  const [selected, setSelected] = useState<PricingCountryCode>(defaultValue);
 
   return (
     <div className="grid gap-1.5">
       <label htmlFor="signup-market" className={FIELD_LABEL_CLASSES}>
         <span className="text-signal">{number}</span> {legend}
       </label>
-      <div className="relative">
-        <select
-          id="signup-market"
-          name="market"
-          value={selected}
-          onChange={(e) => setSelected(e.target.value)}
-          aria-invalid={Boolean(error)}
-          aria-describedby="market-note"
-          className={`${FIELD_INPUT_CLASSES} cursor-pointer appearance-none pr-16 font-sans text-sm font-medium`}
-        >
-          {children}
-        </select>
-        <span
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-y-0 right-3 flex items-center gap-2 font-mono text-xs font-semibold tracking-widest text-signal"
-        >
-          <span>{selected}</span>
-          <span className="text-ink">▾</span>
-        </span>
-      </div>
+      <MarketDropdown
+        id="signup-market"
+        name="market"
+        value={selected}
+        options={options}
+        onChange={setSelected}
+        hasError={Boolean(error)}
+        describedBy="market-note"
+      />
       <p id="market-note" className="text-xs leading-relaxed text-muted">{note}</p>
       <FieldMessages id="market" error={error} />
     </div>

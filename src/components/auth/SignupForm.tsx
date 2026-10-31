@@ -7,7 +7,6 @@ import AuthErrorSummary from "@/components/auth/AuthErrorSummary";
 import AuthField from "@/components/auth/AuthField";
 import AuthNotice from "@/components/auth/AuthNotice";
 import AuthSubmit from "@/components/auth/AuthSubmit";
-import MarketOption from "@/components/auth/MarketOption";
 import MarketPicker from "@/components/auth/MarketPicker";
 import PasswordField from "@/components/auth/PasswordField";
 import ResendVerificationForm from "@/components/auth/ResendVerificationForm";
@@ -79,11 +78,18 @@ export default function SignupForm({ t, defaultMarket }: SignupFormProps) {
         error={fieldError("password")}
         withStrength
       />
-      <MarketPicker number="03" legend={t.Fields.Market} note={t.Fields.MarketNote} defaultValue={market} error={fieldError("market")}>
-        {PRICING_COUNTRIES.map((code) => (
-          <MarketOption key={code} value={code} code={code} label={t.Fields.Markets[code].Label} hint={t.Fields.Markets[code].Hint} />
-        ))}
-      </MarketPicker>
+      <MarketPicker
+        number="03"
+        legend={t.Fields.Market}
+        note={t.Fields.MarketNote}
+        defaultValue={market}
+        error={fieldError("market")}
+        options={PRICING_COUNTRIES.map((code) => ({
+          code,
+          label: t.Fields.Markets[code].Label,
+          hint: t.Fields.Markets[code].Hint,
+        }))}
+      />
       <TermsConsent fields={t.Fields} defaultChecked={state.values?.terms} error={fieldError("terms")} />
       <AuthSubmit label={t.Signup.Submit} pendingLabel={t.Signup.Pending} variant="signal" />
     </form>
