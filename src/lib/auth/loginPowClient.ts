@@ -64,10 +64,10 @@ function sha256HasZero12Prefix(ascii: string): boolean {
 }
 
 /**
- * Solves a micro SHA-256 Proof-of-Work challenge in the browser (~2–10ms)
- * to block credential-stuffing botnets before invoking server-side scrypt.
+ * Synchronously solves a micro SHA-256 Proof-of-Work challenge (~1–5ms)
+ * so forms can attach a fresh token both during render and in the `formdata` event.
  */
-export async function loeseLoginPoW(): Promise<{ powTs: number; powNonce: number }> {
+export function loeseLoginPoWSync(): { powTs: number; powNonce: number } {
   const powTs = Date.now();
   for (let nonce = 0; nonce < 250_000; nonce++) {
     if (sha256HasZero12Prefix(`ec-pow-v1:${powTs}:${nonce}`)) {
@@ -75,4 +75,12 @@ export async function loeseLoginPoW(): Promise<{ powTs: number; powNonce: number
     }
   }
   return { powTs, powNonce: 0 };
+}
+
+/**
+ * Solves a micro SHA-256 Proof-of-Work challenge in the browser (~2–10ms)
+ * to block credential-stuffing botnets before invoking server-side scrypt.
+ */
+export async function loeseLoginPoW(): Promise<{ powTs: number; powNonce: number }> {
+  return loeseLoginPoWSync();
 }

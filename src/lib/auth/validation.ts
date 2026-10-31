@@ -33,13 +33,12 @@ const newPassword = z
   .max(PASSWORD_RULES.maxLength, "password_long")
   .refine((value) => scorePassword(value) >= MIN_PASSWORD_SCORE, "password_weak");
 
-/** Rejects passwords that contain the address or its local part. */
+/** Rejects passwords that contain the full e-mail address. */
 function notEmail<T extends { email: string; password: string }>(schema: z.ZodType<T>) {
   return schema.refine(
     ({ email: mail, password }) => {
-      const local = mail.split("@")[0];
       const lower = password.toLowerCase();
-      return !lower.includes(mail) && !(local.length >= 4 && lower.includes(local));
+      return !lower.includes(mail.toLowerCase());
     },
     { message: "password_same_as_email", path: ["password"] },
   );

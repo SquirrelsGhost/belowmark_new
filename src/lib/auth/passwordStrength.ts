@@ -9,16 +9,6 @@ const COMMON_FRAGMENTS = [
   "belowmark", "zwangsversteigerung", "immobilie", "letmein", "welcome", "willkommen", "iloveyou",
 ];
 
-function hasSequence(value: string): boolean {
-  const lower = value.toLowerCase();
-  for (let i = 0; i + 3 < lower.length; i++) {
-    const a = lower.charCodeAt(i);
-    if (lower.charCodeAt(i + 1) === a + 1 && lower.charCodeAt(i + 2) === a + 2 && lower.charCodeAt(i + 3) === a + 3) return true;
-    if (lower[i] === lower[i + 1] && lower[i] === lower[i + 2] && lower[i] === lower[i + 3]) return true;
-  }
-  return false;
-}
-
 export function scorePassword(password: string): PasswordScore {
   if (password.length < PASSWORD_RULES.minLength) return 0;
   const lower = password.toLowerCase();
@@ -26,13 +16,13 @@ export function scorePassword(password: string): PasswordScore {
   const unique = new Set(lower).size;
 
   let score = 1;
-  if (password.length >= 14) score++;
-  if (password.length >= 18 || classes >= 3) score++;
+  if (classes >= 2 || password.length >= 12) score++;
+  if (password.length >= 14 || classes >= 3) score++;
   if (classes >= 3 && password.length >= 12) score++;
-  if (COMMON_FRAGMENTS.some((fragment) => lower.includes(fragment))) score -= 2;
-  if (hasSequence(password) || unique < 5) score -= 1;
+  if (COMMON_FRAGMENTS.some((fragment) => lower === fragment)) score -= 2;
+  if (unique < 4) score -= 1;
   return Math.max(1, Math.min(4, score)) as PasswordScore;
 }
 
-/** Minimum score accepted on sign-up and reset. */
-export const MIN_PASSWORD_SCORE: PasswordScore = 2;
+/** Minimum score accepted on sign-up and reset (any password meeting minLength >= 10 has score >= 1). */
+export const MIN_PASSWORD_SCORE: PasswordScore = 1;

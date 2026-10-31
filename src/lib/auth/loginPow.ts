@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 
 const POW_PREFIX = "000"; // 12 bits of work (~4096 SHA-256 hashes in browser ≈ 10ms)
-export const POW_MAX_AGE_MS = 10 * 60 * 1000;
+export const POW_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 const POW_MAX_CACHE_ENTRIES = 10_000;
 
 declare global {
@@ -48,7 +48,7 @@ export function verifyLoginPoW(input: LoginBotShieldInput): { ok: true } | { ok:
 
   const now = Date.now();
   const age = now - ts;
-  if (age < -60_000 || age > POW_MAX_AGE_MS) {
+  if (Math.abs(age) > POW_MAX_AGE_MS) {
     return { ok: false, reason: "bot_detected" };
   }
 

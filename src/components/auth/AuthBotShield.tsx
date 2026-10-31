@@ -3,7 +3,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { getHardwareFingerprint } from "@/lib/auth/hardwareFingerprint";
-import { loeseLoginPoW } from "@/lib/auth/loginPowClient";
+import { loeseLoginPoW, loeseLoginPoWSync } from "@/lib/auth/loginPowClient";
 
 interface AuthBotShieldProps {
   /** Re-solves the PoW challenge whenever this counter or key changes (e.g. after a failed attempt) */
@@ -22,7 +22,6 @@ export default function AuthBotShield({ refreshKey }: AuthBotShieldProps) {
 
   useEffect(() => {
     let active = true;
-    let submitTimer: ReturnType<typeof setTimeout> | null = null;
 
     const refreshChallenge = () => {
       void loeseLoginPoW().then((res) => {
@@ -36,21 +35,33 @@ export default function AuthBotShield({ refreshKey }: AuthBotShieldProps) {
     window.addEventListener("focus", refreshChallenge);
 
     const form = wrapperRef.current?.closest("form");
-    const handleSubmit = () => {
-      if (submitTimer) clearTimeout(submitTimer);
-      submitTimer = setTimeout(() => {
-        if (active) refreshChallenge();
-      }, 50);
+
+    // Guarantee every submission carries a fresh, non-empty PoW token and
+    // hardware fingerprint even if submitted immediately or after a failed attempt.
+    const handleFormData = (event: FormDataEvent) => {
+      const fresh = loeseLoginPoWSync();
+      const hw = getHardwareFingerprint();
+      event.formData.set("powTs", String(fresh.powTs));
+      event.formData.set("powNonce", String(fresh.powNonce));
+      event.formData.set("hardwareFingerprint", hw);
     };
 
-    form?.addEventListener("submit", handleSubmit);
+    // Prevent React 19's automatic form.reset() after a Server Action from
+    // wiping the user's inputs, checkboxes, and hidden fields on error.
+    const handleReset = (event: Event) => {
+      event.preventDefault();
+      refreshChallenge();
+    };
+
+    form?.addEventListener("formdata", handleFormData);
+    form?.addEventListener("reset", handleReset);
 
     return () => {
       active = false;
       clearInterval(interval);
       window.removeEventListener("focus", refreshChallenge);
-      if (submitTimer) clearTimeout(submitTimer);
-      form?.removeEventListener("submit", handleSubmit);
+      form?.removeEventListener("formdata", handleFormData);
+      form?.removeEventListener("reset", handleReset);
     };
   }, [refreshKey]);
 
@@ -62,7 +73,7 @@ export default function AuthBotShield({ refreshKey }: AuthBotShieldProps) {
         className="pointer-events-none absolute -left-[9999px] h-0 w-0 overflow-hidden opacity-0"
       >
         <label htmlFor="auth-hp-field">Website</label>
-        <input id="auth-hp-field" type="text" name="honeypot" tabIndex={-1} autoComplete="off" defaultValue="" />
+        <input id="auth-hp-field" type="text" name="honeypot" tabIndex={-1} autoComplete="new-password" defaultValue="" />
       </div>
       <input type="hidden" name="powTs" value={pow ? String(pow.powTs) : ""} />
       <input type="hidden" name="powNonce" value={pow ? String(pow.powNonce) : ""} />
