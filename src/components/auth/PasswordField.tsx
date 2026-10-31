@@ -70,7 +70,7 @@ export default function PasswordField({ id, name, label, number, autoComplete, f
           onBlur={() => setCapsLock(false)}
           aria-invalid={error ? true : undefined}
           aria-describedby={describedBy(id, hint, error, [capsLock && capsId, withStrength && strengthId].filter(Boolean).join(" ") || undefined)}
-          className={`${FIELD_INPUT_CLASSES} pr-12`}
+          className={`${FIELD_INPUT_CLASSES} pr-12 [&::-ms-clear]:hidden [&::-ms-reveal]:hidden`}
         />
         <button
           type="button"

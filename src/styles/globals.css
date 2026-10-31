@@ -175,6 +175,17 @@ details > summary::-webkit-details-marker {
   display: none;
 }
 
+/* Hide browser-native password reveal/clear icons (Edge / Windows Chromium)
+ * so only our custom <PasswordField /> toggle button is shown. */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear,
+input::-ms-reveal,
+input::-ms-clear {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
 /* ── Search map dots ──────────────────────────────────────────
  * The map view draws one dot per postcode, thousands per page. The
  * look sits here once instead of in attributes on every dot.
