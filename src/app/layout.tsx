@@ -43,6 +43,13 @@ export const instant = false;
 export const metadata = {
   metadataBase: new URL(env.appUrl),
   robots: { index: true, follow: true },
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico", sizes: "any" },
+    ],
+    shortcut: "/favicon.ico",
+  },
 };
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {

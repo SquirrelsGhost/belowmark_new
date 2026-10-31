@@ -329,3 +329,12 @@ export async function POST(req: Request): Promise<Response> {
 | Response type | Define an `interface` for every `ok()` payload |
 | Error logging | Always `console.error("[METHOD /api/route]", error)` before returning `err()` |
 
+---
+
+## 12. Favicon & Small Brand Logo Rule (Mandatory)
+
+- The favicon (`src/app/icon.svg`, `src/app/favicon.ico`, `public/icon.svg`, `public/favicon.ico`) **must always be the Belowmark small logo (`BrandMark` mark)** — warm paper tile (`#f7f4ee`) with ink frame (`#12110f`), the horizontal signal-red market line (`#c8362b`) at the top, and the ink dot (`#12110f`) centered below the line.
+- **Never** use or revert to the default Next.js `"N"` `favicon.ico`.
+- To regenerate the multi-resolution `.ico` (`16×16`, `32×32`, `48×48`), run `node scripts/build-favicon.mjs`.
+
+

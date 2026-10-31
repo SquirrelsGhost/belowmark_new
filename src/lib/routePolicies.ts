@@ -63,7 +63,7 @@ const POLICY_RULES: readonly PolicyRule[] = [
   { methods: ["GET"], pattern: /^\/en\/uk-property-auctions(\/[^/]+)?$/, policy: PAGE_PUBLIC },
   { methods: ["GET"], pattern: /^\/en\/calculator\/uk-property-auction-stamp-duty-deposit$/, policy: PAGE_PUBLIC },
   { methods: ["GET"], pattern: /^\/karten\/(de|tr)\.svg$/, policy: API_PUBLIC },
-  { methods: ["GET"], pattern: /^\/(sitemap\.xml|sitemap-blog\.xml|robots\.txt|llms\.txt|llms-full\.txt|pycie2026seoindexnowkey\.txt|sw\.js)$/, policy: API_PUBLIC },
+  { methods: ["GET"], pattern: /^\/(sitemap\.xml|sitemap-blog\.xml|robots\.txt|llms\.txt|llms-full\.txt|pycie2026seoindexnowkey\.txt|sw\.js|favicon\.ico|icon\.svg)$/, policy: API_PUBLIC },
 
   // ─── 2. Protected Account Page ──────────────────────────────────────────────
   { methods: ["GET", "POST"], pattern: /^\/konto$/, policy: PAGE_AUTH },
