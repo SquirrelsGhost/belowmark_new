@@ -100,10 +100,28 @@ export interface EuMarketCatalog {
   bySlug: Map<string, EuMarketLocationEntry>;
 }
 
+export interface DeStatePseoEntry {
+  slug: string;
+  code: string;
+  name: string;
+  transferTaxPct: number;
+  totalCount: number;
+  limitsWaivedCount: number;
+  withDocsCount: number;
+  avgAppraisedValue: number | null;
+  minAppraisedValue: number | null;
+  nextHearingDate: string | null;
+  courts: Array<{ name: string; slug: string; count: number }>;
+  cities: Array<{ name: string; slug: string; count: number }>;
+  listings: PseoPreviewListing[];
+}
+
 export interface PseoCatalog {
   generatedAt: string;
   deTotalListings: number;
   trTotalListings: number;
+  deStates: DeStatePseoEntry[];
+  deStateBySlug: Map<string, DeStatePseoEntry>;
   courts: CourtPseoEntry[];
   courtBySlug: Map<string, CourtPseoEntry>;
   cities: CityPseoEntry[];

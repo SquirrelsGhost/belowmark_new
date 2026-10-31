@@ -44,6 +44,7 @@ const POLICY_RULES: readonly PolicyRule[] = [
   { methods: ["GET"], pattern: /^\/blog\/[^/]+$/, policy: PAGE_PUBLIC },
   { methods: ["GET"], pattern: /^\/(de|tr|en|it|es|fr|ar|ru)\/blog(\/[^/]+)?$/, policy: PAGE_PUBLIC },
   { methods: ["GET"], pattern: /^\/zwangsversteigerungen$/, policy: PAGE_PUBLIC },
+  { methods: ["GET"], pattern: /^\/bundesland\/[^/]+$/, policy: PAGE_PUBLIC },
   { methods: ["GET"], pattern: /^\/amtsgericht\/[^/]+$/, policy: PAGE_PUBLIC },
   { methods: ["GET"], pattern: /^\/zwangsversteigerung\/[^/]+$/, policy: PAGE_PUBLIC },
   { methods: ["GET"], pattern: /^\/tr\/icra-ihale(\/[^/]+)?$/, policy: PAGE_PUBLIC },

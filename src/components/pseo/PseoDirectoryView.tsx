@@ -1,6 +1,7 @@
 import Link from "next/link";
 import BlogArticleCta from "@/components/blog/BlogArticleCta";
 import PseoListingPreviewCard from "@/components/pseo/PseoListingPreviewCard";
+import PseoMarketComparisonTable from "@/components/pseo/PseoMarketComparisonTable";
 import PseoStatsBanner from "@/components/pseo/PseoStatsBanner";
 import { PseoLocale, PseoPreviewListing } from "@/types/pseo.types";
 
@@ -23,6 +24,15 @@ interface PseoDirectoryViewProps {
   listingsHeading?: string;
   faqHeading?: string;
 }
+
+const TABLE_HEADING: Record<PseoLocale, string> = {
+  de: "Verkehrswert-, Mindestgebot- & Sicherheitsleistungs-Vergleichstabelle",
+  tr: "Muhammen Bedel, %50 Açılış ve %10 Teminat Karşılaştırma Tablosu",
+  en: "Market Value, Guide Price & 10% Deposit Comparison Table",
+  it: "Tabella Comparativa Prezzo Base, Offerta Minima 75% e Cauzione 10%",
+  es: "Tabla Comparativa de Valor de Subasta BOE, Umbral 70% LEC y Depósito 5%",
+  fr: "Tableau Comparatif Valeur DVF, Mise à Prix et Consignation CARPA 10%",
+};
 
 export default function PseoDirectoryView({
   locale,
@@ -65,6 +75,14 @@ export default function PseoDirectoryView({
         })),
       },
       {
+        "@type": "Dataset",
+        name: title,
+        description: lead,
+        url: canonicalUrl,
+        creator: { "@type": "Organization", name: "Belowmark", url: "https://belowmark.com" },
+        isAccessibleForFree: true,
+      },
+      {
         "@type": "ItemList",
         name: title,
         description: lead,
@@ -73,7 +91,21 @@ export default function PseoDirectoryView({
         itemListElement: listings.slice(0, 10).map((item, idx) => ({
           "@type": "ListItem",
           position: idx + 1,
-          name: `${item.segmentLabel} in ${item.place} (${item.authority})`,
+          item: {
+            "@type": "RealEstateListing",
+            name: `${item.segmentLabel} in ${item.place} (${item.authority})`,
+            url: canonicalUrl,
+            ...(item.minimumBid || item.appraisedValue
+              ? {
+                  offers: {
+                    "@type": "Offer",
+                    price: item.minimumBid ?? item.appraisedValue,
+                    priceCurrency: item.currency,
+                    availability: "https://schema.org/InStock",
+                  },
+                }
+              : {}),
+          },
         })),
       },
       ...(faqs.length > 0
@@ -126,6 +158,8 @@ export default function PseoDirectoryView({
           {listings.map((item) => <PseoListingPreviewCard key={item.key} item={item} locale={locale} />)}
         </div>
       </div>
+
+      <PseoMarketComparisonTable listings={listings} locale={locale} heading={TABLE_HEADING[locale]} />
 
       {relatedLinks.length > 0 && (
         <div className="mt-12 border-2 border-ink bg-paper-bright p-6">

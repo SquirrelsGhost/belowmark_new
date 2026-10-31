@@ -82,6 +82,30 @@ export default function PseoDeHubView({ catalog }: PseoDeHubViewProps) {
 
       <section className="mt-12">
         <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-rule-strong pb-3">
+          <h2 className="font-display text-2xl text-ink">Alle 16 Bundesländer (Zwangsversteigerung &amp; Grunderwerbsteuer)</h2>
+          <span className="font-mono text-xs text-ink-muted">Direkt zum Bundesland-Verzeichnis</span>
+        </div>
+        <div className="mt-5 grid gap-2.5 sm:grid-cols-2 md:grid-cols-4">
+          {catalog.deStates.map((st) => (
+            <Link
+              key={st.slug}
+              href={`/bundesland/${st.slug}`}
+              className="flex items-center justify-between border-2 border-ink bg-paper-bright px-3.5 py-2.5 transition-colors hover:bg-paper-deep"
+            >
+              <div className="min-w-0 pr-2">
+                <span className="block truncate font-display text-sm text-ink">{st.name}</span>
+                <span className="block font-mono text-[10px] uppercase text-ink-muted">GrESt: {st.transferTaxPct} %</span>
+              </div>
+              <span className="shrink-0 bg-signal px-2 py-0.5 font-mono text-xs font-semibold text-paper-bright">
+                {st.totalCount}
+              </span>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <section className="mt-12">
+        <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-rule-strong pb-3">
           <h2 className="font-display text-2xl text-ink">
             Top-Städte nach aktiven Zwangsversteigerungen ({formatNumber(cityCount, "de")} Orte gesamt)
           </h2>

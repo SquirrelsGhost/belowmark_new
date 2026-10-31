@@ -33,11 +33,13 @@ import StatsLedgerItem from "@/components/stats/StatsLedgerItem";
 import NoticeTicker from "@/components/ticker/NoticeTicker";
 import NoticeTickerItem from "@/components/ticker/NoticeTickerItem";
 import RegionDetector from "@/components/region/RegionDetector";
+import HomeJsonLd from "@/components/seo/HomeJsonLd";
+import HomeSeoDirectorySection from "@/components/seo/HomeSeoDirectorySection";
 import LandingShell from "@/components/ui/LandingShell";
 import PageMain from "@/components/ui/PageMain";
 import PaperTexture from "@/components/ui/PaperTexture";
 import { BILLING_ROUTES, MARKET_PARAM, OFFER_PARAM } from "@/lib/billing/billingConfig";
-import { ROUTES, SOURCES } from "@/lib/constants";
+import { ROUTES } from "@/lib/constants";
 import { formatCompactEuro, formatDate, formatEuro, formatNumber, formatPercent, formatShortDate } from "@/lib/format";
 import { SNAPSHOT_DATE, SNAPSHOT_STATS, STATES, TICKER_ENTRIES } from "@/lib/snapshot";
 import { MetaTagService } from "@/services/MetaTagService";
@@ -78,6 +80,7 @@ export default async function HomePage() {
   // lang on the wrapper so uppercase display type follows locale rules (İ/I in Turkish)
   return (
     <LandingShell lang={locale}>
+      <HomeJsonLd faqs={Faq.Items} />
       <PaperTexture />
       {!region.isFromGeoHeader && <RegionDetector country={region.country} />}
       <NavigationSkipLink label={nav.SkipToContent} targetId={MAIN_ID} />
@@ -253,21 +256,30 @@ export default async function HomePage() {
           primaryCta={Closing.PrimaryCta}
           secondaryCta={Closing.SecondaryCta}
         />
+
+        <HomeSeoDirectorySection />
       </PageMain>
 
       <Footer tagline={t.Footer.Tagline} disclaimer={t.Footer.Disclaimer} rights={t.Footer.Rights} actions={<ConsumerFooterButtons tone="paper" />}>
         <FooterColumn title={t.Footer.ProductTitle}>
-          <FooterLink href="/zwangsversteigerungen" label={locale === "tr" ? "Almanya ZVG Rehberi (530 AG)" : "ZVG Verzeichnis (530 AG)"} />
-          <FooterLink href="/rechner/5-10-und-7-10-grenze" label={locale === "tr" ? "5/10 & 7/10 Hesaplama" : "5/10- & 7/10-Rechner"} />
-          <FooterLink href="/tr/icra-ihale" label="Türkiye İcra & İhale (81 İl)" />
-          <FooterLink href="/tr/hesaplama/icra-ihale-teminat" label="İcra Teminat Hesaplama" />
-          <FooterLink href={ROUTES.blog} label={nav.BlogLabel} />
-          <FooterLink href={ROUTES.login} label={nav.LoginLabel} />
+          <FooterLink href="/zwangsversteigerungen" label="🇩🇪 DE · ZVG Verzeichnis (530 AG)" />
+          <FooterLink href="/oesterreich/ediktsdatei" label="🇦🇹 AT · Ediktsdatei (9 Länder)" />
+          <FooterLink href="/schweiz/shab-versteigerungen" label="🇨🇭 CH · SHAB Steigerungen (26 Kantone)" />
+          <FooterLink href="/it/aste-giudiziarie" label="🇮🇹 IT · Aste Giudiziarie PVP (20 Regioni)" />
+          <FooterLink href="/es/subastas-boe" label="🇪🇸 ES · Subastas BOE (17 CCAA)" />
+          <FooterLink href="/fr/encheres-immobilieres" label="🇫🇷 FR · Enchères Licitor (13 Régions)" />
+          <FooterLink href="/en/uk-property-auctions" label="🇬🇧 UK · Property Auctions (12 Regions)" />
+          <FooterLink href="/tr/icra-ihale" label="🇹🇷 TR · İcra & İhale (81 İl)" />
         </FooterColumn>
         <FooterColumn title={t.Footer.SourcesTitle}>
-          <FooterLink href={SOURCES.zvgPortal} label={t.Footer.SourceZvg} isExternal />
-          <FooterLink href={SOURCES.zvgLaw} label={t.Footer.SourceLaw} isExternal />
-          <FooterLink href={SOURCES.justiz} label={t.Footer.SourceJustiz} isExternal />
+          <FooterLink href="/rechner/5-10-und-7-10-grenze" label="🧮 DE · 5/10- & 7/10-Rechner" />
+          <FooterLink href="/oesterreich/rechner/geringstes-gebot-vadium" label="🧮 AT · § 151 EO & Vadium Rechner" />
+          <FooterLink href="/schweiz/rechner/betreibungsamtliche-steigerung-schkg" label="🧮 CH · SchKG Steigerungsrechner" />
+          <FooterLink href="/it/calcolatore/offerta-minima-75-asta-giudiziaria" label="🧮 IT · Calcolatore Offerta 75%" />
+          <FooterLink href="/es/calculadora/subasta-judicial-boe-70-por-ciento" label="🧮 ES · Calculadora BOE 70% LEC" />
+          <FooterLink href="/fr/calculateur/encheres-judiciaires-licitor-frais" label="🧮 FR · Calculateur Frais Licitor" />
+          <FooterLink href="/en/calculator/uk-property-auction-stamp-duty-deposit" label="🧮 UK · Auction & SDLT Calculator" />
+          <FooterLink href="/tr/hesaplama/icra-ihale-teminat" label="🧮 TR · İcra Teminat Hesaplama" />
         </FooterColumn>
         <FooterColumn title={t.Footer.LegalTitle}>
           <FooterLink href={ROUTES.imprint} label={t.Footer.Imprint} />

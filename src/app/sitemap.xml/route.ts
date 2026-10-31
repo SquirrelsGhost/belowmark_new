@@ -56,13 +56,18 @@ export async function GET(): Promise<Response> {
       }
     }
 
-    // 3. All 530 German Amtsgerichte pSEO Pages
+    // 2b. All 16 German Bundesländer Hub Pages
+    for (const st of catalog.deStates) {
+      addUrl(`${BELOWMARK_ORIGIN}/bundesland/${st.slug}`, "0.90", "daily");
+    }
+
+    // 3. All German / DACH Amtsgerichte pSEO Pages
     for (const court of catalog.courts) {
       addUrl(`${BELOWMARK_ORIGIN}/amtsgericht/${court.slug}`, "0.85", "daily");
     }
 
-    // 4. Top 800 German Cities pSEO Pages
-    for (const city of catalog.cities.slice(0, 800)) {
+    // 4. All German / DACH Cities pSEO Pages (Full 3,039 City Coverage)
+    for (const city of catalog.cities) {
       addUrl(`${BELOWMARK_ORIGIN}/zwangsversteigerung/${city.slug}`, "0.80", "daily");
     }
 

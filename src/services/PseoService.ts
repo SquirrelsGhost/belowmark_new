@@ -2,10 +2,12 @@ import "server-only";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { EU_MARKET_META, EU_REGION_SEEDS } from "@/lib/pseo/euMarketRegions";
+import { STATES } from "@/lib/snapshot";
 import { Listing, ListingSnapshot } from "@/types/listing.types";
 import {
   CityPseoEntry,
   CourtPseoEntry,
+  DeStatePseoEntry,
   EuMarketCatalog,
   EuMarketLocationEntry,
   EuPseoMarketCode,
@@ -425,6 +427,44 @@ async function buildCatalog(): Promise<PseoCatalog> {
   }
   cities.sort((a, b) => b.totalCount - a.totalCount);
 
+  // 1b. Group DE by Bundesland (16 German States)
+  const deStateSeeds = STATES.filter((s) => s.country === "DE");
+  const deStates: DeStatePseoEntry[] = [];
+  const deStateBySlug = new Map<string, DeStatePseoEntry>();
+
+  for (const stSeed of deStateSeeds) {
+    const stItems = allEuroListings.filter((l) => l.region?.trim() === stSeed.name);
+    const stSlug = slugifyPseo(stSeed.name);
+    const stats = computeStats(stItems);
+    const stCourts = courts
+      .filter((c) => c.region === stSeed.name)
+      .slice(0, 24)
+      .map((c) => ({ name: c.displayName, slug: c.slug, count: c.totalCount }));
+    const stCities = cities
+      .filter((c) => c.region === stSeed.name)
+      .slice(0, 24)
+      .map((c) => ({ name: c.name, slug: c.slug, count: c.totalCount }));
+
+    const stEntry: DeStatePseoEntry = {
+      slug: stSlug,
+      code: stSeed.code,
+      name: stSeed.name,
+      transferTaxPct: stSeed.transferTaxPct,
+      totalCount: stItems.length,
+      limitsWaivedCount: stItems.filter((i) => i.limitsWaived).length,
+      withDocsCount: stItems.filter((i) => i.documentUrl || i.exposeUrl || i.reportUrl).length,
+      ...stats,
+      courts: stCourts,
+      cities: stCities,
+      listings: stItems.slice(0, 12).map(toPreviewListing),
+    };
+    deStates.push(stEntry);
+    deStateBySlug.set(stSlug, stEntry);
+    deStateBySlug.set(stSeed.code, stEntry);
+    if (stSeed.code === "nw") deStateBySlug.set("nrw", stEntry);
+  }
+  deStates.sort((a, b) => b.totalCount - a.totalCount);
+
   // 2. Group TR by Province (İl) and District (İlçe)
   const byProvince = new Map<string, { name: string; items: Listing[] }>();
   const byDistrict = new Map<string, { name: string; provName: string; provSlug: string; items: Listing[] }>();
@@ -521,6 +561,8 @@ async function buildCatalog(): Promise<PseoCatalog> {
     generatedAt: deSnap.meta?.generatedAt || new Date().toISOString(),
     deTotalListings: allEuroListings.length,
     trTotalListings: trListings.length,
+    deStates,
+    deStateBySlug,
     courts,
     courtBySlug,
     cities,
