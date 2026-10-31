@@ -31,8 +31,9 @@ export default function MarketPicker({ number, legend, note, defaultValue, error
           name="market"
           value={selected}
           onChange={(e) => setSelected(e.target.value)}
+          aria-invalid={Boolean(error)}
           aria-describedby="market-note"
-          className={`${FIELD_INPUT_CLASSES(Boolean(error))} appearance-none pr-16 font-sans text-sm font-medium cursor-pointer`}
+          className={`${FIELD_INPUT_CLASSES} cursor-pointer appearance-none pr-16 font-sans text-sm font-medium`}
         >
           {children}
         </select>
