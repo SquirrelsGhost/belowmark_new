@@ -139,6 +139,18 @@ export interface IBillingTranslation {
     PortalUnavailable: string;
     Cancel: string;
     Notices: { paid: string; pending: string; portal_failed: string };
+    /** Package picker on /konto?bereich=tarif: two plan cards, one click to the order summary */
+    Pick: {
+      Title: string;
+      Lead: string;
+      Cadence: { monthly: string; quarter: string };
+      Plans: Record<"investor" | "pro", { Name: string; Summary: string }>;
+      Choose: string;
+      Current: string;
+      /** "Preise für {country}." */
+      Country: string;
+      ChangeCountry: string;
+    };
   };
 
   Data: {

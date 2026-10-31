@@ -1,8 +1,9 @@
-// Needs state: the saved address shows as a compact card, the form opens only on "Bearbeiten"
+// Needs state: the address shows as one compact line, the form opens only on "Bearbeiten" / "Adresse hinterlegen"
 "use client";
 
 import { useCallback, useState } from "react";
 import BillingAddressForm, { type BillingAddressValues } from "@/components/account/BillingAddressForm";
+import BillingAddressEmpty from "@/components/account/BillingAddressEmpty";
 import BillingAddressSummary from "@/components/account/BillingAddressSummary";
 import BillingNotice from "@/components/billing/BillingNotice";
 import { IAccountTranslation } from "@/translations/account/IAccountTranslation";
@@ -12,10 +13,10 @@ interface BillingAddressEditorProps {
   initial: BillingAddressValues | null;
 }
 
-/** Empty: the form. Saved: one line with name and address plus a small "Bearbeiten" button. */
+/** Empty: one line with "Adresse hinterlegen". Saved: one line with name and address plus "Bearbeiten". The form opens on demand. */
 export default function BillingAddressEditor({ t, initial }: BillingAddressEditorProps) {
   const [saved, setSaved] = useState(initial);
-  const [isEditing, setIsEditing] = useState(!initial);
+  const [isEditing, setIsEditing] = useState(false);
   const [justSaved, setJustSaved] = useState(false);
 
   const onSaved = useCallback((values: BillingAddressValues) => {
@@ -32,5 +33,6 @@ export default function BillingAddressEditor({ t, initial }: BillingAddressEdito
       </div>
     );
   }
-  return <BillingAddressForm t={t} initial={saved} onSaved={onSaved} onCancel={saved ? () => setIsEditing(false) : undefined} />;
+  if (!isEditing) return <BillingAddressEmpty message={t.Empty} addLabel={t.Add} onAdd={() => setIsEditing(true)} />;
+  return <BillingAddressForm t={t} initial={saved} onSaved={onSaved} onCancel={() => setIsEditing(false)} />;
 }

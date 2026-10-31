@@ -51,6 +51,8 @@ export const ACCOUNT_DE: IAccountTranslation = {
     Title: "Rechnungsadresse",
     Description: "Erscheint auf Ihren Rechnungen. Für Beträge bis 250 € genügt die E-Mail-Adresse; darüber und für Ihre Buchhaltung brauchen Sie Name und Anschrift.",
     Missing: "Noch keine Rechnungsadresse hinterlegt. Bisherige Rechnungen ohne Adresse übernehmen sie einmalig, sobald Sie sie speichern.",
+    Empty: "Noch keine Rechnungsadresse hinterlegt.",
+    Add: "Adresse hinterlegen",
     Name: "Name oder Firma",
     NameHint: "So, wie er auf der Rechnung stehen soll.",
     Address: "Anschrift",

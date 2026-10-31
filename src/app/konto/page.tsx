@@ -5,6 +5,7 @@ import AccountAside from "@/components/account/AccountAside";
 import AccountDetailRow from "@/components/account/AccountDetailRow";
 import AccountDetails from "@/components/account/AccountDetails";
 import AccountHeader from "@/components/account/AccountHeader";
+import AccountOfferPicker from "@/components/account/AccountOfferPicker";
 import AccountDataPanel from "@/components/account/AccountDataPanel";
 import AccountOverviewPanel from "@/components/account/AccountOverviewPanel";
 import AccountPanel from "@/components/account/AccountPanel";
@@ -21,9 +22,12 @@ import { ACCOUNT_SECTION_PARAM, ACCOUNT_SECTIONS, accountSectionHref, resolveAcc
 import { APP_ROUTES } from "@/lib/appConstants";
 import { AUTH_PARAMS, AUTH_ROUTES } from "@/lib/auth/authConfig";
 import { authMetadata, getAuthPageContext } from "@/lib/auth/authPage";
+import { buildAccountOfferCards } from "@/lib/billing/accountOfferView";
 import { buildAccountPlanView } from "@/lib/billing/accountPlanView";
 import { BILLING_ROUTES, BILLING_STATUS } from "@/lib/billing/billingConfig";
+import { fill } from "@/lib/billing/billingFormat";
 import { BILLING_ACCOUNT_PARAM } from "@/lib/billing/billingRoutes";
+import { ROUTES } from "@/lib/constants";
 import { formatDate } from "@/lib/format";
 import { buildInvoiceListView, invoiceCount } from "@/lib/invoice/invoiceView";
 import { getLegalPageContext } from "@/lib/legal/legalPage";
@@ -66,7 +70,8 @@ export default async function AccountPage({ searchParams }: PageProps<"/konto">)
 
   const { t: billing } = await getLegalPageContext();
   const access = await BillingService.access(user.id);
-  const basePlanView = buildAccountPlanView(access, billing, lang, !user.plan && user.hasFullAccess && !user.teamSeat && !hasPermission(user.permissions, "*"));
+  const inTrial = !user.plan && user.hasFullAccess && !user.teamSeat && !hasPermission(user.permissions, "*");
+  const basePlanView = buildAccountPlanView(access, billing, lang, inTrial, user.trialEndsAt);
   // A seat in a Pro owner's team gives full access without an own plan
   const viaTeam = !access.isActive && user.teamSeat;
   const planView = {
@@ -87,6 +92,9 @@ export default async function AccountPage({ searchParams }: PageProps<"/konto">)
   const trialValue = user.trialEndsAt ? `${formatDate(user.trialEndsAt.toISOString(), lang)}${trialEnded ? ` · ${Account.Details.TrialEnded}` : ""}` : "—";
   const activePricingCountry = user.market === "TR" ? "TR" : region.pricingCountry === "TR" ? "DE" : region.pricingCountry;
   const marketLabel = `${t.Fields.Markets[activePricingCountry].Label} (${activePricingCountry})`;
+  // Packages in the account's own country, with the same order gates as /buchen
+  const marketAvailability = BillingService.availability(activePricingCountry === "TR" ? "TR" : "DE");
+  const offerCards = buildAccountOfferCards(billing, access, lang, activePricingCountry, user.market === "TR" ? "TR" : "DE", BillingService.orderBlocker, !marketAvailability.blocker);
   const isAdmin = hasPermission(user.permissions, "*");
   const accessValue = isAdmin
     ? Account.Details.AccessAdmin
@@ -144,7 +152,20 @@ export default async function AccountPage({ searchParams }: PageProps<"/konto">)
         )}
         {section === "tarif" && (
           <>
-            <AccountPlanPanel t={planTexts} view={planView} notice={paymentNotice} />
+            <AccountPlanPanel t={planTexts} view={planView} notice={paymentNotice}>
+              {!viaTeam && (
+                <AccountOfferPicker
+                  title={billing.Account.Pick.Title}
+                  lead={billing.Account.Pick.Lead}
+                  cards={offerCards}
+                  currentLabel={billing.Account.Pick.Current}
+                  countryNote={fill(billing.Account.Pick.Country, { country: marketLabel })}
+                  changeCountry={{ href: BILLING_ROUTES.order, label: billing.Account.Pick.ChangeCountry }}
+                  team={{ question: billing.Order.ProTitle, href: ROUTES.contact, label: billing.Order.ProCta }}
+                  closedNotice={marketAvailability.blocker ? billing.Order.Blockers[marketAvailability.blocker] : undefined}
+                />
+              )}
+            </AccountPlanPanel>
             <InvoiceListPanel t={account.Invoices} invoices={invoices} />
             <BillingAddressPanel t={account.Address} initial={profile && { name: profile.name, address: profile.address, vatId: profile.vatId ?? "" }} />
           </>

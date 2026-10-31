@@ -51,6 +51,8 @@ export const ACCOUNT_TR: IAccountTranslation = {
     Title: "Fatura adresi",
     Description: "Faturalarınızda görünür. 250 €'ya kadar e-posta adresi yeterlidir; üzerindeki tutarlar ve muhasebeniz için ad ve adres gerekir.",
     Missing: "Henüz fatura adresi yok. Adressiz eski faturalar, kaydettiğinizde bu adresi bir kez alır.",
+    Empty: "Henüz fatura adresi yok.",
+    Add: "Adres ekle",
     Name: "Ad veya firma",
     NameHint: "Faturada görünmesini istediğiniz şekilde.",
     Address: "Adres",

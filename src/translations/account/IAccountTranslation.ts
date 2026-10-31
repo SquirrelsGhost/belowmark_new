@@ -50,6 +50,9 @@ export interface IAccountTranslation {
     Title: string;
     Description: string;
     Missing: string;
+    /** Compact empty state instead of the open form */
+    Empty: string;
+    Add: string;
     Name: string;
     NameHint: string;
     Address: string;

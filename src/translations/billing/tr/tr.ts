@@ -192,6 +192,19 @@ export const BILLING_TR: IBillingTranslation = {
       pending: "Ödeme henüz onaylanmadı. Stripe bildirdiği anda erişimi açıyoruz — genellikle birkaç dakika içinde.",
       portal_failed: "Müşteri portalı şu anda açılamadı. Lütfen tekrar deneyin.",
     },
+    Pick: {
+      Title: "Paket seçin",
+      Lead: "Tek tıkla sipariş özetine gidersiniz. Ödeme orada yapılır.",
+      Cadence: { monthly: "Aylık", quarter: "Üç ay" },
+      Plans: {
+        investor: { Name: "Investor", Summary: "Bireysel tam erişim" },
+        pro: { Name: "Pro", Summary: "Tam erişim + kendi antetinizle müşteri bağlantıları ve ekipler (5 kişilik 3 ekibe kadar)" },
+      },
+      Choose: "Seç",
+      Current: "Tarifeniz",
+      Country: "{country} fiyatları.",
+      ChangeCountry: "Başka ülke seçin",
+    },
   },
 
   Data: {

@@ -14,7 +14,7 @@ export default function InvoiceListPanel({ t, invoices }: InvoiceListPanelProps)
   return (
     <AccountPanel id="rechnungen" title={t.Title} description={t.Description}>
       {invoices.length === 0 ? (
-        <p className="border border-dashed border-rule-strong/40 px-4 py-6 text-sm leading-relaxed text-muted">{t.Empty}</p>
+        <p className="border border-dashed border-rule-strong/40 px-4 py-3 text-sm leading-relaxed text-muted">{t.Empty}</p>
       ) : (
         <>
           <div className={`hidden gap-x-4 border-b border-rule-strong pb-2 font-mono text-[10px] tracking-[0.14em] text-muted uppercase sm:grid ${INVOICE_LIST_GRID}`}>

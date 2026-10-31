@@ -191,6 +191,19 @@ export const BILLING_DE: IBillingTranslation = {
       pending: "Die Zahlung ist noch nicht bestätigt. Sobald Stripe sie meldet, schalten wir den Zugang frei — meist innerhalb weniger Minuten.",
       portal_failed: "Das Kundenportal ließ sich gerade nicht öffnen. Bitte versuchen Sie es erneut.",
     },
+    Pick: {
+      Title: "Paket wählen",
+      Lead: "Ein Klick führt zur Bestellübersicht. Bezahlt wird erst dort.",
+      Cadence: { monthly: "Monatlich", quarter: "Drei Monate" },
+      Plans: {
+        investor: { Name: "Investor", Summary: "Vollzugang für eine Person" },
+        pro: { Name: "Pro", Summary: "Vollzugang inkl. Kundenlinks mit eigenem Briefkopf & Teams (bis 3 Teams à 5 Plätze)" },
+      },
+      Choose: "Auswählen",
+      Current: "Ihr Tarif",
+      Country: "Preise für {country}.",
+      ChangeCountry: "Anderes Land wählen",
+    },
   },
 
   Data: {
