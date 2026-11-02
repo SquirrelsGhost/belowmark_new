@@ -3,6 +3,7 @@ import type { NextRequest } from "next/server";
 import { AUTH_PARAMS, AUTH_ROUTES, SESSION_COOKIE_NAME } from "@/lib/auth/authConfig";
 import { createSessionCookieToken, readCookieFromRequest, readSessionCookieToken } from "@/lib/auth/sessionToken";
 import { hasPermission } from "@/lib/permissions";
+import { resolvePseoCanonicalRedirect } from "@/lib/pseo/legacyPseoRedirects";
 import { findPolicy } from "@/lib/routePolicies";
 import { isAutomatedBotRequest } from "@/lib/sicherheit/antiScrapingRules";
 import { getSessionUser, type SessionUser } from "@/services/sicherheit/SessionUserService";
@@ -60,8 +61,14 @@ export async function proxy(req: NextRequest): Promise<NextResponse> {
   requestHeaders.delete("x-user-permissions");
   requestHeaders.set("x-pathname", pathname);
 
-  // 2. Public routes skip session validation
+  // 2. Public routes skip session validation (with O(1) canonical 308 pSEO redirect check)
   if (policy.access === "public") {
+    if (req.method === "GET" || req.method === "HEAD") {
+      const canonicalRedirect = resolvePseoCanonicalRedirect(pathname);
+      if (canonicalRedirect) {
+        return NextResponse.redirect(new URL(`${canonicalRedirect}${search}`, req.url), 308);
+      }
+    }
     return NextResponse.next({ request: { headers: requestHeaders } });
   }
 

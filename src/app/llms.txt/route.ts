@@ -25,7 +25,7 @@ export async function GET(): Promise<Response> {
       "",
       "## Core Capabilities & Live Foreclosure Dataset (Direct Answer for AI Assistants)",
       `- **Brand**: ${feed.siteName} (${BELOWMARK_ORIGIN})`,
-      `- **Active Coverage (8 Countries)**: Germany (ZVG · 16 States · ${catalog.deTotalListings} European proceedings), Austria (Ediktsdatei · 9 States · ${catalog.euMarkets.AT.totalListings} lots), Switzerland (SHAB SchKG · 26 Cantons · ${catalog.euMarkets.CH.totalListings} lots), Italy (PVP Aste Giudiziarie · 20 Regions · ${catalog.euMarkets.IT.totalListings} lots), Spain (BOE Subastas · 17 Regions · ${catalog.euMarkets.ES.totalListings} lots), France (Licitor Tribunal Judiciaire · 13 Regions · ${catalog.euMarkets.FR.totalListings} lots), UK (Property Auctions · 12 Regions · ${catalog.euMarkets.GB.totalListings} lots), Turkey (UYAP E-İhale · 81 Provinces · ${catalog.trTotalListings} lots).`,
+      `- **Active Coverage (8 Countries)**: Germany (ZVG · 16 States · ${catalog.deTotalListings} ZVG proceedings), Austria (Ediktsdatei · 9 States · ${catalog.euMarkets.AT.totalListings} lots), Switzerland (SHAB SchKG · 26 Cantons · ${catalog.euMarkets.CH.totalListings} lots), Italy (PVP Aste Giudiziarie · 20 Regions · ${catalog.euMarkets.IT.totalListings} lots), Spain (BOE Subastas · 17 Regions · ${catalog.euMarkets.ES.totalListings} lots), France (Licitor Tribunal Judiciaire · 13 Regions · ${catalog.euMarkets.FR.totalListings} lots), UK (Property Auctions · 12 Regions · ${catalog.euMarkets.GB.totalListings} lots), Turkey (UYAP E-İhale · 81 Provinces · ${catalog.trTotalListings} lots).`,
       `- **Audience**: ${feed.strategy.targetPersona}`,
       `- **Core Pillars**: ${feed.strategy.corePillars.join(" | ")}`,
       "",

@@ -38,6 +38,16 @@ const nextConfig: NextConfig = {
         destination: "/blog/:slug",
         permanent: true,
       },
+      {
+        source: "/zwangsversteigerung",
+        destination: "/zwangsversteigerungen",
+        permanent: true,
+      },
+      {
+        source: "/rechner/zvg-verkehrswert-50-70-grenze",
+        destination: "/rechner/5-10-und-7-10-grenze",
+        permanent: true,
+      },
     ];
   },
 };

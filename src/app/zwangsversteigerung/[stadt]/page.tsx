@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { redirect } from "next/navigation";
+import { permanentRedirect } from "next/navigation";
 import BlogShell from "@/components/blog/BlogShell";
 import PseoDirectoryView from "@/components/pseo/PseoDirectoryView";
 import { BELOWMARK_ORIGIN, DEFAULT_BLOG_OG } from "@/lib/blog/blogSeo";
@@ -18,13 +18,18 @@ export async function generateMetadata({ params }: StadtPageProps): Promise<Meta
   const catalog = await PseoService.GetCatalog();
   const entity = catalog.cityBySlug.get(stadt);
   if (!entity) {
-    return MetaTagService.CreateMetaTags({
-      title: "Zwangsversteigerungen nach Stadt | Belowmark",
-      description: "Aktuelle Immobilien-Zwangsversteigerungen nach Stadt und Bundesland.",
-      imgUrl: DEFAULT_BLOG_OG,
-      tags: ["Zwangsversteigerung", "Immobilien"],
-      url: `${BELOWMARK_ORIGIN}/zwangsversteigerungen`,
-    });
+    const legacyTarget = catalog.legacyCityRedirects.get(stadt);
+    if (legacyTarget) permanentRedirect(legacyTarget);
+    return {
+      ...MetaTagService.CreateMetaTags({
+        title: "Zwangsversteigerungen nach Stadt | Belowmark",
+        description: "Aktuelle Immobilien-Zwangsversteigerungen nach Stadt und Bundesland.",
+        imgUrl: DEFAULT_BLOG_OG,
+        tags: ["Zwangsversteigerung", "Immobilien"],
+        url: `${BELOWMARK_ORIGIN}/zwangsversteigerungen`,
+      }),
+      robots: { index: false, follow: true },
+    };
   }
 
   const avgStr = entity.avgAppraisedValue ? ` · Ø Verkehrswert ${formatEuro(entity.avgAppraisedValue, "de")}` : "";
@@ -47,7 +52,10 @@ export default async function ZwangsversteigerungStadtPage({ params }: StadtPage
   const { stadt } = await params;
   const catalog = await PseoService.GetCatalog();
   const entity = catalog.cityBySlug.get(stadt);
-  if (!entity) redirect("/zwangsversteigerungen");
+  if (!entity) {
+    const legacyTarget = catalog.legacyCityRedirects.get(stadt);
+    permanentRedirect(legacyTarget ?? "/zwangsversteigerungen");
+  }
 
   return (
     <BlogShell lang="de">

@@ -1,6 +1,7 @@
 import { Archivo, IBM_Plex_Mono, Newsreader } from "next/font/google";
 import { headers } from "next/headers";
 import ServiceWorkerCleanup from "@/components/ui/ServiceWorkerCleanup";
+import { resolveHtmlLang } from "@/lib/blog/blogSeo";
 import { env } from "@/lib/env";
 import { TranslationService } from "@/services/TranslationService";
 import "@/styles/globals.css";
@@ -59,8 +60,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   ]);
   const locale = TranslationService.ToLocaleOption(rawLocale);
   const pathname = reqHeaders.get("x-pathname") ?? "";
-  const blogLangMatch = /^\/(tr|en|ar|ru)\/blog(\/|$)/.exec(pathname);
-  const htmlLang = blogLangMatch ? (blogLangMatch[1] as "tr" | "en" | "ar" | "ru") : locale;
+  const htmlLang = resolveHtmlLang(pathname, locale);
 
   return (
     <html

@@ -12,8 +12,8 @@ export default function HomeJsonLd({ faqs }: HomeJsonLdProps) {
         "@type": "Organization",
         "@id": `${BELOWMARK_ORIGIN}/#organization`,
         name: "Belowmark",
-        url: BELOWMARK_ORIGIN,
-        logo: `${BELOWMARK_ORIGIN}/og/home-de.png`,
+        url: `${BELOWMARK_ORIGIN}/`,
+        logo: `${BELOWMARK_ORIGIN}/og/home.png`,
         sameAs: [
           `${BELOWMARK_ORIGIN}/blog`,
           `${BELOWMARK_ORIGIN}/tr/blog`,
@@ -26,7 +26,7 @@ export default function HomeJsonLd({ faqs }: HomeJsonLdProps) {
       {
         "@type": "WebSite",
         "@id": `${BELOWMARK_ORIGIN}/#website`,
-        url: BELOWMARK_ORIGIN,
+        url: `${BELOWMARK_ORIGIN}/`,
         name: "Belowmark — Zwangsversteigerungen, Edikte, SHAB, Aste Giudiziarie, Subastas BOE, Licitor, UK Auctions & İcra İhale",
         publisher: { "@id": `${BELOWMARK_ORIGIN}/#organization` },
         inLanguage: ["de", "tr", "en", "it", "es", "fr", "ar", "ru"],
@@ -36,7 +36,7 @@ export default function HomeJsonLd({ faqs }: HomeJsonLdProps) {
         name: "Belowmark Foreclosure & Property Auction Intelligence Terminal",
         applicationCategory: "FinanceApplication",
         operatingSystem: "Web",
-        url: BELOWMARK_ORIGIN,
+        url: `${BELOWMARK_ORIGIN}/`,
         offers: {
           "@type": "AggregateOffer",
           lowPrice: "0",

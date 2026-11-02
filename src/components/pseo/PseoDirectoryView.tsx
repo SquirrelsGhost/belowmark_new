@@ -3,6 +3,7 @@ import BlogArticleCta from "@/components/blog/BlogArticleCta";
 import PseoListingPreviewCard from "@/components/pseo/PseoListingPreviewCard";
 import PseoMarketComparisonTable from "@/components/pseo/PseoMarketComparisonTable";
 import PseoStatsBanner from "@/components/pseo/PseoStatsBanner";
+import { BELOWMARK_ORIGIN } from "@/lib/blog/blogSeo";
 import { PseoLocale, PseoPreviewListing } from "@/types/pseo.types";
 
 interface PseoDirectoryViewProps {
@@ -71,7 +72,7 @@ export default function PseoDirectoryView({
           "@type": "ListItem",
           position: idx + 1,
           name: b.label,
-          item: `https://belowmark.com${b.href}`,
+          item: `${BELOWMARK_ORIGIN}${b.href === "/" ? "/" : b.href}`,
         })),
       },
       {
@@ -79,7 +80,7 @@ export default function PseoDirectoryView({
         name: title,
         description: lead,
         url: canonicalUrl,
-        creator: { "@type": "Organization", name: "Belowmark", url: "https://belowmark.com" },
+        creator: { "@type": "Organization", name: "Belowmark", url: `${BELOWMARK_ORIGIN}/` },
         isAccessibleForFree: true,
       },
       {

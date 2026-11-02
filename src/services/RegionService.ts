@@ -37,10 +37,28 @@ export interface IRegion {
  *
  * The market follows the country until the visitor picks one in the pricing section.
  */
+const SEARCH_CRAWLER_UA =
+  /googlebot|adsbot-google|apis-google|mediapartners-google|inspectiontool|bingbot|adidxbot|msnbot|slurp|duckduckbot|baiduspider|yandexbot|applebot|facebookexternalhit|twitterbot|linkedinbot|oai-searchbot|gptbot|chatgpt-user|perplexitybot|claudebot|amazonbot|ahrefsbot|semrushbot/i;
+
 export class RegionService {
   static GetRegion = cache(async (): Promise<IRegion> => {
     const headersList = await headers();
     const cookieStore = await cookies();
+
+    const chosenRaw = cookieStore.get(MARKET_COOKIE_NAME)?.value?.toUpperCase();
+    const isMarketChosen = isPricingCountry(chosenRaw);
+    const ua = headersList.get("user-agent") ?? "";
+
+    // Deterministic canonical region for search & AI crawlers (prevents Geo-IP cloaking across edge PoPs)
+    if (!isMarketChosen && SEARCH_CRAWLER_UA.test(ua)) {
+      return {
+        market: DEFAULT_MARKET,
+        pricingCountry: DEFAULT_PRICING_COUNTRY,
+        isMarketChosen: false,
+        isFromGeoHeader: true,
+        country: DEFAULT_MARKET,
+      };
+    }
 
     const geoCountry = GEO_COUNTRY_HEADERS.map((name) => headersList.get(name)).find(Boolean);
     const cookieCountry = cookieStore.get(COUNTRY_COOKIE_NAME)?.value;
@@ -64,8 +82,6 @@ export class RegionService {
     const detectedCountryCode = geoCountry ?? cookieCountry ?? languageCountry;
     const country = RegionService.ToMarket(detectedCountryCode);
     const detectedPricingCountry = RegionService.ToPricingCountry(detectedCountryCode);
-    const chosenRaw = cookieStore.get(MARKET_COOKIE_NAME)?.value?.toUpperCase();
-    const isMarketChosen = isPricingCountry(chosenRaw);
     const pricingCountry: PricingCountryCode = isMarketChosen ? chosenRaw : detectedPricingCountry;
 
     return {

@@ -6,7 +6,7 @@ const FALLBACK_FEED = fallbackData as BelowmarkBlogFeed;
 const FEED_CACHE_TTL_MS = 5 * 60 * 1000;
 
 let cachedFeed: BelowmarkBlogFeed | null = null;
-let cachedAt = 0;
+let cachedAt = -Infinity;
 let refreshInFlight: Promise<BelowmarkBlogFeed> | null = null;
 
 interface FeedApiEnvelope {
@@ -47,7 +47,7 @@ async function fetchAndMergeFeed(): Promise<BelowmarkBlogFeed> {
           clusters: Array.from(mergedByKey.values()),
         };
         cachedFeed = merged;
-        cachedAt = Date.now();
+        cachedAt = performance.now();
         return merged;
       }
     }
@@ -55,7 +55,7 @@ async function fetchAndMergeFeed(): Promise<BelowmarkBlogFeed> {
     // Fallback to embedded snapshot when offline or during static/edge cold start
   }
   cachedFeed ??= FALLBACK_FEED;
-  cachedAt = Date.now();
+  cachedAt = performance.now();
   return cachedFeed;
 }
 
@@ -66,7 +66,7 @@ export class BlogService {
    * and the blog remains 100% resilient and instant during navigation.
    */
   public static async GetFeed(): Promise<BelowmarkBlogFeed> {
-    const now = Date.now();
+    const now = performance.now();
     if (cachedFeed) {
       if (now - cachedAt > FEED_CACHE_TTL_MS && !refreshInFlight) {
         refreshInFlight = fetchAndMergeFeed().finally(() => {

@@ -1,5 +1,5 @@
-import { BELOWMARK_ORIGIN, BLOG_LANGS, isIndexableArticle } from "@/lib/blog/blogSeo";
-import { BlogService } from "@/services/BlogService";
+import { connection } from "next/server";
+import { BELOWMARK_ORIGIN } from "@/lib/blog/blogSeo";
 import { PseoService } from "@/services/PseoService";
 
 const escapeXml = (str: string) =>
@@ -13,65 +13,47 @@ interface SitemapEntry {
 }
 
 export async function GET(): Promise<Response> {
+  await connection();
   try {
-    const [feed, catalog] = await Promise.all([BlogService.GetFeed(), PseoService.GetCatalog()]);
+    const catalog = await PseoService.GetCatalog();
     const today = new Date().toISOString().slice(0, 10);
+    const snapDate = (catalog.generatedAt || today).slice(0, 10);
 
     const byLoc = new Map<string, SitemapEntry>();
-    const addUrl = (loc: string, priority: string, changefreq: "daily" | "weekly" | "monthly" = "daily", lastmod = today) => {
+    const addUrl = (loc: string, priority: string, changefreq: "daily" | "weekly" | "monthly" = "daily", lastmod = snapDate) => {
       if (!byLoc.has(loc)) {
         byLoc.set(loc, { loc, lastmod, changefreq, priority });
       }
     };
 
-    // 1. Core Marketing & Hub Pages
-    addUrl(`${BELOWMARK_ORIGIN}/`, "1.0", "daily");
+    // 1. Core Marketing, Country Hubs & Calculators
+    addUrl(`${BELOWMARK_ORIGIN}/`, "1.0", "daily", today);
     addUrl(`${BELOWMARK_ORIGIN}/zwangsversteigerungen`, "0.95", "daily");
     addUrl(`${BELOWMARK_ORIGIN}/rechner/5-10-und-7-10-grenze`, "0.95", "weekly");
     addUrl(`${BELOWMARK_ORIGIN}/tr/icra-ihale`, "0.95", "daily");
     addUrl(`${BELOWMARK_ORIGIN}/tr/hesaplama/icra-ihale-teminat`, "0.95", "weekly");
-    addUrl(`${BELOWMARK_ORIGIN}/blog`, "0.9", "daily");
-    addUrl(`${BELOWMARK_ORIGIN}/tr/blog`, "0.9", "daily");
-    addUrl(`${BELOWMARK_ORIGIN}/en/blog`, "0.85", "daily");
-    addUrl(`${BELOWMARK_ORIGIN}/it/blog`, "0.85", "daily");
-    addUrl(`${BELOWMARK_ORIGIN}/es/blog`, "0.85", "daily");
-    addUrl(`${BELOWMARK_ORIGIN}/fr/blog`, "0.85", "daily");
-    addUrl(`${BELOWMARK_ORIGIN}/ar/blog`, "0.85", "daily");
-    addUrl(`${BELOWMARK_ORIGIN}/ru/blog`, "0.85", "daily");
-    addUrl(`${BELOWMARK_ORIGIN}/login`, "0.5", "monthly");
-    addUrl(`${BELOWMARK_ORIGIN}/signup`, "0.8", "monthly");
-    addUrl(`${BELOWMARK_ORIGIN}/impressum`, "0.3", "monthly");
-    addUrl(`${BELOWMARK_ORIGIN}/agb`, "0.3", "monthly");
-    addUrl(`${BELOWMARK_ORIGIN}/datenschutz`, "0.3", "monthly");
-    addUrl(`${BELOWMARK_ORIGIN}/widerruf`, "0.3", "monthly");
+    addUrl(`${BELOWMARK_ORIGIN}/signup`, "0.80", "monthly");
+    addUrl(`${BELOWMARK_ORIGIN}/impressum`, "0.30", "monthly");
+    addUrl(`${BELOWMARK_ORIGIN}/agb`, "0.30", "monthly");
+    addUrl(`${BELOWMARK_ORIGIN}/datenschutz`, "0.30", "monthly");
+    addUrl(`${BELOWMARK_ORIGIN}/widerruf`, "0.30", "monthly");
 
-    // 2. Multilingual Blog Articles
-    for (const cluster of feed.clusters) {
-      const modDate = (cluster.publishedAt ?? today).slice(0, 10);
-      for (const lang of BLOG_LANGS) {
-        const entry = cluster.languages[lang];
-        if (isIndexableArticle(entry)) {
-          addUrl(`${BELOWMARK_ORIGIN}${entry.url}`, "0.85", "weekly", modDate);
-        }
-      }
-    }
-
-    // 2b. All 16 German Bundesländer Hub Pages
+    // 2. All 16 German Bundesländer Hub Pages
     for (const st of catalog.deStates) {
       addUrl(`${BELOWMARK_ORIGIN}/bundesland/${st.slug}`, "0.90", "daily");
     }
 
-    // 3. All German / DACH Amtsgerichte pSEO Pages
+    // 3. Strictly German (DE) Amtsgerichte pSEO Pages (§ 39 ZVG)
     for (const court of catalog.courts) {
       addUrl(`${BELOWMARK_ORIGIN}/amtsgericht/${court.slug}`, "0.85", "daily");
     }
 
-    // 4. All German / DACH Cities pSEO Pages (Full 3,039 City Coverage)
+    // 4. Strictly German (DE) Cities pSEO Pages
     for (const city of catalog.cities) {
       addUrl(`${BELOWMARK_ORIGIN}/zwangsversteigerung/${city.slug}`, "0.80", "daily");
     }
 
-    // 5. All 81 Turkish Provinces + 723 Districts pSEO Pages
+    // 5. All 81 Turkish Provinces + Districts pSEO Pages
     for (const loc of catalog.trLocations) {
       addUrl(`${BELOWMARK_ORIGIN}/tr/icra-ihale/${loc.slug}`, loc.kind === "province" ? "0.85" : "0.75", "daily");
     }

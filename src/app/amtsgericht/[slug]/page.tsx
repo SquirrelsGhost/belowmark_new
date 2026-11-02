@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { redirect } from "next/navigation";
+import { permanentRedirect } from "next/navigation";
 import BlogShell from "@/components/blog/BlogShell";
 import PseoDirectoryView from "@/components/pseo/PseoDirectoryView";
 import { BELOWMARK_ORIGIN, DEFAULT_BLOG_OG } from "@/lib/blog/blogSeo";
@@ -18,13 +18,18 @@ export async function generateMetadata({ params }: AmtsgerichtPageProps): Promis
   const catalog = await PseoService.GetCatalog();
   const entity = catalog.courtBySlug.get(slug);
   if (!entity) {
-    return MetaTagService.CreateMetaTags({
-      title: "Amtsgericht Zwangsversteigerungen | Belowmark",
-      description: "Alle laufenden Zwangsversteigerungen und Versteigerungstermine an deutschen Amtsgerichten.",
-      imgUrl: DEFAULT_BLOG_OG,
-      tags: ["Amtsgericht", "Zwangsversteigerung"],
-      url: `${BELOWMARK_ORIGIN}/zwangsversteigerungen`,
-    });
+    const legacyTarget = catalog.legacyCourtRedirects.get(slug);
+    if (legacyTarget) permanentRedirect(legacyTarget);
+    return {
+      ...MetaTagService.CreateMetaTags({
+        title: "Amtsgericht Zwangsversteigerungen | Belowmark",
+        description: "Alle laufenden Zwangsversteigerungen und Versteigerungstermine an deutschen Amtsgerichten.",
+        imgUrl: DEFAULT_BLOG_OG,
+        tags: ["Amtsgericht", "Zwangsversteigerung"],
+        url: `${BELOWMARK_ORIGIN}/zwangsversteigerungen`,
+      }),
+      robots: { index: false, follow: true },
+    };
   }
 
   const avgStr = entity.avgAppraisedValue ? ` (Ø Verkehrswert ${formatEuro(entity.avgAppraisedValue, "de")})` : "";
@@ -48,7 +53,10 @@ export default async function AmtsgerichtPage({ params }: AmtsgerichtPageProps) 
   const { slug } = await params;
   const catalog = await PseoService.GetCatalog();
   const entity = catalog.courtBySlug.get(slug);
-  if (!entity) redirect("/zwangsversteigerungen");
+  if (!entity) {
+    const legacyTarget = catalog.legacyCourtRedirects.get(slug);
+    permanentRedirect(legacyTarget ?? "/zwangsversteigerungen");
+  }
 
   return (
     <BlogShell lang="de">

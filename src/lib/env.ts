@@ -105,7 +105,7 @@ export const env = {
     const explicit = optionalEnv("NEXT_PUBLIC_APP_URL").trim();
     if (explicit) return explicit.replace(/\/+$/, "");
     if (process.env.NODE_ENV === "production" || process.env.VERCEL === "1") {
-      return "https://belowmark.com";
+      return "https://www.belowmark.com";
     }
     return "http://localhost:3000";
   },

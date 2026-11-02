@@ -129,4 +129,6 @@ export interface PseoCatalog {
   trLocations: TrLocationPseoEntry[];
   trBySlug: Map<string, TrLocationPseoEntry>;
   euMarkets: Record<EuPseoMarketCode, EuMarketCatalog>;
+  legacyCourtRedirects: Map<string, string>;
+  legacyCityRedirects: Map<string, string>;
 }

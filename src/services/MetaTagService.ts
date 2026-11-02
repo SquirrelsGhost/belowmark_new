@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { normalizeCanonicalUrl } from "@/lib/blog/blogSeo";
 import { APP_NAME } from "@/lib/constants";
 
 /**
@@ -29,19 +30,25 @@ export interface IMetaTags {
  */
 export class MetaTagService {
   static CreateMetaTags = (props: IMetaTags): Metadata => {
+    const canonicalUrl = normalizeCanonicalUrl(props.url);
+    const normalizedImgUrl = props.imgUrl.replace(/^https?:\/\/belowmark\.com(?=\/|$)/i, "https://www.belowmark.com");
+
     return {
       title: props.title,
       description: props.description,
       keywords: props.tags,
+      alternates: {
+        canonical: canonicalUrl,
+      },
 
       openGraph: {
         title: props.title,
         description: props.description,
-        url: props.url,
+        url: canonicalUrl,
         siteName: APP_NAME,
         images: [
           {
-            url: props.imgUrl,
+            url: normalizedImgUrl,
             width: 1200,
             height: 630,
             alt: APP_NAME,
@@ -54,7 +61,7 @@ export class MetaTagService {
         card: "summary_large_image",
         title: props.title,
         description: props.description,
-        images: [props.imgUrl],
+        images: [normalizedImgUrl],
       },
     };
   };

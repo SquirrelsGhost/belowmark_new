@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { redirect } from "next/navigation";
+import { permanentRedirect } from "next/navigation";
 import BlogShell from "@/components/blog/BlogShell";
 import PseoDirectoryView from "@/components/pseo/PseoDirectoryView";
 import { BELOWMARK_ORIGIN, DEFAULT_BLOG_OG } from "@/lib/blog/blogSeo";
@@ -18,13 +18,19 @@ export async function generateMetadata({ params }: BundeslandPageProps): Promise
   const catalog = await PseoService.GetCatalog();
   const state = catalog.deStateBySlug.get(slug);
   if (!state) {
-    return MetaTagService.CreateMetaTags({
-      title: "Zwangsversteigerung nach Bundesland | Belowmark",
-      description: "Alle laufenden Zwangsversteigerungen in allen 16 deutschen Bundesländern.",
-      imgUrl: DEFAULT_BLOG_OG,
-      tags: ["Zwangsversteigerung Bundesland"],
-      url: `${BELOWMARK_ORIGIN}/zwangsversteigerungen`,
-    });
+    return {
+      ...MetaTagService.CreateMetaTags({
+        title: "Zwangsversteigerung nach Bundesland | Belowmark",
+        description: "Alle laufenden Zwangsversteigerungen in allen 16 deutschen Bundesländern.",
+        imgUrl: DEFAULT_BLOG_OG,
+        tags: ["Zwangsversteigerung Bundesland"],
+        url: `${BELOWMARK_ORIGIN}/zwangsversteigerungen`,
+      }),
+      robots: { index: false, follow: true },
+    };
+  }
+  if (state.slug !== slug) {
+    permanentRedirect(`/bundesland/${state.slug}`);
   }
 
   return MetaTagService.CreateMetaTags({
@@ -46,7 +52,8 @@ export default async function BundeslandPage({ params }: BundeslandPageProps) {
   const { slug } = await params;
   const catalog = await PseoService.GetCatalog();
   const state = catalog.deStateBySlug.get(slug);
-  if (!state) redirect("/zwangsversteigerungen");
+  if (!state) permanentRedirect("/zwangsversteigerungen");
+  if (state.slug !== slug) permanentRedirect(`/bundesland/${state.slug}`);
 
   return (
     <BlogShell lang="de">

@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { redirect } from "next/navigation";
+import { permanentRedirect } from "next/navigation";
 import BlogShell from "@/components/blog/BlogShell";
 import PseoEuEntryView from "@/components/pseo/PseoEuEntryView";
 import { buildEuEntryMetadata } from "@/lib/pseo/euPageHelpers";
@@ -20,7 +20,8 @@ export default async function GbAuctionsEntryPage({ params }: GbAuctionsEntryPag
   const { slug } = await params;
   const catalog = (await PseoService.GetCatalog()).euMarkets.GB;
   const entry = catalog.bySlug.get(slug);
-  if (!entry) redirect(catalog.hubPath);
+  if (!entry) permanentRedirect(catalog.hubPath);
+  if (entry.slug !== slug) permanentRedirect(`${catalog.hubPath}/${entry.slug}`);
   return (
     <BlogShell lang="en">
       <PseoEuEntryView catalog={catalog} entry={entry} />

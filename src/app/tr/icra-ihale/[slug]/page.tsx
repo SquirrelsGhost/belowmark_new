@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { redirect } from "next/navigation";
+import { permanentRedirect } from "next/navigation";
 import BlogShell from "@/components/blog/BlogShell";
 import PseoDirectoryView from "@/components/pseo/PseoDirectoryView";
 import { BELOWMARK_ORIGIN, DEFAULT_BLOG_OG } from "@/lib/blog/blogSeo";
@@ -23,13 +23,16 @@ export async function generateMetadata({ params }: TrIcraEntityPageProps): Promi
   const catalog = await PseoService.GetCatalog();
   const entity = catalog.trBySlug.get(slug);
   if (!entity) {
-    return MetaTagService.CreateMetaTags({
-      title: "Türkiye İcra & E-İhale Gayrimenkul | Belowmark",
-      description: "81 ilde güncel icra ve e-ihale gayrimenkul satışları.",
-      imgUrl: DEFAULT_BLOG_OG,
-      tags: ["İcra İhale", "UYAP E-Satış"],
-      url: `${BELOWMARK_ORIGIN}/tr/icra-ihale`,
-    });
+    return {
+      ...MetaTagService.CreateMetaTags({
+        title: "Türkiye İcra & E-İhale Gayrimenkul | Belowmark",
+        description: "81 ilde güncel icra ve e-ihale gayrimenkul satışları.",
+        imgUrl: DEFAULT_BLOG_OG,
+        tags: ["İcra İhale", "UYAP E-Satış"],
+        url: `${BELOWMARK_ORIGIN}/tr/icra-ihale`,
+      }),
+      robots: { index: false, follow: true },
+    };
   }
 
   return MetaTagService.CreateMetaTags({
@@ -51,7 +54,7 @@ export default async function TrIcraEntityPage({ params }: TrIcraEntityPageProps
   const { slug } = await params;
   const catalog = await PseoService.GetCatalog();
   const entity = catalog.trBySlug.get(slug);
-  if (!entity) redirect("/tr/icra-ihale");
+  if (!entity) permanentRedirect("/tr/icra-ihale");
 
   const provinces = catalog.trLocations.filter((l) => l.kind === "province" && l.slug !== entity.slug).slice(0, 24);
 

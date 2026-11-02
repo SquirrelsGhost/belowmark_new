@@ -1,5 +1,6 @@
 import { Metadata } from "next";
-import { BELOWMARK_ORIGIN, DEFAULT_BLOG_OG } from "@/lib/blog/blogSeo";
+import { permanentRedirect } from "next/navigation";
+import { BELOWMARK_ORIGIN, DEFAULT_BLOG_OG, marketCalcAlternates, marketHubAlternates } from "@/lib/blog/blogSeo";
 import { EU_MARKET_COPY } from "@/lib/pseo/euMarketCopy";
 import { EU_MARKET_META } from "@/lib/pseo/euMarketRegions";
 import { MetaTagService } from "@/services/MetaTagService";
@@ -10,13 +11,16 @@ export async function buildEuHubMetadata(market: EuPseoMarketCode): Promise<Meta
   const catalog = (await PseoService.GetCatalog()).euMarkets[market];
   const copy = EU_MARKET_COPY[market];
   const meta = EU_MARKET_META[market];
-  return MetaTagService.CreateMetaTags({
-    title: copy.hubMetaTitle(catalog.totalListings, catalog.regions.length),
-    description: copy.hubMetaDesc(catalog.totalListings, catalog.regions.length),
-    imgUrl: DEFAULT_BLOG_OG,
-    tags: [meta.shortLabel, copy.hubEyebrow, "Belowmark"],
-    url: `${BELOWMARK_ORIGIN}${catalog.hubPath}`,
-  });
+  return {
+    ...MetaTagService.CreateMetaTags({
+      title: copy.hubMetaTitle(catalog.totalListings, catalog.regions.length),
+      description: copy.hubMetaDesc(catalog.totalListings, catalog.regions.length),
+      imgUrl: DEFAULT_BLOG_OG,
+      tags: [meta.shortLabel, copy.hubEyebrow, "Belowmark"],
+      url: `${BELOWMARK_ORIGIN}${catalog.hubPath}`,
+    }),
+    alternates: marketHubAlternates(catalog.hubPath),
+  };
 }
 
 export async function buildEuEntryMetadata(market: EuPseoMarketCode, slug: string): Promise<Metadata> {
@@ -24,7 +28,13 @@ export async function buildEuEntryMetadata(market: EuPseoMarketCode, slug: strin
   const copy = EU_MARKET_COPY[market];
   const entry = catalog.bySlug.get(slug);
   if (!entry) {
-    return buildEuHubMetadata(market);
+    return {
+      ...(await buildEuHubMetadata(market)),
+      robots: { index: false, follow: true },
+    };
+  }
+  if (entry.slug !== slug) {
+    permanentRedirect(`${catalog.hubPath}/${entry.slug}`);
   }
   return MetaTagService.CreateMetaTags({
     title: copy.entryMetaTitle(entry),
@@ -38,11 +48,14 @@ export async function buildEuEntryMetadata(market: EuPseoMarketCode, slug: strin
 export function buildEuCalcMetadata(market: EuPseoMarketCode): Metadata {
   const copy = EU_MARKET_COPY[market];
   const meta = EU_MARKET_META[market];
-  return MetaTagService.CreateMetaTags({
-    title: copy.calcMetaTitle,
-    description: copy.calcMetaDesc,
-    imgUrl: DEFAULT_BLOG_OG,
-    tags: [meta.shortLabel, copy.calcMetaTitle, "Belowmark"],
-    url: `${BELOWMARK_ORIGIN}${meta.calcPath}`,
-  });
+  return {
+    ...MetaTagService.CreateMetaTags({
+      title: copy.calcMetaTitle,
+      description: copy.calcMetaDesc,
+      imgUrl: DEFAULT_BLOG_OG,
+      tags: [meta.shortLabel, copy.calcMetaTitle, "Belowmark"],
+      url: `${BELOWMARK_ORIGIN}${meta.calcPath}`,
+    }),
+    alternates: marketCalcAlternates(meta.calcPath),
+  };
 }

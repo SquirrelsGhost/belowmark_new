@@ -284,6 +284,18 @@ function buildEuMarketCatalog(market: EuPseoMarketCode, marketListings: Listing[
   }
   courts.sort((a, b) => b.totalCount - a.totalCount);
 
+  // Normalize region subLinks & courtLinks to canonical finalSlugs (zero internal redirect hops)
+  for (const reg of regions) {
+    reg.subLinks = reg.subLinks.map((s) => ({
+      ...s,
+      slug: bySlug.get(`${s.slug}-stadt`)?.slug ?? bySlug.get(s.slug)?.slug ?? s.slug,
+    }));
+    reg.courtLinks = reg.courtLinks.map((c) => ({
+      ...c,
+      slug: bySlug.get(`${c.slug}-gericht`)?.slug ?? bySlug.get(c.slug)?.slug ?? c.slug,
+    }));
+  }
+
   return {
     market,
     locale: meta.locale,
@@ -309,6 +321,7 @@ async function buildCatalog(): Promise<PseoCatalog> {
   const allEuroListings = (deSnap.listings ?? []).filter((l) => !l.cancelled);
   const trListings = (trSnap.listings ?? []).filter((l) => !l.cancelled);
 
+  const deOnlyListings: Listing[] = [];
   const euBuckets: Record<EuPseoMarketCode, Listing[]> = {
     AT: [],
     CH: [],
@@ -320,7 +333,9 @@ async function buildCatalog(): Promise<PseoCatalog> {
 
   for (const l of allEuroListings) {
     const m = detectEuMarket(l);
-    if (m !== "DE") {
+    if (m === "DE") {
+      deOnlyListings.push(l);
+    } else {
       euBuckets[m].push(l);
     }
   }
@@ -334,11 +349,11 @@ async function buildCatalog(): Promise<PseoCatalog> {
     GB: buildEuMarketCatalog("GB", euBuckets.GB),
   };
 
-  // 1. Group DE + DACH/EU by Court & City (preserving all existing URLs)
+  // 1. Group strictly German (DE) ZVG proceedings by Court & City
   const byCourt = new Map<string, Listing[]>();
   const byCity = new Map<string, { name: string; items: Listing[] }>();
 
-  for (const l of allEuroListings) {
+  for (const l of deOnlyListings) {
     if (l.authority) {
       const cSlug = slugifyPseo(l.authority);
       if (cSlug) {
@@ -369,7 +384,7 @@ async function buildCatalog(): Promise<PseoCatalog> {
       if (!item.place) continue;
       const cName = cleanCityName(item.place);
       const cSlug = slugifyPseo(cName);
-      if (!cSlug) continue;
+      if (!cSlug || cSlug.length < 2) continue;
       const prev = cityCounts.get(cSlug) ?? { name: cName, slug: cSlug, count: 0 };
       prev.count++;
       cityCounts.set(cSlug, prev);
@@ -427,13 +442,39 @@ async function buildCatalog(): Promise<PseoCatalog> {
   }
   cities.sort((a, b) => b.totalCount - a.totalCount);
 
+  // 1a. Map legacy non-DE court & city slugs to their canonical EU country pages (308 zero-loss SEO migration)
+  const legacyCourtRedirects = new Map<string, string>();
+  const legacyCityRedirects = new Map<string, string>();
+  const euMarketOrder: readonly EuPseoMarketCode[] = ["AT", "CH", "IT", "ES", "FR", "GB"];
+
+  for (const m of euMarketOrder) {
+    const euCat = euMarkets[m];
+    for (const l of euBuckets[m]) {
+      if (l.authority) {
+        const cSlug = slugifyPseo(l.authority);
+        if (cSlug && !courtBySlug.has(cSlug) && !legacyCourtRedirects.has(cSlug)) {
+          const targetEntry = euCat.bySlug.get(`${cSlug}-gericht`) ?? euCat.bySlug.get(cSlug);
+          legacyCourtRedirects.set(cSlug, targetEntry ? `${euCat.hubPath}/${targetEntry.slug}` : euCat.hubPath);
+        }
+      }
+      if (l.place) {
+        const cName = cleanCityName(l.place);
+        const citySlug = slugifyPseo(cName);
+        if (citySlug && citySlug.length >= 2 && !cityBySlug.has(citySlug) && !legacyCityRedirects.has(citySlug)) {
+          const targetEntry = euCat.bySlug.get(citySlug);
+          legacyCityRedirects.set(citySlug, targetEntry ? `${euCat.hubPath}/${targetEntry.slug}` : euCat.hubPath);
+        }
+      }
+    }
+  }
+
   // 1b. Group DE by Bundesland (16 German States)
   const deStateSeeds = STATES.filter((s) => s.country === "DE");
   const deStates: DeStatePseoEntry[] = [];
   const deStateBySlug = new Map<string, DeStatePseoEntry>();
 
   for (const stSeed of deStateSeeds) {
-    const stItems = allEuroListings.filter((l) => l.region?.trim() === stSeed.name);
+    const stItems = deOnlyListings.filter((l) => l.region?.trim() === stSeed.name);
     const stSlug = slugifyPseo(stSeed.name);
     const stats = computeStats(stItems);
     const stCourts = courts
@@ -558,8 +599,8 @@ async function buildCatalog(): Promise<PseoCatalog> {
   trLocations.sort((a, b) => b.totalCount - a.totalCount);
 
   return {
-    generatedAt: deSnap.meta?.generatedAt || new Date().toISOString(),
-    deTotalListings: allEuroListings.length,
+    generatedAt: deSnap.meta?.generatedAt || "2026-11-02T00:00:00.000Z",
+    deTotalListings: deOnlyListings.length,
     trTotalListings: trListings.length,
     deStates,
     deStateBySlug,
@@ -570,6 +611,8 @@ async function buildCatalog(): Promise<PseoCatalog> {
     trLocations,
     trBySlug,
     euMarkets,
+    legacyCourtRedirects,
+    legacyCityRedirects,
   };
 }
 
