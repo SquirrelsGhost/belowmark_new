@@ -164,7 +164,7 @@ export async function resolveSessionToken(
   if (recentSessionResolutions.size > 200) {
     recentSessionResolutions.clear();
   }
-  recentSessionResolutions.set(cacheKey, { expiresAt, user: resolved });
+  recentSessionResolutions.set(cacheKey, { expiresAt, user: { ...resolved, neuesTokenId: undefined } });
   if (pruefung.neuesTokenId) {
     const rotatedKey = `${daten.id}:${daten.version}:${daten.sessionId}:${pruefung.neuesTokenId}:${userAgent ?? ""}`;
     recentSessionResolutions.set(rotatedKey, { expiresAt, user: { ...resolved, neuesTokenId: undefined } });

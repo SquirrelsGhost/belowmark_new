@@ -83,6 +83,7 @@ export const sessions = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     aktivesTokenId: varchar("aktives_token_id", { length: 64 }).notNull().default(""),
+    aktivesTokenBestaetigt: boolean("aktives_token_bestaetigt").notNull().default(true),
     vorherigesTokenId: varchar("vorheriges_token_id", { length: 64 }),
     rotiertAm: timestamp("rotiert_am", { withTimezone: true }).defaultNow().notNull(),
     zuletztAktivAm: timestamp("zuletzt_aktiv_am", { withTimezone: true }).defaultNow().notNull(),

@@ -9,6 +9,48 @@ import { isAutomatedBotRequest } from "@/lib/sicherheit/antiScrapingRules";
 import { getSessionUser, type SessionUser } from "@/services/sicherheit/SessionUserService";
 
 /**
+ * Encodes non-ISO-8859-1 characters (> 255 or control bytes) so `Headers.set()`
+ * never throws `TypeError` on international user names (TR/FR/AR/emojis).
+ */
+function headerSafeValue(value: string): string {
+  for (let i = 0; i < value.length; i++) {
+    const code = value.charCodeAt(i);
+    if (code > 255 || code < 32) return encodeURIComponent(value);
+  }
+  return value;
+}
+
+/**
+ * Allows `tokenId` cookie rotation ONLY on genuine top-level document navigations
+ * or non-prefetch API requests — never on speculative `<Link>` / RSC prefetches
+ * where mobile browsers (e.g. iOS Safari) may discard `Set-Cookie` or abort mid-flight.
+ */
+function darfCookieRotieren(req: NextRequest, kind: "api" | "page"): boolean {
+  const method = req.method.toUpperCase();
+  if (method === "HEAD" || method === "OPTIONS") return false;
+
+  const h = req.headers;
+  if (
+    h.has("rsc") ||
+    h.has("next-router-prefetch") ||
+    h.has("next-router-segment-prefetch") ||
+    h.has("x-middleware-prefetch") ||
+    (h.get("purpose") ?? "").toLowerCase().includes("prefetch") ||
+    (h.get("sec-purpose") ?? "").toLowerCase().includes("prefetch") ||
+    (h.get("moz") ?? "").toLowerCase().includes("prefetch")
+  ) {
+    return false;
+  }
+
+  if (kind === "page") {
+    const secMode = (h.get("sec-fetch-mode") ?? "").toLowerCase();
+    return secMode === "" || secMode === "navigate";
+  }
+
+  return !(h.get("accept") ?? "").toLowerCase().includes("text/event-stream");
+}
+
+/**
  * Persists a rotated `tokenId` (`user.neuesTokenId`) onto the outgoing `NextResponse`
  * so a 15-minute rotation in `Sitzungswachdienst` is never lost (even on 403/redirect in Step 4).
  */
@@ -72,12 +114,13 @@ export async function proxy(req: NextRequest): Promise<NextResponse> {
     return NextResponse.next({ request: { headers: requestHeaders } });
   }
 
-  // 3. Unified Session + Ban Check (with 15-min tokenId rotation persisted to response cookie)
+  // 3. Unified Session + Ban Check (with two-phase ACK-confirmed 15-min tokenId rotation)
   const rawCookie =
     readCookieFromRequest(req, SESSION_COOKIE_NAME) ??
     readCookieFromRequest(req, "__Host-bm_session") ??
     readCookieFromRequest(req, "bm_session");
-  const user = await getSessionUser(req, true);
+  const erlaubeRotation = darfCookieRotieren(req, policy.kind);
+  const user = await getSessionUser(req, erlaubeRotation);
   if (!user) {
     if (policy.kind === "page") {
       const loginUrl = new URL(policy.loginPath ?? AUTH_ROUTES.login, req.url);
@@ -113,8 +156,8 @@ export async function proxy(req: NextRequest): Promise<NextResponse> {
   headers.delete("x-user-id");
   headers.delete("x-user-name");
   headers.delete("x-user-permissions");
-  headers.set("x-user-id", user.id);
-  headers.set("x-user-name", user.name);
+  headers.set("x-user-id", headerSafeValue(user.id));
+  headers.set("x-user-name", headerSafeValue(user.name));
   headers.set("x-user-permissions", user.permissions.join(","));
 
   if (user.neuesTokenId) {

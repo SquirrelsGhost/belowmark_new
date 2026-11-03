@@ -1,11 +1,24 @@
 import "server-only";
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { and, eq, isNull, lt } from "drizzle-orm";
+import { after } from "next/server";
 import { db } from "@/db";
 import { Session, sessions } from "@/db/schema";
 
 const ROTATION_INTERVALL_MS = 15 * 60 * 1000; // Rotate tokenId (jti) every 15 minutes
-const PARALLEL_TOLERANZ_MS = 60 * 1000; // 60 seconds tolerance for concurrent browser requests
+const PARALLEL_TOLERANZ_MS = 60 * 1000; // 60s tolerance for concurrent requests after ACK confirmation
+const AKTIVITAET_SCHREIB_INTERVALL_MS = 120 * 1000; // Throttle zuletztAktivAm DB writes to once per 2 min
+
+const lastTouchBySession = new Map<string, number>();
+
+function runInBackground(task: () => Promise<unknown>): void {
+  const safe = () => task().catch((err: unknown) => console.error("[Sitzungswachdienst] background:", err));
+  try {
+    after(safe);
+  } catch {
+    void safe();
+  }
+}
 
 export function browserFamily(userAgent: string): string {
   const ua = userAgent.toLowerCase();
@@ -43,9 +56,10 @@ export interface SitzungPruefErgebnis {
 
 /**
  * Stateful Server-Session & Anti-Theft Watchdog (`Sitzungswachdienst`):
- * Bound to `userAgentHash` in PostgreSQL (`sessions`), rotates `tokenId` (`jti`)
- * every 15 minutes (with 60s parallel tolerance), and immediately revokes all
- * sessions of the user if token reuse (cookie theft) is detected.
+ * Bound to `userAgentHash` in PostgreSQL (`sessions`), uses two-phase ACK-confirmed
+ * 15-minute `tokenId` (`jti`) rotation so aborted mobile prefetches never lock out
+ * legitimate users, and immediately revokes all sessions of the user once a confirmed
+ * rotated token is replayed outside the 60s concurrent grace window.
  */
 export class Sitzungswachdienst {
   static onInvalidate?: () => void;
@@ -69,6 +83,7 @@ export class Sitzungswachdienst {
         id: sessionId,
         userId: params.userId,
         aktivesTokenId,
+        aktivesTokenBestaetigt: true,
         rotiertAm: now,
         zuletztAktivAm: now,
         expiresAt,
@@ -94,7 +109,10 @@ export class Sitzungswachdienst {
     erlaubeRotation = false,
     vorgeladen?: Session | null,
   ): Promise<SitzungPruefErgebnis> {
-    const sitzung = vorgeladen === undefined ? (await db.select().from(sessions).where(eq(sessions.id, sitzungId)))[0] : vorgeladen;
+    const sitzung =
+      vorgeladen === undefined
+        ? (await db.select().from(sessions).where(eq(sessions.id, sitzungId)))[0]
+        : vorgeladen;
     if (!sitzung || !sitzung.id || !sitzung.expiresAt || sitzung.widerrufenAm) return { gueltig: false };
 
     const nowMs = Date.now();
@@ -107,48 +125,93 @@ export class Sitzungswachdienst {
     }
 
     const istAktuell = tokenId === sitzung.aktivesTokenId;
+    // Two-phase rotation: as long as the browser has never confirmed receiving `aktivesTokenId`
+    // (`aktivesTokenBestaetigt === false`, e.g. aborted mobile navigation or dropped response),
+    // `vorherigesTokenId` remains valid and re-delivers `aktivesTokenId`. Once `aktivesTokenBestaetigt`
+    // is true, the strict 60-second concurrent grace window applies.
     const istVorherigesInToleranz =
       Boolean(sitzung.vorherigesTokenId) &&
       tokenId === sitzung.vorherigesTokenId &&
-      nowMs - sitzung.rotiertAm.getTime() <= PARALLEL_TOLERANZ_MS;
+      (sitzung.aktivesTokenBestaetigt === false ||
+        nowMs - sitzung.rotiertAm.getTime() <= PARALLEL_TOLERANZ_MS);
 
-    // Anti-Theft Reuse Detection: if an outdated tokenId is presented outside the 60s grace window,
-    // revoke ALL active sessions of this user immediately.
     if (!istAktuell && !istVorherigesInToleranz) {
       await Sitzungswachdienst.widerrufeAlleFuerInhaber(sitzung.userId, "Token-Wiederverwendung erkannt");
-      console.warn(`[Sitzungswachdienst] Token reuse detected for user ${sitzung.userId} (session ${sitzung.id}). All sessions revoked.`);
+      console.warn(
+        `[Sitzungswachdienst] Token reuse detected for user ${sitzung.userId} (session ${sitzung.id}). All sessions revoked.`,
+      );
       return { gueltig: false, diebstahlErkannt: true };
     }
 
-    const brauchtRotation =
-      erlaubeRotation && istAktuell && nowMs - sitzung.rotiertAm.getTime() >= ROTATION_INTERVALL_MS;
-    const neuesTokenId = brauchtRotation ? randomBytes(16).toString("base64url") : undefined;
     const now = new Date(nowMs);
+    const brauchtRotation =
+      erlaubeRotation &&
+      istAktuell &&
+      sitzung.aktivesTokenBestaetigt !== false &&
+      nowMs - sitzung.rotiertAm.getTime() >= ROTATION_INTERVALL_MS;
 
-    // Without a rotation only the "last active" time changes. Nothing in this
-    // request depends on it, so the write runs alongside instead of making
-    // every page wait one more database round trip.
-    if (!neuesTokenId) {
-      db.update(sessions)
-        .set({ zuletztAktivAm: now })
-        .where(eq(sessions.id, sitzung.id))
-        .catch((err: unknown) => console.error("[Sitzungswachdienst] zuletztAktivAm:", err));
-      return { gueltig: true, sitzung: { ...sitzung, zuletztAktivAm: now } };
+    // Phase 2 Confirmation: browser returned the newly rotated `aktivesTokenId` for the first time ->
+    // flip `aktivesTokenBestaetigt = true` and start the 60s grace clock for any concurrent requests.
+    if (istAktuell && sitzung.aktivesTokenBestaetigt === false && !brauchtRotation) {
+      await db
+        .update(sessions)
+        .set({
+          aktivesTokenBestaetigt: true,
+          rotiertAm: now,
+          zuletztAktivAm: now,
+        })
+        .where(and(eq(sessions.id, sitzung.id), eq(sessions.aktivesTokenId, tokenId)));
+
+      return {
+        gueltig: true,
+        sitzung: { ...sitzung, aktivesTokenBestaetigt: true, rotiertAm: now, zuletztAktivAm: now },
+      };
     }
 
+    // Idempotent redelivery: if the browser still sent `vorherigesTokenId` and this caller can set cookies,
+    // re-attach the already rotated `aktivesTokenId` so the browser converges onto the latest token.
+    const erneuteZustellungTokenId =
+      erlaubeRotation && !istAktuell && tokenId === sitzung.vorherigesTokenId
+        ? sitzung.aktivesTokenId
+        : undefined;
+
+    if (!brauchtRotation) {
+      const lastLocalTouch = lastTouchBySession.get(sitzung.id) ?? 0;
+      if (nowMs - Math.max(sitzung.zuletztAktivAm.getTime(), lastLocalTouch) >= AKTIVITAET_SCHREIB_INTERVALL_MS) {
+        if (lastTouchBySession.size > 2_000) lastTouchBySession.clear();
+        lastTouchBySession.set(sitzung.id, nowMs);
+        runInBackground(() =>
+          db.update(sessions).set({ zuletztAktivAm: now }).where(eq(sessions.id, sitzung.id)),
+        );
+      }
+      return {
+        gueltig: true,
+        sitzung: { ...sitzung, zuletztAktivAm: now },
+        neuesTokenId: erneuteZustellungTokenId,
+      };
+    }
+
+    const neuesTokenId = randomBytes(16).toString("base64url");
     const aktualisiert = await db
       .update(sessions)
       .set({
         zuletztAktivAm: now,
         aktivesTokenId: neuesTokenId,
+        aktivesTokenBestaetigt: false,
         vorherigesTokenId: sitzung.aktivesTokenId,
         rotiertAm: now,
       })
       .where(and(eq(sessions.id, sitzung.id), eq(sessions.aktivesTokenId, sitzung.aktivesTokenId)))
       .returning({ id: sessions.id });
 
+    // If a concurrent request won the atomic rotation race, read and re-deliver that winning token
     if (aktualisiert.length === 0) {
-      return { gueltig: true, sitzung };
+      const [frisch] = await db.select().from(sessions).where(eq(sessions.id, sitzung.id));
+      return {
+        gueltig: true,
+        sitzung: frisch ?? sitzung,
+        neuesTokenId: frisch?.aktivesTokenId,
+      };
     }
 
     return {
@@ -157,6 +220,7 @@ export class Sitzungswachdienst {
         ...sitzung,
         zuletztAktivAm: now,
         aktivesTokenId: neuesTokenId,
+        aktivesTokenBestaetigt: false,
         vorherigesTokenId: sitzung.aktivesTokenId,
         rotiertAm: now,
       },
