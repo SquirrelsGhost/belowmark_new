@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ROUTES } from "@/lib/constants";
+import { PricingCountryCode, ROUTES } from "@/lib/constants";
 import { PseoLocale, PseoPreviewListing } from "@/types/pseo.types";
 
 interface PseoListingPreviewCardProps {
@@ -84,6 +84,17 @@ const CARD_LABELS: Record<
   },
 };
 
+function inferListingCountry(item: PseoPreviewListing, locale: PseoLocale): PricingCountryCode {
+  if (item.key.startsWith("edikte-")) return "AT";
+  if (item.key.startsWith("shab-") || item.currency === "CHF") return "CH";
+  if (item.key.startsWith("it-aste-")) return "IT";
+  if (item.key.startsWith("es-boe-")) return "ES";
+  if (item.key.startsWith("fr-licitor-")) return "FR";
+  if (item.key.startsWith("gb-eig-") || item.currency === "GBP") return "GB";
+  if (locale === "tr" || item.currency === "TRY") return "TR";
+  return "DE";
+}
+
 function formatMoney(amount: number | null, currency: "EUR" | "CHF" | "GBP" | "TRY", locale: PseoLocale): string {
   if (!amount) return CARD_LABELS[locale].onRequest;
   return new Intl.NumberFormat(LOCALE_FORMAT[locale], {
@@ -96,6 +107,9 @@ function formatMoney(amount: number | null, currency: "EUR" | "CHF" | "GBP" | "T
 export default function PseoListingPreviewCard({ item, locale }: PseoListingPreviewCardProps) {
   const L = CARD_LABELS[locale];
   const dateStr = item.hearingAt ? item.hearingAt.slice(0, 10) : L.dateFallback;
+  const country = inferListingCountry(item, locale);
+  const cleanCity = item.place.split(",")[0].trim();
+  const signupHref = `${ROUTES.signup}?objekt=${encodeURIComponent(item.key)}&markt=${country}&stadt=${encodeURIComponent(cleanCity)}`;
 
   return (
     <article className="flex flex-col justify-between border-2 border-ink bg-paper-bright p-5 transition-transform duration-150 hover:-translate-y-0.5">
@@ -105,7 +119,11 @@ export default function PseoListingPreviewCard({ item, locale }: PseoListingPrev
           <span>{dateStr}</span>
         </div>
 
-        <h3 className="mt-3 font-display text-xl leading-snug text-ink">{item.title}</h3>
+        <h3 className="mt-3 font-display text-xl leading-snug text-ink">
+          <Link href={signupHref} className="hover:text-signal hover:underline">
+            {item.title}
+          </Link>
+        </h3>
         <p className="mt-1 font-mono text-xs text-ink-soft">
           {item.postcode ? `${item.postcode} ` : ""}
           {item.place} · {item.authority}
@@ -142,7 +160,7 @@ export default function PseoListingPreviewCard({ item, locale }: PseoListingPrev
 
       <div className="mt-5 pt-2">
         <Link
-          href={ROUTES.signup}
+          href={signupHref}
           className="inline-flex w-full items-center justify-between border-2 border-ink bg-paper-deep px-3.5 py-2 font-narrow text-[11px] font-semibold uppercase tracking-[0.07em] text-ink transition-colors hover:bg-ink hover:text-paper-bright"
         >
           <span>{L.cta}</span>

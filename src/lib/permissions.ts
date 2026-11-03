@@ -59,11 +59,14 @@ export interface UserCapabilitySource {
  * Computes all currently effective capabilities of a user from:
  * 1. Explicitly granted permissions (`user.permissions`, e.g. `*` or `app:investor`)
  * 2. Active paid plan (`user.plan`: `"pro"` | `"investor"`)
- * 3. Running trial (`user.trialEndsAt > now`)
- * 4. A team seat (`user.teamSeat`): full access, never Pro itself
+ * 3. A team seat (`user.teamSeat`): full access, never Pro itself
+ * Free verified accounts receive `app:access`, `watchlist:*`, and `alerts:*` (search, map,
+ * watchlist, and automatic search alerts), while `app:investor` and `gutachten:*` (exact file
+ * numbers, street addresses, court PDFs, AI report analysis, bidding limits, and bank dossier)
+ * require an active paid plan or team seat.
  * If the account is banned (`bannedAt`), all permissions immediately become empty (`[]`).
  */
-export function effectiveUserPermissions(user: UserCapabilitySource | null | undefined, now = Date.now()): Permission[] {
+export function effectiveUserPermissions(user: UserCapabilitySource | null | undefined, _now = Date.now()): Permission[] {
   if (!user || user.bannedAt) return [];
 
   const set = new Set<Permission>(["app:access", "watchlist:*", "alerts:*"]);
@@ -76,18 +79,6 @@ export function effectiveUserPermissions(user: UserCapabilitySource | null | und
     set.add("app:investor");
     set.add("gutachten:*");
   } else if (user.plan === "investor") {
-    set.add("app:investor");
-    set.add("gutachten:*");
-  }
-
-  const trialEndMs =
-    user.trialEndsAt instanceof Date
-      ? user.trialEndsAt.getTime()
-      : typeof user.trialEndsAt === "string"
-        ? new Date(user.trialEndsAt).getTime()
-        : null;
-
-  if (trialEndMs !== null && Number.isFinite(trialEndMs) && trialEndMs > now) {
     set.add("app:investor");
     set.add("gutachten:*");
   }

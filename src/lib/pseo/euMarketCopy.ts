@@ -1,5 +1,11 @@
 import { EuMarketLocationEntry, EuPseoMarketCode } from "@/types/pseo.types";
 
+function fmtMinEntry(e: EuMarketLocationEntry, ratio: number, locale: string, currency: "EUR" | "CHF" | "GBP"): string {
+  if (!e.minAppraisedValue || e.minAppraisedValue < 1000) return "";
+  const val = Math.round(e.minAppraisedValue * ratio);
+  return new Intl.NumberFormat(locale, { style: "currency", currency, maximumFractionDigits: 0 }).format(val);
+}
+
 export interface EuMarketCopyConfig {
   hubEyebrow: string;
   hubTitle: (total: number, regionCount: number, courtCount: number) => string;
@@ -96,10 +102,14 @@ export const EU_MARKET_COPY: Record<EuPseoMarketCode, EuMarketCopyConfig> = {
       `Zwangsversteigerung ${e.name} (Ediktsdatei Österreich): ${e.totalCount} aktuelle Liegenschaften`,
     entryLead: (e) =>
       `Amtlich veröffentlichte gerichtliche Immobilienversteigerungen (Edikte) für ${e.name} (${e.nativeRegionName}) — mit Schätzwert (§ 140 EO), 50 % Geringstem Gebot (§ 151 EO), 10 % Vadium (§ 147 EO) und ${e.transferTaxPct} % Kaufnebenkosten.`,
-    entryMetaTitle: (e) =>
-      `Zwangsversteigerung ${e.name} (${e.totalCount} Edikte) — Schätzwert & Termine | Belowmark`,
-    entryMetaDesc: (e) =>
-      `Aktuelle Zwangsversteigerungen (Ediktsdatei Österreich) in ${e.name}: ${e.totalCount} Verfahren inkl. Schätzwert, 50 % Geringstem Gebot (§ 151 EO) & 10 % Vadium.`,
+    entryMetaTitle: (e) => {
+      const low = fmtMinEntry(e, 0.5, "de-AT", "EUR");
+      return `Zwangsversteigerung ${e.name} (${e.totalCount} Edikte${low ? ` ab ${low}` : ""}) — Schätzwert & Termine | Belowmark`;
+    },
+    entryMetaDesc: (e) => {
+      const low = fmtMinEntry(e, 0.5, "de-AT", "EUR");
+      return `Aktuelle Zwangsversteigerungen (Ediktsdatei Österreich) in ${e.name}: ${e.totalCount} Verfahren${low ? ` ab ${low} (50% § 151 EO)` : ""} inkl. Schätzwert, Vadium & Gutachten.`;
+    },
   },
   CH: {
     hubEyebrow: "SCHWEIZ · SHAB & BETREIBUNGSÄMTER · 26 KANTONE",
@@ -157,10 +167,14 @@ export const EU_MARKET_COPY: Record<EuPseoMarketCode, EuMarketCopyConfig> = {
       `Grundstücksteigerung ${e.name} (SHAB Schweiz): ${e.totalCount} aktuelle Verfahren`,
     entryLead: (e) =>
       `Alle amtlich im SHAB publizierten betreibungs- und konkursamtlichen Immobiliensteigerungen für ${e.name} (${e.nativeRegionName}) — mit Schätzung in CHF, Steigerungsbedingungen nach SchKG und ${e.transferTaxPct} % kantonalen Gebühren.`,
-    entryMetaTitle: (e) =>
-      `Grundstücksteigerung ${e.name} (${e.totalCount} SHAB-Termine in CHF) | Belowmark`,
-    entryMetaDesc: (e) =>
-      `Betreibungsamtliche Grundstücksteigerungen (SHAB / SchKG) in ${e.name}: ${e.totalCount} Objekte inkl. amtlicher Schätzung in CHF, Anzahlung & Steigerungsbedingungen.`,
+    entryMetaTitle: (e) => {
+      const low = fmtMinEntry(e, 0.6, "de-CH", "CHF");
+      return `Grundstücksteigerung ${e.name} (${e.totalCount} SHAB-Termine${low ? ` ab ${low}` : ""}) | Belowmark`;
+    },
+    entryMetaDesc: (e) => {
+      const low = fmtMinEntry(e, 0.6, "de-CH", "CHF");
+      return `Betreibungsamtliche Grundstücksteigerungen (SHAB / SchKG) in ${e.name}: ${e.totalCount} Objekte${low ? ` ab ${low}` : ""} inkl. amtlicher Schätzung in CHF, Anzahlung & Steigerungsbedingungen.`;
+    },
   },
   IT: {
     hubEyebrow: "ITALIA · ASTE GIUDIZIARIE & PORTALE DELLE VENDITE PUBBLICHE (PVP) · 20 REGIONI",
@@ -218,10 +232,14 @@ export const EU_MARKET_COPY: Record<EuPseoMarketCode, EuMarketCopyConfig> = {
       `Aste Giudiziarie ${e.name} (PVP Italia): ${e.totalCount} Immobili all'Asta e Perizie CTU`,
     entryLead: (e) =>
       `Elenco aggiornato delle esecuzioni immobiliari e aste giudiziarie per ${e.name} (${e.nativeRegionName}) — con Prezzo Base d'Asta, Offerta Minima al 75% (art. 571 c.p.c.), cauzione 10% e confronto con i valori OMI di mercato.`,
-    entryMetaTitle: (e) =>
-      `Aste Giudiziarie ${e.name} (${e.totalCount} Lotti PVP) — Offerta Minima 75% | Belowmark`,
-    entryMetaDesc: (e) =>
-      `Immobili all'asta giudiziaria a ${e.name} (${e.totalCount} procedure PVP): Prezzo Base, Offerta Minima al 75% (art. 571 c.p.c.), Perizia CTU e date di vendita.`,
+    entryMetaTitle: (e) => {
+      const low = fmtMinEntry(e, 0.75, "it-IT", "EUR");
+      return `Aste Giudiziarie ${e.name} (${e.totalCount} Lotti PVP${low ? ` da ${low}` : ""}) — Offerta Minima 75% | Belowmark`;
+    },
+    entryMetaDesc: (e) => {
+      const low = fmtMinEntry(e, 0.75, "it-IT", "EUR");
+      return `Immobili all'asta giudiziaria a ${e.name} (${e.totalCount} procedure PVP${low ? ` da ${low}` : ""}): Prezzo Base, Offerta Minima al 75% (art. 571 c.p.c.), Perizia CTU e date di vendita.`;
+    },
   },
   ES: {
     hubEyebrow: "ESPAÑA · PORTAL DE SUBASTAS DEL BOE · 17 COMUNIDADES AUTÓNOMAS",
@@ -279,10 +297,14 @@ export const EU_MARKET_COPY: Record<EuPseoMarketCode, EuMarketCopyConfig> = {
       `Subastas Judiciales BOE en ${e.name}: ${e.totalCount} Inmuebles y Edictos Activos`,
     entryLead: (e) =>
       `Listado actualizado de subastas judiciales de viviendas, locales y solares en ${e.name} (${e.nativeRegionName}) — con Valor de Subasta BOE, umbral del 70% (Art. 670 LEC), depósito del 5% e ITP autonómico del ${e.transferTaxPct}%.`,
-    entryMetaTitle: (e) =>
-      `Subastas Judiciales BOE ${e.name} (${e.totalCount} Lotes) — Regla 70% LEC | Belowmark`,
-    entryMetaDesc: (e) =>
-      `Inmuebles en subasta judicial del BOE en ${e.name}: ${e.totalCount} expedientes activos con Valor de Subasta, umbral 70% Art. 670 LEC, depósito 5% y certificación de cargas.`,
+    entryMetaTitle: (e) => {
+      const low = fmtMinEntry(e, 0.5, "es-ES", "EUR");
+      return `Subastas Judiciales BOE ${e.name} (${e.totalCount} Lotes${low ? ` desde ${low}` : ""}) — Regla 70% LEC | Belowmark`;
+    },
+    entryMetaDesc: (e) => {
+      const low = fmtMinEntry(e, 0.5, "es-ES", "EUR");
+      return `Inmuebles en subasta judicial del BOE en ${e.name}: ${e.totalCount} expedientes activos${low ? ` desde ${low}` : ""} con Valor de Subasta, umbral 70% Art. 670 LEC, depósito 5% y cargas.`;
+    },
   },
   FR: {
     hubEyebrow: "FRANCE · VENTES AUX ENCHÈRES LICITOR & TRIBUNAUX JUDICIAIRES · 13 RÉGIONS",
@@ -340,10 +362,14 @@ export const EU_MARKET_COPY: Record<EuPseoMarketCode, EuMarketCopyConfig> = {
       `Ventes aux Enchères Immobilières ${e.name} (Licitor & TJ) : ${e.totalCount} Biens à la Barre`,
     entryLead: (e) =>
       `Consultez toutes les ventes aux enchères judiciaires programmées pour ${e.name} (${e.nativeRegionName}) — avec Mise à prix, juridiction compétente, consignation CARPA 10 % et comparaison aux prix réels DVF/m².`,
-    entryMetaTitle: (e) =>
-      `Enchères Immobilières ${e.name} (${e.totalCount} Lots Licitor / TJ) | Belowmark`,
-    entryMetaDesc: (e) =>
-      `Ventes aux enchères immobilières au Tribunal Judiciaire pour ${e.name} : ${e.totalCount} biens actifs avec Mise à prix, Cahier des conditions de vente et décote DVF.`,
+    entryMetaTitle: (e) => {
+      const low = fmtMinEntry(e, 0.45, "fr-FR", "EUR");
+      return `Enchères Immobilières ${e.name} (${e.totalCount} Lots Licitor / TJ${low ? ` dès ${low}` : ""}) | Belowmark`;
+    },
+    entryMetaDesc: (e) => {
+      const low = fmtMinEntry(e, 0.45, "fr-FR", "EUR");
+      return `Ventes aux enchères immobilières au Tribunal Judiciaire pour ${e.name} : ${e.totalCount} biens actifs${low ? ` dès ${low}` : ""} avec Mise à prix, Cahier des conditions de vente et décote DVF.`;
+    },
   },
   GB: {
     hubEyebrow: "UNITED KINGDOM · RICS PROPERTY AUCTIONS · ALL 12 UK REGIONS",
@@ -401,9 +427,13 @@ export const EU_MARKET_COPY: Record<EuPseoMarketCode, EuMarketCopyConfig> = {
       `UK Property Auctions in ${e.name}: ${e.totalCount} Live Lots & Guide Prices`,
     entryLead: (e) =>
       `Live residential and commercial property auction lots in ${e.name} (${e.nativeRegionName}) — complete with Guide Prices in GBP, 10% exchange deposit figures, 28-day completion terms, and HM Land Registry £/m² street benchmarks.`,
-    entryMetaTitle: (e) =>
-      `Property Auctions ${e.name} (${e.totalCount} UK Auction Lots & Guide Prices) | Belowmark`,
-    entryMetaDesc: (e) =>
-      `Browse ${e.totalCount} live UK property auction lots in ${e.name}: Guide Prices in GBP, 10% exchange deposit, Legal Pack notes, and local price/m² comparisons.`,
+    entryMetaTitle: (e) => {
+      const low = fmtMinEntry(e, 0.7, "en-GB", "GBP");
+      return `Property Auctions ${e.name} (${e.totalCount} UK Lots${low ? ` from ${low}` : ""}) | Belowmark`;
+    },
+    entryMetaDesc: (e) => {
+      const low = fmtMinEntry(e, 0.7, "en-GB", "GBP");
+      return `Browse ${e.totalCount} live UK property auction lots in ${e.name}${low ? ` from ${low}` : ""}: Guide Prices in GBP, 10% exchange deposit, Legal Pack notes, and local price/m² comparisons.`;
+    },
   },
 };

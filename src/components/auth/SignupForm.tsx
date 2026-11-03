@@ -24,10 +24,19 @@ interface SignupFormProps {
   t: Pick<IAuthTranslation, "Fields" | "Errors" | "Signup">;
   /** Pre-selected from the visitor's region or pricing choice */
   defaultMarket: PricingCountryCode;
+  initialEmail?: string;
+  targetKey?: string;
+  targetCity?: string;
 }
 
 /** Sign-up: e-mail, password, market, consent — then "check your inbox". */
-export default function SignupForm({ t, defaultMarket }: SignupFormProps) {
+export default function SignupForm({
+  t,
+  defaultMarket,
+  initialEmail,
+  targetKey,
+  targetCity,
+}: SignupFormProps) {
   const [state, formAction] = useActionState(signupAction, INITIAL_AUTH_STATE);
   const formRef = useRef<HTMLFormElement>(null);
   useFocusFirstError(formRef, state);
@@ -63,6 +72,8 @@ export default function SignupForm({ t, defaultMarket }: SignupFormProps) {
   return (
     <form ref={formRef} action={formAction} noValidate className="grid min-w-0 gap-5">
       <AuthBotShield refreshKey={state} />
+      {targetKey && <input type="hidden" name="targetKey" value={targetKey} />}
+      {targetCity && <input type="hidden" name="targetCity" value={targetCity} />}
       {state.code && <AuthErrorSummary title={t.Errors.SummaryTitle} message={errorMessage(state.code, t.Errors, state.retryAfterMinutes)} />}
       <AuthField
         id="signup-email"
@@ -73,7 +84,7 @@ export default function SignupForm({ t, defaultMarket }: SignupFormProps) {
         placeholder={t.Fields.EmailPlaceholder}
         autoComplete="email"
         inputMode="email"
-        defaultValue={state.values?.email}
+        defaultValue={state.values?.email ?? initialEmail}
         error={fieldError("email")}
       />
       <PasswordField

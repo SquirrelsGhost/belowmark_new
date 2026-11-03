@@ -5,6 +5,7 @@ import { limitOrNull, mayMail, requestLocale, unknownError } from "@/lib/auth/ac
 import { RATE_LIMITS } from "@/lib/auth/authConfig";
 import { verifyLoginPoW } from "@/lib/auth/loginPow";
 import { getRequestInfo } from "@/lib/auth/requestInfo";
+import { saveSignupContextCookie } from "@/lib/auth/signupContext";
 import { field, signupSchema, toFieldErrors } from "@/lib/auth/validation";
 import { MARKET_COOKIE_NAME, pricingCountryToMarket, REGION_COOKIE_MAX_AGE } from "@/lib/constants";
 import { AuthService } from "@/services/AuthService";
@@ -42,6 +43,8 @@ export async function signupAction(_prev: AuthFormState, formData: FormData): Pr
   if (!parsed.success) return toFieldErrors(parsed.error, values);
   const { email, password, market } = parsed.data;
   const hardwareFingerprint = field(formData, "hardwareFingerprint").trim() || undefined;
+  const targetKey = field(formData, "targetKey").trim().slice(0, 128) || undefined;
+  const targetCity = field(formData, "targetCity").trim().slice(0, 80) || undefined;
 
   if (!MailService.isAvailable()) return { status: "error", code: "mail_unavailable", values };
 
@@ -66,6 +69,7 @@ export async function signupAction(_prev: AuthFormState, formData: FormData): Pr
     );
     const cookieStore = await cookies();
     cookieStore.set(MARKET_COOKIE_NAME, market, { path: "/", maxAge: REGION_COOKIE_MAX_AGE, sameSite: "lax" });
+    await saveSignupContextCookie({ key: targetKey, city: targetCity, market });
   } catch (error) {
     return unknownError("signupAction", error, values);
   }

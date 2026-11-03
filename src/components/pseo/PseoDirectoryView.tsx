@@ -1,9 +1,11 @@
 import Link from "next/link";
 import BlogArticleCta from "@/components/blog/BlogArticleCta";
+import PseoAlertCaptureBox from "@/components/pseo/PseoAlertCaptureBox";
 import PseoListingPreviewCard from "@/components/pseo/PseoListingPreviewCard";
 import PseoMarketComparisonTable from "@/components/pseo/PseoMarketComparisonTable";
 import PseoStatsBanner from "@/components/pseo/PseoStatsBanner";
 import { BELOWMARK_ORIGIN } from "@/lib/blog/blogSeo";
+import { PricingCountryCode } from "@/lib/constants";
 import { PseoLocale, PseoPreviewListing } from "@/types/pseo.types";
 
 interface PseoDirectoryViewProps {
@@ -63,6 +65,30 @@ export default function PseoDirectoryView({
       ? "🧮 Ücretsiz İcra İhale %10 Teminat & %50 Sınır Hesaplayıcı →"
       : "🧮 Kostenloser 5/10- & 7/10-Grenze + Sicherheitsleistung Rechner →");
 
+  const locationName = breadcrumbs[breadcrumbs.length - 1]?.label ?? title.split(":")[0];
+  const marketCode: PricingCountryCode = canonicalUrl.includes("/oesterreich/")
+    ? "AT"
+    : canonicalUrl.includes("/schweiz/")
+      ? "CH"
+      : canonicalUrl.includes("/it/")
+        ? "IT"
+        : canonicalUrl.includes("/es/")
+          ? "ES"
+          : canonicalUrl.includes("/fr/")
+            ? "FR"
+            : canonicalUrl.includes("/en/uk-")
+              ? "GB"
+              : isTr
+                ? "TR"
+                : "DE";
+
+  const validBids = listings
+    .map((l) => l.minimumBid ?? l.appraisedValue)
+    .filter((v): v is number => typeof v === "number" && v > 0);
+  const lowPrice = validBids.length > 0 ? Math.min(...validBids) : null;
+  const highPrice = validBids.length > 0 ? Math.max(...validBids) : null;
+  const primaryCurrency = listings[0]?.currency ?? (marketCode === "CH" ? "CHF" : marketCode === "GB" ? "GBP" : marketCode === "TR" ? "TRY" : "EUR");
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@graph": [
@@ -82,6 +108,17 @@ export default function PseoDirectoryView({
         url: canonicalUrl,
         creator: { "@type": "Organization", name: "Belowmark", url: `${BELOWMARK_ORIGIN}/` },
         isAccessibleForFree: true,
+        ...(lowPrice && highPrice
+          ? {
+              offers: {
+                "@type": "AggregateOffer",
+                lowPrice,
+                highPrice,
+                priceCurrency: primaryCurrency,
+                offerCount: listings.length,
+              },
+            }
+          : {}),
       },
       {
         "@type": "ItemList",
@@ -150,6 +187,13 @@ export default function PseoDirectoryView({
         </div>
         <PseoStatsBanner stats={stats} />
       </header>
+
+      <PseoAlertCaptureBox
+        locale={locale}
+        locationName={locationName}
+        marketCode={marketCode}
+        activeCount={listings.length}
+      />
 
       <div className="mt-10">
         <h2 className="font-display text-2xl text-ink sm:text-3xl">

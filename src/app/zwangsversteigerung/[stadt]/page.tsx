@@ -32,10 +32,12 @@ export async function generateMetadata({ params }: StadtPageProps): Promise<Meta
     };
   }
 
+  const minBidVal = entity.minAppraisedValue ? Math.round(entity.minAppraisedValue * 0.5) : null;
+  const minBidStr = minBidVal ? ` ab ${formatEuro(minBidVal, "de")} (50% ZVG)` : "";
   const avgStr = entity.avgAppraisedValue ? ` · Ø Verkehrswert ${formatEuro(entity.avgAppraisedValue, "de")}` : "";
   return MetaTagService.CreateMetaTags({
-    title: `Zwangsversteigerung ${entity.name}: ${entity.totalCount} aktuelle Immobilien & Termine | Belowmark`,
-    description: `${entity.totalCount} amtliche Zwangsversteigerungen in ${entity.name} (${entity.region})${avgStr}. Berechnen Sie 5/10- & 7/10-Grenzen, Sicherheitsleistung (§ 68 ZVG) & Bietgrenzen.`,
+    title: `Zwangsversteigerung ${entity.name}: ${entity.totalCount} Immobilien${minBidStr} | Belowmark`,
+    description: `${entity.totalCount} amtliche Zwangsversteigerungen in ${entity.name} (${entity.region})${minBidStr}${avgStr}. Aktenzeichen, 5/10- & 7/10-Grenzen, Sicherheitsleistung (§ 68 ZVG) & Gutachten.`,
     imgUrl: DEFAULT_BLOG_OG,
     tags: [
       `Zwangsversteigerung ${entity.name}`,

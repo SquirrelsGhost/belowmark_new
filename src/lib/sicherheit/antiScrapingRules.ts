@@ -99,20 +99,18 @@ export function maskFileNo(fileNo: string): string {
 }
 
 /**
- * Strips sensitive valuation, parcel, street, and document fields from a `Listing`
- * before rendering for a `free` account so nothing leaks into the DOM or RSC payload.
+ * Strips sensitive court file numbers, parcel identifiers, exact street addresses,
+ * and official court documents from a `Listing` for a `free` account, while keeping
+ * headline valuation figures (`appraisedValue`, `minimumBid`, `depositAmount`) visible
+ * so free users see the opportunity and upgrade to Investor to unlock the full dossier.
  */
 export function redactListingForFreePlan(listing: Listing): Listing {
   return {
     ...listing,
     street: null,
     fileNo: maskFileNo(listing.fileNo),
-    limitsWaived: false,
-    appraisedValue: null,
-    minimumBid: null,
-    depositAmount: null,
     grundbuch: null,
-    description: listing.description ? `${listing.description.slice(0, 90)}…` : null,
+    description: listing.description ? `${listing.description.slice(0, 110)}…` : null,
     creditor: null,
     officialUrl: "",
     documentUrl: null,
@@ -124,12 +122,10 @@ export function redactListingForFreePlan(listing: Listing): Listing {
           ...listing.tr,
           ada: null,
           parsel: null,
-          startingBid: null,
           marketMedianPerM2: null,
-          discountPct: null,
           unitNo: null,
           arsaPayi: null,
-          excerpt: listing.tr.excerpt ? `${listing.tr.excerpt.slice(0, 90)}…` : null,
+          excerpt: listing.tr.excerpt ? `${listing.tr.excerpt.slice(0, 110)}…` : null,
         }
       : undefined,
   };

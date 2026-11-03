@@ -35,9 +35,14 @@ export async function generateMetadata({ params }: TrIcraEntityPageProps): Promi
     };
   }
 
+  const trBids = entity.listings
+    .map((l) => l.minimumBid ?? l.appraisedValue)
+    .filter((v): v is number => typeof v === "number" && v > 0);
+  const minBidTry = trBids.length > 0 ? Math.min(...trBids) : null;
+  const minBidStr = minBidTry ? ` (${formatTry(minBidTry)}'den %50 Açılış)` : "";
   return MetaTagService.CreateMetaTags({
-    title: `${entity.name} İcradan Satılık Gayrimenkul & E-İhale: ${entity.totalCount} Aktif Dosya | Belowmark`,
-    description: `${entity.name} genelinde ${entity.totalCount} aktif UYAP E-Satış ve icra gayrimenkul ihalesi. Muhammen bedel, %50 açılış bedeli, %10 teminat ve TKGM parsel analizi.`,
+    title: `${entity.name} İcradan Satılık Gayrimenkul: ${entity.totalCount} Aktif İhale${minBidStr} | Belowmark`,
+    description: `${entity.name} genelinde ${entity.totalCount} aktif UYAP E-Satış ve icra gayrimenkul ihalesi${minBidStr}. Esas No, muhammen bedel, %50 açılış, %10 teminat ve TKGM ada/parsel analizi.`,
     imgUrl: DEFAULT_BLOG_OG,
     tags: [
       `${entity.name} icradan satılık`,

@@ -89,22 +89,22 @@ export class AuthMailService {
 
     const template: IMailTemplate = isTr
       ? {
-          Subject: "Hoş geldiniz — 14 günlük tam deneme erişiminiz etkinleştirildi",
-          Preheader: `Belowmark hesabınız doğrulandı. ${endDate} tarihine kadar tam erişiminiz açık.`,
+          Subject: "Hoş geldiniz — Belowmark hesabınız ve otomatik ihale alarmınız aktif",
+          Preheader: "E-posta adresiniz doğrulandı. İhaleleri inceleyin ve Investor paketiyle tam dosya detaylarını açın.",
           Greeting: "Merhaba,",
-          Body: `E-posta adresiniz başarıyla doğrulandı ve Belowmark hesabınız etkinleştirildi. 14 günlük ücretsiz tam deneme erişiminiz şimdi başladı (${endDate} tarihine kadar geçerlidir).`,
-          Action: "İhaleleri incelemeye başla",
-          Expiry: `Deneme süreniz ${endDate} tarihinde kendiliğinden sona erer — otomatik abonelik veya gizli ücret yoktur.`,
-          Ignore: "Hesap ayarlarınızı, kayıtlı aramalarınızı ve süre hatırlatıcılarınızı istediğiniz zaman hesabınızdan yönetebilirsiniz.",
+          Body: "E-posta adresiniz başarıyla doğrulandı ve Belowmark hesabınız etkinleştirildi. Bölgeniz için otomatik e-posta ihale alarmınız kuruldu. Dosya numaralarını (Esas No), TKGM ada/parsel bilgilerini, bilirkişi raporu yapay zeka analizini ve teklif sınırı hesaplayıcısını açmak için istediğiniz zaman Investor paketine geçebilirsiniz.",
+          Action: "İhaleleri ve hesabımı aç",
+          Expiry: `Kayıtlı aramalarınız ve izleme listeniz ücretsiz hesabınızda açık kalır (referans: ${endDate}).`,
+          Ignore: "Hesap ayarlarınızı, kayıtlı aramalarınızı ve Investor abonelik seçeneklerinizi istediğiniz zaman hesabınızdan yönetebilirsiniz.",
         }
       : {
-          Subject: "Willkommen bei Belowmark — Ihr 14-Tage-Testzugang ist freigeschaltet",
-          Preheader: `Ihre E-Mail-Adresse ist bestätigt. Voller Zugang bis zum ${endDate}.`,
+          Subject: "Willkommen bei Belowmark — Ihr Konto & Such-Alert sind aktiviert",
+          Preheader: "Ihre E-Mail-Adresse ist bestätigt. Prüfen Sie aktuelle Termine und schalten Sie Aktenzeichen & Gutachten-KI frei.",
           Greeting: "Guten Tag,",
-          Body: `Ihre E-Mail-Adresse ist bestätigt und Ihr Belowmark-Konto wurde freigeschaltet. Ihr kostenloser 14-tägiger Vollzugang läuft ab sofort bis einschließlich ${endDate}.`,
-          Action: "Verfahren durchsuchen",
-          Expiry: `Der Testzugang endet am ${endDate} automatisch — kein Abo, keine Kündigung nötig.`,
-          Ignore: "Ihre Such-Alerts, Fristen-Erinnerungen und Kontoeinstellungen verwalten Sie jederzeit direkt in Ihrem Konto.",
+          Body: "Ihre E-Mail-Adresse ist bestätigt und Ihr Belowmark-Konto wurde freigeschaltet. Ihr kostenloser E-Mail-Suchauftrag für neue Versteigerungstermine ist aktiv. Um vollständige Aktenzeichen, exakte Hausnummern, Original-Bekanntmachungen/Gutachten, die Gutachten-KI und die Bankmappe freizuschalten, können Sie jederzeit den Investor-Zugang buchen.",
+          Action: "Verfahren & Konto öffnen",
+          Expiry: `Merkliste, Karte und automatische Such-Alerts stehen Ihnen im Basiskonto dauerhaft zur Verfügung (Stand: ${endDate}).`,
+          Ignore: "Ihre Such-Alerts, Fristen-Erinnerungen und den Investor-Tarif (/buchen) verwalten Sie jederzeit direkt in Ihrem Konto.",
         };
 
     const highlights = isTr

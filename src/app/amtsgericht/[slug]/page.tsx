@@ -32,10 +32,12 @@ export async function generateMetadata({ params }: AmtsgerichtPageProps): Promis
     };
   }
 
+  const minBidVal = entity.minAppraisedValue ? Math.round(entity.minAppraisedValue * 0.5) : null;
+  const minBidStr = minBidVal ? ` ab ${formatEuro(minBidVal, "de")}` : "";
   const avgStr = entity.avgAppraisedValue ? ` (Ø Verkehrswert ${formatEuro(entity.avgAppraisedValue, "de")})` : "";
   return MetaTagService.CreateMetaTags({
-    title: `${entity.displayName}: ${entity.totalCount} Zwangsversteigerungen & Termine (${entity.region}) | Belowmark`,
-    description: `Alle ${entity.totalCount} laufenden Immobilien-Zwangsversteigerungen am ${entity.displayName} (${entity.region})${avgStr}. Mit 5/10- & 7/10-Wertgrenze, Sicherheitsleistung (§ 68 ZVG) & Gutachten-Analyse.`,
+    title: `${entity.displayName}: ${entity.totalCount} Zwangsversteigerungen${minBidStr} (${entity.region}) | Belowmark`,
+    description: `Alle ${entity.totalCount} laufenden Immobilien-Zwangsversteigerungen am ${entity.displayName} (${entity.region})${minBidStr}${avgStr}. Mit Aktenzeichen, 5/10- & 7/10-Wertgrenze & Gutachten-KI.`,
     imgUrl: DEFAULT_BLOG_OG,
     tags: [
       `${entity.displayName} Zwangsversteigerung`,
