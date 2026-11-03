@@ -1,3 +1,4 @@
+import { connection } from "next/server";
 import { BLOG_LANGS } from "@/lib/blog/blogSeo";
 import { BlogLang } from "@/types/blog.types";
 
@@ -5,37 +6,44 @@ interface CoverRouteContext {
   params: Promise<{ clusterKey: string; lang: string }>;
 }
 
-const UPSTREAM_COOLDOWN_MS = 5 * 60 * 1000;
-let upstreamDownUntil = 0;
+const UPSTREAM_ORIGINS = ["https://pycie.de", "https://www.pycie.com"] as const;
+const UPSTREAM_COOLDOWN_MS = 60 * 1000;
+let upstreamDownUntil = -Infinity;
 
 export async function GET(_req: Request, context: CoverRouteContext): Promise<Response> {
+  await connection();
   const { clusterKey, lang } = await context.params;
   const cleanLang: BlogLang = BLOG_LANGS.includes(lang as BlogLang) ? (lang as BlogLang) : "de";
-  const upstreamUrl = `https://pycie.com/blog/cover/${encodeURIComponent(clusterKey)}/${cleanLang}?v=2`;
 
-  if (Date.now() >= upstreamDownUntil) {
-    try {
-      const res = await fetch(upstreamUrl, {
-        headers: {
-          "x-seo-brand-domain": "belowmark.com",
-        },
-        next: { revalidate: 86400 },
-        signal: AbortSignal.timeout(1500),
-      });
-      if (res.ok) {
-        const buf = await res.arrayBuffer();
-        return new Response(buf, {
-          status: 200,
+  if (performance.now() >= upstreamDownUntil) {
+    let anySucceeded = false;
+    for (const origin of UPSTREAM_ORIGINS) {
+      const upstreamUrl = `${origin}/blog/cover/${encodeURIComponent(clusterKey)}/${cleanLang}?v=2`;
+      try {
+        const res = await fetch(upstreamUrl, {
           headers: {
-            "Content-Type": "image/png",
-            "Cache-Control": "public, max-age=86400, s-maxage=86400",
+            "x-seo-brand-domain": "belowmark.com",
           },
+          cache: "no-store",
+          signal: AbortSignal.timeout(4000),
         });
+        if (res.ok) {
+          anySucceeded = true;
+          const buf = await res.arrayBuffer();
+          return new Response(buf, {
+            status: 200,
+            headers: {
+              "Content-Type": res.headers.get("content-type") || "image/png",
+              "Cache-Control": "public, max-age=86400, s-maxage=86400",
+            },
+          });
+        }
+      } catch (error) {
+        console.error(`[GET /blog/cover] upstream failed (${origin})`, error);
       }
-      upstreamDownUntil = Date.now() + UPSTREAM_COOLDOWN_MS;
-    } catch (error) {
-      upstreamDownUntil = Date.now() + UPSTREAM_COOLDOWN_MS;
-      console.error("[GET /blog/cover/[clusterKey]/[lang]]", error);
+    }
+    if (!anySucceeded) {
+      upstreamDownUntil = performance.now() + UPSTREAM_COOLDOWN_MS;
     }
   }
 
