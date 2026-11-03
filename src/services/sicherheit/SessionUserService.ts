@@ -52,13 +52,14 @@ export async function resolveSessionToken(
   rawToken: string | undefined | null,
   userAgent?: string | null,
   erlaubeRotation = false,
+  erlaubeBestaetigung = false,
 ): Promise<SessionUser | null> {
   const nowMs = Date.now();
   const daten = readSessionCookieToken(rawToken, nowMs);
   if (!daten?.sessionId || !daten.tokenId) return null;
 
   const cacheKey = `${daten.id}:${daten.version}:${daten.sessionId}:${daten.tokenId}:${userAgent ?? ""}`;
-  if (!erlaubeRotation) {
+  if (!erlaubeRotation && !erlaubeBestaetigung) {
     const cached = recentSessionResolutions.get(cacheKey);
     if (cached && cached.expiresAt > nowMs) {
       return cached.user;
@@ -126,6 +127,7 @@ export async function resolveSessionToken(
     userAgent,
     erlaubeRotation,
     user.sitzung,
+    erlaubeBestaetigung,
   );
   if (!pruefung.gueltig) return null;
 
@@ -185,5 +187,7 @@ export async function getSessionUser(req: Request, erlaubeRotation = false): Pro
     readCookieFromRequest(req, "bm_session");
 
   if (!rawToken) return null;
-  return resolveSessionToken(rawToken, ua, erlaubeRotation);
+  // `req.headers.get("cookie")` is the raw client-sent HTTP header over the wire (never `x-middleware-set-cookie`),
+  // so `erlaubeBestaetigung = true` safely confirms receipt when the browser returns a rotated `tokenId`.
+  return resolveSessionToken(rawToken, ua, erlaubeRotation, true);
 }

@@ -108,6 +108,7 @@ export class Sitzungswachdienst {
     userAgent?: string | null,
     erlaubeRotation = false,
     vorgeladen?: Session | null,
+    erlaubeBestaetigung = false,
   ): Promise<SitzungPruefErgebnis> {
     const sitzung =
       vorgeladen === undefined
@@ -150,9 +151,10 @@ export class Sitzungswachdienst {
       sitzung.aktivesTokenBestaetigt !== false &&
       nowMs - sitzung.rotiertAm.getTime() >= ROTATION_INTERVALL_MS;
 
-    // Phase 2 Confirmation: browser returned the newly rotated `aktivesTokenId` for the first time ->
-    // flip `aktivesTokenBestaetigt = true` and start the 60s grace clock for any concurrent requests.
-    if (istAktuell && sitzung.aktivesTokenBestaetigt === false && !brauchtRotation) {
+    // Phase 2 Confirmation: browser returned the newly rotated `aktivesTokenId` over the wire for the first time
+    // (`erlaubeBestaetigung === true`, i.e. raw Request in proxy.ts — never internal RSC `cookies()` which reflects
+    // `x-middleware-set-cookie` during SSR of the same request) -> flip `aktivesTokenBestaetigt = true`.
+    if (erlaubeBestaetigung && istAktuell && sitzung.aktivesTokenBestaetigt === false && !brauchtRotation) {
       await db
         .update(sessions)
         .set({
