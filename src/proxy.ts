@@ -152,6 +152,9 @@ export async function proxy(req: NextRequest): Promise<NextResponse> {
   }
 
   // 5. Anti-Spoofing: strip any client-sent x-user-* headers and set verified values
+  // Never rewrite incoming `cookie` header to `neuesTokenId` here — otherwise downstream SSR
+  // (`SessionService.getCurrentUser`) would see `neuesTokenId` in the same request and prematurely
+  // ACK-confirm (`aktivesTokenBestaetigt = true`) before the browser ever receives `Set-Cookie`.
   const headers = new Headers(requestHeaders);
   headers.delete("x-user-id");
   headers.delete("x-user-name");
@@ -159,24 +162,6 @@ export async function proxy(req: NextRequest): Promise<NextResponse> {
   headers.set("x-user-id", headerSafeValue(user.id));
   headers.set("x-user-name", headerSafeValue(user.name));
   headers.set("x-user-permissions", user.permissions.join(","));
-
-  if (user.neuesTokenId) {
-    const currentCookie = readSessionCookieToken(rawCookie);
-    const rotatedCookie = createSessionCookieToken({
-      id: user.id,
-      version: user.sitzungsVersion,
-      sessionId: user.sessionId,
-      tokenId: user.neuesTokenId,
-      exp: currentCookie?.exp,
-    });
-    const existingCookieHeader = headers.get("cookie") ?? "";
-    const filteredCookies = existingCookieHeader
-      .split(";")
-      .map((c) => c.trim())
-      .filter((c) => c && !c.startsWith(`${SESSION_COOKIE_NAME}=`) && !c.startsWith("__Host-bm_session=") && !c.startsWith("bm_session="));
-    filteredCookies.push(`${SESSION_COOKIE_NAME}=${encodeURIComponent(rotatedCookie)}`);
-    headers.set("cookie", filteredCookies.join("; "));
-  }
 
   const response = NextResponse.next({ request: { headers } });
   return attachRotatedCookie(response, user, rawCookie);
