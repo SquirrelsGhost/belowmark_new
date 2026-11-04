@@ -31,6 +31,10 @@ function cancelDate(subscription: Stripe.Subscription): Date | null {
 const idOf = (value: string | { id: string } | null | undefined): string | null =>
   typeof value === "string" ? value : (value?.id ?? null);
 
+/** Shared Stripe account guard: foreign projects may pass non-UUID order IDs. */
+const isUuid = (value: string | null | undefined): value is string =>
+  typeof value === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
+
 function computePlanEndsAt(offer: BillingOffer, now: Date): Date | null {
   return offer.kind === "subscription" ? addCalendarMonths(now, offer.months) : null;
 }
@@ -45,6 +49,7 @@ function computePlanEndsAt(offer: BillingOffer, now: Date): Date | null {
  */
 export class BillingFulfillment {
   static fulfilOrder = async (orderId: string, details: { subscription: Stripe.Subscription | null; invoiceId: string | null }): Promise<boolean> => {
+    if (!isUuid(orderId)) return false;
     const [claimed] = await db
       .update(billingOrders)
       .set({ status: "paid", paidAt: new Date(), stripeInvoiceId: details.invoiceId, stripeSubscriptionId: details.subscription?.id ?? null })
@@ -169,7 +174,7 @@ export class BillingFulfillment {
       case "checkout.session.async_payment_failed": {
         const orderId = event.data.object.metadata?.orderId;
         const status = event.type === "checkout.session.expired" ? "expired" : "failed";
-        if (orderId) await db.update(billingOrders).set({ status }).where(and(eq(billingOrders.id, orderId), eq(billingOrders.status, "open")));
+        if (isUuid(orderId)) await db.update(billingOrders).set({ status }).where(and(eq(billingOrders.id, orderId), eq(billingOrders.status, "open")));
         break;
       }
       case "customer.subscription.updated":
@@ -190,7 +195,7 @@ export class BillingFulfillment {
             subscription?.metadata?.orderId ??
             null;
           const [orderByMeta] =
-            !orderByInvoice && fallbackOrderId
+            !orderByInvoice && isUuid(fallbackOrderId)
               ? await db.select({ id: billingOrders.id }).from(billingOrders).where(eq(billingOrders.id, fallbackOrderId))
               : [undefined];
           const targetOrderId = orderByInvoice?.id ?? orderByMeta?.id ?? null;
