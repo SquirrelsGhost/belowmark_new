@@ -59,6 +59,23 @@ async function findPreviewListingByKey(key: string): Promise<PseoPreviewListing 
   return undefined;
 }
 
+function sanitizeSignupCity(raw: string | undefined, previewListing?: PseoPreviewListing): string | undefined {
+  const candidate = (raw || "").split(/[,/\r\n]/)[0].trim();
+  const isBogus = (val: string) =>
+    !val ||
+    /\b(?:Wertquote|Miteigentum\w*|ME|Superficie|Ubicazione|Valore|Quota|RFD|Registro|COPERTURA|DESCRIZIONE|Plan|Gartenanlage|CHF|Fr)\b/i.test(val);
+  if (candidate && !isBogus(candidate)) return candidate;
+  if (previewListing) {
+    const placeFirst = (previewListing.place || "").split(/[,/\r\n]/)[0].trim();
+    if (placeFirst && !isBogus(placeFirst)) return placeFirst;
+    const authCity = (previewListing.authority || "")
+      .replace(/^(?:Amtsgericht|Bezirksgericht|Betreibungsamt|Konkursamt|Betreibungs-\s*und\s*Konkursamt)\s+/i, "")
+      .trim();
+    if (authCity && !isBogus(authCity)) return authCity;
+  }
+  return undefined;
+}
+
 export async function resolveSignupPageContext(
   rawParams: Record<string, string | string[] | undefined>,
   fallbackMarket: PricingCountryCode,
@@ -69,7 +86,7 @@ export async function resolveSignupPageContext(
   const initialEmail = firstParam(rawParams.email).slice(0, 254) || undefined;
 
   const previewListing = targetKey ? await findPreviewListingByKey(targetKey) : undefined;
-  const targetCity = rawCity ?? (previewListing ? previewListing.place.split(",")[0].trim() : undefined);
+  const targetCity = sanitizeSignupCity(rawCity, previewListing);
   const market: PricingCountryCode = isPricingCountry(rawMarket) ? rawMarket : fallbackMarket;
 
   return {
@@ -146,7 +163,8 @@ export async function completePostSignupOnboarding(userId: string): Promise<stri
           permissions: [],
           teamSeat: false,
         });
-        const cleanCity = ctx.city?.trim() || "";
+        const previewListing = ctx.key ? await findPreviewListingByKey(ctx.key) : undefined;
+        const cleanCity = sanitizeSignupCity(ctx.city, previewListing) || "";
         const locale = (userRow.locale || "de") as LocaleOption;
         await AlertService.create(
           {

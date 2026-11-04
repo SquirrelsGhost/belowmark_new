@@ -35,6 +35,8 @@ import {
   parseZvgComData,
   parseAtEdiktHtml,
   parseChShabXml,
+  extractChShabLocation,
+  isBogusShabPlace,
   parseItAsteItem,
   parseEsBoeHtml,
   parseFrLicitorHtml,
@@ -1469,7 +1471,28 @@ async function fetchChShabAll(postcodes, prevByKey, portalCacheDir, nowIso) {
     if (existsSync(cacheFile)) {
       try {
         const cached = JSON.parse(readFileSync(cacheFile, "utf8"));
-        if (cached && cached.fileNo) parsed = cached;
+        if (cached && cached.fileNo) {
+          if (isBogusShabPlace(cached.place, cached.postcode)) {
+            const fixed = extractChShabLocation({
+              objectsText: cached.description ?? "",
+              titleDe: cached.title ?? "",
+              hearingPlace: cached.hearingPlace ?? "",
+              authority: cached.authority ?? "",
+              fallbackPostcode: cached.postcode ?? null,
+              fallbackPlace: cached.place ?? null,
+            });
+            if (fixed.place) {
+              cached.postcode = fixed.postcode;
+              cached.place = fixed.place;
+              try {
+                writeFileSync(cacheFile, JSON.stringify(cached));
+              } catch {
+                // Ignore
+              }
+            }
+          }
+          parsed = cached;
+        }
       } catch {
         parsed = null;
       }

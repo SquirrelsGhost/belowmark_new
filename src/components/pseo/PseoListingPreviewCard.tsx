@@ -104,11 +104,23 @@ function formatMoney(amount: number | null, currency: "EUR" | "CHF" | "GBP" | "T
   }).format(amount);
 }
 
+function sanitizePreviewCity(place: string, authority: string): string {
+  const first = (place || "").split(/[,/\r\n]/)[0].trim();
+  const isBogus =
+    !first ||
+    /\b(?:Wertquote|Miteigentum\w*|ME|Superficie|Ubicazione|Valore|Quota|RFD|Registro|COPERTURA|DESCRIZIONE|Plan|Gartenanlage|CHF|Fr)\b/i.test(first);
+  if (!isBogus) return first;
+  const authCity = (authority || "")
+    .replace(/^(?:Amtsgericht|Bezirksgericht|Betreibungsamt|Konkursamt|Betreibungs-\s*und\s*Konkursamt)\s+/i, "")
+    .trim();
+  return authCity || first;
+}
+
 export default function PseoListingPreviewCard({ item, locale }: PseoListingPreviewCardProps) {
   const L = CARD_LABELS[locale];
   const dateStr = item.hearingAt ? item.hearingAt.slice(0, 10) : L.dateFallback;
   const country = inferListingCountry(item, locale);
-  const cleanCity = item.place.split(",")[0].trim();
+  const cleanCity = sanitizePreviewCity(item.place, item.authority);
   const signupHref = `${ROUTES.signup}?objekt=${encodeURIComponent(item.key)}&markt=${country}&stadt=${encodeURIComponent(cleanCity)}`;
 
   return (

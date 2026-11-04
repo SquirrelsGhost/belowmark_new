@@ -883,6 +883,215 @@ export function extractChDeposit(text) {
   return null;
 }
 
+const SHAB_NON_TOWN_WORD_RE =
+  /^(?:Miteigentum\w*|ME|Wertquote\w*|Stammgrundst\w*|Grundbuch\w*|Grundst\w*|Liegenschaft\w*|Parzelle\w*|Plan|Blatt|Kataster\w*|Gartenanlage\w*|Gebäude\w*|Wohnhaus\w*|Wohnung\w*|Einfamilienhaus\w*|Mehrfamilienhaus\w*|Stockwerkeigentum\w*|Sonderrecht\w*|Betreibungsamt\w*|Konkursamt\w*|Amtliche\w*|Schätzung|Schatzung|Anzahlung|Hinweise|Dokumentation|Besichtigung\w*|Steigerung\w*|Verwertung|Versicherung\w*|Gesamtfläche|Fläche|Rechtskräftige|Anmerkungen|Vormerkungen|Dienstbarkeiten|Grundlasten|Grenzen|Beschrieb|Garage|Autoeinstellplatz|Autoabstellplatz|Superficie|Ubicazione|Valore|Quota|COPERTURA|DESCRIZIONE|PROPRIET[AÀ']\w*|RFD|Registro|Particella|Part|Fondo|Foglio|PPP|Comproprietà|Edificio|Terreno|Abitazione|Locale|Locali|Appartamento|Stima|Ufficiale|Peritale|Totale|Non|Piano|Immeuble\w*|Bien-fonds|Parcelle\w*|Propriété|Quote-part|Estimation|Surface|Bâtiment\w*|Habitation\w*|Maison|Jardin|Assurance|Vente\w*|Enchères|Lot|Pièce\w*|Chambre\w*|Rue|Grand-Rue|Avenue|Chemin|Route|Place|AVIS|Sektor|Secteur|Abteilung|Dienststelle|Bezirk\w*|Region|Kanton\w*|Nr|Nrn|No|Fr\.?|CHF|EUR|m2|m²|mq|ha|ca|und|oder|mit|ohne|für|von|zu|bis|ab|in|auf|aus|nach|vor|über|unter|durch|gegen|et|ou|en|au|aux|dans|avec|sans|pour|par|della|dei|degli|delle|nel|nella|nei|negli|nelle|al|alla|ai|agli|alle|da|dal|dalla|con|su|sul|sulla|per|tra|fra|sowie|inkl|lt|gemäss|laut|e)$/i;
+
+const SHAB_TOWN_CONNECTOR_RE = /^(?:b\.|a\.|a\.A\.|i\.|im|am|an|bei|sur|sous|le|la|les|du|de|des|di|del|d['’]\w+)$/i;
+const SHAB_MULTIWORD_PREFIX_RE = /^(?:La|Le|Les|St\.?|Ste\.?|Saint|Sainte|San|Sant['’]\w+|Castel|Riva|Collina|Ponte|Bosco|Villa|Val|Petit|Grand|Haut|Bas|Bad|\w+-[A-Z]\.)$/i;
+const SHAB_CANTON_SUFFIX_RE = /^(?:ZH|BE|LU|UR|SZ|OW|NW|GL|ZG|FR|SO|BS|BL|SH|AR|AI|SG|GR|AG|TG|TI|VD|VS|NE|GE|JU|Ost|West)$/;
+
+const SHAB_INVALID_PLZ_PREFIX_RE =
+  /(?:\/|\b(?:Nr|Nrn|No|n|n°|Blatt|GBBl|Gbbl|Part|fondo|fondi|foglio|PPP|mq|m²|m2|Plan(?:\s+Nr\.?)?|fiscale|SIFTI|Kat|Kataster|Vers|ECA|RF|B-F|art|Parzelle|Liegenschaft|Grundstück|Katasterwert|Schätzung|Schatzung|CHF|Fr))[.:\sNo°/-]*$/i;
+
+function shabHtmlToLines(text) {
+  return String(text || "")
+    .replace(/<(?:br|\/p|\/div|\/li|\/tr|p|div|li|tr)\b[^>]*>/gi, "\n")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&#34;|&quot;/gi, '"')
+    .replace(/&#39;|&apos;/gi, "'");
+}
+
+export function cleanChShabTownCandidate(raw) {
+  if (!raw) return null;
+  const firstLine = shabHtmlToLines(raw).split(/[\r\n]+/)[0].trim();
+  const tokens = firstLine.split(/[ \t]+/).filter(Boolean);
+  const out = [];
+
+  for (let i = 0; i < tokens.length; i++) {
+    let tok = tokens[i].replace(/^[,;:()[\]"'«»-]+|[,;:()[\]"'«»]+$/g, "");
+    if (!tok || tok === "-") break;
+
+    const isAbbrevDot = /^(?:b\.|a\.|a\.A\.|i\.|St\.|Ste\.|S\.|\w+-[A-Z]\.)$/i.test(tok);
+    const hasTrailingDot = tok.endsWith(".") && !isAbbrevDot;
+    if (hasTrailingDot) {
+      tok = tok.slice(0, -1);
+    }
+    if (!tok) break;
+    if (/^\d+$/.test(tok)) break;
+
+    if (out.length === 0) {
+      if (SHAB_NON_TOWN_WORD_RE.test(tok)) return null;
+      if (!/^[A-ZÄÖÜÉÈÀÂÎÔÛÇ]/.test(tok)) return null;
+      out.push(tok);
+      if (hasTrailingDot) break;
+      continue;
+    }
+
+    const prevTok = out[out.length - 1];
+    if (SHAB_CANTON_SUFFIX_RE.test(tok)) {
+      out.push(tok);
+      break;
+    }
+
+    if (SHAB_TOWN_CONNECTOR_RE.test(tok)) {
+      if (/^(?:a\.A\.|d['’][A-ZÄÖÜÉÈÀÂÎÔÛÇ]\w*)$/i.test(tok)) {
+        out.push(tok);
+        if (hasTrailingDot) break;
+        continue;
+      }
+      const nextTok = (tokens[i + 1] || "").replace(/[.,;:()[\]"'«»]+$/g, "");
+      if (nextTok && /^[A-ZÄÖÜÉÈÀÂÎÔÛÇ]/.test(nextTok) && !SHAB_NON_TOWN_WORD_RE.test(nextTok)) {
+        out.push(tok);
+        continue;
+      }
+      break;
+    }
+
+    if (SHAB_TOWN_CONNECTOR_RE.test(prevTok) || SHAB_MULTIWORD_PREFIX_RE.test(prevTok)) {
+      if (/^[A-ZÄÖÜÉÈÀÂÎÔÛÇ]/.test(tok) && !SHAB_NON_TOWN_WORD_RE.test(tok)) {
+        out.push(tok);
+        if (hasTrailingDot) break;
+        continue;
+      }
+    }
+
+    break;
+  }
+
+  while (out.length > 1 && SHAB_TOWN_CONNECTOR_RE.test(out[out.length - 1]) && !/^(?:a\.A\.|d['’]\w+)$/i.test(out[out.length - 1])) {
+    out.pop();
+  }
+
+  const joined = out.join(" ").replace(/[.,;:\s-]+$/, "").trim();
+  if (joined.length < 2) return null;
+  if (SHAB_NON_TOWN_WORD_RE.test(joined)) return null;
+  return joined;
+}
+
+export function isBogusShabPlace(place, postcode) {
+  if (!place) return true;
+  if (postcode === "1000") return true;
+  if (/[\r\n]/.test(place)) return true;
+  if (/\./.test(place) && !/\b(?:b\.|a\.A\.|St\.|Ste\.|S\.|\w+-[A-Z]\.)/.test(place)) return true;
+  if (
+    /\b(?:DESCRIZIONE|ME|Miteigentum\w*|Wertquote|Registro|RFD|Gartenanlage|Valore|COPERTURA|Fr|CHF|Superficie|Plan|Quota|Ubicazione|Konkursamtliche|Betreibungsamtliche|Amtliche|und)\b/i.test(
+      place,
+    )
+  ) {
+    return true;
+  }
+  if (/\s(?:b|im|am|an|di|nel|del|non|totale|ufficiale|\d+)$/i.test(place)) return true;
+  if (place === "Saignelégie") return true;
+  return false;
+}
+
+function findValidShabPlzTownInText(text) {
+  if (!text) return null;
+  const clean = shabHtmlToLines(String(text).split(/\b(?:des\s+Gläubigers|Gläubiger\s*:)/i)[0]);
+  const re = /(?<![/\-.'’0-9])\b([1-9]\d{3})[ \t]+([A-ZÄÖÜÉÈÀÂÎÔÛÇ][A-Za-zÄÖÜäöüéèàáâêîôûç.'’\-]+(?:[ \t]+[A-Za-zÄÖÜäöüéèàáâêîôûç.'’\-]+){0,3})/g;
+  let m;
+  while ((m = re.exec(clean)) !== null) {
+    const plz = m[1];
+    const prefix = clean.slice(Math.max(0, m.index - 40), m.index);
+    if (SHAB_INVALID_PLZ_PREFIX_RE.test(prefix)) continue;
+    const town = cleanChShabTownCandidate(m[2]);
+    if (!town) continue;
+    return { postcode: plz, place: town === "Saignelégie" ? "Saignelégier" : town };
+  }
+  return null;
+}
+
+function extractShabMunicipalityFromDescription(text) {
+  if (!text) return null;
+  const clean = shabHtmlToLines(text).replace(/[ \t]+/g, " ");
+
+  const patterns = [
+    /\bComune\s*:\s*([A-ZÄÖÜÉÈÀÂÎÔÛÇ][A-Za-zÄÖÜäöüéèàáâêîôûç.'’\-]+(?:[ \t]+[A-Za-zÄÖÜäöüéèàáâêîôûç.'’\-]+){0,3})/i,
+    /\b(?:territorio\s+del\s+|siti?\s+(?:nel|in)\s+)?Comune\s+(?:di|delle|dei)\s+([A-ZÄÖÜÉÈÀÂÎÔÛÇ][A-Za-zÄÖÜäöüéèàáâêîôûç.'’\-]+(?:[ \t]+[A-Za-zÄÖÜäöüéèàáâêîôûç.'’\-]+){0,3})/i,
+    /\b(?:RFD|Registro\s+fondiario)\s+(?:di|nel\s+territorio\s+del\s+comune\s+di|nel\s+comune\s+di)\s+([A-ZÄÖÜÉÈÀÂÎÔÛÇ][A-Za-zÄÖÜäöüéèàáâêîôûç.'’\-]+(?:[ \t]+[A-Za-zÄÖÜäöüéèàáâêîôûç.'’\-]+){0,3})/i,
+    /\b(?:Commune\s+(?:de|d['’])|sis(?:e|es)?\s+(?:sur\s+la\s+commune\s+(?:de|d['’])|à))\s*([A-ZÄÖÜÉÈÀÂÎÔÛÇ][A-Za-zÄÖÜäöüéèàáâêîôûç'’\-]+(?:[ \t]+[A-Za-zÄÖÜäöüéèàáâêîôûç'’\-]+){0,3})/i,
+    /\b(?:In\s+der\s+Gemeinde|Liegenschaft\s+Gemeinde|Im\s+Grundbuch\s+(?:des\s+Bezirks\s+[A-Za-zÄÖÜäöü-]+,\s*)?(?:Gemeinde\s+)?|Gemeinde|Grundbuch|GBBl-|GB|STW|LIG)\s+([A-ZÄÖÜÉÈÀ][A-Za-zÄÖÜäöüéèàêîôûç.'’\-]+(?:[ \t]+[A-Za-zÄÖÜäöüéèàêîôûç.'’\-]+){0,3})/,
+    /\b([A-ZÄÖÜ][A-Za-zÄÖÜäöü-]+)[ \t]+(?:Grundbuchblatt|Gbbl\.-Nr\.)/,
+  ];
+
+  for (const pat of patterns) {
+    const m = pat.exec(clean);
+    if (m) {
+      let raw = m[1].split("/")[0].trim();
+      if (raw === raw.toUpperCase() && raw.length > 3) {
+        raw = raw.toLowerCase().replace(/(?:^|[\s'-])\S/g, (c) => c.toUpperCase());
+      }
+      const town = cleanChShabTownCandidate(raw);
+      if (town) return town === "Saignelégie" ? "Saignelégier" : town;
+    }
+  }
+  return null;
+}
+
+export function extractChShabLocation({
+  objectsText = "",
+  titleDe = "",
+  hearingPlace = "",
+  authority = "",
+  officeZip = null,
+  officeTown = "",
+  fallbackPostcode = null,
+  fallbackPlace = null,
+}) {
+  const objectsOnly = String(objectsText || "").split(/\bHinweise:/)[0];
+  const fromObjectsPlz = findValidShabPlzTownInText(objectsOnly);
+  if (fromObjectsPlz) return fromObjectsPlz;
+
+  const fromTitlePlz = findValidShabPlzTownInText(titleDe);
+  if (fromTitlePlz) return fromTitlePlz;
+
+  const fromObjectsTown = extractShabMunicipalityFromDescription(objectsOnly);
+  const fromHearingPlz = findValidShabPlzTownInText(hearingPlace);
+  const cleanOfficeTown = cleanChShabTownCandidate(officeTown);
+  const validOfficeZip = officeZip && officeZip !== "1000" ? officeZip : null;
+  const validFallbackZip =
+    fallbackPostcode && !isBogusShabPlace(fallbackPlace, fallbackPostcode)
+      ? fallbackPostcode
+      : fallbackPostcode && /^(?:1260)$/.test(fallbackPostcode)
+        ? fallbackPostcode
+        : null;
+
+  if (fromObjectsTown) {
+    return {
+      postcode: fromHearingPlz?.postcode || validOfficeZip || validFallbackZip || null,
+      place: fromObjectsTown,
+    };
+  }
+
+  if (fromHearingPlz) return fromHearingPlz;
+
+  if (cleanOfficeTown) {
+    return {
+      postcode: validOfficeZip || validFallbackZip || null,
+      place: cleanOfficeTown,
+    };
+  }
+
+  const authTown = cleanChShabTownCandidate(
+    String(authority || "").replace(
+      /^(?:Betreibungsamt|Konkursamt|Betreibungs-\s*und\s*Konkursamt|Ufficio\s+(?:esecuzione|esecuzioni|fallimenti)(?:\s+e\s+fallimenti)?\s+(?:di|del)?|Offices?\s+des\s+(?:poursuites|faillites)(?:\s+et\s+faillites)?\s+(?:du\s+district\s+de|de\s+la|de|du)?)(?:\s+Bezirk|\s+Region)?\s*/i,
+      "",
+    ),
+  );
+  if (authTown) {
+    return {
+      postcode: validOfficeZip || validFallbackZip || null,
+      place: authTown,
+    };
+  }
+
+  return {
+    postcode: validOfficeZip || validFallbackZip || null,
+    place: cleanChShabTownCandidate(fallbackPlace) || null,
+  };
+}
+
 /**
  * Parses a Swiss SHAB XML publication (SB01 / KK08) into structured fields.
  */
@@ -926,19 +1135,17 @@ export function parseChShabXml(xml, listing = {}) {
       ? "Konkursamtliche Grundstücksteigerung (SchKG)"
       : "Betreibungsamtliche Grundstücksteigerung (SchKG)";
 
-  // Extract property postcode & place from auctionObjects or title, fallback to registrationOffice
-  let postcode = null;
-  let place = null;
-  const plzTownMatch =
-    /\b([1-9]\d{3})\s+([A-ZÄÖÜÉÈÀ][A-Za-zÄÖÜäöüéèàêîôûç.-]+(?:\s+[A-ZÄÖÜa-zäöüéèàêîôûç.-]+)?)/.exec(objectsText) ??
-    /\b([1-9]\d{3})\s+([A-ZÄÖÜÉÈÀ][A-Za-zÄÖÜäöüéèàêîôûç.-]+)/.exec(titleDe);
-  if (plzTownMatch) {
-    postcode = plzTownMatch[1];
-    place = plzTownMatch[2].replace(/[.,;:]$/, "").trim();
-  } else {
-    postcode = officeZip || listing.postcode || null;
-    place = officeTown || listing.place || null;
-  }
+  // Extract property postcode & place from auctionObjects, title, hearingPlace, or registrationOffice
+  const { postcode, place } = extractChShabLocation({
+    objectsText,
+    titleDe,
+    hearingPlace,
+    authority,
+    officeZip,
+    officeTown,
+    fallbackPostcode: listing.postcode ?? null,
+    fallbackPlace: listing.place ?? null,
+  });
 
   // Extract Grundbuch / Parzelle / E-GRID
   const gbParts = [];
