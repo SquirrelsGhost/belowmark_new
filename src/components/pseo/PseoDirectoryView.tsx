@@ -126,13 +126,15 @@ export default function PseoDirectoryView({
         description: lead,
         url: canonicalUrl,
         numberOfItems: listings.length,
-        itemListElement: listings.slice(0, 10).map((item, idx) => ({
+        itemListElement: listings.slice(0, 12).map((item, idx) => ({
           "@type": "ListItem",
           position: idx + 1,
           item: {
             "@type": "RealEstateListing",
-            name: `${item.segmentLabel} in ${item.place} (${item.authority})`,
+            name: `${item.title} — ${item.segmentLabel} in ${item.postcode ? `${item.postcode} ` : ""}${item.place} (${item.authority})`,
+            description: `${item.segmentLabel} in ${item.postcode ? `${item.postcode} ` : ""}${item.place}, ${item.region} · ${item.authority}${item.hearingAt ? ` · Versteigerungstermin: ${item.hearingAt.slice(0, 10)}` : ""}`,
             url: canonicalUrl,
+            ...(item.hearingAt ? { datePosted: item.hearingAt.slice(0, 10) } : {}),
             ...(item.minimumBid || item.appraisedValue
               ? {
                   offers: {
@@ -140,6 +142,7 @@ export default function PseoDirectoryView({
                     price: item.minimumBid ?? item.appraisedValue,
                     priceCurrency: item.currency,
                     availability: "https://schema.org/InStock",
+                    ...(item.hearingAt ? { validThrough: item.hearingAt.slice(0, 10) } : {}),
                   },
                 }
               : {}),

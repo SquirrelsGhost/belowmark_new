@@ -35,12 +35,15 @@ export async function generateMetadata({ params }: AmtsgerichtPageProps): Promis
   const minBidVal = entity.minAppraisedValue ? Math.round(entity.minAppraisedValue * 0.5) : null;
   const minBidStr = minBidVal ? ` ab ${formatEuro(minBidVal, "de")}` : "";
   const avgStr = entity.avgAppraisedValue ? ` (Ø Verkehrswert ${formatEuro(entity.avgAppraisedValue, "de")})` : "";
+  const shortAg = entity.authority && entity.authority !== entity.displayName ? ` (${entity.authority})` : "";
   return MetaTagService.CreateMetaTags({
-    title: `${entity.displayName}: ${entity.totalCount} Zwangsversteigerungen${minBidStr} (${entity.region}) | Belowmark`,
-    description: `Alle ${entity.totalCount} laufenden Immobilien-Zwangsversteigerungen am ${entity.displayName} (${entity.region})${minBidStr}${avgStr}. Mit Aktenzeichen, 5/10- & 7/10-Wertgrenze & Gutachten-KI.`,
+    title: `${entity.displayName}${shortAg}: ${entity.totalCount} Zwangsversteigerungen & Termine${minBidStr} | Belowmark`,
+    description: `Aktuelle Zwangsversteigerungen & Termine am ${entity.displayName}${shortAg} (${entity.region}): Alle ${entity.totalCount} Immobilien${minBidStr}${avgStr} mit Aktenzeichen, 5/10- & 7/10-Grenze & Gutachten.`,
     imgUrl: DEFAULT_BLOG_OG,
     tags: [
-      `${entity.displayName} Zwangsversteigerung`,
+      `${entity.displayName} Zwangsversteigerungen`,
+      `${entity.displayName} Termine`,
+      `${entity.authority} Zwangsversteigerung`,
       `ZVG Termine ${entity.displayName}`,
       `Immobilien Zwangsversteigerung ${entity.displayName}`,
       entity.region,
@@ -60,14 +63,17 @@ export default async function AmtsgerichtPage({ params }: AmtsgerichtPageProps) 
     permanentRedirect(legacyTarget ?? "/zwangsversteigerungen");
   }
 
+  const shortAg = entity.authority && entity.authority !== entity.displayName ? ` (${entity.authority})` : "";
+
   return (
     <BlogShell lang="de">
       <PseoDirectoryView
         locale="de"
-        eyebrow={`VOLLSTRECKUNGSGERICHT · ${entity.region.toUpperCase()}`}
-        title={`${entity.displayName}: ${entity.totalCount} aktuelle Zwangsversteigerungen`}
-        lead={`Amtliche Terminübersicht für das ${entity.displayName} (${entity.region}) nach § 39 ZVG — inklusive Verkehrswert, 5/10- und 7/10-Mindestgebot, 10 % Sicherheitsleistung (§ 68 ZVG) und Gutachten-Status.`}
+        eyebrow={`VOLLSTRECKUNGSGERICHT · ${entity.authority.toUpperCase()} · ${entity.region.toUpperCase()}`}
+        title={`${entity.displayName}${shortAg}: ${entity.totalCount} aktuelle Zwangsversteigerungen & Termine`}
+        lead={`Amtliche Terminübersicht für das ${entity.displayName}${shortAg} (${entity.region}) nach § 39 ZVG — inklusive Immobilien-Objektliste, Verkehrswert, 5/10- und 7/10-Mindestgebot, 10 % Sicherheitsleistung (§ 68 ZVG) und Gutachten-Status.`}
         canonicalUrl={`${BELOWMARK_ORIGIN}/amtsgericht/${entity.slug}`}
+        listingsHeading={`Aktuelle Versteigerungstermine & Immobilien am ${entity.displayName}${shortAg}`}
         breadcrumbs={[
           { label: "Belowmark", href: "/" },
           { label: "Zwangsversteigerungen", href: "/zwangsversteigerungen" },
@@ -91,18 +97,22 @@ export default async function AmtsgerichtPage({ params }: AmtsgerichtPageProps) 
           .filter((c) => c.slug !== entity.slug)
           .slice(0, 24)
           .map((c) => ({
-            label: c.displayName,
+            label: `${c.displayName} (${c.authority})`,
             href: `/amtsgericht/${c.slug}`,
             count: c.totalCount,
           }))}
         faqs={[
           {
-            q: `Wie viele Zwangsversteigerungen laufen aktuell am ${entity.displayName}?`,
-            a: `Aktuell sind am ${entity.displayName} (${entity.region}) ${entity.totalCount} aktive Zwangsversteigerungs- und Teilungsversteigerungsverfahren amtlich terminiert. Bei ${entity.limitsWaivedCount} Verfahren sind die 5/10- und 7/10-Wertgrenzen bereits entfallen.`,
+            q: `Wie viele Zwangsversteigerungen und Termine laufen aktuell am ${entity.displayName}${shortAg}?`,
+            a: `Aktuell sind am ${entity.displayName}${shortAg} (${entity.region}) ${entity.totalCount} aktive Immobilien-Zwangsversteigerungen und Teilungsversteigerungstermine (§ 39 ZVG) amtlich terminiert. Bei ${entity.limitsWaivedCount} Verfahren sind die 5/10- und 7/10-Wertgrenzen bereits entfallen.`,
           },
           {
             q: `Welche Sicherheitsleistung gilt im Versteigerungstermin am ${entity.displayName}?`,
-            a: `Nach § 68 ZVG beträgt die Sicherheitsleistung in der Regel 10 % des gerichtlich festgesetzten Verkehrswerts. Bargeld ist ausgeschlossen; zulässig sind Vorab-Überweisung an die Gerichtskasse, Bundesbankscheck oder Bankbürgschaft.`,
+            a: `Nach § 68 ZVG beträgt die Sicherheitsleistung am ${entity.displayName}${shortAg} in der Regel 10 % des gerichtlich festgesetzten Verkehrswerts (§ 74a Abs. 5 ZVG). Bargeld ist ausgeschlossen; zulässig sind Vorab-Überweisung an die Gerichtskasse, Bundesbankscheck oder Bankbürgschaft.`,
+          },
+          {
+            q: `Für welche Städte und Gemeinden ist das Vollstreckungsgericht ${entity.displayName} zuständig?`,
+            a: `Das ${entity.displayName}${shortAg} führt die Zwangsversteigerungstermine u. a. für Immobilien in ${entity.cities.map((c) => c.name).join(", ") || entity.region} durch.`,
           },
         ]}
       />

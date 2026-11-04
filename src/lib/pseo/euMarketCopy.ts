@@ -99,16 +99,21 @@ export const EU_MARKET_COPY: Record<EuPseoMarketCode, EuMarketCopyConfig> = {
       },
     ],
     entryTitle: (e) =>
-      `Zwangsversteigerung ${e.name} (Ediktsdatei Österreich): ${e.totalCount} aktuelle Liegenschaften`,
+      e.kind === "court"
+        ? `${e.name}: ${e.totalCount} aktuelle Zwangsversteigerungen & Edikte`
+        : `Zwangsversteigerung ${e.name} (Ediktsdatei Österreich): ${e.totalCount} aktuelle Liegenschaften & Termine`,
     entryLead: (e) =>
       `Amtlich veröffentlichte gerichtliche Immobilienversteigerungen (Edikte) für ${e.name} (${e.nativeRegionName}) — mit Schätzwert (§ 140 EO), 50 % Geringstem Gebot (§ 151 EO), 10 % Vadium (§ 147 EO) und ${e.transferTaxPct} % Kaufnebenkosten.`,
     entryMetaTitle: (e) => {
       const low = fmtMinEntry(e, 0.5, "de-AT", "EUR");
-      return `Zwangsversteigerung ${e.name} (${e.totalCount} Edikte${low ? ` ab ${low}` : ""}) — Schätzwert & Termine | Belowmark`;
+      if (e.kind === "court") {
+        return `${e.name}: ${e.totalCount} Zwangsversteigerungen & Termine${low ? ` ab ${low}` : ""} (Ediktsdatei) | Belowmark`;
+      }
+      return `Zwangsversteigerung ${e.name}: ${e.totalCount} Edikte & Termine${low ? ` ab ${low}` : ""} (Ediktsdatei) | Belowmark`;
     },
     entryMetaDesc: (e) => {
       const low = fmtMinEntry(e, 0.5, "de-AT", "EUR");
-      return `Aktuelle Zwangsversteigerungen (Ediktsdatei Österreich) in ${e.name}: ${e.totalCount} Verfahren${low ? ` ab ${low} (50% § 151 EO)` : ""} inkl. Schätzwert, Vadium & Gutachten.`;
+      return `Aktuelle Zwangsversteigerungen & Termine (Ediktsdatei Österreich) in ${e.name}: ${e.totalCount} Liegenschaften${low ? ` ab ${low} (50% § 151 EO)` : ""} inkl. Schätzwert, Vadium & Gutachten.`;
     },
   },
   CH: {
@@ -164,16 +169,21 @@ export const EU_MARKET_COPY: Record<EuPseoMarketCode, EuMarketCopyConfig> = {
       },
     ],
     entryTitle: (e) =>
-      `Grundstücksteigerung ${e.name} (SHAB Schweiz): ${e.totalCount} aktuelle Verfahren`,
+      e.kind === "court"
+        ? `${e.name}: ${e.totalCount} aktuelle Grundstücksteigerungen & Zwangsversteigerungen (SHAB)`
+        : `Grundstücksteigerung & Zwangsversteigerung ${e.name} (SHAB): ${e.totalCount} aktuelle Termine`,
     entryLead: (e) =>
-      `Alle amtlich im SHAB publizierten betreibungs- und konkursamtlichen Immobiliensteigerungen für ${e.name} (${e.nativeRegionName}) — mit Schätzung in CHF, Steigerungsbedingungen nach SchKG und ${e.transferTaxPct} % kantonalen Gebühren.`,
+      `Alle amtlich im SHAB publizierten betreibungs- und konkursamtlichen Immobilien- und Grundstücksteigerungen für ${e.name} (${e.nativeRegionName}) — mit Schätzung in CHF, Steigerungsbedingungen nach SchKG und ${e.transferTaxPct} % kantonalen Gebühren.`,
     entryMetaTitle: (e) => {
       const low = fmtMinEntry(e, 0.6, "de-CH", "CHF");
-      return `Grundstücksteigerung ${e.name} (${e.totalCount} SHAB-Termine${low ? ` ab ${low}` : ""}) | Belowmark`;
+      if (e.kind === "court") {
+        return `${e.name}: ${e.totalCount} Grundstücksteigerungen & Termine (SHAB)${low ? ` ab ${low}` : ""} | Belowmark`;
+      }
+      return `Zwangsversteigerung & Grundstücksteigerung ${e.name} (${e.totalCount} SHAB-Termine${low ? ` ab ${low}` : ""}) | Belowmark`;
     },
     entryMetaDesc: (e) => {
       const low = fmtMinEntry(e, 0.6, "de-CH", "CHF");
-      return `Betreibungsamtliche Grundstücksteigerungen (SHAB / SchKG) in ${e.name}: ${e.totalCount} Objekte${low ? ` ab ${low}` : ""} inkl. amtlicher Schätzung in CHF, Anzahlung & Steigerungsbedingungen.`;
+      return `Betreibungsamtliche Grundstücksteigerungen & Zwangsversteigerungen (SHAB / SchKG) in ${e.name}: ${e.totalCount} Immobilien${low ? ` ab ${low}` : ""} inkl. Schätzung in CHF & Terminen.`;
     },
   },
   IT: {
@@ -294,16 +304,16 @@ export const EU_MARKET_COPY: Record<EuPseoMarketCode, EuMarketCopyConfig> = {
       },
     ],
     entryTitle: (e) =>
-      `Subastas Judiciales BOE en ${e.name}: ${e.totalCount} Inmuebles y Edictos Activos`,
+      `Subasta BOE y Subastas Judiciales en ${e.name}: ${e.totalCount} Inmuebles y Edictos Activos`,
     entryLead: (e) =>
-      `Listado actualizado de subastas judiciales de viviendas, locales y solares en ${e.name} (${e.nativeRegionName}) — con Valor de Subasta BOE, umbral del 70% (Art. 670 LEC), depósito del 5% e ITP autonómico del ${e.transferTaxPct}%.`,
+      `Listado actualizado de subastas judiciales del BOE (viviendas, locales y solares) en ${e.name} (${e.nativeRegionName}) — con Valor de Subasta BOE, umbral del 70% (Art. 670 LEC), depósito del 5% e ITP autonómico del ${e.transferTaxPct}%.`,
     entryMetaTitle: (e) => {
       const low = fmtMinEntry(e, 0.5, "es-ES", "EUR");
-      return `Subastas Judiciales BOE ${e.name} (${e.totalCount} Lotes${low ? ` desde ${low}` : ""}) — Regla 70% LEC | Belowmark`;
+      return `Subasta BOE ${e.name}: ${e.totalCount} Subastas Judiciales${low ? ` desde ${low}` : ""} (70% Art. 670 LEC) | Belowmark`;
     },
     entryMetaDesc: (e) => {
       const low = fmtMinEntry(e, 0.5, "es-ES", "EUR");
-      return `Inmuebles en subasta judicial del BOE en ${e.name}: ${e.totalCount} expedientes activos${low ? ` desde ${low}` : ""} con Valor de Subasta, umbral 70% Art. 670 LEC, depósito 5% y cargas.`;
+      return `Inmuebles en Subasta BOE y subastas judiciales en ${e.name}: ${e.totalCount} lotes activos${low ? ` desde ${low}` : ""} con Valor de Subasta, regla del 70% Art. 670 LEC, depósito 5% y cargas.`;
     },
   },
   FR: {
@@ -424,16 +434,16 @@ export const EU_MARKET_COPY: Record<EuPseoMarketCode, EuMarketCopyConfig> = {
       },
     ],
     entryTitle: (e) =>
-      `UK Property Auctions in ${e.name}: ${e.totalCount} Live Lots & Guide Prices`,
+      `UK Property Auctions in ${e.name}: ${e.totalCount} Live Repossession & Auction Lots`,
     entryLead: (e) =>
-      `Live residential and commercial property auction lots in ${e.name} (${e.nativeRegionName}) — complete with Guide Prices in GBP, 10% exchange deposit figures, 28-day completion terms, and HM Land Registry £/m² street benchmarks.`,
+      `Live residential and commercial UK property auction and repossession lots in ${e.name} (${e.nativeRegionName}) — complete with Guide Prices in GBP, 10% exchange deposit figures, 28-day completion terms, and HM Land Registry £/m² street benchmarks.`,
     entryMetaTitle: (e) => {
       const low = fmtMinEntry(e, 0.7, "en-GB", "GBP");
-      return `Property Auctions ${e.name} (${e.totalCount} UK Lots${low ? ` from ${low}` : ""}) | Belowmark`;
+      return `UK Property Auctions ${e.name} (${e.totalCount} Live Lots${low ? ` from ${low}` : ""}) — Guide Prices | Belowmark`;
     },
     entryMetaDesc: (e) => {
       const low = fmtMinEntry(e, 0.7, "en-GB", "GBP");
-      return `Browse ${e.totalCount} live UK property auction lots in ${e.name}${low ? ` from ${low}` : ""}: Guide Prices in GBP, 10% exchange deposit, Legal Pack notes, and local price/m² comparisons.`;
+      return `Browse ${e.totalCount} live UK property auction & repossession lots in ${e.name}${low ? ` from ${low}` : ""}: Guide Prices in GBP, 10% exchange deposit, Legal Pack notes & Land Registry comps.`;
     },
   },
 };

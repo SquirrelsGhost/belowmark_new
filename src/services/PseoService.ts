@@ -445,6 +445,21 @@ async function buildCatalog(): Promise<PseoCatalog> {
   // 1a. Map legacy non-DE court & city slugs to their canonical EU country pages (308 zero-loss SEO migration)
   const legacyCourtRedirects = new Map<string, string>();
   const legacyCityRedirects = new Map<string, string>();
+
+  // Map German "amtsgericht-<stadt>" and "<stadt>" aliases to canonical "/amtsgericht/ag-<stadt>"
+  for (const c of courts) {
+    if (c.slug.startsWith("ag-") && c.slug.length > 3) {
+      const bare = c.slug.slice(3);
+      const longAlias = `amtsgericht-${bare}`;
+      if (!courtBySlug.has(longAlias)) {
+        legacyCourtRedirects.set(longAlias, `/amtsgericht/${c.slug}`);
+      }
+      if (!courtBySlug.has(bare)) {
+        legacyCourtRedirects.set(bare, `/amtsgericht/${c.slug}`);
+      }
+    }
+  }
+
   const euMarketOrder: readonly EuPseoMarketCode[] = ["AT", "CH", "IT", "ES", "FR", "GB"];
 
   for (const m of euMarketOrder) {
