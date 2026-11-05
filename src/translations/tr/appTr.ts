@@ -347,6 +347,8 @@ export const APP_TR: IAppTranslation = {
       DE: "Her nokta bir posta kodu bölgesini gösterir, taşınmazın kendisini değil. Yalnızca o eyalette aramak için eyalete tıklayın.",
       TR: "Her daire bir ili gösterir. İlanlar daha kesin bir konum vermiyor. Yalnızca o ilde aramak için ile tıklayın.",
     },
+    HintEurope: "Her nokta resmi ilandaki konumu gösterir (adres veya posta kodu bölgesi), taşınmazın kendisini değil. Yalnızca o bölgede aramak için bölgeye tıklayın.",
+    Inset: "Kanarya Adaları, kaydırılmış gösterim",
     Imminent: "İhale önümüzdeki 7 günde",
     Later: "İhale daha sonra",
     Size: "Büyüklük = ilan sayısı",

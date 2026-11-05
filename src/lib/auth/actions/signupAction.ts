@@ -64,6 +64,7 @@ export async function signupAction(_prev: AuthFormState, formData: FormData): Pr
         country: market,
         locale: await requestLocale(),
         hardwareFingerprint,
+        signupCtx: { key: targetKey, city: targetCity, market },
       },
       canMail,
     );

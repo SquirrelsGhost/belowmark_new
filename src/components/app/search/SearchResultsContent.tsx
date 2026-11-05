@@ -65,7 +65,7 @@ export default async function SearchResultsContent({
     ListingService.search(country, filters, viewer.now),
     WatchlistService.keys(viewer.id),
     GeoService.getCountry(country),
-    GeoService.getLocatorSprite(market),
+    GeoService.getLocatorSprite(country),
   ]);
   const result = isLocked ? redactSearchResultForFreePlan(rawResult) : rawResult;
   const isMap = filters.view === "map";

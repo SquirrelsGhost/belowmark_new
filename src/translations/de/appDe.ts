@@ -347,6 +347,8 @@ export const APP_DE: IAppTranslation = {
       DE: "Jeder Punkt steht für ein Postleitzahlgebiet, nicht für das Grundstück. Bundesland anklicken, um nur dort zu suchen.",
       TR: "Jeder Kreis steht für eine Provinz (İl). Die Anzeigen nennen keine genauere Lage. Provinz anklicken, um nur dort zu suchen.",
     },
+    HintEurope: "Jeder Punkt steht für die Lage aus der amtlichen Bekanntmachung (Adresse oder Postleitzahlgebiet), nicht unbedingt für das Grundstück. Region anklicken, um nur dort zu suchen.",
+    Inset: "Kanarische Inseln, versetzt dargestellt",
     Imminent: "Termin in den nächsten 7 Tagen",
     Later: "Termin später",
     Size: "Größe = Zahl der Verfahren",

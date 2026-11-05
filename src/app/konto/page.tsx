@@ -146,7 +146,7 @@ export default async function AccountPage({ searchParams }: PageProps<"/konto">)
                 <AccountDetailRow label={Account.Details.Market} value={`${marketLabel} · ${user.market}`} />
                 <AccountDetailRow label={Account.Details.Verified} value={Account.Details.VerifiedValue} tone="verdict" />
                 <AccountDetailRow label={Account.Details.Access} value={accessValue} tone={user.hasFullAccess ? "verdict" : "signal"} />
-                {!isAdmin && !user.plan && !user.teamSeat && <AccountDetailRow label={Account.Details.Trial} value={trialValue} tone={trialEnded ? "signal" : "default"} />}
+                {!isAdmin && !user.plan && !user.teamSeat && user.hasFullAccess && <AccountDetailRow label={Account.Details.Trial} value={trialValue} tone={trialEnded ? "signal" : "default"} />}
                 <AccountDetailRow label={Account.Details.Since} value={formatDate(user.createdAt.toISOString(), lang)} />
               </AccountDetails>
             </AccountPanel>

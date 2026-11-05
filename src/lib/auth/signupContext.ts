@@ -125,13 +125,21 @@ function buildDefaultAlertName(locale: LocaleOption, city: string | undefined, c
  * 2. Creates the user's first active `search_alerts` entry so daily 06:15 alerts bring them back.
  * 3. Returns the exact destination URL (`/app/objekt/[key]` when a property was clicked).
  */
-export async function completePostSignupOnboarding(userId: string): Promise<string> {
-  let ctx: StoredSignupContext = {};
+export async function completePostSignupOnboarding(
+  userId: string,
+  fallbackCtx?: StoredSignupContext,
+): Promise<string> {
+  let ctx: StoredSignupContext = { ...fallbackCtx };
   try {
     const store = await cookies();
     const raw = store.get(SIGNUP_CTX_COOKIE)?.value;
     if (raw) {
-      ctx = JSON.parse(raw) as StoredSignupContext;
+      const parsed = JSON.parse(raw) as StoredSignupContext;
+      ctx = {
+        key: ctx.key || parsed.key,
+        city: ctx.city || parsed.city,
+        market: ctx.market || parsed.market,
+      };
       store.delete(SIGNUP_CTX_COOKIE);
     }
   } catch {
@@ -194,5 +202,8 @@ export async function completePostSignupOnboarding(userId: string): Promise<stri
   if (ctx.key) {
     return `/app/objekt/${encodeURIComponent(ctx.key)}`;
   }
-  return `${AUTH_ROUTES.account}?${AUTH_PARAMS.status}=verified`;
+  if (ctx.city) {
+    return `/app?q=${encodeURIComponent(ctx.city)}`;
+  }
+  return AUTH_ROUTES.afterLogin;
 }

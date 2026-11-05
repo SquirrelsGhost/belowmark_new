@@ -347,6 +347,8 @@ export const APP_ES: IAppTranslation = {
       DE: "Cada punto representa un distrito postal, no la finca exacta. Haz clic en una región o estado para filtrar.",
       TR: "Cada círculo representa una provincia (İl). Los edictos no incluyen coordenadas de calle; haz clic en la provincia para filtrar.",
     },
+    HintEurope: "Cada punto muestra la ubicación del anuncio oficial (dirección o código postal), no necesariamente la finca exacta. Haz clic en una región para filtrar.",
+    Inset: "Islas Canarias, representadas desplazadas",
     Imminent: "Subasta en los próximos 7 días",
     Later: "Subasta posterior",
     Size: "Tamaño = n.º de procedimientos",

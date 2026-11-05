@@ -14,9 +14,18 @@ interface Recipient {
   locale: string;
 }
 
-function link(path: string, token?: string): string {
+export interface VerificationContextParams {
+  key?: string;
+  city?: string;
+  market?: string;
+}
+
+function link(path: string, token?: string, ctx?: VerificationContextParams): string {
   const url = new URL(path, env.appUrl);
   if (token) url.searchParams.set(AUTH_PARAMS.token, token);
+  if (ctx?.key) url.searchParams.set("objekt", ctx.key);
+  if (ctx?.city) url.searchParams.set("stadt", ctx.city);
+  if (ctx?.market) url.searchParams.set("markt", ctx.market);
   return url.toString();
 }
 
@@ -68,8 +77,13 @@ async function send(
  * password-changed security alert), each in the recipient's language.
  */
 export class AuthMailService {
-  static sendVerification = (to: Recipient, token: string, verificationCode?: string) =>
-    send("VerifyEmail", to, link(AUTH_ROUTES.verifyEmail, token), { verificationCode });
+  static sendVerification = (
+    to: Recipient,
+    token: string,
+    verificationCode?: string,
+    ctx?: VerificationContextParams,
+  ) =>
+    send("VerifyEmail", to, link(AUTH_ROUTES.verifyEmail, token, ctx), { verificationCode });
 
   static sendPasswordReset = (to: Recipient, token: string) =>
     send("ResetPassword", to, link(AUTH_ROUTES.resetPassword, token));
@@ -127,7 +141,7 @@ export class AuthMailService {
       lang,
       highlights,
       docCode: isTr ? "BM-HESAP · ETKİNLEŞTİRME" : "BM-KONTO · FREISCHALTUNG",
-      eyebrow: isTr ? "Hesap Açılışı ve 14 Günlük Tam Erişim" : "Kontoeröffnung & 14 Tage Vollzugang",
+      eyebrow: isTr ? "Hesap Açılışı ve Ücretsiz İhale Alarmı" : "Kontoeröffnung & Kostenloser Such-Alert",
       baseUrl: env.appUrl,
     });
     await MailService.send({ to: to.email, ...rendered });

@@ -1,12 +1,11 @@
-import { MarketCode } from "@/lib/constants";
-import { GeoRegion } from "@/types/listing.types";
+import { GeoRegion, ListingCountry } from "@/types/listing.types";
 
 /** Id of a region outline inside the sprite. */
 export const locatorRegionId = (code: string) => `loc-r-${code}`;
 export const LOCATOR_COUNTRY_ID = "loc-country";
 
 /** Served by src/app/karten/[datei]/route.ts. */
-export const locatorSpriteHref = (market: MarketCode, version: string) => `/karten/${market.toLowerCase()}.svg?v=${version}`;
+export const locatorSpriteHref = (country: ListingCountry, version: string) => `/karten/${country.toLowerCase()}.svg?v=${version}`;
 
 const escapeAttribute = (value: string) => value.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
 

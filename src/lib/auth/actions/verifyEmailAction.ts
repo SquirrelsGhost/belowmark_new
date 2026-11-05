@@ -25,8 +25,10 @@ export async function verifyEmailAction(_prev: AuthFormState, formData: FormData
   const token = field(formData, AUTH_PARAMS.token).trim();
   const emailRaw = field(formData, "email").trim();
   const codeRaw = field(formData, "code").trim();
+  const targetKey = field(formData, "targetKey").trim().slice(0, 128) || undefined;
+  const targetCity = field(formData, "targetCity").trim().slice(0, 80) || undefined;
 
-  let destination = "/konto?status=verified";
+  let destination = "/app";
   try {
     let userId: string | null = null;
     if (token) {
@@ -36,7 +38,10 @@ export async function verifyEmailAction(_prev: AuthFormState, formData: FormData
     }
     if (!userId) return { status: "error", code: "token_invalid", values: emailRaw ? { email: emailRaw } : undefined };
     await SessionService.create(userId, true, userAgent, { ip });
-    destination = await completePostSignupOnboarding(userId);
+    destination = await completePostSignupOnboarding(userId, {
+      key: targetKey,
+      city: targetCity,
+    });
   } catch (error) {
     return unknownError("verifyEmailAction", error);
   }

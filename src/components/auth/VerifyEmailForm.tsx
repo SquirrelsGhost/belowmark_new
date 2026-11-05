@@ -16,15 +16,17 @@ import { INITIAL_AUTH_STATE } from "@/types/auth.types";
 interface VerifyEmailFormProps {
   t: Pick<IAuthTranslation, "Fields" | "Errors" | "Verify">;
   token: string;
+  targetKey?: string;
+  targetCity?: string;
 }
 
 /**
- * Confirms the address, starts the 14-day trial, and signs in.
+ * Confirms the address and signs in.
  * Automatically submits once in the browser when a link token is present
  * (safe against non-JS mail link scanners, zero extra click for human users),
  * and offers direct 6-digit OTP verification if opened without a token.
  */
-export default function VerifyEmailForm({ t, token }: VerifyEmailFormProps) {
+export default function VerifyEmailForm({ t, token, targetKey, targetCity }: VerifyEmailFormProps) {
   const [state, formAction] = useActionState(verifyEmailAction, INITIAL_AUTH_STATE);
   const formRef = useRef<HTMLFormElement>(null);
   const autoSubmittedRef = useRef(false);
@@ -42,7 +44,13 @@ export default function VerifyEmailForm({ t, token }: VerifyEmailFormProps) {
         <AuthNotice tone="signal" title={t.Verify.InvalidTitle} body={t.Verify.InvalidBody}>
           <AuthTextLink href={AUTH_ROUTES.login} label={t.Verify.InvalidAction} />
         </AuthNotice>
-        <VerifyOtpForm errors={t.Errors} emailLabel={t.Fields.Email} emailPlaceholder={t.Fields.EmailPlaceholder} />
+        <VerifyOtpForm
+          errors={t.Errors}
+          emailLabel={t.Fields.Email}
+          emailPlaceholder={t.Fields.EmailPlaceholder}
+          targetKey={targetKey}
+          targetCity={targetCity}
+        />
       </div>
     );
   }
@@ -50,6 +58,8 @@ export default function VerifyEmailForm({ t, token }: VerifyEmailFormProps) {
   return (
     <form ref={formRef} action={formAction} className="grid gap-5">
       <input type="hidden" name={AUTH_PARAMS.token} value={token} />
+      {targetKey && <input type="hidden" name="targetKey" value={targetKey} />}
+      {targetCity && <input type="hidden" name="targetCity" value={targetCity} />}
       {state.code && <AuthErrorSummary title={t.Errors.SummaryTitle} message={errorMessage(state.code, t.Errors, state.retryAfterMinutes)} />}
       <AuthSubmit label={t.Verify.Submit} pendingLabel={t.Verify.Pending} variant="signal" />
     </form>

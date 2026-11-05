@@ -74,7 +74,7 @@ export class AppSessionService {
     const { country, countries } = await CountryAccessService.forUser(user);
     const trialEndsAt = user.trialEndsAt?.getTime() ?? null;
     const isSuperuser = hasPermission(user.permissions, "*");
-    const isTrialOnly = user.plan === null && !isSuperuser && !user.teamSeat;
+    const isTrialOnly = user.plan === null && !isSuperuser && !user.teamSeat && user.hasFullAccess;
     return {
       id: user.id,
       email: user.email,

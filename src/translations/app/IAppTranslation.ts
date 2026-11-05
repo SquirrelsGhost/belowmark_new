@@ -271,6 +271,10 @@ export interface IAppTranslation {
 
   SearchMap: {
     Hint: Record<"DE" | "TR", string>;
+    /** Hint of the maps of the other European countries (positions are addresses or postcode areas) */
+    HintEurope: string;
+    /** Label of an inset frame (Spain's Canary Islands) */
+    Inset: string;
     Imminent: string;
     Later: string;
     Size: string;

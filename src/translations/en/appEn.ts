@@ -347,6 +347,8 @@ export const APP_EN: IAppTranslation = {
       DE: "Each marker represents a postcode sector, not the exact plot. Click a state or region to filter.",
       TR: "Each circle represents a province (İl). Notices do not publish street coordinates; click a province to filter.",
     },
+    HintEurope: "Each marker shows the location given in the official notice (address or postcode area), not necessarily the plot itself. Click a region to filter.",
+    Inset: "Canary Islands, shown offset",
     Imminent: "Hearing within 7 days",
     Later: "Later hearing",
     Size: "Size = number of proceedings",

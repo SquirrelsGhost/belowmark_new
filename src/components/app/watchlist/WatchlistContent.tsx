@@ -40,7 +40,7 @@ export default async function WatchlistContent({ viewer, app, locale, isCompare 
     WatchlistService.list(viewer.id),
     DeadlineService.list(viewer.id),
     GeoService.getCountry(viewer.country),
-    GeoService.getLocatorSprite(viewer.market),
+    GeoService.getLocatorSprite(viewer.country),
   ]);
   const mailByKey = new Map(follows.map((follow) => [follow.listingKey, follow.mailEnabled]));
   const listings = await ListingService.getMany(viewer.countries, entries.map((entry) => entry.listingId));

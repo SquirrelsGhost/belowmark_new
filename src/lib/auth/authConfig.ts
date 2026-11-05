@@ -38,7 +38,7 @@ export const PAID_PLANS = ["investor", "pro"] as const;
 export type PaidPlan = (typeof PAID_PLANS)[number];
 
 export const PASSWORD_RULES = {
-  minLength: 10,
+  minLength: 8,
   maxLength: 128,
 } as const;
 

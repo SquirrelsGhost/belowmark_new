@@ -9,7 +9,17 @@ import { GeoProjection } from "@/types/listing.types";
 /** Latitude/longitude → SVG coordinates of the market map. */
 export function projectPoint(projection: GeoProjection, lat: number, lng: number): [number, number] {
   const { minLng, maxLat, k, scale, pad } = projection;
-  return [pad + (lng - minLng) * k * scale, pad + (maxLat - lat) * scale];
+  const inset = projection.insets?.find(({ bounds: [west, south, east, north] }) => lng >= west && lng <= east && lat >= south && lat <= north);
+  return [pad + (lng - minLng) * k * scale + (inset?.dx ?? 0), pad + (maxLat - lat) * scale + (inset?.dy ?? 0)];
+}
+
+/** Frames around the insets (x, y, width, height), so a shifted area does not pass for its real position. */
+export function insetFrames(projection: GeoProjection): [number, number, number, number][] {
+  return (projection.insets ?? []).map(({ bounds: [west, south, east, north] }) => {
+    const [x0, y0] = projectPoint(projection, north, west);
+    const [x1, y1] = projectPoint(projection, south, east);
+    return [x0, y0, x1 - x0, y1 - y0];
+  });
 }
 
 /** Latitude/longitude → fractional web-mercator tile position at zoom z. */

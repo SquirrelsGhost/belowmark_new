@@ -347,6 +347,8 @@ export const APP_IT: IAppTranslation = {
       DE: "Ogni punto indica l'area del CAP, non la particella esatta. Clicca su una regione per filtrare.",
       TR: "Ogni cerchio rappresenta una provincia (İl). Gli avvisi non indicano coordinate stradali; clicca sulla provincia per filtrare.",
     },
+    HintEurope: "Ogni punto indica la posizione dell'avviso ufficiale (indirizzo o CAP), non necessariamente la particella esatta. Clicca su una regione per filtrare.",
+    Inset: "Isole Canarie, rappresentate spostate",
     Imminent: "Udienza entro 7 giorni",
     Later: "Udienza successiva",
     Size: "Dimensione = numero di procedure",

@@ -347,6 +347,8 @@ export const APP_FR: IAppTranslation = {
       DE: "Chaque point représente un secteur postal, non la parcelle exacte. Cliquez sur une région ou un Land pour filtrer.",
       TR: "Chaque cercle représente une province (İl). Les annonces ne mentionnent pas de coordonnées de rue ; cliquez sur une province pour filtrer.",
     },
+    HintEurope: "Chaque point indique la localisation de l'annonce officielle (adresse ou code postal), pas forcément la parcelle exacte. Cliquez sur une région pour filtrer.",
+    Inset: "Îles Canaries, représentées décalées",
     Imminent: "Audience dans les 7 prochains jours",
     Later: "Audience ultérieure",
     Size: "Taille = nombre de procédures",

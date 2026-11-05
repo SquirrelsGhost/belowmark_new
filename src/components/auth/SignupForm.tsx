@@ -55,6 +55,8 @@ export default function SignupForm({
             errors={t.Errors}
             emailLabel={t.Fields.Email}
             emailPlaceholder={t.Fields.EmailPlaceholder}
+            targetKey={targetKey}
+            targetCity={targetCity}
           />
           <ResendVerificationForm email={state.values.email} label={t.Signup.Resend} sentLabel={t.Signup.ResendSent} errors={t.Errors} />
         </div>
@@ -104,6 +106,7 @@ export default function SignupForm({
         note={t.Fields.MarketNote}
         defaultValue={market}
         error={fieldError("market")}
+        compactInitial={true}
         options={PRICING_COUNTRIES.map((code) => ({
           code,
           label: t.Fields.Markets[code].Label,

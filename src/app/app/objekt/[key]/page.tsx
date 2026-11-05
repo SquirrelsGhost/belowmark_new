@@ -9,6 +9,7 @@ import ListingHearing from "@/components/app/listing/ListingHearing";
 import ListingNotFound from "@/components/app/listing/ListingNotFound";
 import ListingPortalSections from "@/components/app/listing/ListingPortalSections";
 import ListingPurchase from "@/components/app/listing/ListingPurchase";
+import ListingUnlockBanner from "@/components/app/listing/ListingUnlockBanner";
 import QuotaExceededNotice from "@/components/app/listing/QuotaExceededNotice";
 import NoteForm from "@/components/app/listing/NoteForm";
 import PreBidChecklist from "@/components/app/listing/PreBidChecklist";
@@ -89,7 +90,7 @@ export default async function ListingPage({ params }: PageProps<"/app/objekt/[ke
   const [entry, geo, sprite] = await Promise.all([
     WatchlistService.get(viewer.id, listing.key),
     GeoService.getCountry(getListingCountry(listing)),
-    GeoService.getLocatorSprite(market),
+    GeoService.getLocatorSprite(getListingCountry(listing)),
   ]);
   const portalDetails = isLocked
     ? emptyPortalDetailsForFreePlan(listing.sourcePortal ?? "")
@@ -149,6 +150,14 @@ export default async function ListingPage({ params }: PageProps<"/app/objekt/[ke
           </ListingHearing>
         }
       />
+
+      {isLocked && (
+        <ListingUnlockBanner
+          listing={listing}
+          country={getListingCountry(listing)}
+          locale={locale}
+        />
+      )}
 
       <AppSectionSuspense variant="panel">
         <ListingVerdictSection listing={listing} userId={viewer.id} locale={locale} isLocked={isLocked} now={viewer.now} lockedCta={L.Locked.Cta} />

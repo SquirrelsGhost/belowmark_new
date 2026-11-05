@@ -7,7 +7,7 @@ import { hashPassword, needsRehash, simulatePasswordCheck, verifyPassword } from
 import { isBreachedPassword } from "@/lib/auth/passwordBreach";
 import { generateToken, generateVerificationCode, hashToken, hashVerificationCode } from "@/lib/auth/tokens";
 import { MarketCode, PricingCountryCode } from "@/lib/constants";
-import { AuthMailService } from "@/services/AuthMailService";
+import { AuthMailService, VerificationContextParams } from "@/services/AuthMailService";
 
 export type LoginResult =
   | { ok: true; userId: string }
@@ -21,6 +21,7 @@ export interface SignupInput {
   country: PricingCountryCode;
   locale: string;
   hardwareFingerprint?: string;
+  signupCtx?: VerificationContextParams;
 }
 
 async function issueToken(userId: string, purpose: TokenPurpose): Promise<string> {
@@ -131,7 +132,7 @@ export class AuthService {
 
   /** Creates the account (or re-sends mail if it exists) — same outcome either way. */
   static signup = async (
-    { email, password, market, country, locale, hardwareFingerprint }: SignupInput,
+    { email, password, market, country, locale, hardwareFingerprint, signupCtx }: SignupInput,
     allowExistingMail = true,
   ): Promise<void> => {
     const passwordHash = await hashPassword(password);
@@ -144,7 +145,7 @@ export class AuthService {
 
     if (created) {
       const { token, code } = await issueVerificationCredentials(created.id);
-      await AuthMailService.sendVerification({ email, locale }, token, code);
+      await AuthMailService.sendVerification({ email, locale }, token, code, signupCtx);
       return;
     }
     const existing = await findByEmail(email);
@@ -166,7 +167,7 @@ export class AuthService {
       .where(eq(users.id, existing.id));
     if (allowExistingMail) {
       const { token, code } = await issueVerificationCredentials(existing.id);
-      await AuthMailService.sendVerification({ email, locale }, token, code);
+      await AuthMailService.sendVerification({ email, locale }, token, code, signupCtx);
     }
   };
 

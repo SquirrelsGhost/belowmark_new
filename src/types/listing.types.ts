@@ -300,6 +300,8 @@ export interface GeoProjection {
   pad: number;
   width: number;
   height: number;
+  /** Areas drawn shifted as an inset (Spain's Canary Islands): points inside `bounds` (minLng, minLat, maxLng, maxLat) move by dx/dy */
+  insets?: { bounds: [number, number, number, number]; dx: number; dy: number }[];
 }
 
 export interface GeoSource {

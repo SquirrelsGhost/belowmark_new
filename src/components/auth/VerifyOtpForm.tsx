@@ -15,6 +15,8 @@ interface VerifyOtpFormProps {
   errors: IAuthTranslation["Errors"];
   emailLabel: string;
   emailPlaceholder: string;
+  targetKey?: string;
+  targetCity?: string;
 }
 
 const BOX_CLASSES = "grid gap-3 border border-rule bg-paper-bright p-4";
@@ -36,13 +38,22 @@ const OTP_COPY = {
   },
 } as const;
 
-export default function VerifyOtpForm({ email, errors, emailLabel, emailPlaceholder }: VerifyOtpFormProps) {
+export default function VerifyOtpForm({
+  email,
+  errors,
+  emailLabel,
+  emailPlaceholder,
+  targetKey,
+  targetCity,
+}: VerifyOtpFormProps) {
   const [state, formAction] = useActionState(verifyEmailAction, INITIAL_AUTH_STATE);
   const isTr = emailLabel.toLowerCase().includes("posta");
   const copy = isTr ? OTP_COPY.tr : OTP_COPY.de;
 
   return (
     <form action={formAction} className={BOX_CLASSES}>
+      {targetKey && <input type="hidden" name="targetKey" value={targetKey} />}
+      {targetCity && <input type="hidden" name="targetCity" value={targetCity} />}
       {email ? (
         <input type="hidden" name="email" value={email} />
       ) : (
