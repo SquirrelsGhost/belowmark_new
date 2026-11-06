@@ -10,9 +10,9 @@ export const instant = false;
 export async function generateMetadata(): Promise<Metadata> {
   return {
     ...MetaTagService.CreateMetaTags({
-      title: "İcra İhale %50 Açılış Bedeli, %10 Teminat ve Tapu Harcı Hesaplama Aracı | Belowmark",
+      title: "İcra İhale %50 Açılış, %10 Teminat ve Tapu Harcı Hesaplama",
       description:
-        "Ücretsiz UYAP E-Satış ve İcra İhale Hesaplama Aracı: Muhammen bedel üzerinden %50 açılış bedeli, %10 teminat tutarı, %2 alıcı tapu harcı ve KDV dahil toplam maliyeti anında hesaplayın.",
+        "Ücretsiz UYAP E-Satış Hesaplama Aracı: Muhammen bedelden %50 açılış tutarı, %10 teminat, %2 alıcı tapu harcı ve KDV dahil toplam maliyeti anında hesaplayın.",
       imgUrl: DEFAULT_BLOG_OG,
       tags: [
         "İcra ihale hesaplama",

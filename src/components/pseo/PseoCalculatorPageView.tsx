@@ -1,5 +1,6 @@
 import Link from "next/link";
 import PseoPublicCalculator from "@/components/pseo/PseoPublicCalculator";
+import PseoRelatedGuides from "@/components/pseo/PseoRelatedGuides";
 import { BELOWMARK_ORIGIN } from "@/lib/blog/blogSeo";
 
 interface PseoCalculatorPageViewProps {
@@ -125,6 +126,8 @@ export default function PseoCalculatorPageView({ locale, topEntities }: PseoCalc
           ))}
         </div>
       </section>
+
+      <PseoRelatedGuides locale={locale} />
     </div>
   );
 }

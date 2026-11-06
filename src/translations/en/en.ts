@@ -18,12 +18,12 @@ export const EN: ITranslation = {
 
   HomePage: {
     MetaTags: {
-      title: "Belowmark — Foreclosure & Court Property Auctions Below Market Value, Verified by Official Sources",
+      title: "Belowmark — Court & Property Auctions Below Market Value",
       description:
-        "All official court auction dates in one place: appraised market value, 5/10 and 7/10 statutory thresholds, security deposit and transfer tax per proceeding. Verified, never estimated.",
-      imgUrl: "https://belowmark.com/og/home.png",
+        "Official UK & European property auction lots in one place: guide prices, 5/10 & 7/10 statutory limits, 10% exchange deposits and local street comps.",
+      imgUrl: "https://www.belowmark.com/og/home.png",
       tags: ["foreclosure auction", "court auction", "property below market value", "repossession auction", "appraised value", "ZVG"],
-      url: "https://belowmark.com",
+      url: "https://www.belowmark.com",
     },
 
     Hero: {

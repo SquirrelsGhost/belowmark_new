@@ -3,6 +3,7 @@ import BlogArticleCta from "@/components/blog/BlogArticleCta";
 import PseoAlertCaptureBox from "@/components/pseo/PseoAlertCaptureBox";
 import PseoListingPreviewCard from "@/components/pseo/PseoListingPreviewCard";
 import PseoMarketComparisonTable from "@/components/pseo/PseoMarketComparisonTable";
+import PseoRelatedGuides from "@/components/pseo/PseoRelatedGuides";
 import PseoStatsBanner from "@/components/pseo/PseoStatsBanner";
 import { BELOWMARK_ORIGIN } from "@/lib/blog/blogSeo";
 import { PricingCountryCode } from "@/lib/constants";
@@ -250,6 +251,8 @@ export default function PseoDirectoryView({
           </div>
         </div>
       )}
+
+      <PseoRelatedGuides locale={locale} />
 
       <BlogArticleCta lang={locale} />
     </section>

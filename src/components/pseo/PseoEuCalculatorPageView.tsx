@@ -1,6 +1,7 @@
 import Link from "next/link";
 import BlogArticleCta from "@/components/blog/BlogArticleCta";
 import PseoEuPublicCalculator from "@/components/pseo/PseoEuPublicCalculator";
+import PseoRelatedGuides from "@/components/pseo/PseoRelatedGuides";
 import { BELOWMARK_ORIGIN } from "@/lib/blog/blogSeo";
 import { EU_MARKET_COPY } from "@/lib/pseo/euMarketCopy";
 import { EU_MARKET_META } from "@/lib/pseo/euMarketRegions";
@@ -83,6 +84,8 @@ export default function PseoEuCalculatorPageView({ catalog }: PseoEuCalculatorPa
           ))}
         </div>
       </section>
+
+      <PseoRelatedGuides locale={catalog.locale} />
 
       <BlogArticleCta lang={catalog.locale} />
     </div>

@@ -10,9 +10,9 @@ export const instant = false;
 export async function generateMetadata(): Promise<Metadata> {
   return {
     ...MetaTagService.CreateMetaTags({
-      title: "5/10- & 7/10-Grenze Rechner: Zwangsversteigerung (§ 74a / § 85a ZVG) & Sicherheitsleistung | Belowmark",
+      title: "5/10- & 7/10-Grenze Rechner: Zwangsversteigerung (§ 74a/85a ZVG)",
       description:
-        "Kostenloser ZVG-Rechner: Berechnen Sie sofort die 5/10-Wertgrenze (§ 85a ZVG), 7/10-Grenze (§ 74a ZVG), 10 % Sicherheitsleistung (§ 68 ZVG) und Grunderwerbsteuer für jede Zwangsversteigerung.",
+        "Kostenloser ZVG-Rechner: Berechnen Sie sofort 5/10-Grenze (§ 85a ZVG), 7/10-Grenze (§ 74a ZVG), 10 % Sicherheitsleistung (§ 68 ZVG) & Grunderwerbsteuer.",
       imgUrl: DEFAULT_BLOG_OG,
       tags: [
         "5/10 Grenze Rechner",

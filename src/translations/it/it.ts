@@ -18,12 +18,12 @@ export const IT: ITranslation = {
 
   HomePage: {
     MetaTags: {
-      title: "Belowmark — Aste Giudiziarie ed Esecuzioni Immobiliari sotto il Valore di Mercato, con Fonte Ufficiale",
+      title: "Belowmark — Aste Giudiziarie Immobiliari sotto Mercato (PVP)",
       description:
-        "Tutte le aste giudiziarie dei Tribunali in un unico posto: valore di perizia, offerta minima, soglie 5/10 e 7/10, cauzione e imposte per ogni procedura. Dati documentati, mai stimati.",
-      imgUrl: "https://belowmark.com/og/home.png",
+        "Tutte le aste giudiziarie PVP dei Tribunali in un unico posto: prezzo base, offerta minima al 75% (art. 571 c.p.c.), cauzione 10% e valori reali al m².",
+      imgUrl: "https://www.belowmark.com/og/home.png",
       tags: ["aste giudiziarie", "esecuzioni immobiliari", "immobili sotto valore di mercato", "Tribunale", "offerta minima", "perizia"],
-      url: "https://belowmark.com",
+      url: "https://www.belowmark.com",
     },
 
     Hero: {

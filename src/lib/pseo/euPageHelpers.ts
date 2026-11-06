@@ -28,10 +28,7 @@ export async function buildEuEntryMetadata(market: EuPseoMarketCode, slug: strin
   const copy = EU_MARKET_COPY[market];
   const entry = catalog.bySlug.get(slug);
   if (!entry) {
-    return {
-      ...(await buildEuHubMetadata(market)),
-      robots: { index: false, follow: true },
-    };
+    permanentRedirect(catalog.hubPath);
   }
   if (entry.slug !== slug) {
     permanentRedirect(`${catalog.hubPath}/${entry.slug}`);

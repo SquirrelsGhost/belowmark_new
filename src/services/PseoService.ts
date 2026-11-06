@@ -51,6 +51,66 @@ function cleanCityName(rawPlace: string): string {
   return rawPlace.split(",")[0].trim();
 }
 
+const INVALID_PLACE_SLUGS = new Set([
+  "espana",
+  "spain",
+  "italia",
+  "italy",
+  "france",
+  "frankreich",
+  "deutschland",
+  "germany",
+  "oesterreich",
+  "austria",
+  "schweiz",
+  "switzerland",
+  "suisse",
+  "svizzera",
+  "united-kingdom",
+  "uk",
+  "england",
+  "great-britain",
+  "turkiye",
+  "tuerkei",
+  "unbekannt",
+  "unknown",
+  "miteigentum",
+  "miteigentum-am",
+  "miteigentum-an",
+  "gartenanlage",
+  "chf",
+  "eur",
+]);
+
+const INVALID_PLACE_PREFIXES = [
+  "gemarkung-",
+  "miteigentum-",
+  "miteigentumsanteil",
+  "flurstueck-",
+  "flst-",
+  "grundbuch-",
+  "erbbaurecht-",
+  "wohnungseigentum-",
+  "teileigentum-",
+];
+
+function isValidPseoPlaceName(name: string, slug: string): boolean {
+  if (!slug || slug.length < 2 || slug.length > 48) return false;
+  if (INVALID_PLACE_SLUGS.has(slug)) return false;
+  if (INVALID_PLACE_PREFIXES.some((prefix) => slug.startsWith(prefix))) return false;
+  if (/\b(flst|flurstueck|gemarkung|miteigentum)\b/i.test(name)) return false;
+  return true;
+}
+
+const EU_COURT_COLLISION_SUFFIX: Record<EuPseoMarketCode, string> = {
+  AT: "gericht",
+  CH: "gericht",
+  IT: "tribunale",
+  ES: "juzgado",
+  FR: "tribunal",
+  GB: "court",
+};
+
 function detectEuMarket(l: Listing): EuPseoMarketCode | "DE" {
   if (l.country === "AT" || l.key.startsWith("edikte-") || l.region?.endsWith("(AT)")) return "AT";
   if (l.country === "CH" || l.key.startsWith("shab-") || l.region?.endsWith("(CH)")) return "CH";
@@ -143,7 +203,7 @@ function buildEuMarketCatalog(market: EuPseoMarketCode, marketListings: Listing[
       if (item.place) {
         const cName = cleanCityName(item.place);
         const cSlug = slugifyPseo(cName);
-        if (cSlug) {
+        if (isValidPseoPlaceName(cName, cSlug) && cSlug !== seed.slug) {
           const prev = cityMap.get(cSlug) ?? { name: cName, slug: cSlug, count: 0 };
           prev.count++;
           cityMap.set(cSlug, prev);
@@ -199,7 +259,7 @@ function buildEuMarketCatalog(market: EuPseoMarketCode, marketListings: Listing[
     if (l.place) {
       const cName = cleanCityName(l.place);
       const cSlug = slugifyPseo(cName);
-      if (cSlug && cSlug.length >= 2) {
+      if (isValidPseoPlaceName(cName, cSlug)) {
         const prev = rawByCity.get(cSlug) ?? { name: cName, items: [] };
         prev.items.push(l);
         rawByCity.set(cSlug, prev);
@@ -217,10 +277,17 @@ function buildEuMarketCatalog(market: EuPseoMarketCode, marketListings: Listing[
   }
 
   for (const [cSlug, { name, items }] of rawByCity.entries()) {
+    const existing = bySlug.get(cSlug);
+    if (existing?.kind === "region") {
+      // Canonical region page already covers this exact geographic name (e.g. Murcia, Madrid, Greater London, Wien, Zürich)
+      bySlug.set(`${cSlug}-stadt`, existing);
+      continue;
+    }
+
     const first = items[0];
     const seed = seedBySnapRegion.get(first.region || "") ?? seeds[0];
     const stats = computeStats(items);
-    const finalSlug = bySlug.has(cSlug) ? `${cSlug}-stadt` : cSlug;
+    const finalSlug = existing ? `${cSlug}-city` : cSlug;
 
     const entry: EuMarketLocationEntry = {
       slug: finalSlug,
@@ -250,15 +317,17 @@ function buildEuMarketCatalog(market: EuPseoMarketCode, marketListings: Listing[
   }
   cities.sort((a, b) => b.totalCount - a.totalCount);
 
+  const courtSuffix = EU_COURT_COLLISION_SUFFIX[market];
+
   for (const [aSlug, { name, items }] of rawByCourt.entries()) {
     const first = items[0];
     const seed = seedBySnapRegion.get(first.region || "") ?? seeds[0];
     const stats = computeStats(items);
-    const finalSlug = bySlug.has(aSlug) ? `${aSlug}-gericht` : aSlug;
+    const finalSlug = bySlug.has(aSlug) ? `${aSlug}-${courtSuffix}` : aSlug;
 
     const entry: EuMarketLocationEntry = {
       slug: finalSlug,
-      aliases: [finalSlug, aSlug],
+      aliases: Array.from(new Set([finalSlug, `${aSlug}-gericht`, aSlug])),
       market,
       locale: meta.locale,
       kind: "court",
@@ -278,6 +347,9 @@ function buildEuMarketCatalog(market: EuPseoMarketCode, marketListings: Listing[
 
     courts.push(entry);
     bySlug.set(finalSlug, entry);
+    if (!bySlug.has(`${aSlug}-gericht`)) {
+      bySlug.set(`${aSlug}-gericht`, entry);
+    }
     if (!bySlug.has(aSlug)) {
       bySlug.set(aSlug, entry);
     }
@@ -286,13 +358,19 @@ function buildEuMarketCatalog(market: EuPseoMarketCode, marketListings: Listing[
 
   // Normalize region subLinks & courtLinks to canonical finalSlugs (zero internal redirect hops)
   for (const reg of regions) {
-    reg.subLinks = reg.subLinks.map((s) => ({
-      ...s,
-      slug: bySlug.get(`${s.slug}-stadt`)?.slug ?? bySlug.get(s.slug)?.slug ?? s.slug,
-    }));
+    reg.subLinks = reg.subLinks
+      .map((s) => ({
+        ...s,
+        slug: bySlug.get(s.slug)?.slug ?? s.slug,
+      }))
+      .filter((s) => s.slug !== reg.slug);
     reg.courtLinks = reg.courtLinks.map((c) => ({
       ...c,
-      slug: bySlug.get(`${c.slug}-gericht`)?.slug ?? bySlug.get(c.slug)?.slug ?? c.slug,
+      slug:
+        bySlug.get(`${c.slug}-${courtSuffix}`)?.slug ??
+        bySlug.get(`${c.slug}-gericht`)?.slug ??
+        bySlug.get(c.slug)?.slug ??
+        c.slug,
     }));
   }
 
@@ -365,7 +443,7 @@ async function buildCatalog(): Promise<PseoCatalog> {
     if (l.place) {
       const cName = cleanCityName(l.place);
       const citySlug = slugifyPseo(cName);
-      if (citySlug && citySlug.length >= 2) {
+      if (isValidPseoPlaceName(cName, citySlug)) {
         const existing = byCity.get(citySlug) ?? { name: cName, items: [] };
         existing.items.push(l);
         byCity.set(citySlug, existing);
@@ -384,7 +462,7 @@ async function buildCatalog(): Promise<PseoCatalog> {
       if (!item.place) continue;
       const cName = cleanCityName(item.place);
       const cSlug = slugifyPseo(cName);
-      if (!cSlug || cSlug.length < 2) continue;
+      if (!isValidPseoPlaceName(cName, cSlug)) continue;
       const prev = cityCounts.get(cSlug) ?? { name: cName, slug: cSlug, count: 0 };
       prev.count++;
       cityCounts.set(cSlug, prev);

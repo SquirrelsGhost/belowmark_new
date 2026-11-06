@@ -18,12 +18,12 @@ export const ES: ITranslation = {
 
   HomePage: {
     MetaTags: {
-      title: "Belowmark — Subastas Judiciales e Inmuebles por Debajo del Valor de Mercado, con Fuente Oficial",
+      title: "Belowmark — Subastas Judiciales BOE bajo Valor de Mercado",
       description:
-        "Todas las subastas judiciales de los juzgados en un solo lugar: valor de tasación, umbrales de 5/10 y 7/10 (70% LEC), depósito de consignación e ITP por expediente. Documentado, nunca estimado.",
-      imgUrl: "https://belowmark.com/og/home.png",
+        "Todas las subastas judiciales del Portal BOE en un solo lugar: valor de subasta, regla del 70% y 50% (Art. 670 LEC), depósito del 5% e ITP autonómico.",
+      imgUrl: "https://www.belowmark.com/og/home.png",
       tags: ["subastas judiciales", "subastas BOE", "inmuebles bajo valor de mercado", "juzgado", "valor de tasación", "ejecución hipotecaria"],
-      url: "https://belowmark.com",
+      url: "https://www.belowmark.com",
     },
 
     Hero: {

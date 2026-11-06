@@ -18,12 +18,12 @@ export const TR: ITranslation = {
 
   HomePage: {
     MetaTags: {
-      title: "Belowmark — Almanya'da icra ihaleleri, piyasa değerinin altında",
+      title: "Belowmark — İcra İhaleleri ve Piyasa Altı Gayrimenkuller",
       description:
-        "Almanya genelindeki tüm icra ihaleleri (ZVG) tek yerde: mahkeme değeri, 5/10 ve 7/10 sınırı, teminat ve emlak alım vergisi. Her rakam kaynağıyla, tahmin yok.",
-      imgUrl: "https://belowmark.com/og/home.png",
-      tags: ["icra ihalesi", "Almanya emlak", "Zwangsversteigerung", "ZVG", "piyasa altı gayrimenkul", "muhammen bedel"],
-      url: "https://belowmark.com",
+        "Türkiye UYAP E-Satış ve 7 Avrupa ülkesindeki resmi icra ihaleleri tek yerde: muhammen bedel, %50 açılış sınırı, %10 teminat ve bölge m² analizi.",
+      imgUrl: "https://www.belowmark.com/og/home.png",
+      tags: ["icra ihalesi", "UYAP e-satış", "Zwangsversteigerung", "ZVG", "piyasa altı gayrimenkul", "muhammen bedel"],
+      url: "https://www.belowmark.com",
     },
 
     Hero: {

@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { redirect } from "next/navigation";
+import { permanentRedirect } from "next/navigation";
 import { connection } from "next/server";
 import BlogArticleView from "@/components/blog/BlogArticleView";
 import BlogShell from "@/components/blog/BlogShell";
@@ -24,18 +24,22 @@ export async function generateMetadata({ params }: BlogSlugProps): Promise<Metad
     BlogService.FindClusterBySlug("de", slug),
   ]);
   const entry = cluster?.languages.de;
+  if (!cluster || !entry) {
+    permanentRedirect("/blog");
+  }
+  if (entry.slug !== slug) {
+    permanentRedirect(entry.url);
+  }
   return {
     ...MetaTagService.CreateMetaTags({
       ...t.HomePage.MetaTags,
-      title: entry ? `${entry.title} | Belowmark Ratgeber` : "Belowmark Ratgeber",
-      description: entry?.excerpt ?? t.HomePage.MetaTags.description,
-      imgUrl: cluster ? blogArticleCoverUrl(cluster, "de") : t.HomePage.MetaTags.imgUrl,
-      tags: entry
-        ? [entry.focusKeyword ?? entry.title, cluster?.category ?? "Zwangsversteigerung", "Belowmark"]
-        : t.HomePage.MetaTags.tags,
-      url: entry?.url ? `${BELOWMARK_ORIGIN}${entry.url}` : `${BELOWMARK_ORIGIN}/blog/${slug}`,
+      title: `${entry.title} | Belowmark`,
+      description: entry.excerpt,
+      imgUrl: blogArticleCoverUrl(cluster, "de"),
+      tags: [entry.focusKeyword ?? entry.title, cluster.category ?? "Zwangsversteigerung", "Belowmark"],
+      url: `${BELOWMARK_ORIGIN}${entry.url}`,
     }),
-    ...(cluster ? blogArticleSeo(cluster, "de") : { robots: { index: false, follow: true } }),
+    ...blogArticleSeo(cluster, "de"),
   };
 }
 
@@ -44,8 +48,8 @@ export default async function BlogArticlePage({ params }: BlogSlugProps) {
   const { slug } = await params;
   const { cluster } = await BlogService.FindClusterBySlug("de", slug);
   const entry = cluster?.languages.de;
-  if (!cluster || !entry) redirect("/blog");
-  if (entry.slug !== slug) redirect(entry.url);
+  if (!cluster || !entry) permanentRedirect("/blog");
+  if (entry.slug !== slug) permanentRedirect(entry.url);
 
   return (
     <BlogShell lang="de">

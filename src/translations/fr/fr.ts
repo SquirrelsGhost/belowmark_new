@@ -18,12 +18,12 @@ export const FR: ITranslation = {
 
   HomePage: {
     MetaTags: {
-      title: "Belowmark — Ventes aux Enchères Judiciaires sous la Valeur du Marché, avec Source Officielle",
+      title: "Belowmark — Enchères Immobilières Judiciaires sous Marché",
       description:
-        "Toutes les audiences d'adjudication des tribunaux au même endroit : valeur vénale, mise à prix, seuils de 5/10 et 7/10, consignation et droits de mutation par dossier. Sourcé, jamais estimé.",
-      imgUrl: "https://belowmark.com/og/home.png",
+        "Toutes les ventes aux enchères des Tribunaux Judiciaires (Licitor) au même endroit : mise à prix, consignation CARPA 10 %, droits et prix réels DVF/m².",
+      imgUrl: "https://www.belowmark.com/og/home.png",
       tags: ["ventes aux enchères judiciaires", "saisie immobilière", "immobilier sous valeur marché", "tribunal judiciaire", "mise à prix", "ZVG"],
-      url: "https://belowmark.com",
+      url: "https://www.belowmark.com",
     },
 
     Hero: {

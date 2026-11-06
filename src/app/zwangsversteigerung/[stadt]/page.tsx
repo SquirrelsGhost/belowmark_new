@@ -19,25 +19,14 @@ export async function generateMetadata({ params }: StadtPageProps): Promise<Meta
   const entity = catalog.cityBySlug.get(stadt);
   if (!entity) {
     const legacyTarget = catalog.legacyCityRedirects.get(stadt);
-    if (legacyTarget) permanentRedirect(legacyTarget);
-    return {
-      ...MetaTagService.CreateMetaTags({
-        title: "Zwangsversteigerungen nach Stadt | Belowmark",
-        description: "Aktuelle Immobilien-Zwangsversteigerungen nach Stadt und Bundesland.",
-        imgUrl: DEFAULT_BLOG_OG,
-        tags: ["Zwangsversteigerung", "Immobilien"],
-        url: `${BELOWMARK_ORIGIN}/zwangsversteigerungen`,
-      }),
-      robots: { index: false, follow: true },
-    };
+    permanentRedirect(legacyTarget ?? "/zwangsversteigerungen");
   }
 
   const minBidVal = entity.minAppraisedValue ? Math.round(entity.minAppraisedValue * 0.5) : null;
-  const minBidStr = minBidVal ? ` ab ${formatEuro(minBidVal, "de")} (50% ZVG)` : "";
-  const avgStr = entity.avgAppraisedValue ? ` · Ø Verkehrswert ${formatEuro(entity.avgAppraisedValue, "de")}` : "";
+  const minBidStr = minBidVal ? ` ab ${formatEuro(minBidVal, "de")}` : "";
   return MetaTagService.CreateMetaTags({
-    title: `Zwangsversteigerung ${entity.name}: ${entity.totalCount} Immobilien & Termine${minBidStr} | Belowmark`,
-    description: `Aktuelle Zwangsversteigerungen & Termine in ${entity.name} (${entity.region}): ${entity.totalCount} Immobilien${minBidStr}${avgStr}. Aktenzeichen, 5/10- & 7/10-Grenzen, Sicherheitsleistung & Gutachten.`,
+    title: `Zwangsversteigerung ${entity.name}: ${entity.totalCount} Termine${minBidStr}`,
+    description: `Aktuelle Zwangsversteigerungen in ${entity.name} (${entity.region}): ${entity.totalCount} Immobilien${minBidStr} (50 % ZVG). Aktenzeichen, 5/10- & 7/10-Grenzen & Gutachten.`,
     imgUrl: DEFAULT_BLOG_OG,
     tags: [
       `Zwangsversteigerung ${entity.name}`,

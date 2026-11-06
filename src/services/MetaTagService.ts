@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { normalizeCanonicalUrl } from "@/lib/blog/blogSeo";
+import { formatSeoDescription, formatSeoTitle, normalizeCanonicalUrl } from "@/lib/blog/blogSeo";
 import { APP_NAME } from "@/lib/constants";
 
 /**
@@ -32,18 +32,20 @@ export class MetaTagService {
   static CreateMetaTags = (props: IMetaTags): Metadata => {
     const canonicalUrl = normalizeCanonicalUrl(props.url);
     const normalizedImgUrl = props.imgUrl.replace(/^https?:\/\/belowmark\.com(?=\/|$)/i, "https://www.belowmark.com");
+    const seoTitle = formatSeoTitle(props.title, 65);
+    const seoDescription = formatSeoDescription(props.description, 158);
 
     return {
-      title: props.title,
-      description: props.description,
+      title: seoTitle,
+      description: seoDescription,
       keywords: props.tags,
       alternates: {
         canonical: canonicalUrl,
       },
 
       openGraph: {
-        title: props.title,
-        description: props.description,
+        title: seoTitle,
+        description: seoDescription,
         url: canonicalUrl,
         siteName: APP_NAME,
         images: [
@@ -59,8 +61,8 @@ export class MetaTagService {
 
       twitter: {
         card: "summary_large_image",
-        title: props.title,
-        description: props.description,
+        title: seoTitle,
+        description: seoDescription,
         images: [normalizedImgUrl],
       },
     };

@@ -12,8 +12,8 @@ export async function generateMetadata(): Promise<Metadata> {
   const distCount = c.trLocations.filter((l) => l.kind === "district").length;
   return {
     ...MetaTagService.CreateMetaTags({
-      title: `Türkiye İcra & E-İhale Gayrimenkul Rehberi: 81 İl & ${c.trTotalListings} İhale | Belowmark`,
-      description: `81 il ve ${distCount} ilçede güncel ${c.trTotalListings} UYAP E-Satış, Basın İlan Kurumu, GİB ve SGK gayrimenkul icra ihalesi. Muhammen bedel, %50 açılış ve %10 teminat hesaplama.`,
+      title: `Türkiye İcra & UYAP E-İhale: 81 İl ve ${c.trTotalListings} Aktif İhale`,
+      description: `81 il ve ${distCount} ilçede güncel ${c.trTotalListings} UYAP E-Satış, Basın İlan, GİB ve SGK gayrimenkul ihalesi: muhammen bedel, %50 açılış ve %10 teminat.`,
       imgUrl: DEFAULT_BLOG_OG,
       tags: [
         "İcra İhale Gayrimenkul",

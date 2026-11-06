@@ -18,16 +18,7 @@ export async function generateMetadata({ params }: BundeslandPageProps): Promise
   const catalog = await PseoService.GetCatalog();
   const state = catalog.deStateBySlug.get(slug);
   if (!state) {
-    return {
-      ...MetaTagService.CreateMetaTags({
-        title: "Zwangsversteigerung nach Bundesland | Belowmark",
-        description: "Alle laufenden Zwangsversteigerungen in allen 16 deutschen Bundesländern.",
-        imgUrl: DEFAULT_BLOG_OG,
-        tags: ["Zwangsversteigerung Bundesland"],
-        url: `${BELOWMARK_ORIGIN}/zwangsversteigerungen`,
-      }),
-      robots: { index: false, follow: true },
-    };
+    permanentRedirect("/zwangsversteigerungen");
   }
   if (state.slug !== slug) {
     permanentRedirect(`/bundesland/${state.slug}`);
@@ -36,8 +27,8 @@ export async function generateMetadata({ params }: BundeslandPageProps): Promise
   const minBidVal = state.minAppraisedValue ? Math.round(state.minAppraisedValue * 0.5) : null;
   const minBidStr = minBidVal ? ` ab ${formatEuro(minBidVal, "de")}` : "";
   return MetaTagService.CreateMetaTags({
-    title: `Zwangsversteigerung ${state.name}: ${state.totalCount} Termine${minBidStr} (${state.courts.length} Amtsgerichte) | Belowmark`,
-    description: `Aktuelles Verzeichnis aller ${state.totalCount} Immobilien-Zwangsversteigerungen (§ 39 ZVG) in ${state.name}${minBidStr} (${state.courts.length} Amtsgerichte, ${state.transferTaxPct} % Grunderwerbsteuer, 5/10- & 7/10-Grenze).`,
+    title: `Zwangsversteigerung ${state.name}: ${state.totalCount} Termine${minBidStr}`,
+    description: `Alle ${state.totalCount} Immobilien-Zwangsversteigerungen (§ 39 ZVG) in ${state.name}${minBidStr}: ${state.courts.length} Amtsgerichte, 5/10- & 7/10-Grenze & ${state.transferTaxPct} % Steuer.`,
     imgUrl: DEFAULT_BLOG_OG,
     tags: [
       `Zwangsversteigerung ${state.name}`,

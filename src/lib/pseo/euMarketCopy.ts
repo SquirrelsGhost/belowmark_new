@@ -52,10 +52,10 @@ export const EU_MARKET_COPY: Record<EuPseoMarketCode, EuMarketCopyConfig> = {
       `Zwangsversteigerung Österreich (Ediktsdatei): Alle ${rCount} Bundesländer, ${cCount} Bezirksgerichte & ${total} Termine`,
     hubLead:
       "Tagesaktuelles Verzeichnis aller gerichtlichen Liegenschaftsversteigerungen (Exekutionsordnung EO) aus der amtlichen Ediktsdatei der österreichischen Justiz — inklusive Schätzwert (§ 140 EO), Geringstem Gebot (50 % nach § 151 EO), 10 % Vadium (§ 147 EO) und 3/4-Überbotsgrenze (§ 195 EO).",
-    hubMetaTitle: (total, rCount) =>
-      `Zwangsversteigerung Österreich (Ediktsdatei) — Alle ${rCount} Bundesländer & ${total} Termine | Belowmark`,
+    hubMetaTitle: (total) =>
+      `Zwangsversteigerung Österreich (Ediktsdatei): ${total} Termine`,
     hubMetaDesc: (total, rCount) =>
-      `Alle ${total} gerichtlichen Immobilien-Zwangsversteigerungen in Österreich (${rCount} Bundesländer, Ediktsdatei Justiz): Schätzwert, Geringstes Gebot (§ 151 EO) & 10 % Vadium.`,
+      `Alle ${total} gerichtlichen Zwangsversteigerungen in Österreich (${rCount} Bundesländer, Ediktsdatei Justiz): Schätzwert, 50 % Geringstes Gebot (§ 151 EO) & Vadium.`,
     calcButtonLabel: "🧮 Kostenloser Österreich Edikte-Rechner (Geringstes Gebot & 10 % Vadium) →",
     ctaButtonLabel: "Alle Edikte, Langgutachten & Grundbuchsauszüge freischalten →",
     regionsHeading: (c) => `Alle ${c} österreichischen Bundesländer (Ediktsdatei)`,
@@ -81,9 +81,9 @@ export const EU_MARKET_COPY: Record<EuPseoMarketCode, EuMarketCopyConfig> = {
     calcPageTitle: "Zwangsversteigerung Österreich Rechner: Geringstes Gebot (§ 151 EO), 10 % Vadium & Überbot",
     calcPageLead:
       "Berechnen Sie für jede Liegenschaft aus der österreichischen Ediktsdatei das Geringste Gebot (50 % des Schätzwerts nach § 151 EO), das verpflichtende 10 % Vadium (§ 147 EO als Sparbuch/Bankgarantie), die 3/4-Überbotsgrenze (§ 195 EO) sowie 3,5 % Grunderwerbsteuer und 1,1 % Grundbuchseintragungsgebühr.",
-    calcMetaTitle: "Zwangsversteigerung Österreich Rechner: § 151 EO Geringstes Gebot & Vadium | Belowmark",
+    calcMetaTitle: "Ediktsdatei Rechner Österreich: § 151 EO & 10 % Vadium",
     calcMetaDesc:
-      "Kostenloser Rechner für gerichtliche Versteigerungen (Ediktsdatei Österreich): 50 % Geringstes Gebot (§ 151 EO), 10 % Vadium (§ 147 EO), 3/4-Überbot (§ 195 EO) & Nebenkosten.",
+      "Kostenloser Rechner für gerichtliche Versteigerungen (Ediktsdatei Österreich): 50 % Geringstes Gebot (§ 151 EO), 10 % Vadium (§ 147 EO) & 3/4-Überbot.",
     faqs: [
       {
         q: "Wie hoch ist das Geringste Gebot bei einer Zwangsversteigerung in Österreich?",
@@ -107,13 +107,13 @@ export const EU_MARKET_COPY: Record<EuPseoMarketCode, EuMarketCopyConfig> = {
     entryMetaTitle: (e) => {
       const low = fmtMinEntry(e, 0.5, "de-AT", "EUR");
       if (e.kind === "court") {
-        return `${e.name}: ${e.totalCount} Zwangsversteigerungen & Termine${low ? ` ab ${low}` : ""} (Ediktsdatei) | Belowmark`;
+        return `${e.name}: ${e.totalCount} Versteigerungen & Edikte${low ? ` ab ${low}` : ""}`;
       }
-      return `Zwangsversteigerung ${e.name}: ${e.totalCount} Edikte & Termine${low ? ` ab ${low}` : ""} (Ediktsdatei) | Belowmark`;
+      return `Zwangsversteigerung ${e.name}: ${e.totalCount} Edikte${low ? ` ab ${low}` : ""}`;
     },
     entryMetaDesc: (e) => {
       const low = fmtMinEntry(e, 0.5, "de-AT", "EUR");
-      return `Aktuelle Zwangsversteigerungen & Termine (Ediktsdatei Österreich) in ${e.name}: ${e.totalCount} Liegenschaften${low ? ` ab ${low} (50% § 151 EO)` : ""} inkl. Schätzwert, Vadium & Gutachten.`;
+      return `Aktuelle Zwangsversteigerungen (Ediktsdatei) in ${e.name}: ${e.totalCount} Liegenschaften${low ? ` ab ${low} (50% § 151 EO)` : ""} inkl. Schätzwert, Vadium & Gutachten.`;
     },
   },
   CH: {
@@ -122,10 +122,10 @@ export const EU_MARKET_COPY: Record<EuPseoMarketCode, EuMarketCopyConfig> = {
       `Betreibungsamtliche Grundstücksteigerungen Schweiz (SHAB): Alle ${rCount} Kantone, ${cCount} Ämter & ${total} Auktionen`,
     hubLead:
       "Zentrales Verzeichnis aller im Schweizerischen Handelsamtsblatt (SHAB / FOSC / FUSC) publizierten betreibungs- und konkursamtlichen Grundstücksteigerungen nach SchKG aus allen 26 Kantonen — mit betreibungsamtlicher Schätzung (CHF), Deckungsprinzip (Art. 126 / 142a SchKG), Sicherheitsleistung und kantonaler Handänderungssteuer.",
-    hubMetaTitle: (total, rCount) =>
-      `Grundstücksteigerungen Schweiz (SHAB) — Alle ${rCount} Kantone & ${total} Termine | Belowmark`,
+    hubMetaTitle: (total) =>
+      `Grundstücksteigerung Schweiz (SHAB): ${total} Aktive Termine`,
     hubMetaDesc: (total, rCount) =>
-      `Alle ${total} betreibungsamtlichen Grundstücksteigerungen in der Schweiz (${rCount} Kantone, SHAB / SchKG): Schätzung in CHF, Steigerungsbedingungen & Handänderungssteuer.`,
+      `Alle ${total} betreibungsamtlichen Grundstücksteigerungen in der Schweiz (${rCount} Kantone, SHAB / SchKG): Schätzung in CHF, Bedingungen & Handänderungssteuer.`,
     calcButtonLabel: "🧮 Kostenloser Schweiz SchKG-Steigerungsrechner (CHF & Kantonssteuer) →",
     ctaButtonLabel: "Alle SHAB-Publikationen, Lastenverzeichnisse & Steigerungsbedingungen öffnen →",
     regionsHeading: (c) => `Alle ${c} Schweizer Kantone (SHAB Grundstücksteigerungen)`,
@@ -177,13 +177,13 @@ export const EU_MARKET_COPY: Record<EuPseoMarketCode, EuMarketCopyConfig> = {
     entryMetaTitle: (e) => {
       const low = fmtMinEntry(e, 0.6, "de-CH", "CHF");
       if (e.kind === "court") {
-        return `${e.name}: ${e.totalCount} Grundstücksteigerungen & Termine (SHAB)${low ? ` ab ${low}` : ""} | Belowmark`;
+        return `${e.name}: ${e.totalCount} SHAB-Steigerungen${low ? ` ab ${low}` : ""}`;
       }
-      return `Zwangsversteigerung & Grundstücksteigerung ${e.name} (${e.totalCount} SHAB-Termine${low ? ` ab ${low}` : ""}) | Belowmark`;
+      return `Grundstücksteigerung ${e.name}: ${e.totalCount} SHAB-Termine${low ? ` ab ${low}` : ""}`;
     },
     entryMetaDesc: (e) => {
       const low = fmtMinEntry(e, 0.6, "de-CH", "CHF");
-      return `Betreibungsamtliche Grundstücksteigerungen & Zwangsversteigerungen (SHAB / SchKG) in ${e.name}: ${e.totalCount} Immobilien${low ? ` ab ${low}` : ""} inkl. Schätzung in CHF & Terminen.`;
+      return `Betreibungsamtliche Grundstücksteigerungen (SHAB / SchKG) in ${e.name}: ${e.totalCount} Immobilien${low ? ` ab ${low}` : ""} inkl. Schätzung in CHF & Terminen.`;
     },
   },
   IT: {
@@ -193,9 +193,9 @@ export const EU_MARKET_COPY: Record<EuPseoMarketCode, EuMarketCopyConfig> = {
     hubLead:
       "Catalogo completo delle aste giudiziarie immobiliari pubblicate sul Portale delle Vendite Pubbliche (PVP - Ministero della Giustizia) in tutte le 20 regioni italiane — con Prezzo Base d'Asta, Offerta Minima al 75% (art. 571 c.p.c.), Perizia CTU, Cauzione 10% e calcolo delle imposte.",
     hubMetaTitle: (total, rCount) =>
-      `Aste Giudiziarie Italia (PVP) — Tutte le ${rCount} Regioni e ${total} Immobili all'Asta | Belowmark`,
+      `Aste Giudiziarie Italia (PVP): ${total} Lotti in ${rCount} Regioni`,
     hubMetaDesc: (total, rCount) =>
-      `Tutti i ${total} immobili all'asta giudiziaria in Italia (${rCount} regioni, PVP Ministero della Giustizia): Prezzo Base, Offerta Minima 75% (art. 571 c.p.c.), Perizia CTU e Cauzione 10%.`,
+      `Tutti i ${total} immobili all'asta giudiziaria in Italia (${rCount} regioni, PVP Giustizia): Prezzo Base, Offerta Minima 75% (art. 571 c.p.c.) e Cauzione 10%.`,
     calcButtonLabel: "🧮 Calcolatore Gratuito Offerta Minima 75% (art. 571 c.p.c.), Cauzione 10% e Imposte →",
     ctaButtonLabel: "Sblocca Tutte le Perizie CTU, Avvisi di Vendita e Analisi Valore di Mercato →",
     regionsHeading: (c) => `Tutte le ${c} Regioni Italiane (Aste Giudiziarie PVP)`,
@@ -221,9 +221,9 @@ export const EU_MARKET_COPY: Record<EuPseoMarketCode, EuMarketCopyConfig> = {
     calcPageTitle: "Calcolatore Asta Giudiziaria: Offerta Minima 75% (Art. 571 c.p.c.), Cauzione 10% e Imposta di Registro",
     calcPageLead:
       "Inserisci il Prezzo Base d'Asta indicato nell'avviso di vendita del Tribunale: calcola subito l'Offerta Minima valida al 75% (art. 571 c.p.c.), la Cauzione del 10% da versare tramite bonifico o assegno circolare, l'Imposta di Registro (2% Prima Casa o 9% Seconda Casa con Prezzo-Valore) e il budget complessivo.",
-    calcMetaTitle: "Calcolatore Offerta Minima 75% Asta Giudiziaria (Art. 571 c.p.c.) & Cauzione | Belowmark",
+    calcMetaTitle: "Calcolatore Offerta Minima 75% Asta Giudiziaria | Belowmark",
     calcMetaDesc:
-      "Calcola gratuitamente l'Offerta Minima al 75% (art. 571 c.p.c.), la cauzione del 10%, i costi del delegato alla vendita e l'imposta di registro per le aste giudiziarie immobiliari.",
+      "Calcola gratis l'Offerta Minima al 75% (art. 571 c.p.c.), la cauzione del 10%, i costi del delegato e l'imposta di registro per le aste giudiziarie PVP.",
     faqs: [
       {
         q: "Come funziona l'Offerta Minima al 75% del Prezzo Base (art. 571 c.p.c.)?",
@@ -244,23 +244,23 @@ export const EU_MARKET_COPY: Record<EuPseoMarketCode, EuMarketCopyConfig> = {
       `Elenco aggiornato delle esecuzioni immobiliari e aste giudiziarie per ${e.name} (${e.nativeRegionName}) — con Prezzo Base d'Asta, Offerta Minima al 75% (art. 571 c.p.c.), cauzione 10% e confronto con i valori OMI di mercato.`,
     entryMetaTitle: (e) => {
       const low = fmtMinEntry(e, 0.75, "it-IT", "EUR");
-      return `Aste Giudiziarie ${e.name} (${e.totalCount} Lotti PVP${low ? ` da ${low}` : ""}) — Offerta Minima 75% | Belowmark`;
+      return `Aste Giudiziarie ${e.name}: ${e.totalCount} Lotti PVP${low ? ` da ${low}` : ""}`;
     },
     entryMetaDesc: (e) => {
       const low = fmtMinEntry(e, 0.75, "it-IT", "EUR");
-      return `Immobili all'asta giudiziaria a ${e.name} (${e.totalCount} procedure PVP${low ? ` da ${low}` : ""}): Prezzo Base, Offerta Minima al 75% (art. 571 c.p.c.), Perizia CTU e date di vendita.`;
+      return `Immobili all'asta giudiziaria a ${e.name}: ${e.totalCount} lotti PVP${low ? ` da ${low}` : ""} con Prezzo Base, Offerta Minima 75% (art. 571 c.p.c.) e Perizia CTU.`;
     },
   },
   ES: {
     hubEyebrow: "ESPAÑA · PORTAL DE SUBASTAS DEL BOE · 17 COMUNIDADES AUTÓNOMAS",
     hubTitle: (total, rCount, cCount) =>
-      `Subastas Judiciales BOE España: Las ${rCount} Comunidades Autónomas, ${cCount} Juzgados y ${total} Lotes Activos`,
+      `Subastas BOE e Inmuebles Judiciales España: ${rCount} Comunidades, ${cCount} Juzgados y ${total} Lotes Activos`,
     hubLead:
       "Directorio actualizado de subastas judiciales, notariales y de la Agencia Tributaria publicadas en el Portal de Subastas del Boletín Oficial del Estado (BOE) en las 17 comunidades autónomas — con Valor de Subasta, reglas del 70% y 50% (Art. 670 LEC), depósito del 5% y cálculo del ITP autonómico.",
-    hubMetaTitle: (total, rCount) =>
-      `Subastas Judiciales BOE España — ${rCount} Comunidades y ${total} Inmuebles | Belowmark`,
+    hubMetaTitle: (total) =>
+      `Subastas BOE Inmuebles: ${total} Subastas Judiciales Activas`,
     hubMetaDesc: (total, rCount) =>
-      `Todas las ${total} subastas judiciales de inmuebles en España (${rCount} comunidades autónomas, Portal BOE): Valor de Subasta, umbral 70% Art. 670 LEC, depósito 5% y cargas.`,
+      `Portal de Subastas BOE en las ${rCount} comunidades: ${total} viviendas, locales y solares activos con Valor de Subasta, regla 70%/50% (Art. 670 LEC) y depósito 5%.`,
     calcButtonLabel: "🧮 Calculadora Gratuita Subasta BOE: Regla 70% / 50% (Art. 670 LEC), Depósito 5% e ITP →",
     ctaButtonLabel: "Desbloquear Certificación de Cargas, Edicto BOE y Puja Máxima Recomendada →",
     regionsHeading: (c) => `Las ${c} Comunidades Autónomas de España (Subastas BOE)`,
@@ -286,9 +286,9 @@ export const EU_MARKET_COPY: Record<EuPseoMarketCode, EuMarketCopyConfig> = {
     calcPageTitle: "Calculadora de Subastas Judiciales BOE: Regla del 70% y 50% (Art. 670 LEC), Depósito 5% e ITP",
     calcPageLead:
       "Introduce el Valor de Subasta del edicto del BOE: calcula al instante el depósito electrónico del 5% (pasarela NRC de la AEAT), el umbral del 70% de adjudicación firme (Art. 670.1 LEC), el límite del 50% (Art. 670.4 LEC) y el Impuesto de Transmisiones Patrimoniales (ITP) según tu Comunidad Autónoma.",
-    calcMetaTitle: "Calculadora Subastas BOE: Regla 70% / 50% Art. 670 LEC y Depósito 5% | Belowmark",
+    calcMetaTitle: "Calculadora Subastas BOE: Regla 70%/50% y Depósito 5%",
     calcMetaDesc:
-      "Calcula gratis la puja óptima en el Portal de Subastas del BOE: umbral del 70% y 50% (Art. 670 LEC), consignación del 5%, ITP por comunidad autónoma y rentabilidad neta.",
+      "Calcula gratis la puja óptima en Subastas BOE: umbral del 70% y 50% (Art. 670 LEC), depósito electrónico del 5%, ITP autonómico y ahorro real.",
     faqs: [
       {
         q: "¿Qué significa la regla del 70% en las subastas judiciales del BOE (Art. 670.1 LEC)?",
@@ -309,11 +309,11 @@ export const EU_MARKET_COPY: Record<EuPseoMarketCode, EuMarketCopyConfig> = {
       `Listado actualizado de subastas judiciales del BOE (viviendas, locales y solares) en ${e.name} (${e.nativeRegionName}) — con Valor de Subasta BOE, umbral del 70% (Art. 670 LEC), depósito del 5% e ITP autonómico del ${e.transferTaxPct}%.`,
     entryMetaTitle: (e) => {
       const low = fmtMinEntry(e, 0.5, "es-ES", "EUR");
-      return `Subasta BOE ${e.name}: ${e.totalCount} Subastas Judiciales${low ? ` desde ${low}` : ""} (70% Art. 670 LEC) | Belowmark`;
+      return `Subastas BOE ${e.name}: ${e.totalCount} Inmuebles Activos${low ? ` desde ${low}` : ""}`;
     },
     entryMetaDesc: (e) => {
       const low = fmtMinEntry(e, 0.5, "es-ES", "EUR");
-      return `Inmuebles en Subasta BOE y subastas judiciales en ${e.name}: ${e.totalCount} lotes activos${low ? ` desde ${low}` : ""} con Valor de Subasta, regla del 70% Art. 670 LEC, depósito 5% y cargas.`;
+      return `Subastas BOE y judiciales en ${e.name}: ${e.totalCount} inmuebles activos${low ? ` desde ${low}` : ""}. Valor de Subasta, regla 70% Art. 670 LEC, depósito 5% y cargas.`;
     },
   },
   FR: {
@@ -322,10 +322,10 @@ export const EU_MARKET_COPY: Record<EuPseoMarketCode, EuMarketCopyConfig> = {
       `Ventes aux Enchères Immobilières France (Licitor & TJ) : Les ${rCount} Régions, ${cCount} Tribunaux et ${total} Lots`,
     hubLead:
       "Répertoire complet des ventes aux enchères immobilières judiciaires (adjudications à la barre du Tribunal Judiciaire, publications Licitor) dans les 13 régions françaises — avec Mise à prix, Cahier des conditions de vente, chèque de banque CARPA (10 %), délai de surenchère du dixième et droits d'enregistrement.",
-    hubMetaTitle: (total, rCount) =>
-      `Enchères Immobilières France (Licitor & Tribunaux) — ${rCount} Régions & ${total} Biens | Belowmark`,
+    hubMetaTitle: (total) =>
+      `Enchères Immobilières France (Licitor & TJ) : ${total} Biens`,
     hubMetaDesc: (total, rCount) =>
-      `Toutes les ${total} ventes aux enchères immobilières judiciaires en France (${rCount} régions, Licitor & Tribunaux Judiciaires) : Mise à prix, consignation CARPA 10 % et valeurs DVF.`,
+      `Toutes les ${total} ventes aux enchères immobilières judiciaires en France (${rCount} régions, Licitor & TJ) : Mise à prix, consignation CARPA 10 % et valeurs DVF.`,
     calcButtonLabel: "🧮 Calculateur Gratuit Enchères Judiciaires : Mise à prix, Consignation CARPA 10 % & Frais →",
     ctaButtonLabel: "Débloquer le Cahier des Conditions de Vente, PV Descriptif & Comparatif DVF/m² →",
     regionsHeading: (c) => `Les ${c} Régions de France (Ventes aux Enchères Licitor & TJ)`,
@@ -351,9 +351,9 @@ export const EU_MARKET_COPY: Record<EuPseoMarketCode, EuMarketCopyConfig> = {
     calcPageTitle: "Calculateur d'Enchères Immobilières Judiciaires (Licitor / Tribunal Judiciaire) : Consignation CARPA, Frais Préalables & Droits",
     calcPageLead:
       "Simulez votre acquisition aux enchères judiciaires devant le Tribunal Judiciaire : calculez le montant du chèque de banque de consignation CARPA (10 % de la mise à prix avec un minimum légal de 3 000 €), le seuil de surenchère du dixième (+10 % pendant 10 jours), les droits d'enregistrement (5,80 %) et votre budget maximal.",
-    calcMetaTitle: "Calculateur Frais d'Adjudication & Enchères Immobilières Licitor | Belowmark",
+    calcMetaTitle: "Calculateur Enchères Judiciaires Licitor & CARPA 10 %",
     calcMetaDesc:
-      "Calculez gratuitement les frais d'une vente aux enchères au Tribunal Judiciaire (Licitor) : chèque de consignation CARPA 10 %, frais préalables, droits d'enregistrement et surenchère.",
+      "Calculez gratuitement les frais d'une vente aux enchères au Tribunal Judiciaire (Licitor) : consignation CARPA 10 %, frais préalables et droits.",
     faqs: [
       {
         q: "Est-il obligatoire de passer par un avocat pour enchérir au Tribunal Judiciaire ?",
@@ -374,11 +374,11 @@ export const EU_MARKET_COPY: Record<EuPseoMarketCode, EuMarketCopyConfig> = {
       `Consultez toutes les ventes aux enchères judiciaires programmées pour ${e.name} (${e.nativeRegionName}) — avec Mise à prix, juridiction compétente, consignation CARPA 10 % et comparaison aux prix réels DVF/m².`,
     entryMetaTitle: (e) => {
       const low = fmtMinEntry(e, 0.45, "fr-FR", "EUR");
-      return `Enchères Immobilières ${e.name} (${e.totalCount} Lots Licitor / TJ${low ? ` dès ${low}` : ""}) | Belowmark`;
+      return `Enchères Immobilières ${e.name} : ${e.totalCount} Biens${low ? ` dès ${low}` : ""}`;
     },
     entryMetaDesc: (e) => {
       const low = fmtMinEntry(e, 0.45, "fr-FR", "EUR");
-      return `Ventes aux enchères immobilières au Tribunal Judiciaire pour ${e.name} : ${e.totalCount} biens actifs${low ? ` dès ${low}` : ""} avec Mise à prix, Cahier des conditions de vente et décote DVF.`;
+      return `Ventes aux enchères immobilières (Licitor / TJ) à ${e.name} : ${e.totalCount} biens actifs${low ? ` dès ${low}` : ""} avec Mise à prix, conditions de vente et décote DVF.`;
     },
   },
   GB: {
@@ -388,9 +388,9 @@ export const EU_MARKET_COPY: Record<EuPseoMarketCode, EuMarketCopyConfig> = {
     hubLead:
       "Complete directory of live residential and commercial UK property auction lots across all 12 regions of England, Wales, Scotland, and Northern Ireland — featuring Guide Prices in GBP, estimated Reserve Prices, 10% Exchange Deposits, 28-day completion timelines, and Land Registry / EPC street-price comps.",
     hubMetaTitle: (total, rCount) =>
-      `UK Property Auctions — All ${rCount} Regions & ${total} Live Lots (Guide Price & Comps) | Belowmark`,
+      `UK Property Auctions: ${total} Live Lots Across ${rCount} Regions`,
     hubMetaDesc: (total, rCount) =>
-      `Browse all ${total} live UK property auction lots across ${rCount} UK regions: Guide Prices in GBP, 10% exchange deposit, Legal Pack check & HM Land Registry price/m² comps.`,
+      `Browse all ${total} live UK property auction lots across ${rCount} UK regions: Guide Prices in GBP, 10% exchange deposit, Legal Pack check & Land Registry comps.`,
     calcButtonLabel: "🧮 Free UK Property Auction Calculator: Guide vs Reserve, 10% Deposit & Stamp Duty (SDLT) →",
     ctaButtonLabel: "Unlock Full Auction Legal Pack Checks, Reserve Estimates & Land Registry Comps →",
     regionsHeading: (c) => `All ${c} UK Regions (England, Wales, Scotland & Northern Ireland)`,
@@ -416,9 +416,9 @@ export const EU_MARKET_COPY: Record<EuPseoMarketCode, EuMarketCopyConfig> = {
     calcPageTitle: "UK Property Auction Calculator: Guide Price, Reserve Ceiling (+10%), 10% Exchange Deposit & Stamp Duty (SDLT)",
     calcPageLead:
       "Calculate your maximum safe bid for any UK property auction lot: compare HM Land Registry market value against the published Guide Price, model the +10% ASA Reserve Price rule, compute your immediate 10% exchange deposit on the fall of the gavel, and factor in Stamp Duty Land Tax (SDLT) plus refurbishment costs in GBP.",
-    calcMetaTitle: "UK Property Auction Calculator: 10% Deposit, Reserve Price & Stamp Duty | Belowmark",
+    calcMetaTitle: "UK Property Auction Calculator: 10% Deposit & Stamp Duty",
     calcMetaDesc:
-      "Free UK property auction calculator (GBP): calculate the 10% exchange deposit, +10% reserve price ceiling, 28-day completion balance, and Stamp Duty Land Tax (SDLT).",
+      "Free UK property auction calculator (GBP): calculate 10% exchange deposit, +10% reserve price ceiling, 28-day completion balance & Stamp Duty (SDLT).",
     faqs: [
       {
         q: "What is the difference between a Guide Price and a Reserve Price in UK property auctions?",
@@ -439,11 +439,11 @@ export const EU_MARKET_COPY: Record<EuPseoMarketCode, EuMarketCopyConfig> = {
       `Live residential and commercial UK property auction and repossession lots in ${e.name} (${e.nativeRegionName}) — complete with Guide Prices in GBP, 10% exchange deposit figures, 28-day completion terms, and HM Land Registry £/m² street benchmarks.`,
     entryMetaTitle: (e) => {
       const low = fmtMinEntry(e, 0.7, "en-GB", "GBP");
-      return `UK Property Auctions ${e.name} (${e.totalCount} Live Lots${low ? ` from ${low}` : ""}) — Guide Prices | Belowmark`;
+      return `UK Property Auctions ${e.name}: ${e.totalCount} Lots${low ? ` from ${low}` : ""}`;
     },
     entryMetaDesc: (e) => {
       const low = fmtMinEntry(e, 0.7, "en-GB", "GBP");
-      return `Browse ${e.totalCount} live UK property auction & repossession lots in ${e.name}${low ? ` from ${low}` : ""}: Guide Prices in GBP, 10% exchange deposit, Legal Pack notes & Land Registry comps.`;
+      return `Browse ${e.totalCount} live UK property auction & repossession lots in ${e.name}${low ? ` from ${low}` : ""}: Guide Prices in GBP, 10% deposit & Land Registry comps.`;
     },
   },
 };

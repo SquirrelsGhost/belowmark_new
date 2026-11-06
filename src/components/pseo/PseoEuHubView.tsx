@@ -1,6 +1,7 @@
 import Link from "next/link";
 import BlogArticleCta from "@/components/blog/BlogArticleCta";
 import PseoListingPreviewCard from "@/components/pseo/PseoListingPreviewCard";
+import PseoRelatedGuides from "@/components/pseo/PseoRelatedGuides";
 import PseoStatsBanner from "@/components/pseo/PseoStatsBanner";
 import { BELOWMARK_ORIGIN } from "@/lib/blog/blogSeo";
 import { ROUTES } from "@/lib/constants";
@@ -161,6 +162,8 @@ export default function PseoEuHubView({ catalog }: PseoEuHubViewProps) {
           </div>
         </section>
       )}
+
+      <PseoRelatedGuides locale={catalog.locale} />
 
       <BlogArticleCta lang={catalog.locale} />
     </div>

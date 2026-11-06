@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { redirect } from "next/navigation";
+import { permanentRedirect } from "next/navigation";
 import { connection } from "next/server";
 import BlogArticleView from "@/components/blog/BlogArticleView";
 import BlogShell from "@/components/blog/BlogShell";
@@ -22,36 +22,43 @@ interface LangArticleProps {
 
 export async function generateMetadata({ params }: LangArticleProps): Promise<Metadata> {
   const { lang, slug } = await params;
-  const cleanLang: BlogLang = VALID_LANGS.has(lang as BlogLang) ? (lang as BlogLang) : "en";
+  if (!VALID_LANGS.has(lang as BlogLang)) {
+    permanentRedirect("/blog");
+  }
+  const cleanLang = lang as BlogLang;
   const [t, { cluster }] = await Promise.all([
     TranslationService.GetUserTranslations(),
     BlogService.FindClusterBySlug(cleanLang, slug),
   ]);
   const entry = cluster?.languages[cleanLang];
+  if (!cluster || !entry) {
+    permanentRedirect(`/${cleanLang}/blog`);
+  }
+  if (entry.slug !== slug) {
+    permanentRedirect(entry.url);
+  }
   return {
     ...MetaTagService.CreateMetaTags({
       ...t.HomePage.MetaTags,
-      title: entry ? `${entry.title} | Belowmark Blog` : "Belowmark Blog",
-      description: entry?.excerpt ?? t.HomePage.MetaTags.description,
-      imgUrl: cluster ? blogArticleCoverUrl(cluster, cleanLang) : t.HomePage.MetaTags.imgUrl,
-      tags: entry
-        ? [entry.focusKeyword ?? entry.title, cluster?.category ?? "Belowmark", "Belowmark"]
-        : t.HomePage.MetaTags.tags,
-      url: entry?.url ? `${BELOWMARK_ORIGIN}${entry.url}` : `${BELOWMARK_ORIGIN}/${cleanLang}/blog/${slug}`,
+      title: `${entry.title} | Belowmark`,
+      description: entry.excerpt,
+      imgUrl: blogArticleCoverUrl(cluster, cleanLang),
+      tags: [entry.focusKeyword ?? entry.title, cluster.category ?? "Belowmark", "Belowmark"],
+      url: `${BELOWMARK_ORIGIN}${entry.url}`,
     }),
-    ...(cluster ? blogArticleSeo(cluster, cleanLang) : { robots: { index: false, follow: true } }),
+    ...blogArticleSeo(cluster, cleanLang),
   };
 }
 
 export default async function LangBlogArticlePage({ params }: LangArticleProps) {
   await connection();
   const { lang, slug } = await params;
-  if (!VALID_LANGS.has(lang as BlogLang)) redirect("/blog");
+  if (!VALID_LANGS.has(lang as BlogLang)) permanentRedirect("/blog");
   const cleanLang = lang as BlogLang;
   const { cluster } = await BlogService.FindClusterBySlug(cleanLang, slug);
   const entry = cluster?.languages[cleanLang];
-  if (!cluster || !entry) redirect(`/${cleanLang}/blog`);
-  if (entry.slug !== slug) redirect(entry.url);
+  if (!cluster || !entry) permanentRedirect(`/${cleanLang}/blog`);
+  if (entry.slug !== slug) permanentRedirect(entry.url);
 
   return (
     <BlogShell lang={cleanLang}>

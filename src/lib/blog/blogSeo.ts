@@ -5,6 +5,52 @@ export const BLOG_LANGS: readonly BlogLang[] = ["de", "tr", "en", "it", "es", "f
 export const BELOWMARK_ORIGIN = "https://www.belowmark.com";
 export const DEFAULT_BLOG_OG = `${BELOWMARK_ORIGIN}/og/home.png`;
 
+const DIRECT_ANSWER_PREFIX_RE =
+  /^(?:Direktantwort|Direct\s+Answer|Doğrudan\s+(?:Yanıt|Cevap)|Risposta\s+diretta|Respuesta\s+directa|Réponse\s+directe|الإجابة\s+المباشرة|Прямой\s+ответ)\s*[:：—–-]\s*/iu;
+
+export function formatSeoTitle(rawTitle: string, maxLen = 65): string {
+  const clean = rawTitle.replace(/\s+/g, " ").trim();
+  if (clean.length <= maxLen) return clean;
+
+  const core = clean.replace(/\s*[|—–-]\s*Belowmark(?:\s+(?:Ratgeber|Blog))?$/i, "").trim();
+  if (`${core} | Belowmark`.length <= maxLen) {
+    return `${core} | Belowmark`;
+  }
+  if (core.length <= maxLen) {
+    return core;
+  }
+
+  const withoutTrailingParens = core.replace(/\s*\([^()]*\)\s*$/, "").trim();
+  if (withoutTrailingParens.length >= 32 && `${withoutTrailingParens} | Belowmark`.length <= maxLen) {
+    return `${withoutTrailingParens} | Belowmark`;
+  }
+  if (withoutTrailingParens.length >= 32 && withoutTrailingParens.length <= maxLen) {
+    return withoutTrailingParens;
+  }
+
+  const slice = core.slice(0, maxLen - 1);
+  const lastSpace = slice.lastIndexOf(" ");
+  const cut = (lastSpace >= 28 ? slice.slice(0, lastSpace) : slice).replace(/[\s,:;—–\-·&/|]+$/u, "");
+  return `${cut}…`;
+}
+
+export function formatSeoDescription(rawDescription: string, maxLen = 158): string {
+  const clean = rawDescription.replace(DIRECT_ANSWER_PREFIX_RE, "").replace(/\s+/g, " ").trim();
+  if (clean.length <= maxLen) return clean;
+
+  const windowSlice = clean.slice(0, maxLen);
+  const sentenceMatches = [...windowSlice.matchAll(/[.!?](?=\s|$)/g)];
+  const lastSentence = sentenceMatches.at(-1);
+  if (lastSentence && lastSentence.index !== undefined && lastSentence.index >= 105) {
+    return windowSlice.slice(0, lastSentence.index + 1).trim();
+  }
+
+  const hardSlice = clean.slice(0, maxLen - 1);
+  const lastSpace = hardSlice.lastIndexOf(" ");
+  const cut = (lastSpace >= 80 ? hardSlice.slice(0, lastSpace) : hardSlice).replace(/[\s,:;—–\-·&/|]+$/u, "");
+  return `${cut}…`;
+}
+
 export function normalizeCanonicalUrl(rawUrl: string): string {
   const trimmed = rawUrl.trim().replace(/^https?:\/\/belowmark\.com(?=\/|$)/i, BELOWMARK_ORIGIN);
   if (trimmed === BELOWMARK_ORIGIN || trimmed === `${BELOWMARK_ORIGIN}/`) {

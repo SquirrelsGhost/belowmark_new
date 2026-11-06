@@ -1,4 +1,5 @@
 import Link from "next/link";
+import PseoRelatedGuides from "@/components/pseo/PseoRelatedGuides";
 import PseoStatsBanner from "@/components/pseo/PseoStatsBanner";
 import { BELOWMARK_ORIGIN } from "@/lib/blog/blogSeo";
 import { ROUTES } from "@/lib/constants";
@@ -152,6 +153,8 @@ export default function PseoDeHubView({ catalog }: PseoDeHubViewProps) {
           ))}
         </div>
       </section>
+
+      <PseoRelatedGuides locale="de" />
     </div>
   );
 }

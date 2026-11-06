@@ -23,26 +23,17 @@ export async function generateMetadata({ params }: TrIcraEntityPageProps): Promi
   const catalog = await PseoService.GetCatalog();
   const entity = catalog.trBySlug.get(slug);
   if (!entity) {
-    return {
-      ...MetaTagService.CreateMetaTags({
-        title: "Türkiye İcra & E-İhale Gayrimenkul | Belowmark",
-        description: "81 ilde güncel icra ve e-ihale gayrimenkul satışları.",
-        imgUrl: DEFAULT_BLOG_OG,
-        tags: ["İcra İhale", "UYAP E-Satış"],
-        url: `${BELOWMARK_ORIGIN}/tr/icra-ihale`,
-      }),
-      robots: { index: false, follow: true },
-    };
+    permanentRedirect("/tr/icra-ihale");
   }
 
   const trBids = entity.listings
     .map((l) => l.minimumBid ?? l.appraisedValue)
     .filter((v): v is number => typeof v === "number" && v > 0);
   const minBidTry = trBids.length > 0 ? Math.min(...trBids) : null;
-  const minBidStr = minBidTry ? ` (${formatTry(minBidTry)}'den %50 Açılış)` : "";
+  const minBidStr = minBidTry ? ` (${formatTry(minBidTry)}'den)` : "";
   return MetaTagService.CreateMetaTags({
-    title: `${entity.name} İcradan Satılık Gayrimenkul: ${entity.totalCount} Aktif İhale${minBidStr} | Belowmark`,
-    description: `${entity.name} genelinde ${entity.totalCount} aktif UYAP E-Satış ve icra gayrimenkul ihalesi${minBidStr}. Esas No, muhammen bedel, %50 açılış, %10 teminat ve TKGM ada/parsel analizi.`,
+    title: `${entity.name} İcradan Satılık: ${entity.totalCount} Aktif İhale${minBidStr}`,
+    description: `${entity.name} genelinde ${entity.totalCount} aktif UYAP E-Satış ve icra ihalesi${minBidStr}. Esas No, muhammen bedel, %50 açılış, %10 teminat ve TKGM parsel analizi.`,
     imgUrl: DEFAULT_BLOG_OG,
     tags: [
       `${entity.name} icradan satılık`,

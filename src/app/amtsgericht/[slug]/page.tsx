@@ -19,26 +19,15 @@ export async function generateMetadata({ params }: AmtsgerichtPageProps): Promis
   const entity = catalog.courtBySlug.get(slug);
   if (!entity) {
     const legacyTarget = catalog.legacyCourtRedirects.get(slug);
-    if (legacyTarget) permanentRedirect(legacyTarget);
-    return {
-      ...MetaTagService.CreateMetaTags({
-        title: "Amtsgericht Zwangsversteigerungen | Belowmark",
-        description: "Alle laufenden Zwangsversteigerungen und Versteigerungstermine an deutschen Amtsgerichten.",
-        imgUrl: DEFAULT_BLOG_OG,
-        tags: ["Amtsgericht", "Zwangsversteigerung"],
-        url: `${BELOWMARK_ORIGIN}/zwangsversteigerungen`,
-      }),
-      robots: { index: false, follow: true },
-    };
+    permanentRedirect(legacyTarget ?? "/zwangsversteigerungen");
   }
 
   const minBidVal = entity.minAppraisedValue ? Math.round(entity.minAppraisedValue * 0.5) : null;
   const minBidStr = minBidVal ? ` ab ${formatEuro(minBidVal, "de")}` : "";
-  const avgStr = entity.avgAppraisedValue ? ` (Ø Verkehrswert ${formatEuro(entity.avgAppraisedValue, "de")})` : "";
   const shortAg = entity.authority && entity.authority !== entity.displayName ? ` (${entity.authority})` : "";
   return MetaTagService.CreateMetaTags({
-    title: `${entity.displayName}${shortAg}: ${entity.totalCount} Zwangsversteigerungen & Termine${minBidStr} | Belowmark`,
-    description: `Aktuelle Zwangsversteigerungen & Termine am ${entity.displayName}${shortAg} (${entity.region}): Alle ${entity.totalCount} Immobilien${minBidStr}${avgStr} mit Aktenzeichen, 5/10- & 7/10-Grenze & Gutachten.`,
+    title: `${entity.displayName}: ${entity.totalCount} Zwangsversteigerungen${minBidStr}`,
+    description: `Aktuelle Zwangsversteigerungen am ${entity.displayName}${shortAg} (${entity.region}): ${entity.totalCount} Termine${minBidStr} mit Aktenzeichen, 5/10- & 7/10-Grenze & Gutachten.`,
     imgUrl: DEFAULT_BLOG_OG,
     tags: [
       `${entity.displayName} Zwangsversteigerungen`,

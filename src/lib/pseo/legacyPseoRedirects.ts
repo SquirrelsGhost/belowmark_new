@@ -1,10 +1,82 @@
+import { EU_MARKET_META, EU_REGION_SEEDS } from "@/lib/pseo/euMarketRegions";
+import type { EuPseoMarketCode } from "@/types/pseo.types";
+
 /**
- * Canonical 308 redirect lookup for legacy cross-market pSEO routes and regional aliases.
+ * Canonical 308 redirect lookup for legacy cross-market pSEO routes, renamed blog guides, and regional aliases.
  * Evaluated in O(1) inside `src/proxy.ts` prior to Suspense streaming so crawlers receive
  * genuine HTTP 308 Permanent Redirect headers with zero Vercel route-table overhead.
  */
 
 const EXACT_PSEO_REDIRECTS: Readonly<Record<string, string>> = {
+  // ─── Legacy & Renamed Blog Articles (8-Language SEO Consolidation) ──────────
+  "/de/blog": "/blog",
+  "/blog/zwangsversteigerung-5-10-und-7-10-grenze-zuschlag":
+    "/blog/zwangsversteigerung-5-und-7-zehntel-grenze-erklaert",
+  "/blog/zwangsversteigerung-tuerkei-uyap-bietsicherheit-rueckzahlung":
+    "/blog/zwangsversteigerung-sicherheitsleistung-10-prozent-und-uyap-teminat",
+  "/blog/zwangsversteigerung-grundbuch-abteilung-ii-wohnrecht-pruefen":
+    "/blog/zwangsversteigerung-grundbuch-abteilung-2-wohnrecht-pruefen",
+  "/blog/zwangsversteigerung-betzdorf-amtsgericht-immobilien-strategien":
+    "/blog/zwangsversteigerung-betzdorf-regionalanalyse-und-immobilien-strategien",
+  "/tr/blog/uyap-e-satis-teminat-yatirma-ve-iade-sureci":
+    "/tr/blog/uyap-e-satis-teminat-iade-sureci-ve-kurallari",
+  "/tr/blog/icra-ihale-muhammen-bedel-yuzde-50-kurali-rehberi":
+    "/tr/blog/zwangsversteigerung-5-10-ve-7-10-siniri-nedir-ihale-rehberi",
+  "/tr/blog/uyap-icra-ihale-tapu-serh-beyan-risk-kontrolu-altenteil-diger-yukuml":
+    "/tr/blog/icra-ihalesinde-tapu-kaydi-serh-intifa-ve-kiymet-takdiri-inceleme",
+  "/tr/blog/betzdorf-icra-ihale-gayrimenkul-bolgesel-analiz-ve-karli-stratejiler":
+    "/tr/blog/avrupa-gayrimenkul-ihaleleri-italya-ispanya-fransa-ingiltere-rehberi",
+  "/en/blog/turkey-uyap-foreclosure-auction-deposit-refund-guide":
+    "/en/blog/how-to-get-uyap-e-sale-deposit-refund-turkey",
+  "/en/blog/foreclosure-auction-50-and-70-percent-limit-rule-germany":
+    "/en/blog/foreclosure-auction-5-10-and-7-10-minimum-bid-limits-explained",
+  "/en/blog/foreclosure-properties-below-market-value-germany-courthouse-auction":
+    "/en/blog/real-estate-auctions-below-market-value-guide",
+  "/en/blog/property-auction-encumbrances-title-deed-risk-audit":
+    "/en/blog/how-to-read-uk-property-auction-legal-pack-checklist",
+  "/en/blog/foreclosure-auction-betzdorf-real-estate":
+    "/en/blog/buying-auction-property-uk-italy-spain-france-regional-guide",
+  "/ar/blog/belowmark-uyap-e-satis-teminat-iade-sureci-ar":
+    "/ar/blog/al-tamin-al-ibtidai-fi-al-mazadat-al-aqariya-10-bilmia",
+  "/ar/blog/zwangsversteigerung-hadd-adna-50-70-bilmia-zvg":
+    "/ar/blog/hadd-al-ataa-al-adna-fi-al-mazadat-al-aqariya-5-10-7-10",
+  "/ar/blog/aqarat-al-mazad-al-jabari-almania-taht-saar-al-souq":
+    "/ar/blog/al-mazadat-al-aqariya-aqall-min-al-qima-al-suqiya",
+  "/ar/blog/shira-aqar-bilmazad-fahss-quyud-altabu-huquq-alintifa":
+    "/ar/blog/fahs-al-sijill-al-aqari-wa-taqrir-al-khabir-qabla-al-muzayada",
+  "/ar/blog/dalilak-alshamil-mazad-alrahn-alaqari-betzdorf-watahlil-souk-alaqara":
+    "/ar/blog/dalil-shira-al-aqarat-mazadat-italiya-ispaniya-faransa-britaniya",
+  "/ar/blog/muqaranat-anzimat-al-mazadat-al-aqariya-fi-urوبا-wa-turkiya":
+    "/ar/blog/muqaranat-anzimat-al-mazadat-al-aqariya-fi-uroba-wa-turkiya",
+  "/ru/blog/pravilo-50-i-70-procentov-na-aukcione-nedvizhimosti-germaniya":
+    "/ru/blog/minimalnaya-stavka-5-10-i-7-10-na-sudebnyh-aukcionah",
+  "/ru/blog/prinuditelnye-torgi-nedvizhimost-nizhe-rynochnoy-stoimosti-germaniya":
+    "/ru/blog/aukciony-nedvizhimosti-nizhe-rynochnoj-stoimosti",
+  "/ru/blog/vozvrat-zaloga-sudebnyy-auktsion-turtsiya-uyap":
+    "/ru/blog/zalog-10-procentov-na-sudebnyh-aukcionah-vnesenie-i-vozvrat",
+  "/ru/blog/proverka-obremenenij-v-reestre-nedvizhimosti-na-aukcione":
+    "/ru/blog/proverka-pozemelnoj-knigi-i-otcheta-ocenshhika-pered-aukcionom",
+  "/ru/blog/prinuditelnyi-auktsion-betzdorf-nedvizhimost":
+    "/ru/blog/sudebnye-aukciony-italiya-ispaniya-franciya-velikobritaniya-gid",
+
+  // ─── Country-Level & Cadastral Noise Slug Consolidation ─────────────────────
+  "/es/subastas-boe/espana": "/es/subastas-boe",
+  "/es/subastas-boe/spain": "/es/subastas-boe",
+  "/it/aste-giudiziarie/italia": "/it/aste-giudiziarie",
+  "/it/aste-giudiziarie/italy": "/it/aste-giudiziarie",
+  "/fr/encheres-immobilieres/france": "/fr/encheres-immobilieres",
+  "/en/uk-property-auctions/united-kingdom": "/en/uk-property-auctions",
+  "/en/uk-property-auctions/uk": "/en/uk-property-auctions",
+  "/en/uk-property-auctions/england": "/en/uk-property-auctions",
+  "/oesterreich/ediktsdatei/oesterreich": "/oesterreich/ediktsdatei",
+  "/schweiz/shab-versteigerungen/schweiz": "/schweiz/shab-versteigerungen",
+  "/zwangsversteigerung/deutschland": "/zwangsversteigerungen",
+  "/zwangsversteigerung/miteigentum": "/zwangsversteigerungen",
+  "/zwangsversteigerung/miteigentum-am": "/zwangsversteigerungen",
+  "/zwangsversteigerung/miteigentum-an": "/zwangsversteigerungen",
+  "/zwangsversteigerung/gemarkung-reichenbach-beim-fuchsenschuebel-flst-669": "/zwangsversteigerungen",
+
+  // ─── Regional & Legacy Slug Aliases ─────────────────────────────────────────
   "/bundesland/bb": "/bundesland/brandenburg",
   "/bundesland/be": "/bundesland/berlin",
   "/bundesland/bw": "/bundesland/baden-wuerttemberg",
@@ -1814,9 +1886,68 @@ const LEGACY_CITY_REDIRECTS: Readonly<Record<string, string>> = {
   "zumarraga": "/es/subastas-boe/zumarraga",
 };
 
+const EU_MARKET_CODES: readonly EuPseoMarketCode[] = ["AT", "CH", "IT", "ES", "FR", "GB"];
+
+const EU_HUB_REGION_SLUGS: ReadonlyArray<{
+  hubPrefix: string;
+  hubPath: string;
+  regionSlugs: ReadonlySet<string>;
+}> = EU_MARKET_CODES.map((code) => ({
+  hubPrefix: `${EU_MARKET_META[code].hubPath}/`,
+  hubPath: EU_MARKET_META[code].hubPath,
+  regionSlugs: new Set(EU_REGION_SEEDS[code].map((seed) => seed.slug)),
+}));
+
+function isNoisyPlaceSlug(slug: string): boolean {
+  return (
+    slug.startsWith("gemarkung-") ||
+    slug.startsWith("miteigentum-") ||
+    slug.startsWith("miteigentumsanteil") ||
+    slug.startsWith("flurstueck-") ||
+    slug.startsWith("flst-") ||
+    slug.startsWith("grundbuch-")
+  );
+}
+
 export function resolvePseoCanonicalRedirect(pathname: string): string | null {
   const exact = EXACT_PSEO_REDIRECTS[pathname];
   if (exact) return exact;
+
+  if (pathname.includes("%")) {
+    try {
+      const decoded = decodeURIComponent(pathname);
+      const decodedExact = EXACT_PSEO_REDIRECTS[decoded];
+      if (decodedExact) return decodedExact;
+    } catch {
+      // Ignore malformed percent-encoding
+    }
+  }
+
+  if (pathname.startsWith("/de/blog/")) {
+    const rest = pathname.slice("/de/blog/".length);
+    if (rest && !rest.includes("/")) {
+      const candidate = `/blog/${rest}`;
+      return EXACT_PSEO_REDIRECTS[candidate] ?? candidate;
+    }
+  }
+
+  for (const { hubPrefix, hubPath, regionSlugs } of EU_HUB_REGION_SLUGS) {
+    if (pathname.startsWith(hubPrefix)) {
+      const slug = pathname.slice(hubPrefix.length);
+      if (slug && !slug.includes("/")) {
+        if (!regionSlugs.has(slug) && slug.endsWith("-stadt")) {
+          const baseSlug = slug.slice(0, -"-stadt".length);
+          if (regionSlugs.has(baseSlug)) {
+            return `${hubPath}/${baseSlug}`;
+          }
+        }
+        if (isNoisyPlaceSlug(slug)) {
+          return hubPath;
+        }
+      }
+      break;
+    }
+  }
 
   if (pathname.startsWith("/amtsgericht/")) {
     const slug = pathname.slice("/amtsgericht/".length);
@@ -1831,6 +1962,9 @@ export function resolvePseoCanonicalRedirect(pathname: string): string | null {
   if (pathname.startsWith("/zwangsversteigerung/")) {
     const slug = pathname.slice("/zwangsversteigerung/".length);
     if (slug && !slug.includes("/")) {
+      if (isNoisyPlaceSlug(slug)) {
+        return "/zwangsversteigerungen";
+      }
       return LEGACY_CITY_REDIRECTS[slug] ?? null;
     }
   }
