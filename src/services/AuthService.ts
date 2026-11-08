@@ -107,6 +107,11 @@ async function findByEmail(email: string) {
 }
 
 const HARDWARE_FP_REGEX = /^HW-[0-9a-f]{32}$/;
+const SYNTHETIC_DEV_EMAIL = /\.(local|invalid|test)$/i;
+
+function isBlockedSyntheticEmailInProd(email: string): boolean {
+  return process.env.NODE_ENV === "production" && SYNTHETIC_DEV_EMAIL.test(email.trim());
+}
 
 /** Checks if a hardware fingerprint (`HW-...`) belongs to any banned user account. */
 export async function isHardwareBanned(hardwareFingerprint: string | undefined): Promise<boolean> {
@@ -135,6 +140,10 @@ export class AuthService {
     { email, password, market, country, locale, hardwareFingerprint, signupCtx }: SignupInput,
     allowExistingMail = true,
   ): Promise<void> => {
+    if (isBlockedSyntheticEmailInProd(email)) {
+      await simulatePasswordCheck(password);
+      return;
+    }
     const passwordHash = await hashPassword(password);
     const hw = hardwareFingerprint && HARDWARE_FP_REGEX.test(hardwareFingerprint) ? hardwareFingerprint : null;
     const [created] = await db
@@ -172,6 +181,10 @@ export class AuthService {
   };
 
   static login = async (email: string, password: string, hardwareFingerprint?: string): Promise<LoginResult> => {
+    if (isBlockedSyntheticEmailInProd(email)) {
+      await simulatePasswordCheck(password);
+      return { ok: false, reason: "invalid_credentials" };
+    }
     if (await isHardwareBanned(hardwareFingerprint)) {
       return { ok: false, reason: "device_banned" };
     }
@@ -196,6 +209,7 @@ export class AuthService {
 
   /** Re-sends the confirmation link + 6-digit OTP code for unconfirmed accounts. */
   static resendVerification = async (email: string): Promise<void> => {
+    if (isBlockedSyntheticEmailInProd(email)) return;
     const user = await findByEmail(email);
     if (!user || user.emailVerifiedAt || user.gesperrtAm) return;
     const { token, code } = await issueVerificationCredentials(user.id);
@@ -210,6 +224,7 @@ export class AuthService {
 
   /** Verifies an e-mail address using the 6-digit OTP code sent in the verification e-mail. */
   static verifyEmailByCode = async (email: string, code: string): Promise<string | null> => {
+    if (isBlockedSyntheticEmailInProd(email)) return null;
     const user = await findByEmail(email);
     if (!user || user.gesperrtAm) return null;
     const cleanCode = code.replace(/\D/g, "");
@@ -231,6 +246,7 @@ export class AuthService {
   };
 
   static requestPasswordReset = async (email: string): Promise<void> => {
+    if (isBlockedSyntheticEmailInProd(email)) return;
     const user = await findByEmail(email);
     if (!user || user.gesperrtAm) return;
     await AuthMailService.sendPasswordReset(user, await issueToken(user.id, TOKEN_PURPOSE.resetPassword));

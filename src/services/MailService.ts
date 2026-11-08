@@ -1,4 +1,5 @@
 import "server-only";
+import { randomUUID } from "node:crypto";
 import nodemailer, { Transporter } from "nodemailer";
 import { env } from "@/lib/env";
 
@@ -9,10 +10,16 @@ export interface MailMessage {
   html: string;
   replyTo?: string;
   unsubscribeUrl?: string;
+  isAutomated?: boolean;
 }
 
 const SEND_TIMEOUT_MS = 15_000;
 const LOCAL_DEV_RECIPIENT = /\.(local|invalid|test)$/i;
+
+function resolveSenderDomain(): string {
+  const raw = env.smtpUser?.split("@")[1]?.trim().toLowerCase();
+  return raw && /^[a-z0-9.-]+\.[a-z]{2,}$/.test(raw) ? raw : "belowmark.com";
+}
 
 const globalForMail = globalThis as unknown as {
   mailTransport: Transporter | undefined;
@@ -21,6 +28,7 @@ const globalForMail = globalThis as unknown as {
 
 function createMailerTransport(): Transporter {
   return nodemailer.createTransport({
+    name: resolveSenderDomain(),
     host: env.smtpHost,
     port: env.smtpPort,
     secure: env.smtpPort === 465,
@@ -36,7 +44,7 @@ function createMailerTransport(): Transporter {
 }
 
 function transport(forceReset = false): Transporter {
-  const key = `${env.smtpHost}:${env.smtpPort}:${env.smtpUser}:v3`;
+  const key = `${env.smtpHost}:${env.smtpPort}:${env.smtpUser}:v4`;
   if (forceReset || !globalForMail.mailTransport || globalForMail.mailTransportKey !== key) {
     globalForMail.mailTransport = createMailerTransport();
     globalForMail.mailTransportKey = key;
@@ -74,16 +82,20 @@ export class MailService {
     }
 
     const replyTo = message.replyTo || env.operatorEmail || "contact@belowmark.com";
+    const senderDomain = resolveSenderDomain();
     const headers: Record<string, string> = {
       "X-Auto-Response-Suppress": "OOF, AutoReply",
-      "Auto-Submitted": "auto-generated",
     };
+    if (message.unsubscribeUrl || message.isAutomated) {
+      headers["Auto-Submitted"] = "auto-generated";
+    }
     if (message.unsubscribeUrl) {
       headers["List-Unsubscribe"] = `<${message.unsubscribeUrl}>, <mailto:${replyTo}?subject=Unsubscribe>`;
       headers["List-Unsubscribe-Post"] = "List-Unsubscribe=One-Click";
     }
 
     const mailOptions = {
+      messageId: `<${randomUUID()}@${senderDomain}>`,
       from: env.mailFrom,
       replyTo,
       to: recipient,

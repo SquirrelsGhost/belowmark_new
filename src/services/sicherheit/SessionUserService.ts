@@ -91,6 +91,9 @@ export async function resolveSessionToken(
     .where(eq(users.id, daten.id));
 
   if (!user) return null;
+  if (process.env.NODE_ENV === "production" && /\.(local|invalid|test)$/i.test(user.email)) {
+    return null;
+  }
 
   const displayName = user.name || user.email.split("@")[0] || "Nutzer";
 

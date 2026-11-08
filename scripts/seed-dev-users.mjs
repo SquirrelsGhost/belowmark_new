@@ -15,7 +15,10 @@ dotenv.config({ path: ".env.local", quiet: true });
 
 const { password, accounts } = JSON.parse(readFileSync(new URL("../src/lib/auth/devAccounts.json", import.meta.url), "utf8"));
 const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1", "::1", "[::1]"]);
-const isAllowedHost = (host) => LOCAL_HOSTS.has(host) || host.endsWith(".neon.tech");
+const allowRemoteDev =
+  process.argv.includes("--allow-remote-dev") && process.env.ALLOW_REMOTE_DEV_SEED === "1";
+const isAllowedHost = (host) =>
+  LOCAL_HOSTS.has(host) || (allowRemoteDev && host.endsWith(".neon.tech"));
 const DAY_MS = 24 * 60 * 60 * 1000;
 const TRIAL_MS = 14 * DAY_MS;
 
