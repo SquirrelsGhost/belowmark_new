@@ -22,21 +22,68 @@ const ALL_MARKETS: ReadonlyArray<{ code: EuPseoMarketCode; href: string }> = [
   { code: "GB", href: "/en/uk-property-auctions" },
 ];
 
+const HUB_STAT_LABELS: Record<
+  EuPseoMarketCode,
+  { lots: string; regions: string; cities: string; currency: string; homeLabel: string }
+> = {
+  AT: { lots: "Aktive Edikte", regions: "Bundesländer", cities: "Orte & Städte", currency: "Währung", homeLabel: "Belowmark" },
+  CH: { lots: "Aktive SHAB-Termine", regions: "Kantone", cities: "Orte & Gemeinden", currency: "Währung", homeLabel: "Belowmark" },
+  IT: { lots: "Lotti PVP Attivi", regions: "Regioni", cities: "Comuni", currency: "Valuta", homeLabel: "Belowmark" },
+  ES: { lots: "Subastas BOE Activas", regions: "Comunidades", cities: "Municipios", currency: "Moneda", homeLabel: "Belowmark" },
+  FR: { lots: "Enchères Actives", regions: "Régions", cities: "Villes", currency: "Devise", homeLabel: "Belowmark" },
+  GB: { lots: "Live Auction Lots", regions: "UK Regions", cities: "Cities & Towns", currency: "Currency", homeLabel: "Belowmark" },
+};
+
 export default function PseoEuHubView({ catalog }: PseoEuHubViewProps) {
   const copy = EU_MARKET_COPY[catalog.market];
   const meta = EU_MARKET_META[catalog.market];
+  const statLabels = HUB_STAT_LABELS[catalog.market];
   const topListings = catalog.regions.flatMap((r) => r.listings).slice(0, 9);
   const topCities = catalog.cities.slice(0, 60);
   const topCourts = catalog.courts.slice(0, 48);
+
+  const validBids = topListings
+    .map((l) => l.minimumBid ?? l.appraisedValue)
+    .filter((v): v is number => typeof v === "number" && v >= 10_000);
+  const lowPrice = validBids.length > 0 ? Math.min(...validBids) : null;
+  const highPrice = validBids.length > 0 ? Math.max(...validBids) : null;
+  const hubTitle = copy.hubTitle(catalog.totalListings, catalog.regions.length, catalog.courts.length);
+  const canonicalUrl = `${BELOWMARK_ORIGIN}${catalog.hubPath}`;
 
   const jsonLd = {
     "@context": "https://schema.org",
     "@graph": [
       {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: statLabels.homeLabel, item: `${BELOWMARK_ORIGIN}/` },
+          { "@type": "ListItem", position: 2, name: meta.shortLabel, item: canonicalUrl },
+        ],
+      },
+      {
         "@type": "CollectionPage",
-        name: copy.hubTitle(catalog.totalListings, catalog.regions.length, catalog.courts.length),
+        name: hubTitle,
         description: copy.hubLead,
-        url: `${BELOWMARK_ORIGIN}${catalog.hubPath}`,
+        url: canonicalUrl,
+      },
+      {
+        "@type": "Dataset",
+        name: hubTitle,
+        description: copy.hubLead,
+        url: canonicalUrl,
+        creator: { "@type": "Organization", name: "Belowmark", url: `${BELOWMARK_ORIGIN}/` },
+        isAccessibleForFree: true,
+        ...(lowPrice && highPrice
+          ? {
+              offers: {
+                "@type": "AggregateOffer",
+                lowPrice,
+                highPrice,
+                priceCurrency: meta.currency,
+                offerCount: catalog.totalListings,
+              },
+            }
+          : {}),
       },
       {
         "@type": "FAQPage",
@@ -58,22 +105,22 @@ export default function PseoEuHubView({ catalog }: PseoEuHubViewProps) {
           {copy.hubEyebrow}
         </span>
         <h1 className="mt-4 font-display text-3xl leading-[1.08] tracking-tight text-ink sm:text-5xl">
-          {copy.hubTitle(catalog.totalListings, catalog.regions.length, catalog.courts.length)}
+          {hubTitle}
         </h1>
         <p className="mt-4 max-w-3xl font-serif text-lg leading-relaxed text-ink-soft">{copy.hubLead}</p>
 
         <PseoStatsBanner
           stats={[
-            { label: "Active Lots / Edikte", value: String(catalog.totalListings), accent: true },
-            { label: "Regions / States", value: String(catalog.regions.length) },
-            { label: "Cities / Towns", value: String(catalog.cities.length) },
-            { label: "Currency", value: meta.currency },
+            { label: statLabels.lots, value: String(catalog.totalListings), accent: true },
+            { label: statLabels.regions, value: String(catalog.regions.length) },
+            { label: statLabels.cities, value: String(catalog.cities.length) },
+            { label: statLabels.currency, value: meta.currency },
           ]}
         />
 
         <div className="mt-6 flex flex-wrap gap-3">
           <Link
-            href={ROUTES.signup}
+            href={`${ROUTES.signup}?markt=${catalog.market}`}
             className="inline-flex h-11 items-center border-2 border-signal bg-signal px-5 font-narrow text-xs font-semibold uppercase tracking-[0.08em] text-paper-bright transition-colors hover:bg-signal-deep"
           >
             {copy.ctaButtonLabel}

@@ -1,119 +1,55 @@
 // ---------------------------------------------------------------------------
-// Bildunterschriften mit Instagram-SEO & High-Intent-Hashtags (DE & TR).
-// Gleiche Fakten wie auf dem Bild, nichts dazu erfunden.
-// Jede Zahl stammt aus dem amtlichen Aushang oder ist eine gesetzliche Quote
-// davon (5/10, 7/10, 10 %).
+// Psychologisch geschärfte Instagram-Captions (Scroll-Stopper in Zeile 1,
+// echte Deal-Kalkulation, ehrlicher Risiko-Check & Diskussionsfrage am Ende
+// für Kommentare & Saves + fokussiertes 10er High-Intent-Hashtag-Set).
 // ---------------------------------------------------------------------------
 
 import { T, money, number, dateLong, dateShort, time } from "./texts.mjs";
-import { placeLine } from "./data.mjs";
+import { placeLine, cleanObjectTitle, extractDealInsights } from "./data.mjs";
 
-/** Pflicht-Basis-Hashtags laut Schablone. */
 const BASE_TAGS = {
   de: [
     "#zwangsversteigerung",
-    "#versteigerung",
-    "#immobilien",
+    "#immobilieninvestment",
+    "#kapitalanlageimmobilien",
     "#immobilienkauf",
-    "#amtsgericht",
     "#belowmark",
   ],
   tr: [
-    "#icra",
     "#icradansatılık",
-    "#ihale",
-    "#gayrimenkul",
-    "#emlak",
+    "#gayrimenkulyatırımı",
+    "#icraihalesi",
+    "#uyapesatış",
     "#belowmark",
   ],
 };
 
-/** Objektart-spezifische SEO-Hashtags für hohe Kauf- & Suchintention. */
 const SEGMENT_TAGS = {
   de: {
-    house: ["#einfamilienhaus", "#hauskauf", "#hauskaufen", "#wohnhaus", "#eigenheim"],
-    apartment: ["#eigentumswohnung", "#wohnungskauf", "#wohnungkaufen", "#etw", "#wohneigentum"],
-    multiFamily: ["#mehrfamilienhaus", "#zinshaus", "#wohngebäude", "#anlageimmobilie", "#immobilieninvestment"],
+    house: ["#einfamilienhaus", "#hauskaufen"],
+    apartment: ["#eigentumswohnung", "#wohnungkaufen"],
+    multiFamily: ["#mehrfamilienhaus", "#zinshaus"],
   },
   tr: {
-    house: ["#müstakilev", "#satılıkev", "#konut", "#evsatışı", "#müstakil"],
-    apartment: ["#satılıkdaire", "#icradandaire", "#daire", "#konutihalesi", "#evilanları"],
-    multiFamily: ["#satılıkbina", "#apartman", "#gayrimenkulsatışı", "#binaihaleleri", "#yatırımlıkgayrimenkul"],
+    house: ["#müstakilev", "#satılıkev"],
+    apartment: ["#satılıkdaire", "#konutihalesi"],
+    multiFamily: ["#satılıkbina", "#yatırımlık"],
   },
 };
 
-/** Themen-spezifische SEO-Hashtags (Objekt, Zahl, Wissen). */
 const THEME_TAGS = {
   de: {
-    object: [
-      "#zvg",
-      "#verkehrswert",
-      "#zwangsversteigerungen",
-      "#immobiliensuche",
-      "#immobilienmarkt",
-      "#immobilienwissen",
-      "#immobiliendeutschland",
-      "#versteigerungstermin",
-    ],
-    stat: [
-      "#immobilienmarkt",
-      "#marktdaten",
-      "#verkehrswert",
-      "#zwangsversteigerungen",
-      "#zvg",
-      "#immobilienstatistik",
-      "#immobiliensuche",
-      "#immobiliendeutschland",
-      "#immobilienwissen",
-    ],
-    tip: [
-      "#zvg",
-      "#zwangsversteigerungsgesetz",
-      "#immobilienwissen",
-      "#immobilienrecht",
-      "#verkehrswert",
-      "#zwangsversteigerungen",
-      "#bargebot",
-      "#geringstesgebot",
-      "#immobiliendeutschland",
-    ],
+    object: ["#amtsgericht", "#verkehrswert"],
+    stat: ["#immobilienmarkt", "#marktdaten", "#verkehrswert"],
+    tip: ["#immobilienwissen", "#zwangsversteigerungsgesetz", "#verkehrswert"],
   },
   tr: {
-    object: [
-      "#uyapesatış",
-      "#esatış",
-      "#icraihalesi",
-      "#muhammenbedel",
-      "#icramüdürlüğü",
-      "#resmiilan",
-      "#gayrimenkulihale",
-      "#emlakpiyasası",
-    ],
-    stat: [
-      "#emlakpiyasası",
-      "#gayrimenkulverileri",
-      "#muhammenbedel",
-      "#icraihalesi",
-      "#uyapesatış",
-      "#resmiilan",
-      "#konutpiyasası",
-      "#türkiyeemlak",
-    ],
-    tip: [
-      "#icraiflas",
-      "#uyapesatış",
-      "#ihaleşartları",
-      "#gayrimenkulbilgi",
-      "#muhammenbedel",
-      "#teminat",
-      "#icraihalesi",
-      "#resmiilan",
-      "#emlakbilgi",
-    ],
+    object: ["#muhammenbedel", "#emlakpiyasası"],
+    stat: ["#emlakpiyasası", "#konutpiyasası"],
+    tip: ["#gayrimenkulbilgi", "#ihaleşartları"],
   },
 };
 
-/** „Baden-Württemberg“ → „#badenwürttemberg“, „İzmir“ → „#izmir“ */
 export function tag(text, lang) {
   if (!text) return "";
   const cleaned = String(text)
@@ -122,133 +58,101 @@ export function tag(text, lang) {
   return cleaned ? `#${cleaned}` : "";
 }
 
-/** Baut das deduplizierte Hashtag-Set (Pflicht-Tags zuerst, danach Orts-, Segment- & Themen-Tags). */
+/** Fokussierte 8–11 relevante Hashtags (Instagram 2026 Best Practice statt 25er Spam-Block). */
 export function buildHashtags(lang, extraTags = [], theme = "object", segment = null) {
   const segTags = segment && SEGMENT_TAGS[lang]?.[segment] ? SEGMENT_TAGS[lang][segment] : [];
   const thmTags = THEME_TAGS[lang]?.[theme] ?? [];
   const all = [...BASE_TAGS[lang], ...extraTags, ...segTags, ...thmTags]
     .map((t) => String(t || "").trim())
     .filter((t) => t.startsWith("#") && t.length > 2);
-  return [...new Set(all)];
+  return [...new Set(all)].slice(0, 11);
 }
 
-function footer(lang, snapshotDate, extraTags, { theme = "object", segment = null, seoLine = "" } = {}) {
+function footer(lang, snapshotDate, extraTags, { theme = "object", segment = null } = {}) {
   const t = T[lang];
   const tags = buildHashtags(lang, extraTags, theme, segment).join(" ");
   const cta =
     lang === "tr"
-      ? "Tüm ilanlar, hesaplama ve belgeler: link biyografide."
-      : "Alle Aushänge mit Rechenweg und Belegen: Link in der Bio.";
+      ? "🔎 81 ildeki tüm resmi icra ihaleleri, teminat hesaplayıcı ve şartnameler: Biyografideki linkte (belowmark.com)."
+      : "🔎 Alle 3.400+ aktuellen Zwangsversteigerungen in deiner PLZ, PDF-Gutachten & Gebotsrechner: Link in der Bio (belowmark.com).";
   const source = snapshotDate ? `${t.source(snapshotDate)}\n` : "";
-  const seoBlock = seoLine ? `\n${seoLine}\n` : "";
-  return `\n${cta}${seoBlock}\n${source}${t.disclaimer}\n\n${tags}\n`;
+  return `\n${cta}\n\n${source}${t.disclaimer}\n\n${tags}\n`;
 }
 
 export function objectCaption({ listing, lang, day, snapshotDate }) {
   const t = T[lang];
   const v = listing.appraisedValue;
+  const ins = extractDealInsights(listing);
+
   if (lang === "de") {
-    const kind =
-      String(listing.segmentLabel ?? "")
-        .replace(/^\s*(?:[A-ZÄÖÜ]{1,4}\s+)?\d+\s*K\s*[\d/-]+(?:\s*\(\d+\))?\s*:\s*/iu, "")
-        .split(/[,(;:]/)[0]
-        .trim() || t.segment[listing.segment];
+    const kind = cleanObjectTitle(listing, t.segment[listing.segment]);
     const city = listing.place.split(",")[0].trim();
+    const isCondo = listing.segment === "apartment";
     const living = listing.livingAreaM2 ?? listing.usableAreaM2 ?? null;
-    const land = listing.landAreaM2 ?? null;
-    const primaryArea = living ?? land ?? null;
-    const perM2 = primaryArea && primaryArea > 0 ? Math.round(v / primaryArea) : null;
+    const land = !isCondo ? (listing.landAreaM2 ?? null) : null;
+    const roomPart = listing.rooms && !/zimmer/i.test(kind) ? ` · ${listing.rooms}` : "";
+    const areaSnippet = living
+      ? `${number(living, lang)} m²${roomPart}`
+      : land
+        ? `${number(land, lang)} m² Grund`
+        : "";
+
+    // Zeile 1 = Scroll-Stopper vor „… mehr“!
+    const hookLine = listing.limitsWaived
+      ? `${city}: ${kind}${areaSnippet ? ` (${areaSnippet})` : ""} OHNE 5/10-Wertgrenze vorm ${listing.authority}! (Gutachten: ${money(v, lang)})`
+      : `${city}: ${kind}${areaSnippet ? ` (${areaSnippet})` : ""} ab ${money(ins.startBid, lang)} vorm Amtsgericht? (Gutachten: ${money(v, lang)})`;
 
     const lines = [
-      `Objekt des Tages: ${kind} in ${placeLine(listing)}${listing.place.startsWith(listing.region) ? "" : ` (${listing.region})`}.`,
+      hookLine,
+      "👉 Swipe durch die 5 Slides für den €/m²-Check, die komplette Cash-Rechnung & die Haken im Verfahren.",
       "",
+      `📊 Die amtlichen Zahlen (${placeLine(listing)}):`,
+      `• Verkehrswert (Gutachten): ${money(v, lang)}${ins.fullPerM2 ? ` (${money(ins.fullPerM2, lang)}/m²)` : ""}`,
       ...(listing.limitsWaived
-        ? []
-        : [`Zuschlag im ersten Termin möglich ab ${money(v * 0.5, lang)}, 50 % unter Verkehrswert.`, ""]),
-      `Verkehrswert laut Amtsgericht: ${money(v, lang)}`,
-      ...(living ? [`${listing.livingAreaM2 ? "Wohnfläche" : "Wohn-/Nutzfläche"}: ca. ${number(living, lang)} m²`] : []),
-      ...(land ? [`Grundstücksfläche: ${number(land, lang)} m²`] : []),
-      ...(perM2 ? [`Richtwert / m² (${living ? "Wohnfläche" : "Grundstück"}): ${money(perM2, lang)} / m²`] : []),
-      ...(listing.rooms ? [`Zimmer: ${listing.rooms}`] : []),
-      ...(listing.yearBuilt ? [`Baujahr: ${listing.yearBuilt}`] : []),
-      `Termin: ${dateLong(listing.hearingAt, lang)}, ${time(listing.hearingAt, lang)}, ${listing.authority}`,
-      ...(listing.limitsWaived
-        ? [t.limitsWaived]
+        ? [`• Status: ${t.limitsWaived}`]
         : [
-            `5/10-Grenze (§ 85a ZVG): ${money(v * 0.5, lang)}`,
-            `7/10-Grenze (§ 74a ZVG): ${money(v * 0.7, lang)}`,
+            `• 5/10-Mindestgrenze (§ 85a ZVG): ${money(ins.startBid, lang)}${ins.startPerM2 ? ` (${money(ins.startPerM2, lang)}/m²)` : ""}`,
+            `• 7/10-Grenze (§ 74a ZVG): ${money(ins.limit70, lang)}`,
           ]),
-      `Sicherheitsleistung (§ 68 ZVG): ${money(v * 0.1, lang)}`,
-      ...(listing.transferTaxPct
-        ? [`Grunderwerbsteuer (${String(listing.transferTaxPct).replace(".", ",")} %): ${money((v * listing.transferTaxPct) / 100, lang)}`]
-        : []),
+      `• Pflicht-Sicherheit im Termin (10 %): ${money(ins.deposit10, lang)} (Bankscheck/Überweisung, kein Bargeld)`,
+      ...(living ? [`• Fläche: ca. ${number(living, lang)} m²${land && land !== living ? ` · Grundstück ${number(land, lang)} m²` : ""}`] : []),
+      ...(listing.yearBuilt ? [`• Baujahr: ${listing.yearBuilt}${ins.features.length ? ` · ${ins.features.join(", ")}` : ""}`] : []),
+      `• Gerichtstermin: ${dateLong(listing.hearingAt, lang)}, ${time(listing.hearingAt, lang)} (${listing.authority})`,
+      ...(ins.noInsideInspection ? ["• ⚠️ Hinweis: Laut Bekanntmachung fand keine Innenbesichtigung statt — Sanierungspuffer einplanen!"] : []),
       "",
-      listing.limitsWaived
-        ? t.minBidNote
-        : `Unter 5/10 wird der Zuschlag im ersten Termin versagt. Der echte Preis entsteht erst im Termin. ${t.minBidNote}`,
+      `💬 Dein Urteil: Top-Chance in ${city} ab ${money(ins.startBid, lang)} oder zu heiß? Bis wohin würdest du maximal mitbieten? Schreib’s in die Kommentare 👇`,
+      "📌 Speicher dir den Beitrag ab, wenn du den Termin verfolgen willst.",
     ];
-    const seoLine = `Suchbegriffe: Zwangsversteigerung ${kind} ${city} (${listing.region}), ${listing.authority}, Verkehrswert & Wertgrenzen nach ZVG.`;
+
     const locationTags = [
-      tag(listing.region, lang),
       tag(city, lang),
       tag(`immobilien${city}`, lang),
       tag(`zwangsversteigerung${city}`, lang),
     ];
-    return (
-      lines.join("\n") +
-      footer(lang, snapshotDate, locationTags, {
-        theme: "object",
-        segment: listing.segment,
-        seoLine,
-      })
-    );
+    return lines.join("\n") + footer(lang, snapshotDate, locationTags, { theme: "object", segment: listing.segment });
   }
 
   const tr = listing.tr;
   const rounds = listing.rounds.filter((r) => Date.parse(r.end) >= day.getTime());
   const segLower = t.segment[listing.segment].toLocaleLowerCase("tr-TR");
-  const bldgArea = tr.buildingAreaM2 ?? listing.livingAreaM2 ?? null;
-  const netArea = tr.netAreaM2 ?? null;
-  const landArea = tr.landAreaM2 ?? listing.landAreaM2 ?? null;
-  const primaryTrArea = bldgArea ?? netArea ?? tr.areaM2 ?? landArea ?? null;
-  const trPerM2 = primaryTrArea && primaryTrArea > 0 ? Math.round(v / primaryTrArea) : null;
+  const discountPct = Math.max(1, Math.round(100 - (tr.startingBid / v) * 100));
+  const areaSnippet = ins.area ? `${number(ins.area, lang)} m²${tr.rooms ? ` · ${tr.rooms}` : ""}` : "";
 
   const lines = [
-    `Günün ilanı: ${placeLine(listing)} bölgesinde ${segLower}.`,
+    `${placeLine(listing)}: Muhammen bedelin %${discountPct} altında ${segLower}${areaSnippet ? ` (${areaSnippet})` : ""}! Başlangıç: ${money(tr.startingBid, lang)}`,
+    "👉 Fiyat analizi, gerekli nakit hesabı ve ihale öncesi 3 kritik kontrol için yana kaydırın (5 Slide).",
     "",
-    `Başlangıç bedeli muhammen bedelin %${Math.round(100 - (tr.startingBid / v) * 100)} altında.`,
+    `📊 Resmi İlan Özeti (${listing.authority}):`,
+    `• Muhammen bedel: ${money(v, lang)}${ins.fullPerM2 ? ` (${money(ins.fullPerM2, lang)}/m²)` : ""}`,
+    `• Açık artırma başlangıç: ${money(tr.startingBid, lang)}${ins.startPerM2 ? ` (${money(ins.startPerM2, lang)}/m²)` : ""}`,
+    `• Teminat (%10): ${money(ins.deposit10, lang)}${tr.vatRate !== null && tr.vatRate !== undefined ? ` · KDV %${tr.vatRate}` : ""}`,
+    ...rounds.slice(0, 2).map((r) => `• ${t.round(r.round)}: ${dateShort(r.start, lang)} – ${dateShort(r.end, lang)}`),
     "",
-    `Muhammen bedel: ${money(v, lang)}`,
-    `Başlangıç bedeli (ilana göre): ${money(tr.startingBid, lang)}`,
-    bldgArea ? `Brüt / bina alanı (ilana göre): ${number(bldgArea, lang)} m²` : null,
-    netArea && netArea !== bldgArea ? `Net kullanım alanı: ${number(netArea, lang)} m²` : null,
-    landArea ? `Arsa yüzölçümü: ${number(landArea, lang)} m²${tr.arsaPayi ? ` (Arsa payı: ${tr.arsaPayi})` : ""}` : null,
-    trPerM2 ? `m² birim değeri: ${money(trPerM2, lang)} / m²` : null,
-    tr.rooms ? `Oda sayısı: ${tr.rooms}` : null,
-    tr.floor ? `Bulunduğu kat: ${tr.floor}` : null,
-    ...rounds.slice(0, 2).map((r) => `${t.round(r.round)}: ${dateShort(r.start, lang)} – ${dateShort(r.end, lang)}`),
-    `Teminat (%10): ${money(v * 0.1, lang)}`,
-    tr.vatRate !== null && tr.vatRate !== undefined ? `KDV (ilana göre): %${tr.vatRate}` : null,
-    `Satışı yapan: ${listing.authority}`,
-    "",
-    t.limitsNote,
-  ].filter((l) => l !== null);
-
-  const seoLine = `Arama terimleri: ${listing.region} ${listing.place} icradan satılık ${segLower}, ${listing.authority}, muhammen bedel ve UYAP e-Satış ihale bilgileri.`;
-  const locationTags = [
-    tag(listing.region, lang),
-    tag(listing.place, lang),
-    tag(`${listing.region}emlak`, lang),
-    tag(`${listing.region}icra`, lang),
+    `💬 Sizce fırsat mı, risk mi? ${listing.place} bölgesinde bu ihaleye girer miydiniz? Yorumlara yazın 👇`,
   ];
-  return (
-    lines.join("\n") +
-    footer(lang, snapshotDate, locationTags, {
-      theme: "object",
-      segment: listing.segment,
-      seoLine,
-    })
-  );
+
+  const locationTags = [tag(listing.region, lang), tag(listing.place, lang), tag(`${listing.region}emlak`, lang)];
+  return lines.join("\n") + footer(lang, snapshotDate, locationTags, { theme: "object", segment: listing.segment });
 }
 
 export function statCaption({ stat, lang, snapshotDate }) {
@@ -256,40 +160,29 @@ export function statCaption({ stat, lang, snapshotDate }) {
   const lines =
     stat.variant === "median"
       ? [
-          `${t.statMedian(stat.days)}:`,
+          `📊 ${t.statMedianTitle} (${t.statMedian(stat.days)})`,
           "",
-          ...stat.rows.map(
-            (r) => `${t.segmentPlural[r.segment]}: ${money(r.value, lang)} (${t.statBasis(number(r.count, lang))})`
-          ),
+          ...stat.rows.map((r) => `• ${t.segmentPlural[r.segment]}: ${money(r.value, lang)} (${t.statBasis(number(r.count, lang))})`),
+          "",
+          "💬 In welchem Bundesland suchst du aktuell nach Immobilien unter Marktwert? Schreib’s in die Kommentare 👇",
         ]
       : [
-          `${number(stat.total, lang)} ${t.statWeek(stat.days)}.`,
+          `📊 ${number(stat.total, lang)} ${t.statWeek(stat.days)}!`,
           "",
           `${t.statRegions}:`,
-          ...stat.regions.map((r) => `${r.name}: ${number(r.count, lang)}`),
+          ...stat.regions.map((r) => `• ${r.name}: ${number(r.count, lang)} Termine`),
+          "",
+          "💬 Welche Stadt sollen wir morgen als Deal-Check durchrechnen? Schreib sie unten rein 👇",
         ];
-  const regionTags =
-    stat.variant === "median"
-      ? []
-      : (stat.regions || []).slice(0, 5).map((r) => tag(r.name, lang));
-  const seoLine =
-    lang === "tr"
-      ? "Arama terimleri: Türkiye icra ihaleleri istatistikleri, il bazında gayrimenkul satışları ve medyan muhammen bedel verileri."
-      : "Suchbegriffe: Zwangsversteigerung Statistik Deutschland, Versteigerungstermine nach Bundesland und Median-Verkehrswert laut Amtsgericht.";
-  return (
-    [...lines, "", t.statPromise].join("\n") +
-    footer(lang, snapshotDate, regionTags, { theme: "stat", seoLine })
-  );
+  const regionTags = stat.variant === "median" ? [] : (stat.regions || []).slice(0, 3).map((r) => tag(r.name, lang));
+  return lines.join("\n") + footer(lang, snapshotDate, regionTags, { theme: "stat" });
 }
 
 export function tipCaption({ tip, lang }) {
   const normTag = tag(tip.kicker, lang);
-  const seoLine =
+  const question =
     lang === "tr"
-      ? `Arama terimleri: ${tip.title} (${tip.kicker}), icra ihalesi kuralları, teminat ve UYAP e-Satış rehberi.`
-      : `Suchbegriffe: ${tip.title} (${tip.kicker}), Zwangsversteigerung Ablauf, Bietregeln und Wertgrenzen beim Amtsgericht.`;
-  return (
-    [`${tip.title} (${tip.kicker})`, "", tip.body, "", tip.note].join("\n") +
-    footer(lang, null, [normTag], { theme: "tip", seoLine })
-  );
+      ? "💬 İcra ihalelerinde en çok merak ettiğiniz kural hangisi? Yorumlarda sorun 👇"
+      : "💬 Warst du schon mal live bei einem Versteigerungstermin im Amtsgericht dabei? Schreib deine Erfahrung unten rein 👇";
+  return [`⚖️ ${tip.title} (${tip.kicker}) — kurz erklärt:`, "", tip.body, "", `💡 Wichtig: ${tip.note}`, "", question].join("\n") + footer(lang, null, [normTag], { theme: "tip" });
 }

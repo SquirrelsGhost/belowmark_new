@@ -101,7 +101,7 @@ const COPY: Record<LocaleOption, UnlockCopy> = {
 
 export default function ListingUnlockBanner({ listing, country, locale }: ListingUnlockBannerProps) {
   const c = COPY[locale] ?? COPY.de;
-  const href = `${APP_ROUTES.order}?markt=${encodeURIComponent(country)}&angebot=investor-monat`;
+  const href = `${APP_ROUTES.order}?markt=${encodeURIComponent(country)}&tarif=investor-monat`;
 
   return (
     <section

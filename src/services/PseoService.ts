@@ -121,6 +121,39 @@ function detectEuMarket(l: Listing): EuPseoMarketCode | "DE" {
   return "DE";
 }
 
+const CORPORATE_NAME_RE =
+  /\b(AG|GmbH|SA|Sàrl|Sarl|SagL|Ltd|LLC|Inc|KG|OG|GBR|Genossenschaft|Stiftung|Fondation|Immobilien|Immo|Holding|Bau|Treuhand|Bank|Group|Gruppe|Anstalt|Corp|UG|B\.V\.|S\.L\.|S\.A\.|S\.r\.l\.)\b/i;
+
+const CH_AUCTION_PREFIX_RE = /^((?:Betreibungsamtliche|Konkursamtliche)\s+Grundst(?:ü|ue)cksteigerung)\s+(.+)$/i;
+
+function sanitizePublicPseoTitle(l: Listing, euMarket: EuPseoMarketCode | "DE" | null): string {
+  const raw = (l.title || "").replace(/\s*(?:Schuldner|Eigentümer|Débiteur|Ejecutado|Debitore)\s*:\s*.+$/i, "").trim();
+  if (euMarket === "CH" || l.key.startsWith("shab-")) {
+    const match = CH_AUCTION_PREFIX_RE.exec(raw);
+    if (match) {
+      const [, prefix, trailingName] = match;
+      if (!CORPORATE_NAME_RE.test(trailingName)) {
+        const seg =
+          l.segmentLabel && !/steigerung/i.test(l.segmentLabel)
+            ? l.segmentLabel
+            : l.segment === "apartment"
+              ? "Stockwerkeigentum / Wohnung"
+              : l.segment === "house"
+                ? "Wohnhaus / Liegenschaft"
+                : l.segment === "commercial"
+                  ? "Gewerbeliegenschaft"
+                  : l.segment === "land"
+                    ? "Grundstück / Parzelle"
+                    : "Liegenschaft";
+        const place = cleanCityName(l.place || "");
+        const loc = place ? ` in ${l.postcode ? `${l.postcode} ` : ""}${place}` : "";
+        return `${prefix} — ${seg}${loc}`;
+      }
+    }
+  }
+  return raw || l.segmentLabel || "Immobilie";
+}
+
 function toPreviewListing(l: Listing): PseoPreviewListing {
   const val = l.appraisedValue && l.appraisedValue >= 500 ? l.appraisedValue : null;
   const euMarket = l.market === "TR" ? null : detectEuMarket(l);
@@ -137,7 +170,7 @@ function toPreviewListing(l: Listing): PseoPreviewListing {
 
   return {
     key: l.key,
-    title: l.title,
+    title: sanitizePublicPseoTitle(l, euMarket),
     segmentLabel: l.segmentLabel || l.tr?.nitelik || "Immobilie",
     place: l.place || l.region || "Unbekannt",
     postcode: l.postcode,
@@ -161,7 +194,9 @@ function computeStats(items: Listing[]) {
     .map((i) => i.appraisedValue)
     .filter((v): v is number => typeof v === "number" && v >= 1000);
   const avg = values.length > 0 ? Math.round(values.reduce((a, b) => a + b, 0) / values.length) : null;
-  const min = values.length > 0 ? Math.min(...values) : null;
+  const realisticPropertyValues = values.filter((v) => v >= 20_000);
+  const minPool = realisticPropertyValues.length > 0 ? realisticPropertyValues : values;
+  const min = minPool.length > 0 ? Math.min(...minPool) : null;
   const futureDates = items
     .map((i) => i.hearingAt)
     .filter((d): d is string => Boolean(d))

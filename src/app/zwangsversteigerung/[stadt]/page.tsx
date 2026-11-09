@@ -24,9 +24,11 @@ export async function generateMetadata({ params }: StadtPageProps): Promise<Meta
 
   const minBidVal = entity.minAppraisedValue ? Math.round(entity.minAppraisedValue * 0.5) : null;
   const minBidStr = minBidVal ? ` ab ${formatEuro(minBidVal, "de")}` : "";
+  const fullCityTitle = `Zwangsversteigerung ${entity.name}: ${entity.totalCount} Immobilien & Termine${minBidStr}`;
+  const compactCityTitle = `Zwangsversteigerung ${entity.name}: ${entity.totalCount} Termine${minBidStr}`;
   return MetaTagService.CreateMetaTags({
-    title: `Zwangsversteigerung ${entity.name}: ${entity.totalCount} Termine${minBidStr}`,
-    description: `Aktuelle Zwangsversteigerungen in ${entity.name} (${entity.region}): ${entity.totalCount} Immobilien${minBidStr} (50 % ZVG). Aktenzeichen, 5/10- & 7/10-Grenzen & Gutachten.`,
+    title: fullCityTitle.length <= 65 ? fullCityTitle : compactCityTitle,
+    description: `Alle ${entity.totalCount} aktuellen Zwangsversteigerungen in ${entity.name} (${entity.region})${minBidStr} (50 %-Grenze ZVG): Häuser, Wohnungen, Verkehrswert & Termine.`,
     imgUrl: DEFAULT_BLOG_OG,
     tags: [
       `Zwangsversteigerung ${entity.name}`,

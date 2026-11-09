@@ -16,8 +16,14 @@
 
 import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import os from "node:os";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+
+if (os.hostname().toUpperCase() === "AK" && !process.argv.includes("--allow-laptop")) {
+  console.log(`[Laptop-Guard] Übersprungen auf Laptop (${os.hostname()}) — läuft ausschließlich auf dem Heim-PC (PC / 100.68.86.19).`);
+  process.exit(0);
+}
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const OUT_ROOT = resolve(ROOT, "marketing", "instagram");
@@ -64,7 +70,8 @@ function snapshotAgeHours(file) {
 
 function runNode(scriptArgs, label) {
   console.log(`[Belowmark Autopilot] ${label}...`);
-  execFileSync(process.execPath, scriptArgs, { cwd: ROOT, stdio: "inherit" });
+  const fullArgs = scriptArgs[0] === "--use-system-ca" ? scriptArgs : ["--use-system-ca", ...scriptArgs];
+  execFileSync(process.execPath, fullArgs, { cwd: ROOT, stdio: "inherit" });
 }
 
 // 1. Frische Aushänge sicherstellen (jeden Morgen vor dem Posten aktualisieren)
@@ -105,7 +112,7 @@ for (const wd of weekDates) {
   const manifestPath = resolve(OUT_ROOT, wd.iso, "manifest.json");
   if (!existsSync(manifestPath) || args["force-week"]) {
     runNode(
-      ["scripts/instagram-daily.mjs", `--datum=${wd.iso}`, `--thema=${wd.theme}`, "--trotzdem"],
+      ["scripts/instagram-daily.mjs", `--datum=${wd.iso}`, `--thema=${wd.theme}`, "--trotzdem", "--no-reel"],
       `Wochenplan-Tag ${wd.dayName} (${wd.iso} · ${wd.theme})`
     );
   }
@@ -159,10 +166,13 @@ for (const wd of weekDates) {
       theme: wd.theme,
       pillar: PILLAR_MAP[lang][wd.theme],
       title: `${themeObj.rubric}: ${firstLine}`.slice(0, 110),
-      note: `Amtlicher Aushang (${wd.theme.toUpperCase()}) · 4:5 Feed + 9:16 Story + SEO-Caption`,
+      note: `5-Slide Karussell + 9:16 Reel + Story mit Link-Sticker (${wd.theme.toUpperCase()})`,
       assignedTo: lang === "de" ? "Katrin Weiss (DE)" : "Katrin Weiss (TR)",
       feedPath: `${wd.iso}/${themeObj.feedFile}`,
       storyPath: `${wd.iso}/${themeObj.storyFile}`,
+      slidePaths: (themeObj.slideFiles || []).map((f) => `${wd.iso}/${f}`),
+      reelPath: themeObj.reelFile ? `${wd.iso}/${themeObj.reelFile}` : null,
+      storyUrl: themeObj.storyUrl || null,
       caption: themeObj.caption,
       headline: themeObj.headline,
       ad: themeObj.ad,
@@ -181,7 +191,7 @@ if (!args["local-only"]) {
     console.log("[Belowmark Autopilot] Synchronisiere Assets & Wochenplan nach pycie-prod...");
     execFileSync(
       "ssh",
-      ["-o", "ConnectTimeout=8", "pycie-prod", "mkdir -p /root/backend/public/generated/belowmark"],
+      ["-o", "BatchMode=yes", "-o", "ConnectTimeout=8", "pycie-prod", "mkdir -p /root/backend/public/generated/belowmark"],
       { stdio: "inherit" }
     );
 
@@ -193,6 +203,8 @@ if (!args["local-only"]) {
     execFileSync(
       "scp",
       [
+        "-o",
+        "BatchMode=yes",
         "-o",
         "ConnectTimeout=8",
         "-r",
@@ -209,6 +221,8 @@ if (!args["local-only"]) {
       "ssh",
       [
         "-o",
+        "BatchMode=yes",
+        "-o",
         "ConnectTimeout=8",
         "pycie-prod",
         "if [ -f /root/backend/scripts/sync-belowmark-social.mjs ]; then node /root/backend/scripts/sync-belowmark-social.mjs; fi",
@@ -218,7 +232,7 @@ if (!args["local-only"]) {
 
     const localPycieDb = "C:/Users/emrea/Desktop/pycie/data/pycie.sqlite";
     if (existsSync("C:/Users/emrea/Desktop/pycie/data")) {
-      execFileSync("scp", ["-o", "ConnectTimeout=8", "pycie-prod:/root/backend/data/pycie.sqlite", localPycieDb], {
+      execFileSync("scp", ["-o", "BatchMode=yes", "-o", "ConnectTimeout=8", "pycie-prod:/root/backend/data/pycie.sqlite", localPycieDb], {
         stdio: "inherit",
       });
     }

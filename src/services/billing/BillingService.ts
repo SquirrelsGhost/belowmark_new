@@ -18,6 +18,59 @@ import { env } from "@/lib/env";
 import { isStripeTestKey, stripeClient } from "@/services/billing/StripeClient";
 import { BillingAccess, BillingAvailability, OrderBlocker, OrderResult } from "@/types/billing.types";
 
+export type StripeSupportedLocale = "de" | "tr" | "en" | "fr" | "es" | "it";
+
+export function toStripeLocale(locale: string | null | undefined): StripeSupportedLocale {
+  const clean = (locale || "de").trim().toLowerCase().slice(0, 2);
+  if (clean === "tr" || clean === "en" || clean === "fr" || clean === "es" || clean === "it") {
+    return clean;
+  }
+  return "de";
+}
+
+const OFFER_NAMES: Record<StripeSupportedLocale, Record<BillingOfferId, string>> = {
+  de: {
+    "investor-monat": "Belowmark Investor · Monatlich",
+    "investor-quartal": "Belowmark Investor · 3 Monate",
+    "pro-monat": "Belowmark Pro · Monatlich",
+    "pro-quartal": "Belowmark Pro · 3 Monate",
+  },
+  tr: {
+    "investor-monat": "Belowmark Investor · Aylık",
+    "investor-quartal": "Belowmark Investor · 3 Ay",
+    "pro-monat": "Belowmark Pro · Aylık",
+    "pro-quartal": "Belowmark Pro · 3 Ay",
+  },
+  en: {
+    "investor-monat": "Belowmark Investor · Monthly",
+    "investor-quartal": "Belowmark Investor · 3 Months",
+    "pro-monat": "Belowmark Pro · Monthly",
+    "pro-quartal": "Belowmark Pro · 3 Months",
+  },
+  fr: {
+    "investor-monat": "Belowmark Investor · Mensuel",
+    "investor-quartal": "Belowmark Investor · 3 Mois",
+    "pro-monat": "Belowmark Pro · Mensuel",
+    "pro-quartal": "Belowmark Pro · 3 Mois",
+  },
+  es: {
+    "investor-monat": "Belowmark Investor · Mensual",
+    "investor-quartal": "Belowmark Investor · 3 Meses",
+    "pro-monat": "Belowmark Pro · Mensual",
+    "pro-quartal": "Belowmark Pro · 3 Meses",
+  },
+  it: {
+    "investor-monat": "Belowmark Investor · Mensile",
+    "investor-quartal": "Belowmark Investor · 3 Mesi",
+    "pro-monat": "Belowmark Pro · Mensile",
+    "pro-quartal": "Belowmark Pro · 3 Mesi",
+  },
+};
+
+export function localizedOfferProductName(offerId: BillingOfferId, locale: string): string {
+  return OFFER_NAMES[toStripeLocale(locale)][offerId];
+}
+
 /** What the order needs to know about the person ordering. */
 export interface OrderingUser {
   id: string;
@@ -162,22 +215,8 @@ export class BillingService {
       }
     }
 
-    const productName =
-      offerId === "pro-monat"
-        ? user.locale === "tr"
-          ? "Belowmark Pro · Aylık"
-          : "Belowmark Pro · Monatlich"
-        : offerId === "pro-quartal"
-          ? user.locale === "tr"
-            ? "Belowmark Pro · 3 Ay"
-            : "Belowmark Pro · 3 Monate"
-          : offerId === "investor-monat"
-            ? user.locale === "tr"
-              ? "Belowmark Investor · Aylık"
-              : "Belowmark Investor · Monatlich"
-            : user.locale === "tr"
-              ? "Belowmark Investor · 3 Ay"
-              : "Belowmark Investor · 3 Monate";
+    const stripeLocale = toStripeLocale(user.locale);
+    const productName = localizedOfferProductName(offerId, stripeLocale);
 
     const lineItem: Stripe.Checkout.SessionCreateParams.LineItem = priceId
       ? { price: priceId, quantity: 1 }
@@ -199,7 +238,7 @@ export class BillingService {
         customer,
         client_reference_id: order.id,
         line_items: [lineItem],
-        locale: user.locale === "tr" ? "tr" : "de",
+        locale: stripeLocale,
         success_url: absolute(`${BILLING_ROUTES.confirm}?session_id={CHECKOUT_SESSION_ID}`),
         cancel_url: absolute(`${BILLING_ROUTES.order}?${OFFER_PARAM}=${offerId}&status=${BILLING_STATUS.cancelled}`),
         metadata,
@@ -223,7 +262,7 @@ export class BillingService {
     const [row] = await db.select({ customerId: users.stripeCustomerId }).from(users).where(eq(users.id, user.id));
     if (row?.customerId) return row.customerId;
     const customer = await stripeClient().customers.create(
-      { email: user.email, preferred_locales: [user.locale === "tr" ? "tr" : "de"], metadata: { userId: user.id } },
+      { email: user.email, preferred_locales: [toStripeLocale(user.locale)], metadata: { userId: user.id } },
       { idempotencyKey: `customer-${user.id}` },
     );
     await db.update(users).set({ stripeCustomerId: customer.id }).where(and(eq(users.id, user.id)));
@@ -238,7 +277,7 @@ export class BillingService {
     const session = await stripeClient().billingPortal.sessions.create({
       customer: row.customerId,
       return_url: absolute("/konto?bereich=tarif"),
-      locale: locale === "tr" ? "tr" : "de",
+      locale: toStripeLocale(locale),
     });
     return session.url;
   };

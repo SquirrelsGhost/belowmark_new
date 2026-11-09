@@ -20,6 +20,15 @@ export function formatSeoTitle(rawTitle: string, maxLen = 65): string {
     return core;
   }
 
+  const withoutTrailingPrice = core
+    .replace(/\s*(?:ab|desde|da|dès|from)\s+(?:€\s*|CHF\s*|£\s*)?[\d.,\s]+(?:€|CHF|£|₺)?\s*(?:\([^()]*\))?\s*$/iu, "")
+    .trim();
+  if (withoutTrailingPrice.length >= 28 && withoutTrailingPrice.length <= maxLen) {
+    return `${withoutTrailingPrice} | Belowmark`.length <= maxLen
+      ? `${withoutTrailingPrice} | Belowmark`
+      : withoutTrailingPrice;
+  }
+
   const withoutTrailingParens = core.replace(/\s*\([^()]*\)\s*$/, "").trim();
   if (withoutTrailingParens.length >= 32 && `${withoutTrailingParens} | Belowmark`.length <= maxLen) {
     return `${withoutTrailingParens} | Belowmark`;

@@ -9,7 +9,7 @@ import { isChargeable, proratedUpgradeAmount } from "@/lib/billing/upgradeMath";
 import { isPricingCountry, MarketCode, PricingCountryCode } from "@/lib/constants";
 import { env } from "@/lib/env";
 import { BillingFulfillment } from "@/services/billing/BillingFulfillment";
-import { BillingService, OrderingUser } from "@/services/billing/BillingService";
+import { BillingService, OrderingUser, StripeSupportedLocale, toStripeLocale } from "@/services/billing/BillingService";
 import { stripeClient } from "@/services/billing/StripeClient";
 import { OrderResult, UpgradeQuote } from "@/types/billing.types";
 
@@ -176,14 +176,23 @@ export class BillingUpgradeService {
   private static checkoutDifference = async (orderId: string, user: OrderingUser, quote: UpgradeQuote): Promise<OrderResult> => {
     const customer = await BillingService.ensureCustomer(user);
     const metadata = { orderId, userId: user.id, offer: quote.to, upgradeFrom: quote.from, market: quote.market, termsVersion: TERMS_VERSION };
-    const name = user.locale === "tr" ? "Belowmark Pro'ya yükseltme · kalan süre" : "Belowmark Upgrade auf Pro · Restlaufzeit";
+    const stripeLocale = toStripeLocale(user.locale);
+    const upgradeNames: Record<StripeSupportedLocale, string> = {
+      de: "Belowmark Upgrade auf Pro · Restlaufzeit",
+      tr: "Belowmark Pro'ya yükseltme · kalan süre",
+      en: "Belowmark Upgrade to Pro · remaining term",
+      fr: "Belowmark Passage à Pro · période restante",
+      es: "Belowmark Cambio a Pro · periodo restante",
+      it: "Belowmark Passaggio a Pro · periodo residuo",
+    };
+    const name = upgradeNames[stripeLocale];
     const session = await stripeClient().checkout.sessions.create(
       {
         mode: "payment",
         customer,
         client_reference_id: orderId,
         line_items: [{ price_data: { currency: quote.currency, unit_amount: quote.amount, product_data: { name } }, quantity: 1 }],
-        locale: user.locale === "tr" ? "tr" : "de",
+        locale: stripeLocale,
         success_url: absolute(`${BILLING_ROUTES.confirm}?session_id={CHECKOUT_SESSION_ID}`),
         cancel_url: absolute(`${BILLING_ROUTES.upgrade}?status=${BILLING_STATUS.cancelled}`),
         metadata,

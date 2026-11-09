@@ -13,8 +13,8 @@ export async function generateMetadata(): Promise<Metadata> {
   const cityCount = c.cities.length;
   return {
     ...MetaTagService.CreateMetaTags({
-      title: `Zwangsversteigerung Deutschland: ${c.deTotalListings} ZVG-Termine (${courtCount} AG)`,
-      description: `Alle ${c.deTotalListings} Immobilien-Zwangsversteigerungen (§ 39 ZVG) an ${courtCount} Amtsgerichten in ${cityCount} Städten mit Verkehrswert, 5/10- & 7/10-Grenze.`,
+      title: `Zwangsversteigerung Immobilien: ${c.deTotalListings} ZVG-Termine (-50 %)`,
+      description: `Alle ${c.deTotalListings} aktuellen Immobilien-Zwangsversteigerungen an ${courtCount} Amtsgerichten in ${cityCount} Städten: Häuser & Wohnungen ab 50 % Verkehrswert, Termine & Rechner.`,
       imgUrl: DEFAULT_BLOG_OG,
       tags: [
         "Zwangsversteigerung Deutschland",

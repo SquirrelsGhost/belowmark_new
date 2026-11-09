@@ -5,7 +5,7 @@ import { renderAuthMail } from "@/lib/mail/renderAuthMail";
 import { MailService } from "@/services/MailService";
 import { TranslationService } from "@/services/TranslationService";
 import { AuthTranslations } from "@/translations/auth/AuthTranslations";
-import { IAuthTranslation, IMailTemplate } from "@/translations/auth/IAuthTranslation";
+import { IAuthTranslation } from "@/translations/auth/IAuthTranslation";
 
 type MailKind = keyof Omit<IAuthTranslation["Mail"], "Signature" | "Footer">;
 
@@ -30,6 +30,7 @@ function link(path: string, token?: string, ctx?: VerificationContextParams): st
 }
 
 import { LocaleOption } from "@/lib/constants";
+import { buildWelcomeMailBundle } from "@/lib/mail/welcomeMailCopy";
 
 const INTL_LOCALES: Record<LocaleOption, string> = {
   de: "de-DE",
@@ -98,50 +99,18 @@ export class AuthMailService {
     const locale = TranslationService.NormalizeLocale(to.locale);
     const lang = TranslationService.ToLocaleOption(locale);
     const mail = AuthTranslations[locale].Mail;
-    const isTr = lang === "tr";
     const endDate = formatTrialEndDate(trialEndsAt, lang);
-
-    const template: IMailTemplate = isTr
-      ? {
-          Subject: "Hoş geldiniz — Belowmark hesabınız ve otomatik ihale alarmınız aktif",
-          Preheader: "E-posta adresiniz doğrulandı. İhaleleri inceleyin ve Investor paketiyle tam dosya detaylarını açın.",
-          Greeting: "Merhaba,",
-          Body: "E-posta adresiniz başarıyla doğrulandı ve Belowmark hesabınız etkinleştirildi. Bölgeniz için otomatik e-posta ihale alarmınız kuruldu. Dosya numaralarını (Esas No), TKGM ada/parsel bilgilerini, bilirkişi raporu yapay zeka analizini ve teklif sınırı hesaplayıcısını açmak için istediğiniz zaman Investor paketine geçebilirsiniz.",
-          Action: "İhaleleri ve hesabımı aç",
-          Expiry: `Kayıtlı aramalarınız ve izleme listeniz ücretsiz hesabınızda açık kalır (referans: ${endDate}).`,
-          Ignore: "Hesap ayarlarınızı, kayıtlı aramalarınızı ve Investor abonelik seçeneklerinizi istediğiniz zaman hesabınızdan yönetebilirsiniz.",
-        }
-      : {
-          Subject: "Willkommen bei Belowmark — Ihr Konto & Such-Alert sind aktiviert",
-          Preheader: "Ihre E-Mail-Adresse ist bestätigt. Prüfen Sie aktuelle Termine und schalten Sie Aktenzeichen & Gutachten-KI frei.",
-          Greeting: "Guten Tag,",
-          Body: "Ihre E-Mail-Adresse ist bestätigt und Ihr Belowmark-Konto wurde freigeschaltet. Ihr kostenloser E-Mail-Suchauftrag für neue Versteigerungstermine ist aktiv. Um vollständige Aktenzeichen, exakte Hausnummern, Original-Bekanntmachungen/Gutachten, die Gutachten-KI und die Bankmappe freizuschalten, können Sie jederzeit den Investor-Zugang buchen.",
-          Action: "Verfahren & Konto öffnen",
-          Expiry: `Merkliste, Karte und automatische Such-Alerts stehen Ihnen im Basiskonto dauerhaft zur Verfügung (Stand: ${endDate}).`,
-          Ignore: "Ihre Such-Alerts, Fristen-Erinnerungen und den Investor-Tarif (/buchen) verwalten Sie jederzeit direkt in Ihrem Konto.",
-        };
-
-    const highlights = isTr
-      ? [
-          "Resmî icra ve mahkeme ihaleleri — muhammen bedel, yasal sınırlar ve masraflarla",
-          "Kayıtlı Arama Alarmları (/app/alerts): Yeni ilan ve tarih değişikliklerinde otomatik e-posta",
-          "Süre ve İhale Takipçisi (/app/termine): İhale öncesi otomatik hatırlatmalar ve takvim akışı",
-        ]
-      : [
-          "Amtliche Zwangsversteigerungen mit Verkehrswert, 5/10- & 7/10-Grenzen und Gesamtkosten",
-          "Such-Alerts (/app/alerts): Automatische E-Mail bei neuen Verfahren und Terminänderungen",
-          "Termin-Begleiter (/app/termine): Automatische Fristen-Erinnerungen per E-Mail & Kalender-Feed",
-        ];
+    const bundle = buildWelcomeMailBundle(lang, endDate);
 
     const rendered = renderAuthMail({
-      template,
+      template: bundle.template,
       url: link(AUTH_ROUTES.afterLogin),
       signature: mail.Signature,
       footer: mail.Footer,
       lang,
-      highlights,
-      docCode: isTr ? "BM-HESAP · ETKİNLEŞTİRME" : "BM-KONTO · FREISCHALTUNG",
-      eyebrow: isTr ? "Hesap Açılışı ve Ücretsiz İhale Alarmı" : "Kontoeröffnung & Kostenloser Such-Alert",
+      highlights: bundle.highlights,
+      docCode: bundle.docCode,
+      eyebrow: bundle.eyebrow,
       baseUrl: env.appUrl,
     });
     await MailService.send({ to: to.email, ...rendered });

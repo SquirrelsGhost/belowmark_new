@@ -6,12 +6,19 @@
 // ---------------------------------------------------------------------------
 
 import { T, money, number, dateLong, dateShort, time } from "./texts.mjs";
-import { placeLine } from "./data.mjs";
+import { placeLine, cleanObjectTitle, buildListingPublicUrl } from "./data.mjs";
 import { buildHashtags, tag } from "./captions.mjs";
 
-const BASE_URL = "https://belowmark.com";
+const BASE_URL = "https://www.belowmark.com";
 
-export function buildAdUrl({ lang, theme, isoDay, placement = "feed" }) {
+export function buildAdUrl({ lang, theme, isoDay, placement = "feed", listing = null }) {
+  if (listing) {
+    return buildListingPublicUrl(listing, {
+      source: "meta",
+      medium: "cpc",
+      campaign: `belowmark_${lang}_${theme}_${isoDay}_${placement}`,
+    });
+  }
   const params = new URLSearchParams({
     utm_source: "meta",
     utm_medium: "cpc",
@@ -26,15 +33,13 @@ export function objectAdSpec({ listing, lang, day, isoDay, snapshotDate }) {
   const v = listing.appraisedValue;
 
   if (lang === "de") {
-    const kind =
-      String(listing.segmentLabel ?? "")
-        .replace(/^\s*(?:[A-ZÄÖÜ]{1,4}\s+)?\d+\s*K\s*[\d/-]+(?:\s*\(\d+\))?\s*:\s*/iu, "")
-        .split(/[,(;:]/)[0]
-        .trim() || t.segment[listing.segment];
+    const kind = cleanObjectTitle(listing, t.segment[listing.segment]);
     const city = listing.place.split(",")[0].trim();
     const minBid = money(v * 0.5, lang);
     const living = listing.livingAreaM2 ?? listing.usableAreaM2 ?? null;
-    const land = listing.landAreaM2 ?? null;
+    const isApartmentLike =
+      listing.segment === "apartments" || /wohnung|apartment|penthouse|maisonette/iu.test(kind);
+    const land = !isApartmentLike ? (listing.landAreaM2 ?? null) : null;
     const areaBadge = living ? `${number(living, lang)} m² Wfl.` : land ? `${number(land, lang)} m² Grundst.` : null;
 
     const headline = listing.limitsWaived
@@ -80,8 +85,8 @@ export function objectAdSpec({ listing, lang, day, isoDay, snapshotDate }) {
       primaryText,
       ctaType: "LEARN_MORE",
       ctaLabel: t.ctaFeed,
-      targetUrlFeed: buildAdUrl({ lang, theme: "objekt", isoDay, placement: "feed_4x5" }),
-      targetUrlStory: buildAdUrl({ lang, theme: "objekt", isoDay, placement: "story_9x16" }),
+      targetUrlFeed: buildAdUrl({ lang, theme: "objekt", isoDay, placement: "feed_4x5", listing }),
+      targetUrlStory: buildAdUrl({ lang, theme: "objekt", isoDay, placement: "story_9x16", listing }),
       targeting: {
         countries: ["DE", "AT", "CH"],
         regionFocus: listing.region,

@@ -24,10 +24,15 @@ export async function generateMetadata({ params }: AmtsgerichtPageProps): Promis
 
   const minBidVal = entity.minAppraisedValue ? Math.round(entity.minAppraisedValue * 0.5) : null;
   const minBidStr = minBidVal ? ` ab ${formatEuro(minBidVal, "de")}` : "";
-  const shortAg = entity.authority && entity.authority !== entity.displayName ? ` (${entity.authority})` : "";
+  const agLabel =
+    entity.authority && entity.authority !== entity.displayName
+      ? `${entity.authority}, ${entity.region}`
+      : entity.region;
+  const fullTitle = `${entity.displayName}: ${entity.totalCount} ZVG-Termine & Immobilien${minBidStr}`;
+  const compactTitle = `${entity.displayName}: ${entity.totalCount} Zwangsversteigerungen${minBidStr}`;
   return MetaTagService.CreateMetaTags({
-    title: `${entity.displayName}: ${entity.totalCount} Zwangsversteigerungen${minBidStr}`,
-    description: `Aktuelle Zwangsversteigerungen am ${entity.displayName}${shortAg} (${entity.region}): ${entity.totalCount} Termine${minBidStr} mit Aktenzeichen, 5/10- & 7/10-Grenze & Gutachten.`,
+    title: fullTitle.length <= 65 ? fullTitle : compactTitle,
+    description: `Alle ${entity.totalCount} aktuellen Zwangsversteigerungen & Termine am ${entity.displayName} (${agLabel})${minBidStr} — 50 %-Grenze, Verkehrswert & PDF-Gutachten.`,
     imgUrl: DEFAULT_BLOG_OG,
     tags: [
       `${entity.displayName} Zwangsversteigerungen`,

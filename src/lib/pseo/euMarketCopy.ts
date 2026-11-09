@@ -3,7 +3,12 @@ import { EuMarketLocationEntry, EuPseoMarketCode } from "@/types/pseo.types";
 function fmtMinEntry(e: EuMarketLocationEntry, ratio: number, locale: string, currency: "EUR" | "CHF" | "GBP"): string {
   if (!e.minAppraisedValue || e.minAppraisedValue < 1000) return "";
   const val = Math.round(e.minAppraisedValue * ratio);
-  return new Intl.NumberFormat(locale, { style: "currency", currency, maximumFractionDigits: 0 }).format(val);
+  return new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency,
+    maximumFractionDigits: 0,
+    useGrouping: "always",
+  }).format(val);
 }
 
 export interface EuMarketCopyConfig {
@@ -107,13 +112,20 @@ export const EU_MARKET_COPY: Record<EuPseoMarketCode, EuMarketCopyConfig> = {
     entryMetaTitle: (e) => {
       const low = fmtMinEntry(e, 0.5, "de-AT", "EUR");
       if (e.kind === "court") {
-        return `${e.name}: ${e.totalCount} Versteigerungen & Edikte${low ? ` ab ${low}` : ""}`;
+        const bgShort = e.name.startsWith("Bezirksgericht ") ? ` (BG ${e.name.slice(15)})` : "";
+        const withBg = `${e.name}${bgShort}: ${e.totalCount} Edikte & Termine${low ? ` ab ${low}` : ""}`;
+        if (withBg.length <= 65) return withBg;
+        return `${e.name}: ${e.totalCount} Edikte & Versteigerungen${low ? ` ab ${low}` : ""}`;
       }
       return `Zwangsversteigerung ${e.name}: ${e.totalCount} Edikte${low ? ` ab ${low}` : ""}`;
     },
     entryMetaDesc: (e) => {
       const low = fmtMinEntry(e, 0.5, "de-AT", "EUR");
-      return `Aktuelle Zwangsversteigerungen (Ediktsdatei) in ${e.name}: ${e.totalCount} Liegenschaften${low ? ` ab ${low} (50% § 151 EO)` : ""} inkl. Schätzwert, Vadium & Gutachten.`;
+      if (e.kind === "court") {
+        const bgShort = e.name.startsWith("Bezirksgericht ") ? ` (BG ${e.name.slice(15)})` : "";
+        return `Alle ${e.totalCount} aktuellen Zwangsversteigerungen & Edikte am ${e.name}${bgShort}${low ? ` ab ${low} (50 % § 151 EO)` : ""} — Schätzwert, 10 % Vadium & Gutachten.`;
+      }
+      return `Aktuelle Zwangsversteigerungen (Ediktsdatei) in ${e.name}: ${e.totalCount} Liegenschaften${low ? ` ab ${low} (50 % § 151 EO)` : ""} inkl. Schätzwert, Vadium & Gutachten.`;
     },
   },
   CH: {
@@ -258,9 +270,9 @@ export const EU_MARKET_COPY: Record<EuPseoMarketCode, EuMarketCopyConfig> = {
     hubLead:
       "Directorio actualizado de subastas judiciales, notariales y de la Agencia Tributaria publicadas en el Portal de Subastas del Boletín Oficial del Estado (BOE) en las 17 comunidades autónomas — con Valor de Subasta, reglas del 70% y 50% (Art. 670 LEC), depósito del 5% y cálculo del ITP autonómico.",
     hubMetaTitle: (total) =>
-      `Subastas BOE Inmuebles: ${total} Subastas Judiciales Activas`,
+      `Subastas BOE Hoy (${total} Pisos y Casas -50%) · Sin Certificado`,
     hubMetaDesc: (total, rCount) =>
-      `Portal de Subastas BOE en las ${rCount} comunidades: ${total} viviendas, locales y solares activos con Valor de Subasta, regla 70%/50% (Art. 670 LEC) y depósito 5%.`,
+      `Buscador abierto de Subastas BOE sin Cl@ve ni certificado en las ${rCount} comunidades: ${total} viviendas, locales y solares activos con regla 70%/50% (LEC).`,
     calcButtonLabel: "🧮 Calculadora Gratuita Subasta BOE: Regla 70% / 50% (Art. 670 LEC), Depósito 5% e ITP →",
     ctaButtonLabel: "Desbloquear Certificación de Cargas, Edicto BOE y Puja Máxima Recomendada →",
     regionsHeading: (c) => `Las ${c} Comunidades Autónomas de España (Subastas BOE)`,
@@ -309,11 +321,13 @@ export const EU_MARKET_COPY: Record<EuPseoMarketCode, EuMarketCopyConfig> = {
       `Listado actualizado de subastas judiciales del BOE (viviendas, locales y solares) en ${e.name} (${e.nativeRegionName}) — con Valor de Subasta BOE, umbral del 70% (Art. 670 LEC), depósito del 5% e ITP autonómico del ${e.transferTaxPct}%.`,
     entryMetaTitle: (e) => {
       const low = fmtMinEntry(e, 0.5, "es-ES", "EUR");
-      return `Subastas BOE ${e.name}: ${e.totalCount} Inmuebles Activos${low ? ` desde ${low}` : ""}`;
+      const full = `Subastas BOE ${e.name}: ${e.totalCount} Pisos y Casas${low ? ` desde ${low}` : ""} (-50%)`;
+      if (full.length <= 65) return full;
+      return `Subastas BOE ${e.name}: ${e.totalCount} Inmuebles${low ? ` desde ${low}` : ""}`;
     },
     entryMetaDesc: (e) => {
       const low = fmtMinEntry(e, 0.5, "es-ES", "EUR");
-      return `Subastas BOE y judiciales en ${e.name}: ${e.totalCount} inmuebles activos${low ? ` desde ${low}` : ""}. Valor de Subasta, regla 70% Art. 670 LEC, depósito 5% y cargas.`;
+      return `Subastas BOE en ${e.name} hoy sin certificado: ${e.totalCount} pisos, casas y locales activos${low ? ` desde ${low} (-50%)` : ""}. Regla 70% LEC, depósito 5% y cargas.`;
     },
   },
   FR: {
@@ -323,9 +337,9 @@ export const EU_MARKET_COPY: Record<EuPseoMarketCode, EuMarketCopyConfig> = {
     hubLead:
       "Répertoire complet des ventes aux enchères immobilières judiciaires (adjudications à la barre du Tribunal Judiciaire, publications Licitor) dans les 13 régions françaises — avec Mise à prix, Cahier des conditions de vente, chèque de banque CARPA (10 %), délai de surenchère du dixième et droits d'enregistrement.",
     hubMetaTitle: (total) =>
-      `Enchères Immobilières France (Licitor & TJ) : ${total} Biens`,
+      `Enchères Immobilières Judiciaires (${total} Biens Licitor & TJ)`,
     hubMetaDesc: (total, rCount) =>
-      `Toutes les ${total} ventes aux enchères immobilières judiciaires en France (${rCount} régions, Licitor & TJ) : Mise à prix, consignation CARPA 10 % et valeurs DVF.`,
+      `Répertoire ouvert des ${total} ventes aux enchères immobilières judiciaires (Licitor & TJ, ${rCount} régions) : Mise à prix, décote DVF/m² et CARPA 10 %.`,
     calcButtonLabel: "🧮 Calculateur Gratuit Enchères Judiciaires : Mise à prix, Consignation CARPA 10 % & Frais →",
     ctaButtonLabel: "Débloquer le Cahier des Conditions de Vente, PV Descriptif & Comparatif DVF/m² →",
     regionsHeading: (c) => `Les ${c} Régions de France (Ventes aux Enchères Licitor & TJ)`,
