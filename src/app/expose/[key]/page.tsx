@@ -16,6 +16,7 @@ import { CURRENCY_SUFFIX } from "@/lib/bankFile/bankFileConstants";
 import { buildExposeBase } from "@/lib/expose/exposeBase";
 import { EXPOSE_PRINT_PARAM, exposeHref } from "@/lib/expose/exposeConstants";
 import { formatDate } from "@/lib/format";
+import { FreeUnlockService } from "@/services/FreeUnlockService";
 import { ListingService } from "@/services/ListingService";
 import { MetaTagService } from "@/services/MetaTagService";
 import { OfficialPortalService } from "@/services/OfficialPortalService";
@@ -37,7 +38,8 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function ExposePage({ params, searchParams }: PageProps<"/expose/[key]">) {
   const key = decodeURIComponent((await params).key);
   const { viewer, app, locale } = await getAppPageContext(exposeHref(key));
-  const isLocked = viewer.plan === "free";
+  const isFreeUnlocked = viewer.plan === "free" ? await FreeUnlockService.isListingUnlockedForUser(viewer.id, key) : false;
+  const isLocked = viewer.plan === "free" && !isFreeUnlocked;
   const quota = await AntiScrapingService.enforceDetailQuota(viewer.id, isLocked, key);
   if (!quota.allowed) {
     return (

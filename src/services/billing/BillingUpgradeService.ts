@@ -129,6 +129,7 @@ export class BillingUpgradeService {
         items: [{ id: subscription.items.data[0].id, ...(await BillingUpgradeService.priceParam(stripe, to, market)) }],
         proration_behavior: "always_invoice",
         proration_date: Math.floor(Date.now() / 1000),
+        ...(subscription.status === "trialing" ? { trial_end: "now" as const } : {}),
       },
     });
     return preview.amount_due;
@@ -156,6 +157,7 @@ export class BillingUpgradeService {
         items: [{ id: subscription.items.data[0].id, ...(await BillingUpgradeService.priceParam(stripe, targetOffer, quote.market)) }],
         metadata: { orderId: String(orderId), userId: String(user.id), offer: targetOffer },
         proration_behavior: quote.amount === 0 ? "none" : "always_invoice",
+        ...(subscription.status === "trialing" ? { trial_end: "now" as const } : {}),
         // Not applied until the difference is paid — a declined card changes nothing
         payment_behavior: "pending_if_incomplete",
         expand: ["latest_invoice"],

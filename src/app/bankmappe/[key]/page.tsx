@@ -32,6 +32,7 @@ import { formatDate } from "@/lib/format";
 import { getAddressLine, getPlaceTitle } from "@/lib/listingLabels";
 import { getHearingStatus } from "@/lib/listingMath";
 import { buildRiskCheck } from "@/lib/report/riskCheck";
+import { FreeUnlockService } from "@/services/FreeUnlockService";
 import { ListingService } from "@/services/ListingService";
 import { MetaTagService } from "@/services/MetaTagService";
 import { ReportService } from "@/services/ReportService";
@@ -40,7 +41,6 @@ import { TranslationService } from "@/services/TranslationService";
 import { BankFileTranslations, getBankFileTranslation } from "@/translations/bankFile/BankFileTranslations";
 import { getBiddingTranslation } from "@/translations/bidding/BiddingTranslations";
 import { ReportTranslations } from "@/translations/report/ReportTranslations";
-import { Locale } from "@/translations/Translations";
 
 // Reads the session cookie on every request.
 // instant = false opts it out of prerender validation — rendering is still server-side.
@@ -55,7 +55,8 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function BankFilePage({ params, searchParams }: PageProps<"/bankmappe/[key]">) {
   const key = decodeURIComponent((await params).key);
   const { viewer, app, locale, dataDate } = await getAppPageContext(bankFileHref(key));
-  const isLocked = viewer.plan === "free";
+  const isFreeUnlocked = viewer.plan === "free" ? await FreeUnlockService.isListingUnlockedForUser(viewer.id, key) : false;
+  const isLocked = viewer.plan === "free" && !isFreeUnlocked;
   const quota = await AntiScrapingService.enforceDetailQuota(viewer.id, isLocked, key);
   if (!quota.allowed) {
     return (

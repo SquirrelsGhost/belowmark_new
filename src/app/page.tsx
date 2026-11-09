@@ -39,6 +39,7 @@ import LandingShell from "@/components/ui/LandingShell";
 import PageMain from "@/components/ui/PageMain";
 import PaperTexture from "@/components/ui/PaperTexture";
 import { BILLING_ROUTES, MARKET_PARAM, OFFER_PARAM } from "@/lib/billing/billingConfig";
+import { TRIAL_COPY } from "@/lib/billing/trialCopy";
 import { ROUTES } from "@/lib/constants";
 import { formatCompactEuro, formatDate, formatEuro, formatNumber, formatPercent, formatShortDate } from "@/lib/format";
 import { SNAPSHOT_DATE, SNAPSHOT_STATS, STATES, TICKER_ENTRIES } from "@/lib/snapshot";
@@ -227,11 +228,16 @@ export default async function HomePage() {
             />
           }
         >
-          <PricingPlan {...planProps(plans.Free)} href={ROUTES.signup} />
+          <PricingPlan
+            {...planProps(plans.Free)}
+            href={ROUTES.signup}
+            trialBadge={(TRIAL_COPY[locale] ?? TRIAL_COPY.de).homeFreeBadge}
+          />
           <PricingPlan
             {...planProps(plans.Investor)}
             href={`${BILLING_ROUTES.order}?${OFFER_PARAM}=investor-monat&${MARKET_PARAM}=${region.pricingCountry}`}
             altPrice={`${Pricing.AltPricePrefix} ${plans.Investor.AltPrice} ${plans.Investor.AltPeriod}`}
+            trialBadge={(TRIAL_COPY[locale] ?? TRIAL_COPY.de).homeTrialBadge}
             recommendedLabel={Pricing.Recommended}
             delay={STAGGER_MS}
           />
@@ -239,6 +245,7 @@ export default async function HomePage() {
             {...planProps(plans.Pro)}
             href={`${BILLING_ROUTES.order}?${OFFER_PARAM}=pro-monat&${MARKET_PARAM}=${region.pricingCountry}`}
             altPrice={`${Pricing.AltPricePrefix} ${plans.Pro.AltPrice} ${plans.Pro.AltPeriod}`}
+            trialBadge={(TRIAL_COPY[locale] ?? TRIAL_COPY.de).homeTrialBadge}
             delay={STAGGER_MS * 2}
           />
         </PricingSection>

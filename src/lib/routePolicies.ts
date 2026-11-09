@@ -92,8 +92,9 @@ const POLICY_RULES: readonly PolicyRule[] = [
   { methods: ["GET"], pattern: /^\/api\/termine\/feed\/[A-Za-z0-9_-]{43}(\.ics)?$/, policy: API_PUBLIC },
   // Signed by Stripe; the route verifies the signature itself
   { methods: ["POST"], pattern: /^\/api\/billing\/webhook$/, policy: API_PUBLIC },
-  { methods: ["GET"], pattern: /^\/api\/quelle\/[^/]+$/, policy: apiPerm("app:investor") },
-  { methods: ["POST", "DELETE"], pattern: /^\/api\/gutachten$/, policy: apiPerm("gutachten:analyze") },
+  // Authenticated at proxy level; route enforces `app:investor` / `gutachten:analyze` OR the user's 1 Free Dossier unlock
+  { methods: ["GET"], pattern: /^\/api\/quelle\/[^/]+$/, policy: API_AUTH },
+  { methods: ["POST", "DELETE"], pattern: /^\/api\/gutachten$/, policy: API_AUTH },
 ];
 
 export function findPolicy(method: string, pathname: string): RoutePolicy | null {

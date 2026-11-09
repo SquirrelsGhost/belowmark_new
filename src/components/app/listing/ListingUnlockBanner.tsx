@@ -1,5 +1,8 @@
+import Link from "next/link";
+import FreeUnlockButton from "@/components/app/listing/FreeUnlockButton";
 import Button from "@/components/ui/Button";
-import { APP_ROUTES } from "@/lib/appConstants";
+import { APP_ROUTES, listingHref } from "@/lib/appConstants";
+import { TRIAL_COPY } from "@/lib/billing/trialCopy";
 import { LocaleOption } from "@/lib/constants";
 import { Listing, ListingCountry } from "@/types/listing.types";
 
@@ -7,117 +10,49 @@ interface ListingUnlockBannerProps {
   listing: Listing;
   country: ListingCountry;
   locale: LocaleOption;
+  canClaimFreeUnlock?: boolean;
+  unlockedListingKey?: string | null;
+  stripeTrialEligible?: boolean;
 }
 
-interface UnlockCopy {
-  kicker: string;
-  title: string;
-  body: string;
-  items: [string, string, string, string];
-  cta: string;
-  note: string;
-}
+export default function ListingUnlockBanner({
+  listing,
+  country,
+  locale,
+  canClaimFreeUnlock = false,
+  unlockedListingKey = null,
+  stripeTrialEligible = true,
+}: ListingUnlockBannerProps) {
+  const c = (TRIAL_COPY[locale] ?? TRIAL_COPY.de).unlock;
+  const orderHref = `${APP_ROUTES.order}?markt=${encodeURIComponent(country)}&tarif=investor-monat`;
 
-const COPY: Record<LocaleOption, UnlockCopy> = {
-  de: {
-    kicker: "Vorschau-Modus · Vertrauliche Verfahrensdaten geschwärzt",
-    title: "Vollständige Akte, Adresse & Verkehrswert für dieses Objekt freischalten",
-    body: "Im kostenlosen Such-Alert-Konto sind Identifikationsmerkmale zum Schutz vor automatisiertem Scraping geschwärzt. Mit dem Investor-Zugang schalten Sie dieses Verfahren sofort vollständig frei:",
-    items: [
-      "Ungekürztes Aktenzeichen & Grundbuchblatt",
-      "Exakte Hausnummer, Flurstück & Lagekarte",
-      "Verkehrswert, 5/10- & 7/10-Limits + Gebotsrechner",
-      "Amtliche Edikt-/Gutachten-PDFs & KI-Risiko-Analyse",
-    ],
-    cta: "Vollständige Akte jetzt freischalten",
-    note: "Sofortige Freischaltung nach Buchung · Monatlich kündbar",
-  },
-  tr: {
-    kicker: "Önizleme Modu · Dosya ve kıymet verileri gizlendi",
-    title: "Bu ihale için tam esas numarasını, açık adresi ve muhammen bedeli açın",
-    body: "Ücretsiz bildirim hesabında dosya kimlik bilgileri gizlenmiştir. Yatırımcı erişimi ile bu dosyanın tüm resmi verilerini anında açabilirsiniz:",
-    items: [
-      "Tam Esas No, İcra Dairesi ve Ada/Parsel bilgileri",
-      "Açık sokak adresi, bağımsız bölüm ve konum haritası",
-      "Muhammen bedel, %50 açılış bedeli, teminat ve ihale hesaplayıcı",
-      "Resmi şartname/ilan PDF belgeleri ve yapay zeka risk analizi",
-    ],
-    cta: "Dosyanın tamamını şimdi aç",
-    note: "Ödeme sonrası anında erişim · İstediğiniz zaman iptal edin",
-  },
-  en: {
-    kicker: "Preview Mode · Confidential case data redacted",
-    title: "Unlock the full case file, exact street address & appraised value",
-    body: "In the free alert account, identifying case fields are redacted. Upgrade to Investor access to unlock all official dossier records for this property immediately:",
-    items: [
-      "Unredacted court file number & land registry reference",
-      "Exact street address, parcel number & location map",
-      "Appraised value, statutory minimum bid limits & bid calculator",
-      "Official court notice PDFs & AI risk verdict",
-    ],
-    cta: "Unlock full dossier now",
-    note: "Instant activation · Cancel monthly anytime",
-  },
-  fr: {
-    kicker: "Mode aperçu · Données confidentielles du dossier masquées",
-    title: "Débloquer le dossier complet, l'adresse exacte et la mise à prix",
-    body: "Dans le compte d'alerte gratuit, les identifiants du dossier sont masqués. Passez à l'accès Investisseur pour débloquer immédiatement toutes les pièces officielles de ce bien :",
-    items: [
-      "Numéro de rôle complet et référence cadastrale",
-      "Adresse exacte, parcelle et carte de localisation",
-      "Valeur d'estimation, mise à prix et calculateur d'enchères",
-      "Cahier des conditions de vente / PDF officiels et analyse IA",
-    ],
-    cta: "Débloquer le dossier complet",
-    note: "Activation immédiate · Résiliable chaque mois",
-  },
-  es: {
-    kicker: "Modo vista previa · Datos confidenciales del expediente ocultos",
-    title: "Desbloquear el expediente completo, dirección exacta y valor de tasación",
-    body: "En la cuenta gratuita de alertas, los datos identificativos están ocultos. Active el acceso Inversor para desbloquear al instante todos los datos oficiales de esta subasta:",
-    items: [
-      "Número de expediente judicial completo y referencia registral",
-      "Dirección exacta, parcela catastral y mapa de ubicación",
-      "Valor de tasación, puja mínima recomendada y calculadora",
-      "Edicto oficial / certificación de cargas en PDF y análisis IA",
-    ],
-    cta: "Desbloquear expediente completo",
-    note: "Activación inmediata · Cancelación mensual en cualquier momento",
-  },
-  it: {
-    kicker: "Modalità anteprima · Dati riservati del fascicolo oscurati",
-    title: "Sblocca il fascicolo completo, l'indirizzo esatto e la perizia",
-    body: "Nell'account gratuito di avviso i dati identificativi sono oscurati. Attiva l'accesso Investitore per sbloccare subito tutti i documenti ufficiali di questa procedura:",
-    items: [
-      "Numero di R.G. completo e dati catastali (foglio/particella/sub)",
-      "Indirizzo civico esatto e mappa di localizzazione",
-      "Valore di stima, offerta minima (75 %) e calcolatore d'asta",
-      "Avviso di vendita / perizia PDF ufficiale e analisi rischi IA",
-    ],
-    cta: "Sblocca il fascicolo completo",
-    note: "Attivazione immediata · Disdetta mensile in qualsiasi momento",
-  },
-};
-
-export default function ListingUnlockBanner({ listing, country, locale }: ListingUnlockBannerProps) {
-  const c = COPY[locale] ?? COPY.de;
-  const href = `${APP_ROUTES.order}?markt=${encodeURIComponent(country)}&tarif=investor-monat`;
+  const kicker = canClaimFreeUnlock ? c.kickerCanClaim : c.kickerUsed;
+  const title = canClaimFreeUnlock
+    ? c.titleCanClaim
+    : stripeTrialEligible
+      ? c.titleTrial
+      : c.titleStandard;
+  const body = canClaimFreeUnlock
+    ? c.bodyCanClaim
+    : stripeTrialEligible
+      ? c.bodyTrial
+      : c.bodyStandard;
 
   return (
     <section
-      aria-label={c.title}
+      aria-label={title}
       className="my-6 border-2 border-ink bg-paper-dark p-5 sm:p-6 shadow-[4px_4px_0_0_var(--color-ink)]"
     >
       <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
         <div className="max-w-3xl">
-          <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-verdict">
-            {c.kicker} · {listing.authority} ({listing.fileNo})
+          <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.16em] text-verdict">
+            {kicker} · {listing.authority} ({listing.fileNo})
           </p>
           <h2 className="mt-1.5 font-display text-2xl leading-snug text-ink sm:text-3xl">
-            {c.title}
+            {title}
           </h2>
           <p className="mt-2 text-sm leading-relaxed text-ink-soft">
-            {c.body}
+            {body}
           </p>
           <ul className="mt-3 grid grid-cols-1 gap-1.5 sm:grid-cols-2">
             {c.items.map((item) => (
@@ -127,10 +62,53 @@ export default function ListingUnlockBanner({ listing, country, locale }: Listin
               </li>
             ))}
           </ul>
+          {!canClaimFreeUnlock && unlockedListingKey && (
+            <p className="mt-3 font-mono text-xs text-ink-soft">
+              {c.viewUnlockedPrefix}{" "}
+              <Link
+                href={listingHref(unlockedListingKey)}
+                className="font-semibold text-ink underline underline-offset-4 hover:text-signal"
+              >
+                {c.viewUnlockedLink}
+              </Link>
+            </p>
+          )}
         </div>
-        <div className="flex shrink-0 flex-col items-stretch gap-2 sm:items-start lg:items-end">
-          <Button label={c.cta} href={href} variant="signal" withArrow />
-          <p className="font-mono text-[11px] text-ink-muted">{c.note}</p>
+
+        <div className="flex shrink-0 flex-col items-stretch gap-2.5 sm:items-start lg:items-end">
+          {canClaimFreeUnlock ? (
+            <>
+              <FreeUnlockButton
+                listingKey={listing.key}
+                ctaLabel={c.claimFreeCta}
+                pendingLabel={c.claimFreePending}
+                noteLabel={c.claimFreeNote}
+                errorUsedLabel={c.claimFreeErrorUsed}
+                errorDeviceLabel={c.claimFreeErrorDevice}
+                errorGenericLabel={c.claimFreeErrorGeneric}
+              />
+              {stripeTrialEligible && (
+                <Link
+                  href={orderHref}
+                  className="font-mono text-[11px] font-semibold text-ink underline underline-offset-4 hover:text-signal"
+                >
+                  {c.secondaryTrialCta}
+                </Link>
+              )}
+            </>
+          ) : (
+            <>
+              <Button
+                label={stripeTrialEligible ? c.primaryTrialCta : c.primaryStandardCta}
+                href={orderHref}
+                variant="signal"
+                withArrow
+              />
+              <p className="font-mono text-[11px] text-ink-muted">
+                {stripeTrialEligible ? c.primaryTrialNote : c.primaryStandardNote}
+              </p>
+            </>
+          )}
         </div>
       </div>
     </section>

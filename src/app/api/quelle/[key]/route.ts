@@ -1,6 +1,7 @@
 import { connection } from "next/server";
 import { err, ok } from "@/lib/api";
 import { CountryAccessService } from "@/services/CountryAccessService";
+import { FreeUnlockService } from "@/services/FreeUnlockService";
 import { ListingService } from "@/services/ListingService";
 import { OfficialPortalService } from "@/services/OfficialPortalService";
 import { SessionService } from "@/services/SessionService";
@@ -21,10 +22,12 @@ export async function GET(request: Request, { params }: RouteContext): Promise<R
   try {
     const user = await SessionService.getCurrentUser();
     if (!user) return err("Nicht angemeldet", 401);
-    if (!user.hasFullAccess) return err("Dieser Abruf erfordert einen aktiven Tarif.", 403);
 
     const { key: rawKey } = await params;
     const key = decodeURIComponent(rawKey);
+    const hasListingAccess =
+      user.hasFullAccess || (await FreeUnlockService.isListingUnlockedForUser(user.id, key));
+    if (!hasListingAccess) return err("Dieser Abruf erfordert einen aktiven Tarif.", 403);
 
     const quota = await AntiScrapingService.enforceSourceDocumentQuota(user.id, key);
     if (!quota.allowed) {

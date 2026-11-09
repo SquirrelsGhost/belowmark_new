@@ -52,6 +52,8 @@ export const users = pgTable("users", {
   stripeSubscriptionId: varchar("stripe_subscription_id", { length: 64 }),
   /** Set when the subscription is cancelled: access ends then, nothing renews. */
   planCancelAt: timestamp("plan_cancel_at", { withTimezone: true }),
+  /** Timestamp when the account consumed its one-time 7-day Stripe Checkout trial. */
+  stripeTrialUsedAt: timestamp("stripe_trial_used_at", { withTimezone: true }),
   /** Granular capability permissions (`*`, `<domain>:*`, `<domain>:<action>`). No rigid role enums. */
   permissions: jsonb("permissions").$type<string[]>().notNull().default([]),
   /** Bumped on password reset / security events to invalidate stale session tokens in real time. */
@@ -152,6 +154,31 @@ export const watchlist = pgTable(
 );
 
 export type WatchlistEntry = typeof watchlist.$inferSelect;
+
+/**
+ * One free full-dossier unlock ("1 Gratis-Dossier") per verified user & hardware
+ * fingerprint (`HW-...`), allowing a prospective buyer to inspect one real
+ * proceeding unredacted (including court PDFs & AI report analysis) before
+ * starting the 7-day Stripe trial.
+ */
+export const freeListingUnlocks = pgTable(
+  "free_listing_unlocks",
+  {
+    userId: uuid("user_id")
+      .primaryKey()
+      .references(() => users.id, { onDelete: "cascade" }),
+    listingKey: varchar("listing_key", { length: 128 }).notNull(),
+    market: varchar("market", { length: 2 }).notNull(),
+    hardwareFingerprint: varchar("hardware_fingerprint", { length: 64 }),
+    unlockedAt: timestamp("unlocked_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    index("free_listing_unlocks_hw_idx").on(table.hardwareFingerprint),
+    index("free_listing_unlocks_listing_idx").on(table.listingKey),
+  ],
+);
+
+export type FreeListingUnlock = typeof freeListingUnlocks.$inferSelect;
 
 /** Filters of a saved search, as stored in search_alerts.filters (see src/types/alert.types.ts). */
 export interface StoredAlertFilters {

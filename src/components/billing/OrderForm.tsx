@@ -99,9 +99,23 @@ export default function OrderForm({ offersByMarket, markets, initialMarket, init
               <OrderSummaryRow label={offer.name} value={offer.summary} />
               <OrderSummaryRow label={labels.Account} value={email} />
               <OrderSummaryRow label={labels.Market} value={`${currentMarket.label} · ${selectedMarket}`} />
-              <OrderSummaryRow label={labels.Start} value={labels.StartValue} />
-              <OrderSummaryRow label={offer.period} value={offer.term} />
-              <OrderSummaryRow label={labels.Total} value={offer.totalPrice} note={vatNotes[selectedMarket]} isTotal />
+              <OrderSummaryRow label={labels.Start} value={offer.isTrial && offer.trialStartValue ? offer.trialStartValue : labels.StartValue} />
+              {offer.isTrial && offer.trialAfterLabel && offer.trialAfterValue ? (
+                <>
+                  <OrderSummaryRow label={offer.trialAfterLabel} value={offer.trialAfterValue} />
+                  <OrderSummaryRow
+                    label={offer.trialDueTodayLabel ?? labels.Total}
+                    value={offer.trialDueTodayPrice ?? offer.totalPrice}
+                    note={offer.trialDueTodayNote ?? vatNotes[selectedMarket]}
+                    isTotal
+                  />
+                </>
+              ) : (
+                <>
+                  <OrderSummaryRow label={offer.period} value={offer.term} />
+                  <OrderSummaryRow label={labels.Total} value={offer.totalPrice} note={vatNotes[selectedMarket]} isTotal />
+                </>
+              )}
             </dl>
           </section>
 
@@ -110,10 +124,14 @@ export default function OrderForm({ offersByMarket, markets, initialMarket, init
           </AuthCheckbox>
 
           <div className="grid gap-3">
-            <AuthSubmit label={labels.Submit} pendingLabel={labels.Pending} variant="signal" />
+            <AuthSubmit
+              label={offer.isTrial && offer.trialSubmitLabel ? offer.trialSubmitLabel : labels.Submit}
+              pendingLabel={labels.Pending}
+              variant="signal"
+            />
             <p className="flex items-start gap-2 font-mono text-[11px] leading-relaxed text-muted">
               <AuthIcon name="lock" className="mt-0.5 size-3.5 shrink-0 text-ink" />
-              {labels.PaymentNote}
+              {offer.isTrial && offer.trialPaymentNote ? offer.trialPaymentNote : labels.PaymentNote}
             </p>
           </div>
         </>

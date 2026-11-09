@@ -8,6 +8,7 @@ import ListingHeader from "@/components/app/listing/ListingHeader";
 import ListingHearing from "@/components/app/listing/ListingHearing";
 import ListingNotFound from "@/components/app/listing/ListingNotFound";
 import ListingPortalSections from "@/components/app/listing/ListingPortalSections";
+import FreeUnlockedNotice from "@/components/app/listing/FreeUnlockedNotice";
 import ListingPurchase from "@/components/app/listing/ListingPurchase";
 import ListingUnlockBanner from "@/components/app/listing/ListingUnlockBanner";
 import QuotaExceededNotice from "@/components/app/listing/QuotaExceededNotice";
@@ -38,6 +39,8 @@ import { getAddressLine, getPlaceTitle, getStatusLabel } from "@/lib/listingLabe
 import { getHearingStatus, isNewListing } from "@/lib/listingMath";
 import { formatDate } from "@/lib/format";
 import { getListingCountry } from "@/lib/listingCountry";
+import { BillingService } from "@/services/billing/BillingService";
+import { FreeUnlockService } from "@/services/FreeUnlockService";
 import { GeoService } from "@/services/GeoService";
 import { ListingService } from "@/services/ListingService";
 import { OfficialPortalService } from "@/services/OfficialPortalService";
@@ -63,7 +66,14 @@ export default async function ListingPage({ params }: PageProps<"/app/objekt/[ke
   const key = decodeURIComponent((await params).key);
   const { viewer, t, app, locale, meta } = await getAppPageContext(listingHref(key));
   const { Listing: L, Row } = app;
-  const isLocked = viewer.plan === "free";
+  const isFreePlan = viewer.plan === "free";
+  const [freeStatus, stripeTrialEligible] = isFreePlan
+    ? await Promise.all([
+        FreeUnlockService.getStatus(viewer.id, key),
+        BillingService.isTrialEligible(viewer.id),
+      ])
+    : [null, false];
+  const isLocked = isFreePlan && !freeStatus?.isCurrentListingUnlocked;
 
   const quota = await AntiScrapingService.enforceDetailQuota(viewer.id, isLocked, key);
   if (!quota.allowed) {
@@ -156,6 +166,16 @@ export default async function ListingPage({ params }: PageProps<"/app/objekt/[ke
           listing={listing}
           country={getListingCountry(listing)}
           locale={locale}
+          canClaimFreeUnlock={freeStatus?.canClaimFreeUnlock ?? false}
+          unlockedListingKey={freeStatus?.unlockedListingKey ?? null}
+          stripeTrialEligible={stripeTrialEligible}
+        />
+      )}
+      {isFreePlan && freeStatus?.isCurrentListingUnlocked && (
+        <FreeUnlockedNotice
+          country={getListingCountry(listing)}
+          locale={locale}
+          stripeTrialEligible={stripeTrialEligible}
         />
       )}
 

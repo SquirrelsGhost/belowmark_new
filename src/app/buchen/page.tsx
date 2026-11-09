@@ -51,8 +51,20 @@ export default async function OrderPage({ searchParams }: PageProps<"/buchen">) 
   const availabilityDe = BillingService.availability("DE");
   const availabilityTr = BillingService.availability("TR");
   const availability = initialMarket === "TR" ? availabilityTr : availabilityDe;
-  const access = await BillingService.access(viewer.id);
-  const offersByMarket = buildOrderOffersByMarket(t, viewer.country, lang, access, BillingService.orderBlocker);
+  const [access, trialEligible] = await Promise.all([
+    BillingService.access(viewer.id),
+    BillingService.isTrialEligible(viewer.id),
+  ]);
+  const vatNotes = Object.fromEntries(
+    PRICING_COUNTRIES.map((code) => [
+      code,
+      vatNote(t, code === "TR" ? availabilityTr.vatMode : availabilityDe.vatMode, code, env.billingTrKdvIncluded),
+    ]),
+  ) as Record<PricingCountryCode, string>;
+  const offersByMarket = buildOrderOffersByMarket(t, viewer.country, lang, access, BillingService.orderBlocker, {
+    trialEligible,
+    vatNotes,
+  });
   const allBlocked = PRICING_COUNTRIES.every((code) => offersByMarket[code].every((offer) => offer.blockedReason));
   const bothMarketsClosed = Boolean(availabilityDe.blocker && availabilityTr.blocker);
   const canUpgrade = access.isActive && access.plan === "investor" && Boolean(access.offer && UPGRADES[access.offer]);
@@ -72,13 +84,6 @@ export default async function OrderPage({ searchParams }: PageProps<"/buchen">) 
       return [code, view];
     }),
   ) as Record<PricingCountryCode, OrderMarketView>;
-
-  const vatNotes = Object.fromEntries(
-    PRICING_COUNTRIES.map((code) => [
-      code,
-      vatNote(t, code === "TR" ? availabilityTr.vatMode : availabilityDe.vatMode, code, env.billingTrKdvIncluded),
-    ]),
-  ) as Record<PricingCountryCode, string>;
 
   const notices = (
     <>

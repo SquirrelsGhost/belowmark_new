@@ -14,6 +14,8 @@ interface PricingPlanProps {
   note: string;
   /** e.g. "oder 199 € für drei Monate" */
   altPrice?: string;
+  /** Highlight pill for 1 Free Dossier or 7-day trial */
+  trialBadge?: string;
   /** Stamp label for the recommended plan */
   recommendedLabel?: string;
   delay?: number;
@@ -47,6 +49,17 @@ export default function PricingPlan(props: PricingPlanProps) {
             <span className={`font-mono text-xs uppercase ${muted}`}>{props.period}</span>
           </p>
           {props.altPrice && <p className={`mt-2 font-mono text-xs ${muted}`}>{props.altPrice}</p>}
+          {props.trialBadge && (
+            <p
+              className={`mt-3 inline-block border px-2.5 py-1 font-mono text-[11px] font-semibold tracking-[0.06em] ${
+                isFeatured
+                  ? "border-signal bg-signal/15 text-paper-bright"
+                  : "border-ink bg-paper-dark text-ink"
+              }`}
+            >
+              {props.trialBadge}
+            </p>
+          )}
         </div>
         <ul className="mt-8 flex flex-1 flex-col gap-3">
           {props.features.map((feature) => (

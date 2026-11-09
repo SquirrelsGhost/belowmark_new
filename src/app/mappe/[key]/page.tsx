@@ -25,6 +25,7 @@ import { formatDate } from "@/lib/format";
 import { getAddressLine, getPlaceTitle, getStatusLabel } from "@/lib/listingLabels";
 import { getHearingStatus } from "@/lib/listingMath";
 import { ComparablesService } from "@/services/ComparablesService";
+import { FreeUnlockService } from "@/services/FreeUnlockService";
 import { ListingService } from "@/services/ListingService";
 import { MetaTagService } from "@/services/MetaTagService";
 import { AntiScrapingService } from "@/services/sicherheit/AntiScrapingService";
@@ -45,7 +46,8 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function BidderFilePage({ params, searchParams }: PageProps<"/mappe/[key]">) {
   const key = decodeURIComponent((await params).key);
   const { viewer, app, locale, meta, dataDate } = await getAppPageContext(bidderFileHref(key));
-  const isLocked = viewer.plan === "free";
+  const isFreeUnlocked = viewer.plan === "free" ? await FreeUnlockService.isListingUnlockedForUser(viewer.id, key) : false;
+  const isLocked = viewer.plan === "free" && !isFreeUnlocked;
   const quota = await AntiScrapingService.enforceDetailQuota(viewer.id, isLocked, key);
   if (!quota.allowed) {
     return (

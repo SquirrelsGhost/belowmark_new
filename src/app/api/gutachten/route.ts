@@ -2,6 +2,7 @@ import { err, ok } from "@/lib/api";
 import { hasPermission } from "@/lib/permissions";
 import { REPORT_UPLOAD } from "@/lib/report/reportConfig";
 import { CountryAccessService } from "@/services/CountryAccessService";
+import { FreeUnlockService } from "@/services/FreeUnlockService";
 import { ListingService } from "@/services/ListingService";
 import { OfficialPortalService } from "@/services/OfficialPortalService";
 import { ReportError, ReportService } from "@/services/ReportService";
@@ -25,8 +26,11 @@ async function authorise(req: Request, listingId: unknown): Promise<{ userId: st
   const user = await getSessionUser(req, false);
   if (!user) return err("unauthorized", 401);
   if (user.banned) return err("banned", 403);
-  if (!hasPermission(user.permissions, "gutachten:analyze")) return err("plan", 403);
   if (typeof listingId !== "string" || listingId.length > 128) return err("listing", 400);
+  const canAnalyze =
+    hasPermission(user.permissions, "gutachten:analyze") ||
+    (await FreeUnlockService.isListingUnlockedForUser(user.id, listingId));
+  if (!canAnalyze) return err("plan", 403);
   const quota = await AntiScrapingService.enforceSourceDocumentQuota(user.id, listingId);
   if (!quota.allowed) return err(quota.banned ? "banned" : "rateLimit", quota.banned ? 403 : 429);
   const { countries } = await CountryAccessService.forUser(user);

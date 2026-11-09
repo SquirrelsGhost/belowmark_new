@@ -5,6 +5,7 @@ import { db } from "@/db";
 import { billingEvents, billingOrders, users } from "@/db/schema";
 import { BillingOffer, BillingOfferId, isOfferId, OFFERS } from "@/lib/billing/billingConfig";
 import { addCalendarMonths, laterOf } from "@/lib/billing/billingDates";
+import { STRIPE_TRIAL_DAYS } from "@/lib/billing/trialCopy";
 import { isPricingCountry } from "@/lib/constants";
 import { BillingMailService } from "@/services/billing/BillingMailService";
 import { stripeClient } from "@/services/billing/StripeClient";
@@ -16,10 +17,26 @@ const ENDED_STATUSES = new Set<Stripe.Subscription.Status>(["canceled", "unpaid"
 
 const fromUnix = (seconds: number | null | undefined): Date | null => (seconds ? new Date(seconds * 1000) : null);
 
-/** End of the period already paid; the dahlia API keeps it on the items. */
+/** End of the period already paid (or trial end); the dahlia API keeps it on the items. */
 function periodEnd(subscription: Stripe.Subscription): Date | null {
-  const ends = subscription.items.data.map((item) => item.current_period_end).filter((value) => Number.isFinite(value));
-  return ends.length ? fromUnix(Math.max(...ends)) : null;
+  const ends = subscription.items.data
+    .map((item) => item.current_period_end)
+    .filter((value): value is number => typeof value === "number" && Number.isFinite(value));
+  if (ends.length) return fromUnix(Math.max(...ends));
+  if (subscription.status === "trialing" && subscription.trial_end) {
+    return fromUnix(subscription.trial_end);
+  }
+  return null;
+}
+
+/** Paid checkout OR completed 7-day subscription trial (`payment_status === "no_payment_required"`). */
+function isCheckoutSessionSettled(session: Stripe.Checkout.Session): boolean {
+  if (session.payment_status === "paid") return true;
+  return (
+    session.mode === "subscription" &&
+    session.status === "complete" &&
+    session.payment_status === "no_payment_required"
+  );
 }
 
 /** When a cancelled subscription stops: an explicit cancel_at, otherwise the end of the paid period. */
@@ -61,9 +78,12 @@ export class BillingFulfillment {
     if (claimed.upgradeFrom) return BillingFulfillment.applyUpgrade(claimed.id, claimed.userId, offer.id, details.subscription);
     const [user] = await db.select({ planEndsAt: users.planEndsAt }).from(users).where(eq(users.id, claimed.userId));
     const now = new Date();
+    const isTrialStart = details.subscription?.status === "trialing" || (claimed.amount === 0 && offer.kind === "subscription");
     const endsAt = details.subscription
       ? (periodEnd(details.subscription) ?? addCalendarMonths(now, offer.months))
-      : addCalendarMonths(laterOf(user?.planEndsAt ?? null, now), offer.months);
+      : isTrialStart
+        ? new Date(now.getTime() + STRIPE_TRIAL_DAYS * 86_400_000)
+        : addCalendarMonths(laterOf(user?.planEndsAt ?? null, now), offer.months);
     // A subscription renews (no end set); a one-time term ends by itself. The test checkout has no Stripe object.
     const cancelAt = offer.kind === "one_time" ? endsAt : details.subscription ? cancelDate(details.subscription) : null;
 
@@ -78,6 +98,7 @@ export class BillingFulfillment {
         planEndsAt: endsAt,
         planCancelAt: cancelAt,
         stripeSubscriptionId: details.subscription?.id ?? null,
+        ...(isTrialStart ? { stripeTrialUsedAt: now } : {}),
       })
       .where(eq(users.id, claimed.userId));
     clearSessionResolutionCache();
@@ -121,10 +142,10 @@ export class BillingFulfillment {
     return BillingFulfillment.fulfilOrder(orderId, { subscription: current, invoiceId: invoice?.id ?? null });
   };
 
-  /** Checkout session finished (success page or webhook). Grants access only when Stripe says "paid". */
+  /** Checkout session finished (success page or webhook). Grants access when paid or trial-settled. */
   static fromCheckoutSession = async (session: Stripe.Checkout.Session): Promise<boolean> => {
     const orderId = session.metadata?.orderId ?? session.client_reference_id;
-    if (!orderId || session.payment_status !== "paid") return false;
+    if (!orderId || !isCheckoutSessionSettled(session)) return false;
     const subscriptionId = idOf(session.subscription);
     const subscription = subscriptionId ? await stripeClient().subscriptions.retrieve(subscriptionId) : null;
     return BillingFulfillment.fulfilOrder(orderId, { subscription, invoiceId: idOf(session.invoice) });
@@ -134,7 +155,7 @@ export class BillingFulfillment {
   static confirmForUser = async (sessionId: string, userId: string): Promise<"paid" | "pending"> => {
     const session = await stripeClient().checkout.sessions.retrieve(sessionId);
     if (session.metadata?.userId !== userId) return "pending";
-    if (session.payment_status !== "paid") return "pending";
+    if (!isCheckoutSessionSettled(session)) return "pending";
     await BillingFulfillment.fromCheckoutSession(session);
     return "paid";
   };
@@ -150,10 +171,17 @@ export class BillingFulfillment {
     if (ENDED_STATUSES.has(subscription.status)) {
       const endedAt = fromUnix(subscription.ended_at) ?? new Date();
       await db.update(users).set({ planEndsAt: endedAt, planCancelAt: endedAt, stripeSubscriptionId: null }).where(eq(users.id, user.id));
+      clearSessionResolutionCache();
+      return;
+    }
+    if (subscription.status === "past_due" || subscription.status === "paused") {
+      await db.update(users).set({ planEndsAt: new Date() }).where(eq(users.id, user.id));
+      clearSessionResolutionCache();
       return;
     }
     const cancelAt = cancelDate(subscription);
     await db.update(users).set({ planEndsAt: periodEnd(subscription), planCancelAt: cancelAt }).where(eq(users.id, user.id));
+    clearSessionResolutionCache();
     // Cancelled elsewhere (Stripe portal): the confirmation mail still goes out from here
     if (cancelAt && !user.planCancelAt) {
       await BillingMailService.sendPortalCancellation(user.id, cancelAt).catch((error) => console.error("[billing] cancel mail", error));

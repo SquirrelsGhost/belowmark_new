@@ -1,5 +1,5 @@
 import "server-only";
-import { and, eq } from "drizzle-orm";
+import { and, eq, isNotNull, ne, or } from "drizzle-orm";
 import Stripe from "stripe";
 import { db } from "@/db";
 import { BillingOrder, billingOrders, users } from "@/db/schema";
@@ -13,9 +13,11 @@ import {
   OFFERS,
   TERMS_VERSION,
 } from "@/lib/billing/billingConfig";
+import { STRIPE_TRIAL_DAYS } from "@/lib/billing/trialCopy";
 import { PricingCountryCode, pricingCountryToMarket } from "@/lib/constants";
 import { env } from "@/lib/env";
 import { isStripeTestKey, stripeClient } from "@/services/billing/StripeClient";
+import { resolveUserHardwareFingerprint } from "@/services/FreeUnlockService";
 import { BillingAccess, BillingAvailability, OrderBlocker, OrderResult } from "@/types/billing.types";
 
 export type StripeSupportedLocale = "de" | "tr" | "en" | "fr" | "es" | "it";
@@ -143,6 +145,69 @@ export class BillingService {
   };
 
   /**
+   * Checks whether `userId` may claim the one-time 7-day Stripe Checkout trial
+   * on monthly subscriptions (once per account AND once per `HW-...` device).
+   */
+  static isTrialEligible = async (userId: string): Promise<boolean> => {
+    const [user] = await db
+      .select({
+        plan: users.plan,
+        stripeTrialUsedAt: users.stripeTrialUsedAt,
+        stripeSubscriptionId: users.stripeSubscriptionId,
+        gesperrtAm: users.gesperrtAm,
+      })
+      .from(users)
+      .where(eq(users.id, userId));
+
+    if (!user || user.gesperrtAm || user.plan || user.stripeTrialUsedAt || user.stripeSubscriptionId) {
+      return false;
+    }
+
+    const [paidOrder] = await db
+      .select({ id: billingOrders.id })
+      .from(billingOrders)
+      .where(and(eq(billingOrders.userId, userId), eq(billingOrders.status, "paid")))
+      .limit(1);
+    if (paidOrder) return false;
+
+    const hw = await resolveUserHardwareFingerprint(userId);
+    if (hw) {
+      const [otherAccountTrial] = await db
+        .select({ id: users.id })
+        .from(users)
+        .where(
+          and(
+            ne(users.id, userId),
+            eq(users.hardwareFingerprint, hw),
+            or(
+              isNotNull(users.stripeTrialUsedAt),
+              isNotNull(users.stripeSubscriptionId),
+              isNotNull(users.plan),
+            ),
+          ),
+        )
+        .limit(1);
+      if (otherAccountTrial) return false;
+
+      const [otherDevicePaidOrder] = await db
+        .select({ id: billingOrders.id })
+        .from(billingOrders)
+        .innerJoin(users, eq(users.id, billingOrders.userId))
+        .where(
+          and(
+            ne(users.id, userId),
+            eq(users.hardwareFingerprint, hw),
+            eq(billingOrders.status, "paid"),
+          ),
+        )
+        .limit(1);
+      if (otherDevicePaidOrder) return false;
+    }
+
+    return true;
+  };
+
+  /**
    * One paid access at a time, in one market:
    * - Investor running → Pro only as an upgrade (prorated, same end date).
    * - Pro running → no Investor booking on top (that would be a downgrade).
@@ -187,13 +252,15 @@ export class BillingService {
 
     const offer = OFFERS[offerId];
     const price = offer.prices[user.market];
+    const applyTrial = offer.kind === "subscription" && (await BillingService.isTrialEligible(user.id));
+    const dueTodayAmount = applyTrial ? 0 : price.amount;
     const [order] = await db
       .insert(billingOrders)
       .values({
         userId: user.id,
         market: user.market,
         offer: offerId,
-        amount: price.amount,
+        amount: dueTodayAmount,
         currency: price.currency,
         termsVersion: TERMS_VERSION,
         earlyStartConsentAt: consentAt,
@@ -231,7 +298,14 @@ export class BillingService {
         };
 
     const customer = await BillingService.ensureCustomer(user);
-    const metadata = { orderId: order.id, userId: user.id, offer: offerId, market: user.market, termsVersion: TERMS_VERSION };
+    const metadata = {
+      orderId: order.id,
+      userId: user.id,
+      offer: offerId,
+      market: user.market,
+      termsVersion: TERMS_VERSION,
+      ...(applyTrial ? { trialDays: String(STRIPE_TRIAL_DAYS) } : {}),
+    };
     const session = await stripe.checkout.sessions.create(
       {
         mode: offer.kind === "subscription" ? "subscription" : "payment",
@@ -242,8 +316,14 @@ export class BillingService {
         success_url: absolute(`${BILLING_ROUTES.confirm}?session_id={CHECKOUT_SESSION_ID}`),
         cancel_url: absolute(`${BILLING_ROUTES.order}?${OFFER_PARAM}=${offerId}&status=${BILLING_STATUS.cancelled}`),
         metadata,
+        ...(applyTrial ? { payment_method_collection: "always" as const } : {}),
         ...(offer.kind === "subscription"
-          ? { subscription_data: { metadata } }
+          ? {
+              subscription_data: {
+                metadata,
+                ...(applyTrial ? { trial_period_days: STRIPE_TRIAL_DAYS } : {}),
+              },
+            }
           : { invoice_creation: { enabled: true, invoice_data: { metadata } }, payment_intent_data: { metadata } }),
         ...(env.stripeAutomaticTax
           ? { automatic_tax: { enabled: true }, tax_id_collection: { enabled: true }, customer_update: { address: "auto", name: "auto" } }

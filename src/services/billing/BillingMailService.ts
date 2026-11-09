@@ -5,7 +5,8 @@ import { billingOrders, ConsumerDeclaration, users } from "@/db/schema";
 import { isOfferId, OFFERS, toBillingCurrency } from "@/lib/billing/billingConfig";
 import { fill, formatContractDate, formatPrice, formatReceiptTime } from "@/lib/billing/billingFormat";
 import { vatNote } from "@/lib/billing/orderView";
-import { LocaleOption } from "@/lib/constants";
+import { TRIAL_COPY } from "@/lib/billing/trialCopy";
+import { isPricingCountry, LocaleOption } from "@/lib/constants";
 import { env } from "@/lib/env";
 import { LEGAL_OPERATOR } from "@/lib/legal/legalOperator";
 import { renderBillingMail } from "@/lib/mail/renderBillingMail";
@@ -61,7 +62,14 @@ export class BillingMailService {
     const t = textsFor(lang);
     const offer = OFFERS[row.order.offer];
     const offerText = t.Order.Offers[offer.id];
-    const price = formatPrice({ amount: row.order.amount, currency: toBillingCurrency(row.order.currency) }, lang);
+    const currency = toBillingCurrency(row.order.currency);
+    const paidTodayFormatted = formatPrice({ amount: row.order.amount, currency }, lang);
+    const pricingCountry = isPricingCountry(row.order.market) ? row.order.market : "DE";
+    const recurringFormatted = formatPrice(offer.prices[pricingCountry], lang);
+    const price =
+      row.order.amount === 0 && offer.kind === "subscription" && !row.order.upgradeFrom
+        ? (TRIAL_COPY[lang] ?? TRIAL_COPY.de).mailTrialPrice(paidTodayFormatted, recurringFormatted, offerText.Period)
+        : paidTodayFormatted;
     const lines = fill(t.Mail.Order.Lines, {
       offer: offerText.Name,
       price,

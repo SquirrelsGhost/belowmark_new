@@ -34,6 +34,15 @@ export interface OrderOfferView {
   summary: string;
   badge?: string;
   blockedReason?: string;
+  isTrial?: boolean;
+  trialStartValue?: string;
+  trialAfterLabel?: string;
+  trialAfterValue?: string;
+  trialDueTodayLabel?: string;
+  trialDueTodayPrice?: string;
+  trialDueTodayNote?: string;
+  trialSubmitLabel?: string;
+  trialPaymentNote?: string;
 }
 
 export interface OrderMarketView {
