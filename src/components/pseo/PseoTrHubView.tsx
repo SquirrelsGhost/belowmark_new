@@ -59,7 +59,7 @@ export default function PseoTrHubView({ catalog }: PseoTrHubViewProps) {
             href={ROUTES.signup}
             className="inline-flex h-11 items-center border-2 border-signal bg-signal px-5 font-narrow text-xs font-semibold uppercase tracking-[0.08em] text-paper-bright transition-colors hover:bg-signal-deep"
           >
-            Esas No, TKGM Ada/Parsel &amp; Şartnameyi Aç →
+            🎁 1 Ücretsiz Dosya (Kartsız): Esas No &amp; Şartname PDF&apos;i Aç →
           </Link>
           <Link
             href="/tr/hesaplama/icra-ihale-teminat"

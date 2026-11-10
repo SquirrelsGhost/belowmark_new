@@ -55,7 +55,7 @@ export default function PseoDeHubView({ catalog }: PseoDeHubViewProps) {
             href={ROUTES.signup}
             className="inline-flex h-11 items-center border-2 border-signal bg-signal px-5 font-narrow text-xs font-semibold uppercase tracking-[0.08em] text-paper-bright transition-colors hover:bg-signal-deep"
           >
-            Alle Aktenzeichen &amp; Gutachten-KI freischalten →
+            🎁 1 Gratis-Dossier (ohne Karte): Aktenzeichen &amp; PDF kostenlos öffnen →
           </Link>
           <Link
             href="/rechner/5-10-und-7-10-grenze"
