@@ -5,7 +5,7 @@ import PublicSearchView from "@/components/pseo/PublicSearchView";
 import { BELOWMARK_ORIGIN, DEFAULT_BLOG_OG } from "@/lib/blog/blogSeo";
 import { isPricingCountry, PricingCountryCode } from "@/lib/constants";
 import { DEFAULT_FILTERS, SEGMENT_KEYS } from "@/lib/listingFilters";
-import { countryToPseoLocale, sanitizePublicListingHeadline } from "@/lib/pseo/publicListingUrls";
+import { countryToPseoLocale, localizePublicSegmentLabel, sanitizePublicListingHeadline } from "@/lib/pseo/publicListingUrls";
 import { PUBLIC_SEARCH_COPY } from "@/lib/pseo/publicSearchCopy";
 import { SegmentKey } from "@/lib/snapshot";
 import { ListingService } from "@/services/ListingService";
@@ -32,11 +32,12 @@ function toPreview(l: Listing, country: PricingCountryCode): PseoPreviewListing 
   const ratio = country === "IT" ? 0.75 : country === "FR" ? 0.45 : 0.5;
   const depRatio = country === "ES" ? 0.05 : 0.1;
   const area = l.livingAreaM2 ?? l.tr?.netAreaM2 ?? l.areaM2 ?? l.landAreaM2 ?? null;
+  const segLabel = localizePublicSegmentLabel(l.segment, l.segmentLabel, country);
   return {
     key: l.key,
     title: sanitizePublicListingHeadline({
       rawTitle: l.title,
-      segmentLabel: l.segmentLabel || "Immobilie",
+      segmentLabel: segLabel,
       place: l.place,
       postcode: l.postcode,
       country,
@@ -45,7 +46,7 @@ function toPreview(l: Listing, country: PricingCountryCode): PseoPreviewListing 
     postcode: l.postcode ?? null,
     region: l.region ?? null,
     authority: l.authority || "",
-    segmentLabel: l.segmentLabel || "Immobilie",
+    segmentLabel: segLabel,
     hearingAt: l.hearingAt ?? null,
     appraisedValue: val,
     minimumBid: l.minimumBid ? Math.round(l.minimumBid) : val ? Math.round(val * ratio) : null,

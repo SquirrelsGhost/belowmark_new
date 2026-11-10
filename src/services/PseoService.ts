@@ -2,6 +2,7 @@ import "server-only";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { EU_MARKET_META, EU_REGION_SEEDS } from "@/lib/pseo/euMarketRegions";
+import { localizePublicSegmentLabel } from "@/lib/pseo/publicListingUrls";
 import { STATES } from "@/lib/snapshot";
 import { Listing, ListingSnapshot } from "@/types/listing.types";
 import {
@@ -171,7 +172,10 @@ function toPreviewListing(l: Listing): PseoPreviewListing {
   return {
     key: l.key,
     title: sanitizePublicPseoTitle(l, euMarket),
-    segmentLabel: l.segmentLabel || l.tr?.nitelik || "Immobilie",
+    segmentLabel:
+      l.market === "TR"
+        ? localizePublicSegmentLabel(l.segment, l.segmentLabel || l.tr?.nitelik, "TR")
+        : l.segmentLabel || "Immobilie",
     place: l.place || l.region || "Unbekannt",
     postcode: l.postcode,
     region: l.region,

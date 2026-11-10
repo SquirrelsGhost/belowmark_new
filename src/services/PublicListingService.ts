@@ -7,6 +7,7 @@ import {
   buildPublicListingHref,
   countryToPseoLocale,
   extractKeyFromPublicSlug,
+  localizePublicSegmentLabel,
   sanitizePublicListingHeadline,
 } from "@/lib/pseo/publicListingUrls";
 import { isHoneypotListingKey, maskFileNo } from "@/lib/sicherheit/antiScrapingRules";
@@ -78,11 +79,12 @@ function toRelatedPreview(l: Listing, country: PricingCountryCode): PseoPreviewL
   const ratio = country === "IT" ? 0.75 : country === "FR" ? 0.45 : 0.5;
   const depRatio = country === "ES" ? 0.05 : 0.1;
   const area = l.livingAreaM2 ?? l.tr?.netAreaM2 ?? l.areaM2 ?? l.landAreaM2 ?? null;
+  const segLabel = localizePublicSegmentLabel(l.segment, l.segmentLabel, country);
   return {
     key: l.key,
     title: sanitizePublicListingHeadline({
       rawTitle: l.title,
-      segmentLabel: l.segmentLabel || "Immobilie",
+      segmentLabel: segLabel,
       place: l.place,
       postcode: l.postcode,
       country,
@@ -91,7 +93,7 @@ function toRelatedPreview(l: Listing, country: PricingCountryCode): PseoPreviewL
     postcode: l.postcode ?? null,
     region: l.region ?? null,
     authority: l.authority || "",
-    segmentLabel: l.segmentLabel || "Immobilie",
+    segmentLabel: segLabel,
     hearingAt: l.hearingAt ?? null,
     appraisedValue: val,
     minimumBid: l.minimumBid ? Math.round(l.minimumBid) : val ? Math.round(val * ratio) : null,
@@ -117,7 +119,7 @@ export class PublicListingService {
     const locale = countryToPseoLocale(country);
     const currency = currencyForCountry(country, listing.currency);
     const cleanCity = (listing.place ?? "").split(",")[0].trim() || listing.region || "";
-    const segmentLabel = listing.segmentLabel || (locale === "tr" ? "Gayrimenkul" : "Immobilie");
+    const segmentLabel = localizePublicSegmentLabel(listing.segment, listing.segmentLabel, country);
 
     const headline = sanitizePublicListingHeadline({
       rawTitle: listing.title,
@@ -132,6 +134,7 @@ export class PublicListingService {
       country,
       place: listing.place,
       postcode: listing.postcode,
+      segment: listing.segment,
       segmentLabel,
       title: headline,
     });
@@ -297,9 +300,10 @@ export class PublicListingService {
     for (const l of listings) {
       if (!l.key || isHoneypotListingKey(l.key)) continue;
       const country = (market === "TR" ? "TR" : getListingCountry(l)) as PricingCountryCode;
+      const segLabel = localizePublicSegmentLabel(l.segment, l.segmentLabel, country);
       const headline = sanitizePublicListingHeadline({
         rawTitle: l.title,
-        segmentLabel: l.segmentLabel || (market === "TR" ? "Gayrimenkul" : "Immobilie"),
+        segmentLabel: segLabel,
         place: l.place,
         postcode: l.postcode,
         country,
@@ -309,7 +313,8 @@ export class PublicListingService {
         country,
         place: l.place,
         postcode: l.postcode,
-        segmentLabel: l.segmentLabel,
+        segment: l.segment,
+        segmentLabel: segLabel,
         title: headline,
       });
       const loc = `${BELOWMARK_ORIGIN}${href}`;

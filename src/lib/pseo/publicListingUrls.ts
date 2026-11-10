@@ -13,15 +13,19 @@ export function decodePublicListingKey(encoded: string): string {
   return encoded.replace(/_h_/g, "#").replace(/__/g, "_");
 }
 
-export function slugifyPublicSegment(input: string): string {
-  return input
+export function slugifyPublicSegment(input: string, country?: PricingCountryCode): string {
+  const isTr = country === "TR";
+  let s = input
     .replace(/İ/g, "i")
     .replace(/I/g, "i")
     .replace(/ı/g, "i")
-    .toLowerCase()
-    .replace(/ä/g, "ae")
-    .replace(/ö/g, "oe")
-    .replace(/ü/g, "ue")
+    .toLowerCase();
+  if (!isTr) {
+    s = s.replace(/ä/g, "ae").replace(/ö/g, "oe").replace(/ü/g, "ue");
+  } else {
+    s = s.replace(/ö/g, "o").replace(/ü/g, "u");
+  }
+  return s
     .replace(/ß/g, "ss")
     .replace(/ç/g, "c")
     .replace(/ğ/g, "g")
@@ -30,6 +34,34 @@ export function slugifyPublicSegment(input: string): string {
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
+}
+
+export function localizePublicSegmentLabel(
+  segment: string | null | undefined,
+  rawSegmentLabel: string | null | undefined,
+  country: PricingCountryCode,
+): string {
+  const raw = (rawSegmentLabel ?? "").trim();
+  if (country === "TR") {
+    if (/olivenhain/i.test(raw)) return "Zeytinlik";
+    switch (segment) {
+      case "apartment":
+        return "Daire / Konut";
+      case "house":
+        return "Müstakil Ev / Villa";
+      case "multiFamily":
+        return "Bina / Apartman";
+      case "land":
+        return "İmarlı Arsa";
+      case "farmland":
+        return "Tarla / Arazi";
+      case "commercial":
+        return "Dükkan / İşyeri";
+      default:
+        return raw && !/ackerland|bauland|wohnung|haus|gewerbe/i.test(raw) ? raw : "Gayrimenkul";
+    }
+  }
+  return raw || "Immobilie";
 }
 
 export function inferPreviewListingCountry(item: Pick<PseoPreviewListing, "key" | "currency">, fallbackLocale?: PseoLocale): PricingCountryCode {
@@ -125,19 +157,21 @@ export function buildPublicListingSlug(params: {
   country: PricingCountryCode;
   place?: string | null;
   postcode?: string | null;
+  segment?: string | null;
   segmentLabel?: string | null;
   title?: string | null;
 }): string {
   const cleanCity = (params.place ?? "").split(",")[0].trim();
+  const localizedSeg = localizePublicSegmentLabel(params.segment, params.segmentLabel, params.country);
   const baseWords = [
-    params.segmentLabel ?? "",
+    localizedSeg,
     params.postcode ?? "",
     cleanCity,
     !cleanCity && params.title ? params.title.slice(0, 45) : "",
   ]
     .filter(Boolean)
     .join(" ");
-  const seoPart = slugifyPublicSegment(baseWords).slice(0, 56).replace(/-+$/g, "") || "objekt";
+  const seoPart = slugifyPublicSegment(baseWords, params.country).slice(0, 56).replace(/-+$/g, "") || "objekt";
   return `${seoPart}--${encodePublicListingKey(params.key)}`;
 }
 
@@ -146,6 +180,7 @@ export function buildPublicListingHref(params: {
   country: PricingCountryCode;
   place?: string | null;
   postcode?: string | null;
+  segment?: string | null;
   segmentLabel?: string | null;
   title?: string | null;
 }): string {
