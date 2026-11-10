@@ -7,6 +7,7 @@ import PseoRelatedGuides from "@/components/pseo/PseoRelatedGuides";
 import PseoStatsBanner from "@/components/pseo/PseoStatsBanner";
 import { BELOWMARK_ORIGIN } from "@/lib/blog/blogSeo";
 import { PricingCountryCode } from "@/lib/constants";
+import { buildPreviewCardListingHref } from "@/lib/pseo/publicListingUrls";
 import { PseoLocale, PseoPreviewListing } from "@/types/pseo.types";
 
 interface PseoDirectoryViewProps {
@@ -134,7 +135,7 @@ export default function PseoDirectoryView({
             "@type": "RealEstateListing",
             name: `${item.title} — ${item.segmentLabel} in ${item.postcode ? `${item.postcode} ` : ""}${item.place} (${item.authority})`,
             description: `${item.segmentLabel} in ${item.postcode ? `${item.postcode} ` : ""}${item.place}, ${item.region} · ${item.authority}${item.hearingAt ? ` · Versteigerungstermin: ${item.hearingAt.slice(0, 10)}` : ""}`,
-            url: canonicalUrl,
+            url: `${BELOWMARK_ORIGIN}${buildPreviewCardListingHref(item, locale)}`,
             ...(item.hearingAt ? { datePosted: item.hearingAt.slice(0, 10) } : {}),
             ...(item.minimumBid || item.appraisedValue
               ? {

@@ -11,6 +11,7 @@ import { CountryAccessService } from "@/services/CountryAccessService";
 import { DeadlineRunService } from "@/services/DeadlineRunService";
 import { RateLimitService } from "@/services/RateLimitService";
 import { SessionService } from "@/services/SessionService";
+import { UnverifiedReminderService } from "@/services/UnverifiedReminderService";
 import { ListingCountry } from "@/types/listing.types";
 
 const AUTO_SCHEDULER_RULE = { limit: 1, windowMs: 15 * 60 * 1000 } as const;
@@ -64,6 +65,7 @@ export class AppSessionService {
           await Promise.all([
             AlertRunService.run(ts).catch((err) => console.error("[after:alerts]", err)),
             DeadlineRunService.run(ts).catch((err) => console.error("[after:deadlines]", err)),
+            UnverifiedReminderService.run(ts).catch((err) => console.error("[after:unverified]", err)),
           ]);
         } catch (err) {
           console.error("[after:scheduler]", err);

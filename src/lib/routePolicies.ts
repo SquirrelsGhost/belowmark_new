@@ -44,6 +44,10 @@ const POLICY_RULES: readonly PolicyRule[] = [
   { methods: ["GET"], pattern: /^\/blog\/[^/]+$/, policy: PAGE_PUBLIC },
   { methods: ["GET"], pattern: /^\/(de|tr|en|it|es|fr|ar|ru)\/blog(\/[^/]+)?$/, policy: PAGE_PUBLIC },
   { methods: ["GET"], pattern: /^\/zwangsversteigerung(en)?$/, policy: PAGE_PUBLIC },
+  { methods: ["GET"], pattern: /^\/(suche|atlas)$/, policy: PAGE_PUBLIC },
+  { methods: ["GET", "POST"], pattern: /^\/objekt\/[^/]+$/, policy: PAGE_PUBLIC },
+  { methods: ["GET", "POST"], pattern: /^\/tr\/ilan\/[^/]+$/, policy: PAGE_PUBLIC },
+  { methods: ["GET", "POST"], pattern: /^\/lot\/[^/]+$/, policy: PAGE_PUBLIC },
   { methods: ["GET"], pattern: /^\/bundesland\/[^/]+$/, policy: PAGE_PUBLIC },
   { methods: ["GET"], pattern: /^\/amtsgericht\/[^/]+$/, policy: PAGE_PUBLIC },
   { methods: ["GET"], pattern: /^\/zwangsversteigerung\/[^/]+$/, policy: PAGE_PUBLIC },
@@ -63,7 +67,7 @@ const POLICY_RULES: readonly PolicyRule[] = [
   { methods: ["GET"], pattern: /^\/en\/uk-property-auctions(\/[^/]+)?$/, policy: PAGE_PUBLIC },
   { methods: ["GET"], pattern: /^\/en\/calculator\/uk-property-auction-stamp-duty-deposit$/, policy: PAGE_PUBLIC },
   { methods: ["GET"], pattern: /^\/karten\/(de|at|ch|it|es|fr|gb|tr)\.svg$/, policy: API_PUBLIC },
-  { methods: ["GET"], pattern: /^\/(sitemap\.xml|sitemap-blog\.xml|robots\.txt|llms\.txt|llms-full\.txt|pycie2026seoindexnowkey\.txt|sw\.js|favicon\.ico|icon\.svg)$/, policy: API_PUBLIC },
+  { methods: ["GET"], pattern: /^\/(sitemap\.xml|sitemap-hubs\.xml|sitemap-listings-eu\.xml|sitemap-listings-tr\.xml|sitemap-blog\.xml|robots\.txt|llms\.txt|llms-full\.txt|pycie2026seoindexnowkey\.txt|sw\.js|favicon\.ico|icon\.svg)$/, policy: API_PUBLIC },
 
   // ─── 2. Protected Account Page ──────────────────────────────────────────────
   { methods: ["GET", "POST"], pattern: /^\/konto$/, policy: PAGE_AUTH },

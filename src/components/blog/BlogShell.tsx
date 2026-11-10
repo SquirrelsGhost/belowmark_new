@@ -22,12 +22,22 @@ interface BlogShellProps {
 
 const MAIN_ID = "inhalt";
 
+const SEARCH_NAV_LABEL: Record<string, string> = {
+  de: "Live-Suche",
+  tr: "Canlı Arama",
+  en: "Live Search",
+  it: "Ricerca Live",
+  es: "Buscador",
+  fr: "Recherche",
+};
+
 export default async function BlogShell({ lang, children }: BlogShellProps) {
-  const locale = TranslationService.NormalizeLocale(lang === "tr" ? "tr" : "de");
+  const locale = TranslationService.NormalizeLocale(lang);
   const t = TranslationService.GetTranslations(locale);
   const nav = t.Navigation;
   const homePrefix = "/";
   const blogHref = lang === "de" ? ROUTES.blog : `/${lang}/blog`;
+  const searchLabel = SEARCH_NAV_LABEL[lang] ?? "Live Search";
 
   return (
     <div lang={lang} dir={lang === "ar" ? "rtl" : "ltr"}>
@@ -36,6 +46,7 @@ export default async function BlogShell({ lang, children }: BlogShellProps) {
       <Navigation label={nav.MainNavLabel}>
         <BrandMark />
         <NavigationSpacer />
+        <NavigationItem href="/suche" label={searchLabel} />
         <NavigationItem href={`${homePrefix}${ROUTES.calculator}`} label={nav.CalculatorLabel} />
         <NavigationItem href={`${homePrefix}${ROUTES.notice}`} label={nav.NoticeLabel} />
         <NavigationItem href={`${homePrefix}${ROUTES.method}`} label={nav.MethodLabel} />
@@ -53,6 +64,8 @@ export default async function BlogShell({ lang, children }: BlogShellProps) {
         rights={t.Footer.Rights}
       >
         <FooterColumn title={t.Footer.ProductTitle}>
+          <FooterLink href="/suche" label="🔍 Live-Suche (8 Länder · 19.700+ Objekte)" />
+          <FooterLink href="/atlas" label="📊 Europäischer Markt-Atlas & Datenreport" />
           <FooterLink href="/zwangsversteigerungen" label="🇩🇪 DE · ZVG Verzeichnis (16 Länder)" />
           <FooterLink href="/oesterreich/ediktsdatei" label="🇦🇹 AT · Ediktsdatei (9 Länder)" />
           <FooterLink href="/schweiz/shab-versteigerungen" label="🇨🇭 CH · SHAB Steigerungen (26 Kantone)" />

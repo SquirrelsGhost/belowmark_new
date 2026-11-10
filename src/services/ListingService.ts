@@ -279,6 +279,11 @@ export class ListingService {
     return null;
   };
 
+  /** Cached full snapshot listings for a market (shared in-memory with search & pSEO). */
+  static getAllSnapshotListings = async (market: MarketCode): Promise<Listing[]> => {
+    return (await getMarket(market)).snapshot.listings;
+  };
+
   /** Several proceedings by key, in the given order; unknown keys and keys outside `scope` are skipped. */
   static getMany = async (scope: CountryScope, keys: string[]): Promise<Listing[]> => {
     const loadedMarkets = await Promise.all(marketsOfScope(scope).map((market) => getMarket(market)));

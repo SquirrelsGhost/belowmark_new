@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ROUTES } from "@/lib/constants";
+import { buildPreviewCardListingHref } from "@/lib/pseo/publicListingUrls";
 import { PseoLocale, PseoPreviewListing } from "@/types/pseo.types";
 
 interface PseoMarketComparisonTableProps {
@@ -129,30 +129,35 @@ export default function PseoMarketComparisonTable({ listings, locale, heading }:
             </tr>
           </thead>
           <tbody className="divide-y divide-rule">
-            {listings.slice(0, 10).map((item) => (
-              <tr key={`tbl-${item.key}`} className="hover:bg-paper">
-                <td className="px-3 py-2.5 font-sans font-medium text-ink">
-                  <span className="block font-mono text-[10px] font-semibold uppercase text-signal">{item.segmentLabel}</span>
-                  <span>{item.postcode ? `${item.postcode} ` : ""}{item.place}</span>
-                </td>
-                <td className="px-3 py-2.5 text-ink-soft">{item.authority}</td>
-                <td className="px-3 py-2.5 text-ink-soft">{item.hearingAt ? item.hearingAt.slice(0, 10) : "2026/2027"}</td>
-                <td className="px-3 py-2.5 text-right font-semibold text-ink">
-                  {fmt(item.appraisedValue, item.currency, locale, C.tbc)}
-                </td>
-                <td className="px-3 py-2.5 text-right font-bold text-signal">
-                  {fmt(item.minimumBid, item.currency, locale, C.tbc)}
-                </td>
-                <td className="px-3 py-2.5 text-right text-ink-soft">
-                  {fmt(item.depositAmount, item.currency, locale, C.tbc)}
-                </td>
-                <td className="px-3 py-2.5 text-right">
-                  <Link href={ROUTES.signup} className="font-semibold text-ink underline hover:text-signal">
-                    {C.unlock}
-                  </Link>
-                </td>
-              </tr>
-            ))}
+            {listings.slice(0, 10).map((item) => {
+              const detailHref = buildPreviewCardListingHref(item, locale);
+              return (
+                <tr key={`tbl-${item.key}`} className="hover:bg-paper">
+                  <td className="px-3 py-2.5 font-sans font-medium text-ink">
+                    <Link href={detailHref} className="block hover:text-signal hover:underline">
+                      <span className="block font-mono text-[10px] font-semibold uppercase text-signal">{item.segmentLabel}</span>
+                      <span>{item.postcode ? `${item.postcode} ` : ""}{item.place}</span>
+                    </Link>
+                  </td>
+                  <td className="px-3 py-2.5 text-ink-soft">{item.authority}</td>
+                  <td className="px-3 py-2.5 text-ink-soft">{item.hearingAt ? item.hearingAt.slice(0, 10) : "2026/2027"}</td>
+                  <td className="px-3 py-2.5 text-right font-semibold text-ink">
+                    {fmt(item.appraisedValue, item.currency, locale, C.tbc)}
+                  </td>
+                  <td className="px-3 py-2.5 text-right font-bold text-signal">
+                    {fmt(item.minimumBid, item.currency, locale, C.tbc)}
+                  </td>
+                  <td className="px-3 py-2.5 text-right text-ink-soft">
+                    {fmt(item.depositAmount, item.currency, locale, C.tbc)}
+                  </td>
+                  <td className="px-3 py-2.5 text-right">
+                    <Link href={`${detailHref}#unlock-dossier`} className="font-semibold text-ink underline hover:text-signal">
+                      {C.unlock}
+                    </Link>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

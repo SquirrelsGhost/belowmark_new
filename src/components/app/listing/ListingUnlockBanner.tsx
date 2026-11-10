@@ -1,6 +1,6 @@
 import Link from "next/link";
 import FreeUnlockButton from "@/components/app/listing/FreeUnlockButton";
-import Button from "@/components/ui/Button";
+import QuickOrderCheckoutForm from "@/components/app/listing/QuickOrderCheckoutForm";
 import { APP_ROUTES, listingHref } from "@/lib/appConstants";
 import { TRIAL_COPY } from "@/lib/billing/trialCopy";
 import { LocaleOption } from "@/lib/constants";
@@ -97,17 +97,13 @@ export default function ListingUnlockBanner({
               )}
             </>
           ) : (
-            <>
-              <Button
-                label={stripeTrialEligible ? c.primaryTrialCta : c.primaryStandardCta}
-                href={orderHref}
-                variant="signal"
-                withArrow
-              />
-              <p className="font-mono text-[11px] text-ink-muted">
-                {stripeTrialEligible ? c.primaryTrialNote : c.primaryStandardNote}
-              </p>
-            </>
+            <QuickOrderCheckoutForm
+              country={country}
+              locale={locale}
+              stripeTrialEligible={stripeTrialEligible}
+              submitLabel={stripeTrialEligible ? c.primaryTrialCta : c.primaryStandardCta}
+              noteLabel={stripeTrialEligible ? c.primaryTrialNote : c.primaryStandardNote}
+            />
           )}
         </div>
       </div>

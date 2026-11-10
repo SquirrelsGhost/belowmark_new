@@ -27,16 +27,50 @@ const OTP_COPY = {
   de: {
     label: "6-stelliger Bestätigungscode aus der E-Mail",
     placeholder: "000 000",
-    submit: "Mit Code bestätigen",
+    submit: "Mit Code bestätigen & Dossier öffnen",
     pending: "Wird geprüft …",
   },
   tr: {
     label: "E-postadaki 6 haneli doğrulama kodu",
     placeholder: "000 000",
-    submit: "Kod ile doğrula",
+    submit: "Kod ile doğrula ve dosyayı aç",
     pending: "Doğrulanıyor …",
   },
+  en: {
+    label: "6-digit verification code from your email",
+    placeholder: "000 000",
+    submit: "Confirm code & unlock dossier",
+    pending: "Verifying …",
+  },
+  fr: {
+    label: "Code de vérification à 6 chiffres reçu par e-mail",
+    placeholder: "000 000",
+    submit: "Valider le code & ouvrir le dossier",
+    pending: "Vérification …",
+  },
+  es: {
+    label: "Código de 6 dígitos enviado a tu correo",
+    placeholder: "000 000",
+    submit: "Confirmar código y abrir expediente",
+    pending: "Verificando …",
+  },
+  it: {
+    label: "Codice di verifica a 6 cifre ricevuto via e-mail",
+    placeholder: "000 000",
+    submit: "Conferma codice e apri fascicolo",
+    pending: "Verifica in corso …",
+  },
 } as const;
+
+function detectOtpLang(emailLabel: string): keyof typeof OTP_COPY {
+  const low = emailLabel.toLowerCase();
+  if (low.includes("posta")) return "tr";
+  if (low.includes("correo")) return "es";
+  if (low.includes("indirizzo")) return "it";
+  if (low.includes("adresse e-mail") || low.includes("courriel")) return "fr";
+  if (low.includes("email address") || low.includes("e-mail address")) return "en";
+  return "de";
+}
 
 export default function VerifyOtpForm({
   email,
@@ -47,8 +81,7 @@ export default function VerifyOtpForm({
   targetCity,
 }: VerifyOtpFormProps) {
   const [state, formAction] = useActionState(verifyEmailAction, INITIAL_AUTH_STATE);
-  const isTr = emailLabel.toLowerCase().includes("posta");
-  const copy = isTr ? OTP_COPY.tr : OTP_COPY.de;
+  const copy = OTP_COPY[detectOtpLang(emailLabel)];
 
   return (
     <form action={formAction} className={BOX_CLASSES}>

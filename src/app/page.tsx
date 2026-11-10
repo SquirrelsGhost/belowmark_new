@@ -88,6 +88,7 @@ export default async function HomePage() {
       <Navigation label={nav.MainNavLabel}>
         <BrandMark />
         <NavigationSpacer />
+        <NavigationItem href={`/suche?markt=${region.pricingCountry}`} label={locale === "tr" ? "Canlı Arama" : locale === "en" ? "Live Search" : locale === "es" ? "Buscador" : locale === "it" ? "Ricerca Live" : locale === "fr" ? "Recherche" : "Live-Suche"} />
         <NavigationItem href={ROUTES.calculator} label={nav.CalculatorLabel} />
         <NavigationItem href={ROUTES.notice} label={nav.NoticeLabel} />
         <NavigationItem href={ROUTES.method} label={nav.MethodLabel} />

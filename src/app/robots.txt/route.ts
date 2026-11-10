@@ -38,6 +38,9 @@ export async function GET(): Promise<Response> {
       "",
       ...aiBlocks,
       `Sitemap: ${BELOWMARK_ORIGIN}/sitemap.xml`,
+      `Sitemap: ${BELOWMARK_ORIGIN}/sitemap-hubs.xml`,
+      `Sitemap: ${BELOWMARK_ORIGIN}/sitemap-listings-eu.xml`,
+      `Sitemap: ${BELOWMARK_ORIGIN}/sitemap-listings-tr.xml`,
       `Sitemap: ${BELOWMARK_ORIGIN}/sitemap-blog.xml`,
     ].join("\n");
 
