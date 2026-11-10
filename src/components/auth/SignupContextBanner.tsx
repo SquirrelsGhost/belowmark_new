@@ -29,70 +29,70 @@ const BANNER_COPY: Record<
   }
 > = {
   de: {
-    listingBadge: "🔒 AUSGEWÄHLTES VERSTEIGERUNGSVERFAHREN",
-    alertBadge: "🔔 KOSTENLOSER E-MAIL-SUCHAUFTRAG",
+    listingBadge: "🎁 IHR 1 GRATIS-DOSSIER (OHNE ZAHLUNGSMETHODE)",
+    alertBadge: "🎁 1 GRATIS-DOSSIER + KOSTENLOSER E-MAIL-SUCHAUFTRAG",
     appraised: "Verkehrswert / Schätzwert",
     minBid: "Einstieg / Mindestgebot",
     listingNote: (city) =>
-      `Nach Bestätigung Ihrer E-Mail öffnen wir direkt dieses Objekt auf Ihrer Merkliste und aktivieren Ihren kostenlosen Such-Alert für ${city}.`,
-    cityTitle: (city) => `Automatischer Zwangsversteigerungs-Alert für ${city}`,
+      `Nach Bestätigung Ihrer E-Mail schalten wir genau dieses Objekt automatisch als Ihr 1 Gratis-Dossier komplett ungeschwärzt frei (inkl. Aktenzeichen, exakter Adresse, Gerichts-PDF & KI-Analyse) und aktivieren Ihren kostenlosen Such-Alert für ${city}.`,
+    cityTitle: (city) => `1 Gratis-Dossier + Automatischer Such-Alert für ${city}`,
     cityNote: (city) =>
-      `Sobald Sie Ihre E-Mail bestätigen, ist Ihr kostenloser täglicher Suchauftrag für neue Termine und Wertgrenzen-Wegfälle in ${city} sofort aktiv.`,
+      `Sobald Sie Ihre E-Mail bestätigen, ist Ihr kostenloses 1 Gratis-Dossier (ohne Karte) für ein Objekt Ihrer Wahl freigeschaltet und Ihr täglicher Suchauftrag für ${city} sofort aktiv.`,
   },
   tr: {
-    listingBadge: "🔒 SEÇİLEN İCRA & E-İHALE DOSYASI",
-    alertBadge: "🔔 ÜCRETSİZ E-POSTA İHALE ALARMI",
+    listingBadge: "🎁 1 ÜCRETSİZ TAM DOSYANIZ (KARTSIZ / ÜCRETSİZ)",
+    alertBadge: "🎁 1 ÜCRETSİZ DOSYA + E-POSTA İHALE ALARMI",
     appraised: "Muhammen Bedel",
     minBid: "Başlangıç / %50 Sınır",
     listingNote: (city) =>
-      `E-postanızı doğruladığınızda bu dosya izleme listenize eklenir ve ${city} için ücretsiz ihale alarmınız otomatik kurulur.`,
-    cityTitle: (city) => `${city} İcra & E-İhale Bildirim Alarmı`,
+      `E-postanızı doğruladığınız anda bu ihale dosyası 1 Ücretsiz Dosya hakkınızla sansürsüz olarak (esas no, açık adres, şartname PDF ve yapay zekâ analizi) otomatik açılır ve ${city} alarmınız kurulur.`,
+    cityTitle: (city) => `1 Ücretsiz Dosya + ${city} İcra & E-İhale Alarmı`,
     cityNote: (city) =>
-      `E-postanızı doğruladığınız anda ${city} bölgesindeki yeni %50 açılışlı gayrimenkul ihaleleri için günlük e-posta bildiriminiz başlar.`,
+      `E-postanızı doğruladığınız anda 1 ücretsiz tam dosya açma hakkınız (kartsız) tanımlanır ve ${city} bölgesindeki yeni ihaleler için günlük bildiriminiz başlar.`,
   },
   en: {
-    listingBadge: "🔒 SELECTED AUCTION LOT",
-    alertBadge: "🔔 FREE AUCTION EMAIL ALERT",
+    listingBadge: "🎁 YOUR 1 FREE PROPERTY DOSSIER (NO CARD REQUIRED)",
+    alertBadge: "🎁 1 FREE DOSSIER + AUCTION EMAIL ALERT",
     appraised: "Market Benchmark",
     minBid: "Guide / Minimum Bid",
     listingNote: (city) =>
-      `Right after confirming your email, we open this lot on your watchlist and activate your free daily auction alert for ${city}.`,
-    cityTitle: (city) => `Automatic Property Auction Alert for ${city}`,
+      `Right after confirming your email, we automatically unlock this exact lot as your 1 Free Dossier (full case number, street address, court PDF & AI report) and activate your free alert for ${city}.`,
+    cityTitle: (city) => `1 Free Dossier + Property Auction Alert for ${city}`,
     cityNote: (city) =>
-      `Confirm your email below to activate automatic notifications for new below-market auction lots in ${city}.`,
+      `Confirm your email below to unlock 1 full auction dossier of your choice for free (no card required) and activate daily alerts for ${city}.`,
   },
   it: {
-    listingBadge: "🔒 PROCEDURA D'ASTA SELEZIONATA",
-    alertBadge: "🔔 AVVISO ASTE GRATUITO",
+    listingBadge: "🎁 IL TUO 1° FASCICOLO GRATUITO (SENZA CARTA)",
+    alertBadge: "🎁 1 FASCICOLO GRATIS + AVVISO ASTE",
     appraised: "Prezzo Base / Stima",
     minBid: "Offerta Minima",
     listingNote: (city) =>
-      `Dopo la conferma dell'email apriremo direttamente questo immobile e attiveremo il tuo avviso gratuito per ${city}.`,
-    cityTitle: (city) => `Avviso Aste Giudiziarie per ${city}`,
+      `Subito dopo la conferma dell'email sbloccheremo automaticamente questo immobile come tuo 1° Fascicolo Gratuito (R.G.E., indirizzo esatto, PDF tribunale e analisi IA) e attiveremo l'avviso per ${city}.`,
+    cityTitle: (city) => `1 Fascicolo Gratis + Avviso Aste per ${city}`,
     cityNote: (city) =>
-      `Conferma la tua email per ricevere automaticamente i nuovi avvisi d'asta e ribassi a ${city}.`,
+      `Conferma la tua email per sbloccare gratuitamente 1 fascicolo completo a tua scelta (senza carta) e ricevere i nuovi avvisi d'asta a ${city}.`,
   },
   es: {
-    listingBadge: "🔒 EXPEDIENTE DE SUBASTA SELECCIONADO",
-    alertBadge: "🔔 ALERTA DE SUBASTAS BOE",
+    listingBadge: "🎁 SU 1er EXPEDIENTE GRATIS (SIN TARJETA)",
+    alertBadge: "🎁 1 EXPEDIENTE GRATIS + ALERTA BOE",
     appraised: "Valor de Subasta",
     minBid: "Umbral Mínimo",
     listingNote: (city) =>
-      `Tras confirmar su correo abriremos directamente este expediente y activaremos su alerta gratuita para ${city}.`,
-    cityTitle: (city) => `Alerta Automática de Subastas en ${city}`,
+      `Al confirmar su correo desbloquearemos automáticamente este inmueble como su 1er Expediente Gratis (n.º BOE, dirección exacta, edicto PDF e informe IA) y activaremos su alerta en ${city}.`,
+    cityTitle: (city) => `1 Expediente Gratis + Alerta de Subastas en ${city}`,
     cityNote: (city) =>
-      `Confirme su correo para activar los avisos automáticos de nuevas subastas BOE en ${city}.`,
+      `Confirme su correo para activar 1 expediente completo gratis (sin tarjeta) y recibir avisos automáticos de nuevas subastas BOE en ${city}.`,
   },
   fr: {
-    listingBadge: "🔒 VENTE JUDICIAIRE SÉLECTIONNÉE",
-    alertBadge: "🔔 ALERTE ENCHÈRES GRATUITE",
+    listingBadge: "🎁 VOTRE 1er DOSSIER COMPLET GRATUIT (SANS CARTE)",
+    alertBadge: "🎁 1 DOSSIER GRATUIT + ALERTE ENCHÈRES",
     appraised: "Valeur Référence",
     minBid: "Mise à Prix",
     listingNote: (city) =>
-      `Dès confirmation de votre e-mail, nous ouvrons ce lot dans vos favoris et activons votre alerte gratuite pour ${city}.`,
-    cityTitle: (city) => `Alerte Automatique Enchères (${city})`,
+      `Dès confirmation de votre e-mail, nous débloquons automatiquement ce bien comme votre 1er Dossier Gratuit (n° de rôle TJ, adresse exacte, cahier PDF et analyse IA) et activons votre alerte (${city}).`,
+    cityTitle: (city) => `1 Dossier Gratuit + Alerte Automatique (${city})`,
     cityNote: (city) =>
-      `Confirmez votre e-mail pour activer les notifications automatiques des nouvelles ventes judiciaires (${city}).`,
+      `Confirmez votre e-mail pour débloquer 1 dossier complet gratuit (sans carte bancaire) et activer les alertes de nouvelles ventes judiciaires (${city}).`,
   },
 };
 

@@ -35,7 +35,7 @@ const CARD_LABELS: Record<
     minBid: "Einstieg / Mindestgebot",
     waived: "Wertgrenzen entfallen",
     belowMarket: "unter Markt",
-    cta: "🔒 Aktenzeichen, Gutachten-KI & Bietgrenze",
+    cta: "🔓 1 Gratis-Dossier: Aktenzeichen & PDF kostenlos öffnen",
   },
   tr: {
     onRequest: "Belirtilmedi",
@@ -44,7 +44,7 @@ const CARD_LABELS: Record<
     minBid: "Başlangıç / %50 Sınır",
     waived: "Fırsat İhalesi",
     belowMarket: "Piyasa Altı",
-    cta: "🔒 Dosya No, Şerh Analizi & Teklif Sınırı",
+    cta: "🔓 1 Ücretsiz Dosya: Esas No & Şartname PDF'i Aç",
   },
   en: {
     onRequest: "TBC in Legal Pack",
@@ -53,7 +53,7 @@ const CARD_LABELS: Record<
     minBid: "Guide Price",
     waived: "No Reserve / Repossession",
     belowMarket: "Below Market",
-    cta: "🔒 Lot Number, Legal Pack & Reserve Check",
+    cta: "🔓 1 Free Dossier: Unlock Address, Legal Pack & AI",
   },
   it: {
     onRequest: "In Perizia CTU",
@@ -62,7 +62,7 @@ const CARD_LABELS: Record<
     minBid: "Offerta Minima (75%)",
     waived: "Ribasso d'Asta",
     belowMarket: "Sotto Mercato",
-    cta: "🔒 R.G.E., Perizia CTU & Offerta Massima",
+    cta: "🔓 1 Fascicolo Gratis: Sblocca R.G.E., Perizia PDF & IA",
   },
   es: {
     onRequest: "Ver Edicto BOE",
@@ -71,7 +71,7 @@ const CARD_LABELS: Record<
     minBid: "Umbral 50% / 70% LEC",
     waived: "Sin Puja Mínima",
     belowMarket: "Bajo Mercado",
-    cta: "🔒 Id. BOE, Cargas Registrales & Puja Óptima",
+    cta: "🔓 1 Expediente Gratis: Desbloquear BOE, PDF e IA",
   },
   fr: {
     onRequest: "Voir Cahier CCV",
@@ -80,7 +80,7 @@ const CARD_LABELS: Record<
     minBid: "Mise à Prix TJ",
     waived: "Baisse de Mise à Prix",
     belowMarket: "Sous le Marché",
-    cta: "🔒 Rôle TJ, Cahier des Ventes & Plafond",
+    cta: "🔓 1 Dossier Gratuit : Rôle TJ, Cahier PDF & Analyse IA",
   },
 };
 

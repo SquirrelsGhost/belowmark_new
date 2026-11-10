@@ -19,52 +19,52 @@ const ALERT_COPY: Record<
   }
 > = {
   de: {
-    badge: "🔔 KOSTENLOSER E-MAIL-SUCHAUFTRAG",
-    title: (loc) => `Neue Zwangsversteigerungen in ${loc} sofort per E-Mail erhalten`,
+    badge: "🎁 1 GRATIS-DOSSIER + KOSTENLOSER E-MAIL-SUCHAUFTRAG",
+    title: (loc) => `1 Objekt in ${loc} sofort kostenlos freischalten + täglichen Such-Alert erhalten`,
     body: (loc, count) =>
-      `Verpassen Sie keinen neuen Termin und keinen Wegfall der 5/10- & 7/10-Grenzen in ${loc} (${count} aktive Verfahren). Wir benachrichtigen Sie automatisch um 06:15 Uhr bei neuen gerichtlichen Bekanntmachungen.`,
+      `Schalten Sie nach E-Mail-Bestätigung 1 beliebiges Objekt komplett ungeschwärzt (Aktenzeichen, PDF & KI-Analyse, ohne Zahlungsmethode) frei und verpassen Sie keinen neuen Termin in ${loc} (${count} aktive Verfahren).`,
     placeholder: "Ihre E-Mail-Adresse eingeben …",
-    button: "Such-Alert kostenlos aktivieren →",
+    button: "1 Gratis-Dossier + Alert sichern →",
   },
   tr: {
-    badge: "🔔 ÜCRETSİZ E-POSTA İHALE ALARMI",
-    title: (loc) => `${loc} Yeni İcra & E-İhale İlanlarını E-Postayla Alın`,
+    badge: "🎁 1 ÜCRETSİZ DOSYA + E-POSTA İHALE ALARMI",
+    title: (loc) => `${loc} İçin 1 Ücretsiz Tam Dosya Açın + Günlük İhale Alarmı Kurun`,
     body: (loc, count) =>
-      `${loc} bölgesindeki ${count} aktif dosya ve yeni eklenen UYAP E-Satış %50 açılışlı gayrimenkul ihaleleri için günlük otomatik e-posta bildirimi kurun.`,
+      `E-postanızı doğrulayarak seçtiğiniz 1 ihale dosyasını kartsız/ücretsiz sansürsüz açın (esas no, şartname PDF ve yapay zekâ analizi) ve ${loc} bölgesindeki ${count} aktif dosyayı takip edin.`,
     placeholder: "E-posta adresinizi girin …",
-    button: "Ücretsiz İhale Alarmı Kur →",
+    button: "1 Ücretsiz Dosya + Alarm Kur →",
   },
   en: {
-    badge: "🔔 FREE AUCTION EMAIL ALERT",
-    title: (loc) => `Get New Below-Market Property Auctions in ${loc} by Email`,
+    badge: "🎁 1 FREE PROPERTY DOSSIER + DAILY EMAIL ALERT",
+    title: (loc) => `Unlock 1 Full Property Dossier in ${loc} for Free + Get Daily Alerts`,
     body: (loc, count) =>
-      `Track ${count} active auction lots in ${loc}. Receive automatic daily email alerts whenever new repossession lots, guide price reductions, or auction dates are published.`,
+      `Verify your email (no card required) to unlock 1 full auction dossier of your choice (case number, exact address, legal pack PDF & AI analysis) and track ${count} active auction lots in ${loc}.`,
     placeholder: "Enter your email address …",
-    button: "Activate Free Alert →",
+    button: "Claim 1 Free Dossier + Alert →",
   },
   it: {
-    badge: "🔔 AVVISO ASTE GRATUITO VIA EMAIL",
-    title: (loc) => `Ricevi le Nuove Aste Giudiziarie a ${loc} via Email`,
+    badge: "🎁 1 FASCICOLO GRATUITO + AVVISO ASTE VIA EMAIL",
+    title: (loc) => `Sblocca 1 Fascicolo Completo Gratis a ${loc} + Ricevi Avvisi Giornalieri`,
     body: (loc, count) =>
-      `Monitora ${count} procedure attive a ${loc}. Ricevi una notifica automatica ogni mattina per nuovi avvisi PVP, ribassi d'asta e offerte minime (-25%).`,
+      `Conferma la tua email (senza carta) per sbloccare 1 immobile all'asta a tua scelta con numero R.G.E., perizia PDF e analisi IA e monitorare ${count} procedure attive a ${loc}.`,
     placeholder: "Inserisci la tua email …",
-    button: "Attiva Avviso Gratuito →",
+    button: "1 Fascicolo Gratis + Avviso →",
   },
   es: {
-    badge: "🔔 ALERTA GRATUITA DE SUBASTAS BOE",
-    title: (loc) => `Reciba Nuevas Subastas Judiciales en ${loc} por Email`,
+    badge: "🎁 1 EXPEDIENTE GRATIS + ALERTA DE SUBASTAS BOE",
+    title: (loc) => `Desbloquee 1 Expediente Completo Gratis en ${loc} + Alerta Diaria BOE`,
     body: (loc, count) =>
-      `Siga ${count} expedientes activos en ${loc}. Reciba avisos automáticos cuando se publiquen nuevos edictos BOE o inmuebles bajo el 70% de tasación.`,
+      `Verifique su correo (sin tarjeta) para abrir 1 subasta completa de su elección (n.º edicto BOE, dirección exacta, PDF oficial e IA) y seguir ${count} expedientes activos en ${loc}.`,
     placeholder: "Introduzca su correo electrónico …",
-    button: "Activar Alerta Gratuita →",
+    button: "1 Expediente Gratis + Alerta →",
   },
   fr: {
-    badge: "🔔 ALERTE EMAIL ENCHÈRES GRATUITE",
-    title: (loc) => `Recevez les Nouvelles Ventes Judiciaires (${loc}) par Email`,
+    badge: "🎁 1 DOSSIER COMPLET GRATUIT + ALERTE ENCHÈRES",
+    title: (loc) => `Débloquez 1 Dossier Complet Gratuit (${loc}) + Alerte Email Quotidienne`,
     body: (loc, count) =>
-      `Suivez ${count} audiences actives (${loc}). Recevez une alerte automatique dès la publication de nouvelles adjudications ou baisses de mise à prix.`,
+      `Confirmez votre e-mail (sans carte bancaire) pour débloquer intégralement 1 bien aux enchères de votre choix (rôle TJ, adresse exacte, cahier PDF et IA) et suivre ${count} ventes actives (${loc}).`,
     placeholder: "Votre adresse e-mail …",
-    button: "Activer l'Alerte Gratuite →",
+    button: "1 Dossier Gratuit + Alerte →",
   },
 };
 

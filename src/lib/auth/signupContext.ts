@@ -3,10 +3,11 @@ import { eq } from "drizzle-orm";
 import { cookies } from "next/headers";
 import { db } from "@/db";
 import { users } from "@/db/schema";
-import { AUTH_PARAMS, AUTH_ROUTES } from "@/lib/auth/authConfig";
+import { AUTH_ROUTES } from "@/lib/auth/authConfig";
 import { isPricingCountry, LocaleOption, PricingCountryCode } from "@/lib/constants";
 import { AlertService } from "@/services/AlertService";
 import { CountryAccessService } from "@/services/CountryAccessService";
+import { FreeUnlockService } from "@/services/FreeUnlockService";
 import { PseoService } from "@/services/PseoService";
 import { WatchlistService } from "@/services/WatchlistService";
 import { PseoPreviewListing } from "@/types/pseo.types";
@@ -116,14 +117,24 @@ function buildDefaultAlertName(locale: LocaleOption, city: string | undefined, c
   if (locale === "en") {
     return city ? `${city} Auction Alert` : `${country} Property Auction Alert`;
   }
+  if (locale === "fr") {
+    return city ? `Alerte Enchères ${city}` : `Nouvelles Ventes (${country})`;
+  }
+  if (locale === "es") {
+    return city ? `Alerta Subastas ${city}` : `Nuevas Subastas BOE (${country})`;
+  }
+  if (locale === "it") {
+    return city ? `Avviso Aste ${city}` : `Nuove Aste Giudiziarie (${country})`;
+  }
   return city ? `Such-Alert ${city}` : `Alle neuen Termine (${country})`;
 }
 
 /**
  * Runs automatically upon email verification:
  * 1. Saves the clicked property (`ctx.key`) onto the user's `watchlist` (`Merkliste`).
- * 2. Creates the user's first active `search_alerts` entry so daily 06:15 alerts bring them back.
- * 3. Returns the exact destination URL (`/app/objekt/[key]` when a property was clicked).
+ * 2. Automatically unlocks `ctx.key` as the user's 1 Free Property Dossier (`FreeUnlockService.claimFreeUnlock`).
+ * 3. Creates the user's first active `search_alerts` entry so daily 06:15 alerts bring them back.
+ * 4. Returns the exact destination URL (`/app/objekt/[key]` when a property was clicked).
  */
 export async function completePostSignupOnboarding(
   userId: string,
@@ -147,10 +158,6 @@ export async function completePostSignupOnboarding(
   }
 
   try {
-    if (ctx.key) {
-      await WatchlistService.add(userId, ctx.key);
-    }
-
     const [userRow] = await db
       .select({
         market: users.market,
@@ -160,6 +167,11 @@ export async function completePostSignupOnboarding(
       })
       .from(users)
       .where(eq(users.id, userId));
+
+    if (ctx.key) {
+      await WatchlistService.add(userId, ctx.key);
+      await FreeUnlockService.claimFreeUnlock(userId, ctx.key);
+    }
 
     if (userRow) {
       const existingAlerts = await AlertService.countForUser(userId);
