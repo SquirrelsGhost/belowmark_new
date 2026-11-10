@@ -932,8 +932,8 @@ function mergeListingFallback(details: OfficialPortalDetails, listing: Listing):
   const isCh = listing.country === "CH" || listing.key.startsWith("shab-");
   const isIt = listing.country === "IT" || listing.key.startsWith("it-aste-");
   const isEs = listing.country === "ES" || listing.key.startsWith("es-boe-");
-  const isFr = listing.country === "FR" || listing.key.startsWith("fr-licitor-");
-  const isGb = listing.country === "GB" || listing.key.startsWith("gb-eig-");
+  const isFr = listing.country === "FR" || listing.key.startsWith("fr-");
+  const isGb = listing.country === "GB" || listing.key.startsWith("gb-");
   const isNonZvgPortal = isAt || isCh || isIt || isEs || isFr || isGb || listing.key.startsWith("zvgcom-");
   const sourcePortal =
     details.sourcePortal ||
@@ -949,9 +949,15 @@ function mergeListingFallback(details: OfficialPortalDetails, listing: Listing):
             : isEs
               ? "subastas.boe.es"
               : isFr
-                ? "licitor.com"
+                ? listing.key.startsWith("fr-avo-")
+                  ? "avoventes.fr"
+                  : "licitor.com"
                 : isGb
-                  ? "btgeddisonspropertyauctions.com"
+                  ? listing.key.startsWith("gb-ah-")
+                    ? "auctionhouse.co.uk"
+                    : listing.key.startsWith("gb-ce-")
+                      ? "cliveemson.co.uk"
+                      : "btgeddisonspropertyauctions.com"
                   : listing.key.startsWith("zvgcom-")
                     ? "zvg.com"
                     : "zvg-portal.de");
@@ -1038,6 +1044,15 @@ export class OfficialPortalService {
   static async getDetails(listing: Listing): Promise<OfficialPortalDetails> {
     const isAt = listing.country === "AT" || listing.key.startsWith("edikte-") || Boolean(listing.officialUrl?.includes("edikte.justiz.gv.at"));
     const isCh = listing.country === "CH" || listing.key.startsWith("shab-") || Boolean(listing.officialUrl?.includes("shab.ch"));
+    const isIntlSnapshotReady =
+      listing.country === "IT" ||
+      listing.country === "ES" ||
+      listing.country === "FR" ||
+      listing.country === "GB" ||
+      listing.key.startsWith("it-aste-") ||
+      listing.key.startsWith("es-boe-") ||
+      listing.key.startsWith("fr-") ||
+      listing.key.startsWith("gb-");
 
     const cached = await readCache(listing.key);
     const isCacheComplete =
@@ -1064,6 +1079,8 @@ export class OfficialPortalService {
       details = await fetchAtEdiktDetails(listing);
     } else if (isCh) {
       details = await fetchChShabDetails(listing);
+    } else if (isIntlSnapshotReady) {
+      details = this.getInstantFallback(listing);
     } else if (listing.key.startsWith("zvgcom-") || listing.officialUrl?.includes("zvg.com")) {
       details = await fetchZvgComDetails(listing);
     } else {

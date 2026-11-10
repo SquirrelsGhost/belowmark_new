@@ -165,8 +165,8 @@ export function inferPreviewListingCountry(item: Pick<PseoPreviewListing, "key" 
   if (item.key.startsWith("shab-") || item.currency === "CHF") return "CH";
   if (item.key.startsWith("it-aste-")) return "IT";
   if (item.key.startsWith("es-boe-")) return "ES";
-  if (item.key.startsWith("fr-licitor-")) return "FR";
-  if (item.key.startsWith("gb-eig-") || item.currency === "GBP") return "GB";
+  if (item.key.startsWith("fr-")) return "FR";
+  if (item.key.startsWith("gb-") || item.currency === "GBP") return "GB";
   if (fallbackLocale === "tr" || item.currency === "TRY" || /^\d+#\d+$/.test(item.key)) return "TR";
   return "DE";
 }

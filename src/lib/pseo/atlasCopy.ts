@@ -1,0 +1,287 @@
+import { BELOWMARK_ORIGIN } from "@/lib/blog/blogSeo";
+import { EuPseoMarketCode, PseoLocale } from "@/types/pseo.types";
+
+export interface AtlasLocaleCopy {
+  path: string;
+  numLocale: string;
+  metaTitle: (total: string) => string;
+  metaDesc: (total: string) => string;
+  eyebrow: string;
+  h1: (total: string) => string;
+  lead: string;
+  tableHeading: string;
+  colCountry: string;
+  colSource: string;
+  colActive: string;
+  colCourts: string;
+  colRule: string;
+  colDir: string;
+  openBtn: string;
+  deName: string;
+  deSource: string;
+  deRule: string;
+  trName: string;
+  trSource: string;
+  trRule: string;
+  euNames: Record<EuPseoMarketCode, { name: string; portal: string; rule: string }>;
+  regionsBoxHeading: string;
+  pressHeading: string;
+  apiBtn: string;
+  pressLead: string;
+  copyBtn: string;
+  copiedBtn: string;
+  sourceLabel: string;
+  activeLabel: string;
+}
+
+export const ATLAS_COPY: Record<PseoLocale, AtlasLocaleCopy> = {
+  de: {
+    path: "/atlas",
+    numLocale: "de-DE",
+    metaTitle: (t) => `Zwangsversteigerungs-Atlas 2026: ${t} Auktionen in 8 Ländern`,
+    metaDesc: (t) => `Aktuelle Primärdaten-Studie zu ${t} gerichtlichen Immobilienversteigerungen in DE, AT, CH, TR, IT, ES, FR & UK: Wertgrenzen, Kautionen & Gerichte.`,
+    eyebrow: "DATENREPORT & MARKTATLAS 2026 · 8 LÄNDER LIVE",
+    h1: (t) => `Europäischer Zwangsversteigerungs-Atlas: ${t} aktive Gerichtsverfahren im Vergleich`,
+    lead: "Tagesaktuelle Primärdaten-Auswertung amtlicher Vollstreckungsportale in 8 Märkten — Wertgrenzen, Kautionsregeln, Gerichtsstandorte und regionale Schwerpunkte für Investoren, Redaktionen und Finanzierungsberater.",
+    tableHeading: "Ländervergleich: Verfahren, Portale & gesetzliche Mindestgebote",
+    colCountry: "Land",
+    colSource: "Amtliche Quelle",
+    colActive: "Aktive Verfahren",
+    colCourts: "Gerichte / Ämter",
+    colRule: "Gesetzliche Schwelle & Sicherheit",
+    colDir: "Verzeichnis",
+    openBtn: "Öffnen →",
+    deName: "🇩🇪 Deutschland",
+    deSource: "ZVG-Portal der Länder",
+    deRule: "5/10 & 7/10 ZVG · 10 % Sicherheit",
+    trName: "🇹🇷 Türkei",
+    trSource: "UYAP E-Satış / İlan.gov.tr",
+    trRule: "50 % Muhammen Bedel · 10 % Teminat",
+    euNames: {
+      AT: { name: "🇦🇹 Österreich", portal: "Ediktsdatei der Justiz", rule: "50 % § 151 EO · 10 % Vadium" },
+      CH: { name: "🇨🇭 Schweiz", portal: "SHAB / Betreibungsämter", rule: "Deckungsprinzip Art. 126 SchKG" },
+      IT: { name: "🇮🇹 Italien", portal: "Portale Vendite Pubbliche (PVP)", rule: "75 % Offerta Minima (art. 571 c.p.c.)" },
+      ES: { name: "🇪🇸 Spanien", portal: "Portal de Subastas BOE", rule: "70 % / 50 % Art. 670 LEC · 5 % BOE" },
+      FR: { name: "🇫🇷 Frankreich", portal: "Licitor & Avoventes TJ", rule: "Mise à prix TJ · 10 % CARPA" },
+      GB: { name: "🇬🇧 Großbritannien", portal: "RICS UK Auction Catalogues", rule: "Guide Price · 10 % Exchange Deposit" },
+    },
+    regionsBoxHeading: "Regionale Schwerpunkte & Bundesländer (ZVG)",
+    pressHeading: "Für Presse, Blogs & Finanzierungsberater",
+    apiBtn: "Live-JSON-API →",
+    pressLead: "Alle Kennzahlen dürfen unter Quellenangabe kostenfrei zitiert werden. Betten Sie unseren werbefreien Gebots- & Wertgrenzen-Rechner mit 1 Klick ein:",
+    copyBtn: "Embed-Code kopieren",
+    copiedBtn: "✓ Embed-Code kopiert",
+    sourceLabel: "Quelle: Belowmark Zwangsversteigerungs-Atlas",
+    activeLabel: "Aktive Auktionen",
+  },
+  en: {
+    path: "/en/atlas",
+    numLocale: "en-GB",
+    metaTitle: (t) => `European Property Auction & Foreclosure Atlas 2026: ${t} Live Lots`,
+    metaDesc: (t) => `Live primary-source market report covering ${t} judicial & RICS property auctions across the UK, Germany, France, Italy, Spain, Switzerland, Austria & Turkey.`,
+    eyebrow: "EUROPEAN AUCTION MARKET REPORT 2026 · 8 COUNTRIES LIVE",
+    h1: (t) => `European Foreclosure & Property Auction Atlas: ${t} Live Lots Compared`,
+    lead: "Daily primary-data benchmark across official court registries and RICS auction houses in 8 markets — statutory reserve thresholds, bidder deposits, court coverage, and regional volume for investors, journalists, and mortgage brokers.",
+    tableHeading: "8-Country Comparison: Active Lots, Registries & Reserve Rules",
+    colCountry: "Market",
+    colSource: "Official Registry / Source",
+    colActive: "Active Lots",
+    colCourts: "Courts / Houses",
+    colRule: "Reserve Rule & Bidder Deposit",
+    colDir: "Directory",
+    openBtn: "Explore →",
+    deName: "🇩🇪 Germany",
+    deSource: "State Justice ZVG Portal",
+    deRule: "50% / 70% ZVG Limit · 10% Deposit",
+    trName: "🇹🇷 Turkey",
+    trSource: "UYAP E-Satış / İlan.gov.tr",
+    trRule: "50% Opening Bid · 10% Deposit",
+    euNames: {
+      AT: { name: "🇦🇹 Austria", portal: "Federal Ediktsdatei", rule: "50% § 151 EO · 10% Vadium" },
+      CH: { name: "🇨🇭 Switzerland", portal: "SHAB / Debt Enforcement", rule: "Art. 126 SchKG Coverage Principle" },
+      IT: { name: "🇮🇹 Italy", portal: "Ministry PVP / Tribunals", rule: "75% Offerta Minima · 10% Deposit" },
+      ES: { name: "🇪🇸 Spain", portal: "BOE Judicial Auction Portal", rule: "70% / 50% Art. 670 LEC · 5% Deposit" },
+      FR: { name: "🇫🇷 France", portal: "Licitor & Avoventes (TJ)", rule: "Tribunal Mise à prix · 10% CARPA" },
+      GB: { name: "🇬🇧 United Kingdom", portal: "RICS Property Auctioneers", rule: "Guide Price · 10% Exchange Deposit" },
+    },
+    regionsBoxHeading: "UK Regions & German States Breakdown",
+    pressHeading: "For Journalists, Analysts & Mortgage Brokers",
+    apiBtn: "Live JSON API →",
+    pressLead: "All figures may be cited free of charge with attribution. Embed our ad-free 8-country Stamp Duty & Auction Deposit Calculator with 1 click:",
+    copyBtn: "Copy Embed Snippet",
+    copiedBtn: "✓ Snippet Copied",
+    sourceLabel: "Source: Belowmark Property Auction Atlas",
+    activeLabel: "Live Auctions",
+  },
+  fr: {
+    path: "/fr/atlas",
+    numLocale: "fr-FR",
+    metaTitle: (t) => `Atlas Européen des Ventes aux Enchères Immobilières 2026 (${t} lots)`,
+    metaDesc: (t) => `Observatoire en temps réel de ${t} ventes judiciaires (TJ, FOSC/SHAB, ZVG, PVP, BOE, RICS) en France, Suisse, Allemagne, Italie, Espagne, Autriche, UK et Turquie.`,
+    eyebrow: "OBSERVATOIRE EUROPÉEN 2026 · 8 MARCHÉS EN DIRECT",
+    h1: (t) => `Atlas Européen des Enchères Immobilières : ${t} ventes actives comparées`,
+    lead: "Analyse quotidienne des portails judiciaires officiels dans 8 pays (Tribunaux Judiciaires Licitor & Avoventes, FOSC Suisse, ZVG Allemagne, PVP Italie, BOE Espagne) — mises à prix, consignations et juridictions.",
+    tableHeading: "Comparatif des 8 Marchés : Volumes, Juridictions & Consignations",
+    colCountry: "Pays",
+    colSource: "Portail Officiel",
+    colActive: "Ventes Actives",
+    colCourts: "Tribunaux / Offices",
+    colRule: "Seuil Légal & Consignation",
+    colDir: "Annuaire",
+    openBtn: "Ouvrir →",
+    deName: "🇩🇪 Allemagne",
+    deSource: "Portail ZVG des Länder",
+    deRule: "Seuils 5/10 & 7/10 ZVG · Caution 10 %",
+    trName: "🇹🇷 Turquie",
+    trSource: "UYAP E-Satış / İlan.gov.tr",
+    trRule: "Mise à prix 50 % · Caution 10 %",
+    euNames: {
+      AT: { name: "🇦🇹 Autriche", portal: "Ediktsdatei de la Justice", rule: "50 % § 151 EO · Vadium 10 %" },
+      CH: { name: "🇨🇭 Suisse", portal: "FOSC / SHAB · Offices LP", rule: "Principe de couverture art. 126 LP" },
+      IT: { name: "🇮🇹 Italie", portal: "Portale Vendite Pubbliche (PVP)", rule: "75 % Offerta Minima (art. 571 c.p.c.)" },
+      ES: { name: "🇪🇸 Espagne", portal: "Portail d'État Subastas BOE", rule: "70 % / 50 % Art. 670 LEC · Dépôt 5 %" },
+      FR: { name: "🇫🇷 France", portal: "Licitor & Avoventes (TJ)", rule: "Mise à prix TJ · Chèque CARPA 10 %" },
+      GB: { name: "🇬🇧 Royaume-Uni", portal: "Maisons d'enchères RICS", rule: "Guide Price · Acompte 10 %" },
+    },
+    regionsBoxHeading: "Régions Françaises & Cantons Suisses",
+    pressHeading: "Presse, Courtiers & Blogs Immobiliers",
+    apiBtn: "API JSON Live →",
+    pressLead: "Données citables gratuitement avec mention de la source. Intégrez notre calculateur de frais d'adjudication et de consignation en 1 clic :",
+    copyBtn: "Copier le code iframe",
+    copiedBtn: "✓ Code copié",
+    sourceLabel: "Source : Atlas Belowmark des Enchères Immobilières",
+    activeLabel: "Ventes actives",
+  },
+  it: {
+    path: "/it/atlas",
+    numLocale: "it-IT",
+    metaTitle: (t) => `Atlante Europeo delle Aste Giudiziarie Immobiliari 2026 (${t} lotti)`,
+    metaDesc: (t) => `Osservatorio live su ${t} aste immobiliari giudiziarie in Italia (PVP), Svizzera (FUSC/SHAB), Germania, Austria, Spagna, Francia, Regno Unito e Turchia.`,
+    eyebrow: "OSSERVATORIO ASTE EUROPEO 2026 · 8 PAESI IN TEMPO REALE",
+    h1: (t) => `Atlante Europeo delle Aste Immobiliari: ${t} procedure attive a confronto`,
+    lead: "Rilevazione giornaliera sui portali ufficiali di 8 giurisdizioni (PVP Ministero della Giustizia, FUSC/SHAB Svizzera, ZVG Germania, Ediktsdatei Austria, BOE Spagna, TJ Francia) — Offerta Minima, cauzioni e Tribunali.",
+    tableHeading: "Confronto 8 Mercati: Lotti Attivi, Tribunali e Soglie Minime",
+    colCountry: "Paese",
+    colSource: "Fonte Ufficiale",
+    colActive: "Lotti Attivi",
+    colCourts: "Tribunali / Uffici",
+    colRule: "Soglia Minima & Cauzione",
+    colDir: "Elenco",
+    openBtn: "Apri →",
+    deName: "🇩🇪 Germania",
+    deSource: "Portale ZVG dei Länder",
+    deRule: "Soglie 50 % / 70 % ZVG · Cauzione 10 %",
+    trName: "🇹🇷 Turchia",
+    trSource: "UYAP E-Satış / İlan.gov.tr",
+    trRule: "Base 50 % · Cauzione 10 %",
+    euNames: {
+      AT: { name: "🇦🇹 Austria", portal: "Ediktsdatei Giustizia", rule: "50 % § 151 EO · Vadium 10 %" },
+      CH: { name: "🇨🇭 Svizzera", portal: "FUSC / SHAB · Uffici LEF", rule: "Principio copertura art. 126 LEF" },
+      IT: { name: "🇮🇹 Italia", portal: "Portale Vendite Pubbliche (PVP)", rule: "75 % Offerta Minima · Cauzione 10 %" },
+      ES: { name: "🇪🇸 Spagna", portal: "Portale Statale Subastas BOE", rule: "70 % / 50 % Art. 670 LEC · Cauzione 5 %" },
+      FR: { name: "🇫🇷 Francia", portal: "Licitor & Avoventes (TJ)", rule: "Mise à prix TJ · Assegno CARPA 10 %" },
+      GB: { name: "🇬🇧 Regno Unito", portal: "Case d'Asta RICS UK", rule: "Guide Price · Deposito 10 %" },
+    },
+    regionsBoxHeading: "Regioni Italiane & Mercati Principali",
+    pressHeading: "Per Stampa, Consulenti e Blog Immobiliari",
+    apiBtn: "API JSON Live →",
+    pressLead: "Tutti i dati sono citabili gratuitamente indicando la fonte. Incorpora il calcolatore gratuito Offerta Minima 75% & Imposte sul tuo sito:",
+    copyBtn: "Copia codice Embed",
+    copiedBtn: "✓ Codice copiato",
+    sourceLabel: "Fonte: Atlante Belowmark Aste Immobiliari",
+    activeLabel: "Aste attive",
+  },
+  es: {
+    path: "/es/atlas",
+    numLocale: "es-ES",
+    metaTitle: (t) => `Atlas Europeo de Subastas Judiciales Inmobiliarias 2026 (${t} lotes)`,
+    metaDesc: (t) => `Informe en tiempo real con ${t} subastas judiciales e inmobiliarias en España (BOE), Alemania, Italia, Francia, Suiza, Austria, Reino Unido y Turquía.`,
+    eyebrow: "INFORME DE DATOS 2026 · 8 PAÍSES EN TIEMPO REAL",
+    h1: (t) => `Atlas Europeo de Subastas Inmobiliarias: ${t} procedimientos activos`,
+    lead: "Análisis diario de portales oficiales en 8 jurisdicciones (Portal de Subastas BOE, ZVG Alemania, PVP Italia, Tribunaux Judiciaires Francia, SHAB Suiza, RICS UK) — umbrales legales, depósitos y juzgados.",
+    tableHeading: "Comparativa Internacional: Subastas Activas, Juzgados y Depósitos",
+    colCountry: "País",
+    colSource: "Portal Oficial",
+    colActive: "Subastas Activas",
+    colCourts: "Juzgados / Sedes",
+    colRule: "Umbral Legal y Depósito",
+    colDir: "Directorio",
+    openBtn: "Ver →",
+    deName: "🇩🇪 Alemania",
+    deSource: "Portal ZVG de los Länder",
+    deRule: "Límites 50 % / 70 % ZVG · Fianza 10 %",
+    trName: "🇹🇷 Turquía",
+    trSource: "UYAP E-Satış / İlan.gov.tr",
+    trRule: "Salida 50 % Tasación · Fianza 10 %",
+    euNames: {
+      AT: { name: "🇦🇹 Austria", portal: "Ediktsdatei Judicial", rule: "50 % § 151 EO · Vadium 10 %" },
+      CH: { name: "🇨🇭 Suiza", portal: "SHAB / Oficinas SchKG", rule: "Principio cobertura Art. 126 SchKG" },
+      IT: { name: "🇮🇹 Italia", portal: "Portale Vendite Pubbliche (PVP)", rule: "75 % Offerta Minima · Caución 10 %" },
+      ES: { name: "🇪🇸 España", portal: "Portal de Subastas BOE", rule: "70 % / 50 % Art. 670 LEC · Depósito 5 %" },
+      FR: { name: "🇫🇷 Francia", portal: "Licitor & Avoventes (TJ)", rule: "Mise à prix TJ · Garantía CARPA 10 %" },
+      GB: { name: "🇬🇧 Reino Unido", portal: "Subastas RICS UK", rule: "Guide Price · Depósito 10 %" },
+    },
+    regionsBoxHeading: "Comunidades Autónomas (BOE) y Europa",
+    pressHeading: "Para Prensa, Portales y Asesores Hipotecarios",
+    apiBtn: "API JSON en Vivo →",
+    pressLead: "Datos de libre citación mencionando la fuente. Inserte nuestra calculadora gratuita de Puja Mínima BOE (70%/50%) e ITP en 1 clic:",
+    copyBtn: "Copiar código Embed",
+    copiedBtn: "✓ Código copiado",
+    sourceLabel: "Fuente: Atlas Belowmark de Subastas Judiciales",
+    activeLabel: "Subastas activas",
+  },
+  tr: {
+    path: "/tr/atlas",
+    numLocale: "tr-TR",
+    metaTitle: (t) => `Avrupa ve Türkiye İcra İhale Gayrimenkul Atlası 2026 (${t} İhale)`,
+    metaDesc: (t) => `Türkiye (81 İl UYAP / İlan.gov.tr), Almanya, Avusturya, İsviçre, İtalya, İspanya, Fransa ve İngiltere'deki ${t} aktif gayrimenkul ihalesinin canlı veri raporu.`,
+    eyebrow: "CANLI VERİ RAPORU 2026 · 8 ÜLKE RESMİ İHALE ENDEKSİ",
+    h1: (t) => `Avrupa & Türkiye İcra İhale Atlası: ${t} Aktif Gayrimenkul İhalesi`,
+    lead: "8 ülkedeki resmi icra daireleri ve mahkeme portallarının (UYAP / İlan.gov.tr, Almanya ZVG, İtalya PVP, İspanya BOE, Fransa TJ, İsviçre SHAB, İngiltere RICS) günlük birincil veri analizi — açılış eşikleri ve teminat kuralları.",
+    tableHeading: "8 Ülke Karşılaştırması: Aktif İhaleler, İcra Daireleri ve Teminatlar",
+    colCountry: "Ülke",
+    colSource: "Resmi Kaynak",
+    colActive: "Aktif İhale",
+    colCourts: "Mahkeme / Daire",
+    colRule: "Yasal Açılış Eşiği ve Teminat",
+    colDir: "Dizin",
+    openBtn: "İncele →",
+    deName: "🇩🇪 Almanya",
+    deSource: "Eyalet ZVG Adalet Portalı",
+    deRule: "%50 & %70 ZVG Sınırı · %10 Teminat",
+    trName: "🇹🇷 Türkiye",
+    trSource: "UYAP E-Satış / İlan.gov.tr",
+    trRule: "%50 Muhammen Bedel + Masraf · %10 Teminat",
+    euNames: {
+      AT: { name: "🇦🇹 Avusturya", portal: "Adalet Bakanlığı Ediktsdatei", rule: "%50 § 151 EO · %10 Vadium" },
+      CH: { name: "🇨🇭 İsviçre", portal: "SHAB / İcra Daireleri", rule: "Art. 126 SchKG Karşılama İlkesi" },
+      IT: { name: "🇮🇹 İtalya", portal: "Adalet Bakanlığı PVP", rule: "%75 Offerta Minima · %10 Teminat" },
+      ES: { name: "🇪🇸 İspanya", portal: "BOE Resmi İhale Portalı", rule: "%70 / %50 Art. 670 LEC · %5 Teminat" },
+      FR: { name: "🇫🇷 Fransa", portal: "Licitor & Avoventes (TJ)", rule: "Mahkeme Mise à prix · %10 CARPA" },
+      GB: { name: "🇬🇧 Birleşik Krallık", portal: "RICS Müzayede Evleri", rule: "Guide Price · %10 Depozito" },
+    },
+    regionsBoxHeading: "Öne Çıkan İller & Eyaletler",
+    pressHeading: "Basın, Ekonomi Editörleri ve Yatırım Danışmanları İçin",
+    apiBtn: "Canlı JSON API →",
+    pressLead: "Tüm veriler kaynak gösterilerek ücretsiz kullanılabilir. Reklamsız İcra İhale Teminat ve Teklif Hesaplama aracımızı sitenize tek tıkla ekleyin:",
+    copyBtn: "Embed Kodunu Kopyala",
+    copiedBtn: "✓ Kod Kopyalandı",
+    sourceLabel: "Kaynak: Belowmark İcra İhale Atlası",
+    activeLabel: "Aktif İhaleler",
+  },
+};
+
+export function buildAtlasAlternates(activeLocale: PseoLocale) {
+  return {
+    canonical: `${BELOWMARK_ORIGIN}${ATLAS_COPY[activeLocale].path}`,
+    languages: {
+      de: `${BELOWMARK_ORIGIN}/atlas`,
+      en: `${BELOWMARK_ORIGIN}/en/atlas`,
+      fr: `${BELOWMARK_ORIGIN}/fr/atlas`,
+      it: `${BELOWMARK_ORIGIN}/it/atlas`,
+      es: `${BELOWMARK_ORIGIN}/es/atlas`,
+      tr: `${BELOWMARK_ORIGIN}/tr/atlas`,
+      "x-default": `${BELOWMARK_ORIGIN}/en/atlas`,
+    },
+  };
+}

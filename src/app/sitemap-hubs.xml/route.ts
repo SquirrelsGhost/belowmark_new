@@ -29,6 +29,9 @@ export async function GET(): Promise<Response> {
     addUrl(`${BELOWMARK_ORIGIN}/`, "1.0", "daily", today);
     addUrl(`${BELOWMARK_ORIGIN}/suche`, "0.95", "daily", today);
     addUrl(`${BELOWMARK_ORIGIN}/atlas`, "0.92", "daily", today);
+    for (const atlasLang of ["en", "fr", "it", "es", "tr"]) {
+      addUrl(`${BELOWMARK_ORIGIN}/${atlasLang}/atlas`, "0.90", "daily", today);
+    }
     addUrl(`${BELOWMARK_ORIGIN}/zwangsversteigerungen`, "0.95", "daily");
     addUrl(`${BELOWMARK_ORIGIN}/rechner/5-10-und-7-10-grenze`, "0.95", "weekly");
     addUrl(`${BELOWMARK_ORIGIN}/tr/icra-ihale`, "0.95", "daily");

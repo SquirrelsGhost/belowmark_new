@@ -1,4 +1,5 @@
 import fallbackData from "@/lib/blog/belowmarkBlogFallback.json";
+import { DACH_EDITORIAL_CLUSTERS } from "@/lib/blog/dachEditorialClusters";
 import { BelowmarkBlogFeed, BlogClusterItem, BlogLang } from "@/types/blog.types";
 
 const FEED_URLS = [
@@ -23,6 +24,9 @@ interface FeedApiEnvelope {
 function mergeWithFallback(liveFeed: BelowmarkBlogFeed): BelowmarkBlogFeed {
   const mergedByKey = new Map<string, BlogClusterItem>();
   for (const c of FALLBACK_FEED.clusters) {
+    mergedByKey.set(c.clusterKey, c);
+  }
+  for (const c of DACH_EDITORIAL_CLUSTERS) {
     mergedByKey.set(c.clusterKey, c);
   }
   for (const c of liveFeed.clusters) {
@@ -72,7 +76,7 @@ async function fetchAndMergeFeed(): Promise<BelowmarkBlogFeed> {
     }
   }
 
-  cachedFeed ??= FALLBACK_FEED;
+  cachedFeed ??= mergeWithFallback(FALLBACK_FEED);
   cachedAt = performance.now();
   cachedTtlMs = FALLBACK_RETRY_TTL_MS;
   return cachedFeed;

@@ -2,6 +2,7 @@ import Link from "next/link";
 import BlogArticleCta from "@/components/blog/BlogArticleCta";
 import PseoListingPreviewCard from "@/components/pseo/PseoListingPreviewCard";
 import PseoMarketComparisonTable from "@/components/pseo/PseoMarketComparisonTable";
+import PseoRelatedGuides from "@/components/pseo/PseoRelatedGuides";
 import { BELOWMARK_ORIGIN } from "@/lib/blog/blogSeo";
 import { ROUTES } from "@/lib/constants";
 import {
@@ -130,6 +131,8 @@ export default function SwissMultilangEntryView({ catalog, entry, lang }: SwissM
           </Link>
         ))}
       </div>
+
+      <PseoRelatedGuides locale={lang} market="CH" />
 
       <BlogArticleCta lang={lang} />
     </div>

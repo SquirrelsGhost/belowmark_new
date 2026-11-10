@@ -40,7 +40,10 @@ import {
   parseItAsteItem,
   parseEsBoeHtml,
   parseFrLicitorHtml,
+  parseFrAvoventesHtml,
   parseGbAuctionHtml,
+  parseGbAuctionHouseCard,
+  parseGbCliveEmsonLot,
   extractTrEnrichedDetails,
   parseTrIlanGovDetail,
 } from "./lib/propertyExtractor.mjs";
@@ -1703,7 +1706,7 @@ async function fetchItAsteAll(prevByKey, portalCacheDir, nowIso) {
     const mapRaw = await rMap.json();
     const allGeoItems = (Array.isArray(mapRaw) ? mapRaw : Object.values(mapRaw ?? {}))
       .filter((m) => m && m.idLotto && m.geolocalizzato && m.latitudine && m.longitudine);
-    const targetCount = 2400;
+    const targetCount = 5600;
     const step = Math.max(1, Math.floor(allGeoItems.length / targetCount));
     const mapItems = [];
     for (let i = 0; i < allGeoItems.length && mapItems.length < targetCount; i += step) {
@@ -1717,7 +1720,7 @@ async function fetchItAsteAll(prevByKey, portalCacheDir, nowIso) {
     }
 
     const detailedLots = [];
-    await mapLimit(chunks, 6, async (idChunk) => {
+    await mapLimit(chunks, 8, async (idChunk) => {
       try {
         const rData = await fetch("https://webapi.astegiudiziarie.it/api/search/Data", {
           method: "POST",
@@ -1829,6 +1832,7 @@ async function fetchEsBoeAll(prevByKey, portalCacheDir, nowIso) {
   const ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
 
   try {
+    const topProvinces = ["28", "08", "46", "03", "29", "41", "30", "07", "35", "38", "11", "17", "43", "18", "04", "12", "50", "45", "14", "48"];
     const queries = [
       ["EJ", "SUBASTA.FECHA_FIN", "asc", ""],
       ["EJ", "SUBASTA.FECHA_FIN", "desc", ""],
@@ -1836,49 +1840,55 @@ async function fetchEsBoeAll(prevByKey, portalCacheDir, nowIso) {
       ["EJ", "SUBASTA.ID_SUBASTA_ORDENAR", "asc", ""],
       ["EJ", "SUBASTA.VALOR_SUBASTA", "desc", ""],
       ["EJ", "SUBASTA.VALOR_SUBASTA", "asc", ""],
+      ...topProvinces.map((prov) => ["EJ", "SUBASTA.FECHA_FIN", "asc", prov]),
     ];
     const byId = new Map();
 
-    for (const [estado, sortField, sortOrder] of queries) {
-      const rForm = await fetch("https://subastas.boe.es/subastas_ava.php", { headers: { "User-Agent": ua } });
-      const setCookies = rForm.headers.getSetCookie ? rForm.headers.getSetCookie() : [];
-      const cookieHeader = setCookies.map((c) => c.split(";")[0]).join("; ");
-      const htmlForm = await rForm.text();
+    await mapLimit(queries, 4, async ([estado, sortField, sortOrder, provCode]) => {
+      try {
+        const rForm = await fetch("https://subastas.boe.es/subastas_ava.php", { headers: { "User-Agent": ua } });
+        const setCookies = rForm.headers.getSetCookie ? rForm.headers.getSetCookie() : [];
+        const cookieHeader = setCookies.map((c) => c.split(";")[0]).join("; ");
+        const htmlForm = await rForm.text();
 
-      const params = new URLSearchParams();
-      for (const m of htmlForm.matchAll(/<input[^>]+type="hidden"[^>]+name="([^"]+)"[^>]+value="([^"]*)"/gi)) {
-        params.set(m[1], m[2]);
-      }
-      params.set("dato[2]", estado);
-      params.set("dato[3]", "I");
-      params.set("page_hits", "500");
-      params.set("sort_field[0]", sortField);
-      params.set("sort_order[0]", sortOrder);
-      params.set("accion", "Buscar");
+        const params = new URLSearchParams();
+        for (const m of htmlForm.matchAll(/<input[^>]+type="hidden"[^>]+name="([^"]+)"[^>]+value="([^"]*)"/gi)) {
+          params.set(m[1], m[2]);
+        }
+        params.set("dato[2]", estado);
+        params.set("dato[3]", "I");
+        if (provCode) params.set("dato[8]", provCode);
+        params.set("page_hits", "500");
+        params.set("sort_field[0]", sortField);
+        params.set("sort_order[0]", sortOrder);
+        params.set("accion", "Buscar");
 
-      const rSearch = await fetch("https://subastas.boe.es/subastas_ava.php", {
-        method: "POST",
-        headers: {
-          "User-Agent": ua,
-          "Content-Type": "application/x-www-form-urlencoded",
-          Cookie: cookieHeader,
-          Referer: "https://subastas.boe.es/subastas_ava.php",
-        },
-        body: params.toString(),
-      });
-      const htmlSearch = await rSearch.text();
-      for (const m of htmlSearch.matchAll(/<li class="resultado-busqueda">([\s\S]*?)<\/li>/gi)) {
-        const card = m[1];
-        const idSub = /SUBASTA\s+(SUB-[A-Z0-9-]+)/i.exec(card)?.[1];
-        if (!idSub || byId.has(idSub)) continue;
-        const authority = decodeHtmlText(/<h4>([\s\S]*?)<\/h4>/i.exec(card)?.[1] ?? "");
-        const exp = decodeHtmlText(/Expediente:\s*([^<]+)/i.exec(card)?.[1] ?? "");
-        const conclusionText = decodeHtmlText(/Conclusión prevista:\s*([^\]]+)/i.exec(card)?.[1] ?? "");
-        const pTags = [...card.matchAll(/<p[^>]*>([\s\S]*?)<\/p>/gi)].map((x) => decodeHtmlText(x[1]));
-        const summary = pTags[pTags.length - 1] || "";
-        byId.set(idSub, { idSub, authority, expediente: exp, conclusionText, summary });
+        const rSearch = await fetch("https://subastas.boe.es/subastas_ava.php", {
+          method: "POST",
+          headers: {
+            "User-Agent": ua,
+            "Content-Type": "application/x-www-form-urlencoded",
+            Cookie: cookieHeader,
+            Referer: "https://subastas.boe.es/subastas_ava.php",
+          },
+          body: params.toString(),
+        });
+        const htmlSearch = await rSearch.text();
+        for (const m of htmlSearch.matchAll(/<li class="resultado-busqueda">([\s\S]*?)<\/li>/gi)) {
+          const card = m[1];
+          const idSub = /SUBASTA\s+(SUB-[A-Z0-9-]+)/i.exec(card)?.[1];
+          if (!idSub || byId.has(idSub)) continue;
+          const authority = decodeHtmlText(/<h4>([\s\S]*?)<\/h4>/i.exec(card)?.[1] ?? "");
+          const exp = decodeHtmlText(/Expediente:\s*([^<]+)/i.exec(card)?.[1] ?? "");
+          const conclusionText = decodeHtmlText(/Conclusión prevista:\s*([^\]]+)/i.exec(card)?.[1] ?? "");
+          const pTags = [...card.matchAll(/<p[^>]*>([\s\S]*?)<\/p>/gi)].map((x) => decodeHtmlText(x[1]));
+          const summary = pTags[pTags.length - 1] || "";
+          byId.set(idSub, { idSub, authority, expediente: exp, conclusionText, summary });
+        }
+      } catch {
+        // Ignore single province query timeout
       }
-    }
+    });
 
     const byBucket = new Map();
     for (const stub of byId.values()) {
@@ -1887,7 +1897,7 @@ async function fetchEsBoeAll(prevByKey, portalCacheDir, nowIso) {
       byBucket.get(bucketKey).push(stub);
     }
     const stubs = [];
-    const maxTotal = 1200;
+    const maxTotal = 2400;
     let round = 0;
     while (stubs.length < maxTotal) {
       let added = false;
@@ -2161,7 +2171,155 @@ async function fetchFrLicitorAll(prevByKey, portalCacheDir, nowIso) {
   } catch (err) {
     console.warn(`    ! licitor.com Fehler: ${err.message}`);
   }
-  console.log(`  → FR Gesamt: ${out.length} Verfahren geladen (licitor.com)`);
+
+  // 1f-2. Avoventes.fr (Enchères Immobilières des Avocats / Tribunaux Judiciaires)
+  try {
+    const licitorSignatures = new Set(
+      out.map((l) => `${(l.postcode || "").slice(0, 2)}|${(l.place || "").toLowerCase()}|${l.minimumBid || 0}`),
+    );
+    const rAvo = await fetch("https://avoventes.fr/recherche/toutes", { headers: { "User-Agent": ua } });
+    if (rAvo.ok) {
+      const htmlAvo = await rAvo.text();
+      const avoStubs = [];
+      const seenAvoSlugs = new Set();
+      const cardParts = htmlAvo.split(/data-link="https?:\/\/avoventes\.fr\/enchere\//i).slice(1);
+      for (const rawPart of cardParts) {
+        const slugPart = /^([^"]+)"/.exec(rawPart)?.[1]?.trim();
+        if (!slugPart || seenAvoSlugs.has(slugPart)) continue;
+        seenAvoSlugs.add(slugPart);
+        const block = rawPart.slice(0, 3400);
+        const detailUrl = `https://avoventes.fr/enchere/${slugPart}`;
+        const imageUrl =
+          /background:\s*url\(\s*(https?:\/\/[^)\s"']+)/i.exec(block)?.[1] ??
+          /<img[^>]+src="([^"]+)"/i.exec(block)?.[1] ??
+          null;
+        const title = decodeHtmlText(
+          /class="font-bold text-16[^"]*"[^>]*>([\s\S]*?)<\/div>/i.exec(block)?.[1] ??
+            /class="primary-color[^"]*"[^>]*>([\s\S]*?)<\/div>/i.exec(block)?.[1] ??
+            "",
+        );
+        const address = decodeHtmlText(/<\/svg>\s*<\/div>\s*<div[^>]*>([\s\S]*?)<\/div>/i.exec(block)?.[1] ?? "");
+        const priceText = decodeHtmlText(/Mise\s+à\s+prix(?:\s+initiale)?\s*:\s*(?:<[^>]+>|\s)*([\d\s.,]+\s*€)/i.exec(block)?.[1] ?? "");
+        const dateText = decodeHtmlText(/Date\s+de\s+la\s+vente\s*:?\s*<\/strong>(?:<\/br>|<br\s*\/?>)?\s*([^<]+)/i.exec(block)?.[1] ?? "");
+        avoStubs.push({ slug: slugPart, detailUrl, imageUrl, title, address, priceText, dateText });
+      }
+
+      console.log(`    avoventes.fr · ${avoStubs.length} Anwalts-Gerichtsauktionen gefunden, lade Details ...`);
+      let avoAdded = 0;
+      await mapLimit(avoStubs, 12, async (stub) => {
+        const cleanSlug = stub.slug.replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 80);
+        const key = `fr-avo-${cleanSlug}`;
+        const cacheFile = join(portalCacheDir, `${key}.json`);
+        let parsed = null;
+
+        if (existsSync(cacheFile)) {
+          try {
+            const cached = JSON.parse(readFileSync(cacheFile, "utf8"));
+            if (cached && cached.fileNo) parsed = cached;
+          } catch {
+            parsed = null;
+          }
+        }
+
+        if (!parsed) {
+          try {
+            const rDet = await fetch(stub.detailUrl, { headers: { "User-Agent": ua } });
+            if (rDet.ok) {
+              const htmlDet = await rDet.text();
+              parsed = parseFrAvoventesHtml(htmlDet, stub);
+              if (parsed) {
+                try {
+                  writeFileSync(cacheFile, JSON.stringify({ key, source: "avoventes.fr", fetchedAt: nowIso, ...parsed }));
+                } catch {
+                  // Ignore
+                }
+              }
+            }
+          } catch {
+            parsed = null;
+          }
+        }
+
+        if (!parsed || !parsed.minimumBid) return;
+        const hearingAt = parsed.hearingAt;
+        if (!hearingAt || Date.parse(hearingAt) < Date.now() - 2 * 86_400_000) return;
+
+        const sig = `${(parsed.postcode || "").slice(0, 2)}|${(parsed.place || "").toLowerCase()}|${parsed.minimumBid || 0}`;
+        if (licitorSignatures.has(sig)) return;
+
+        const reg = REGION_BY_KEY_FR.get(parsed.state) ?? REGIONEN_FR[0];
+        const prev = prevByKey.get(key);
+        const endIso = new Date(Date.parse(hearingAt) + 60 * 60000).toISOString();
+        const livingAreaM2 = parsed.livingAreaM2 ?? null;
+        const landAreaM2 = parsed.landAreaM2 ?? null;
+        const areaM2 = livingAreaM2 ?? landAreaM2 ?? null;
+        const areaKind = livingAreaM2 ? "Wohn-/Nutzfläche" : landAreaM2 ? "Grundstücksfläche" : null;
+        const title = [parsed.segmentLabel, parsed.place, parsed.street].filter(Boolean).join(", ") || `${parsed.authority} · ${parsed.fileNo}`;
+        const lat = parsed.lat ?? reg.lat;
+        const lng = parsed.lng ?? reg.lng;
+
+        out.push({
+          key,
+          market: "DE",
+          country: "FR",
+          currency: "EUR",
+          sourcePortal: "avoventes.fr",
+          title,
+          segment: parsed.segment ?? "other",
+          segmentLabel: parsed.segmentLabel,
+          region: reg.name,
+          regionCode: reg.code,
+          place: parsed.place,
+          postcode: parsed.postcode,
+          street: parsed.street,
+          authority: parsed.authority,
+          fileNo: parsed.fileNo,
+          fileYear: 2026,
+          rounds: [{ round: 1, start: hearingAt, end: endIso }],
+          hearingAt,
+          cancelled: false,
+          limitsWaived: false,
+          appraisedValue: parsed.appraisedValue,
+          minimumBid: parsed.minimumBid,
+          depositAmount: parsed.depositAmount,
+          transferTaxPct: reg.transferTaxPct,
+          livingAreaM2,
+          usableAreaM2: null,
+          landAreaM2,
+          areaM2,
+          areaKind,
+          rooms: parsed.rooms,
+          yearBuilt: parsed.yearBuilt,
+          grundbuch: parsed.grundbuch,
+          proceedingKind: parsed.proceedingKind,
+          description: parsed.description,
+          hearingPlace: parsed.authority,
+          creditor: null,
+          officialUrl: parsed.detailUrl,
+          imageUrl: parsed.attachments?.[0]?.directUrl ?? null,
+          mapUrl: lat && lng ? `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=15/${lat}/${lng}` : null,
+          documentUrl: parsed.detailUrl,
+          exposeUrl: null,
+          reportUrl: null,
+          biddingNotesUrl: null,
+          courtUrl: "https://avoventes.fr/",
+          geoServerUrl: "https://cadastre.gouv.fr/",
+          geo: lat && lng ? { lat, lng, precision: parsed.lat ? "exact" : "province" } : null,
+          history: prev?.history ?? [],
+          geoportalUrl: "https://app.dvf.etalab.gouv.fr/",
+          geoportalName: "Demandes de Valeurs Foncières (DVF · Etalab)",
+          caveats: [],
+          firstSeenAt: prev?.firstSeenAt ?? nowIso,
+        });
+        avoAdded++;
+      });
+      console.log(`    avoventes.fr · ${avoAdded} zusätzliche aktive Gerichtsauktionen übernommen`);
+    }
+  } catch (err) {
+    console.warn(`    ! avoventes.fr Fehler: ${err.message}`);
+  }
+
+  console.log(`  → FR Gesamt: ${out.length} Verfahren geladen (licitor.com + avoventes.fr)`);
   return out;
 }
 
@@ -2300,7 +2458,164 @@ async function fetchGbAuctionsAll(prevByKey, portalCacheDir, nowIso) {
   } catch (err) {
     console.warn(`    ! btgeddisonspropertyauctions.com Fehler: ${err.message}`);
   }
-  console.log(`  → GB Gesamt: ${out.length} Verfahren geladen (btgeddisonspropertyauctions.com)`);
+
+  // 1g-2. Auction House UK (auctionhouse.co.uk — Regional UK RICS Auctioneers)
+  try {
+    const rAh = await fetch("https://www.auctionhouse.co.uk/national/auction/search-results", { headers: { "User-Agent": ua } });
+    if (rAh.ok) {
+      const htmlAh = await rAh.text();
+      const ahCards = [...htmlAh.matchAll(/<div class="col-sm-12 col-md-8 col-lg-6 text-center lot-search-result">([\s\S]*?)<\/a>\s*<\/div>/gi)];
+      let ahAdded = 0;
+      const seenAhKeys = new Set(out.map((l) => l.key));
+      for (const m of ahCards) {
+        const parsed = parseGbAuctionHouseCard(m[1]);
+        if (!parsed || seenAhKeys.has(parsed.key)) continue;
+        seenAhKeys.add(parsed.key);
+        const reg = REGION_BY_KEY_GB.get(parsed.state) ?? REGIONEN_GB[0];
+        const prev = prevByKey.get(parsed.key);
+        const endIso = new Date(Date.parse(parsed.hearingAt) + 60 * 60000).toISOString();
+        const title = [parsed.segmentLabel, parsed.place, parsed.street].filter(Boolean).join(", ");
+        out.push({
+          key: parsed.key,
+          market: "DE",
+          country: "GB",
+          currency: "GBP",
+          sourcePortal: "auctionhouse.co.uk",
+          title,
+          segment: parsed.segment ?? "other",
+          segmentLabel: parsed.segmentLabel,
+          region: reg.name,
+          regionCode: reg.code,
+          place: parsed.place,
+          postcode: parsed.postcode,
+          street: parsed.street,
+          authority: parsed.authority,
+          fileNo: parsed.fileNo,
+          fileYear: 2026,
+          rounds: [{ round: 1, start: parsed.hearingAt, end: endIso }],
+          hearingAt: parsed.hearingAt,
+          cancelled: false,
+          limitsWaived: false,
+          appraisedValue: parsed.appraisedValue,
+          minimumBid: parsed.minimumBid,
+          depositAmount: parsed.depositAmount,
+          transferTaxPct: reg.transferTaxPct,
+          livingAreaM2: null,
+          usableAreaM2: null,
+          landAreaM2: null,
+          areaM2: null,
+          areaKind: null,
+          rooms: parsed.rooms,
+          yearBuilt: null,
+          grundbuch: parsed.grundbuch,
+          proceedingKind: parsed.proceedingKind,
+          description: parsed.description,
+          hearingPlace: "Online Timed / Livestream Property Auction (UK)",
+          creditor: null,
+          officialUrl: parsed.detailUrl,
+          imageUrl: parsed.imageUrl,
+          mapUrl: parsed.postcode ? `https://www.openstreetmap.org/search?query=${encodeURIComponent(`${parsed.postcode}, United Kingdom`)}` : null,
+          documentUrl: "https://www.auctionhouse.co.uk/Documents/AuctionConditions.pdf",
+          exposeUrl: null,
+          reportUrl: null,
+          biddingNotesUrl: null,
+          courtUrl: "https://www.auctionhouse.co.uk/",
+          geoServerUrl: "https://search-property-information.service.gov.uk/",
+          geo: { lat: reg.lat, lng: reg.lng, precision: "province" },
+          history: prev?.history ?? [],
+          geoportalUrl: "https://landregistry.data.gov.uk/app/ppd/",
+          geoportalName: "HM Land Registry · Price Paid Data",
+          caveats: [],
+          firstSeenAt: prev?.firstSeenAt ?? nowIso,
+        });
+        ahAdded++;
+      }
+      console.log(`    auctionhouse.co.uk · ${ahAdded} aktive UK-Auktionen übernommen`);
+    }
+  } catch (err) {
+    console.warn(`    ! auctionhouse.co.uk Fehler: ${err.message}`);
+  }
+
+  // 1g-3. Clive Emson Land & Property Auctioneers (cliveemson.co.uk — Southern England RICS)
+  try {
+    const rCe = await fetch("https://www.cliveemson.co.uk/properties/", { headers: { "User-Agent": ua } });
+    if (rCe.ok) {
+      const htmlCe = await rCe.text();
+      const ceTags = [...htmlCe.matchAll(/<div class="lot activeLot"[^>]+>/gi)];
+      let ceAdded = 0;
+      const seenCeKeys = new Set(out.map((l) => l.key));
+      for (const m of ceTags) {
+        const parsed = parseGbCliveEmsonLot(m[0]);
+        if (!parsed || seenCeKeys.has(parsed.key)) continue;
+        seenCeKeys.add(parsed.key);
+        const reg = REGION_BY_KEY_GB.get(parsed.state) ?? REGIONEN_GB[1];
+        const prev = prevByKey.get(parsed.key);
+        const endIso = new Date(Date.parse(parsed.hearingAt) + 60 * 60000).toISOString();
+        const lat = parsed.lat ?? reg.lat;
+        const lng = parsed.lng ?? reg.lng;
+        const title = [parsed.segmentLabel, parsed.place].filter(Boolean).join(", ");
+        out.push({
+          key: parsed.key,
+          market: "DE",
+          country: "GB",
+          currency: "GBP",
+          sourcePortal: "cliveemson.co.uk",
+          title,
+          segment: parsed.segment ?? "other",
+          segmentLabel: parsed.segmentLabel,
+          region: reg.name,
+          regionCode: reg.code,
+          place: parsed.place,
+          postcode: null,
+          street: null,
+          authority: parsed.authority,
+          fileNo: parsed.fileNo,
+          fileYear: 2026,
+          rounds: [{ round: 1, start: parsed.hearingAt, end: endIso }],
+          hearingAt: parsed.hearingAt,
+          cancelled: false,
+          limitsWaived: false,
+          appraisedValue: parsed.appraisedValue,
+          minimumBid: parsed.minimumBid,
+          depositAmount: parsed.depositAmount,
+          transferTaxPct: reg.transferTaxPct,
+          livingAreaM2: null,
+          usableAreaM2: null,
+          landAreaM2: null,
+          areaM2: null,
+          areaKind: null,
+          rooms: parsed.rooms,
+          yearBuilt: null,
+          grundbuch: parsed.grundbuch,
+          proceedingKind: parsed.proceedingKind,
+          description: parsed.description,
+          hearingPlace: "Online Property Auction · Clive Emson (UK)",
+          creditor: null,
+          officialUrl: parsed.detailUrl,
+          imageUrl: parsed.imageUrl,
+          mapUrl: lat && lng ? `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=15/${lat}/${lng}` : null,
+          documentUrl: parsed.detailUrl,
+          exposeUrl: null,
+          reportUrl: null,
+          biddingNotesUrl: null,
+          courtUrl: "https://www.cliveemson.co.uk/",
+          geoServerUrl: "https://search-property-information.service.gov.uk/",
+          geo: lat && lng ? { lat, lng, precision: parsed.lat ? "exact" : "province" } : null,
+          history: prev?.history ?? [],
+          geoportalUrl: "https://landregistry.data.gov.uk/app/ppd/",
+          geoportalName: "HM Land Registry · Price Paid Data",
+          caveats: [],
+          firstSeenAt: prev?.firstSeenAt ?? nowIso,
+        });
+        ceAdded++;
+      }
+      console.log(`    cliveemson.co.uk · ${ceAdded} aktive UK-Auktionen übernommen`);
+    }
+  } catch (err) {
+    console.warn(`    ! cliveemson.co.uk Fehler: ${err.message}`);
+  }
+
+  console.log(`  → GB Gesamt: ${out.length} Verfahren geladen (Eddisons/SDL + Auction House UK + Clive Emson)`);
   return out;
 }
 

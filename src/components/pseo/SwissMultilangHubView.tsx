@@ -1,15 +1,11 @@
 import Link from "next/link";
 import BlogArticleCta from "@/components/blog/BlogArticleCta";
 import PseoListingPreviewCard from "@/components/pseo/PseoListingPreviewCard";
+import PseoRelatedGuides from "@/components/pseo/PseoRelatedGuides";
 import PseoStatsBanner from "@/components/pseo/PseoStatsBanner";
 import { BELOWMARK_ORIGIN } from "@/lib/blog/blogSeo";
 import { ROUTES } from "@/lib/constants";
-import {
-  localizeSwissEntryName,
-  SWISS_HUB_PATHS,
-  SWISS_MULTILANG_COPY,
-  SwissAltLang,
-} from "@/lib/pseo/swissMultilangCopy";
+import { localizeSwissEntryName, SWISS_HUB_PATHS, SWISS_MULTILANG_COPY, SwissAltLang } from "@/lib/pseo/swissMultilangCopy";
 import { EuMarketCatalog } from "@/types/pseo.types";
 
 interface SwissMultilangHubViewProps {
@@ -145,6 +141,7 @@ export default function SwissMultilangHubView({ catalog, lang }: SwissMultilangH
         </div>
       </section>
 
+      <PseoRelatedGuides locale={lang} market="CH" />
       <BlogArticleCta lang={lang} />
     </div>
   );

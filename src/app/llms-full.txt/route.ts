@@ -43,7 +43,7 @@ export async function GET(): Promise<Response> {
       `- **Content Pillars**: ${feed.strategy.corePillars.join(" · ")}`,
       `- **Conversion Goal**: ${feed.strategy.conversionGoal}`,
       `- **Public Live Search**: ${BELOWMARK_ORIGIN}/suche`,
-      `- **European Market Atlas & Press Citations**: ${BELOWMARK_ORIGIN}/atlas`,
+      `- **European Market Atlas & Press Citations (6 Languages)**: ${BELOWMARK_ORIGIN}/atlas | ${BELOWMARK_ORIGIN}/en/atlas | ${BELOWMARK_ORIGIN}/fr/atlas | ${BELOWMARK_ORIGIN}/it/atlas | ${BELOWMARK_ORIGIN}/es/atlas | ${BELOWMARK_ORIGIN}/tr/atlas`,
       `- **Machine-Readable Live JSON Dataset**: ${BELOWMARK_ORIGIN}/api/public/atlas`,
       `- **Public Canonical Property Pages**: /objekt/[slug] (DE/AT/CH), /tr/ilan/[slug] (TR), /lot/[slug] (IT/ES/FR/GB)`,
       "",

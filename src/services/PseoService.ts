@@ -2,6 +2,7 @@ import "server-only";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { EU_MARKET_META, EU_REGION_SEEDS } from "@/lib/pseo/euMarketRegions";
+import { DE_COMBO_SPECS, EU_CATEGORY_SPECS, TR_COMBO_SPECS } from "@/lib/pseo/pseoCategoryBuilder";
 import { localizePublicSegmentLabel, sanitizePublicListingHeadline } from "@/lib/pseo/publicListingUrls";
 import { STATES } from "@/lib/snapshot";
 import { Listing, ListingSnapshot } from "@/types/listing.types";
@@ -117,8 +118,8 @@ function detectEuMarket(l: Listing): EuPseoMarketCode | "DE" {
   if (l.country === "CH" || l.key.startsWith("shab-") || l.region?.endsWith("(CH)")) return "CH";
   if (l.country === "IT" || l.key.startsWith("it-aste-") || l.region?.endsWith("(IT)")) return "IT";
   if (l.country === "ES" || l.key.startsWith("es-boe-") || l.region?.endsWith("(ES)")) return "ES";
-  if (l.country === "FR" || l.key.startsWith("fr-licitor-") || l.region?.endsWith("(FR)")) return "FR";
-  if (l.country === "GB" || l.key.startsWith("gb-eig-") || l.region?.endsWith("(UK)")) return "GB";
+  if (l.country === "FR" || l.key.startsWith("fr-") || l.region?.endsWith("(FR)")) return "FR";
+  if (l.country === "GB" || l.key.startsWith("gb-") || l.region?.endsWith("(UK)")) return "GB";
   return "DE";
 }
 
@@ -331,6 +332,106 @@ function buildEuMarketCatalog(market: EuPseoMarketCode, marketListings: Listing[
     bySlug.set(finalSlug, entry);
     if (!bySlug.has(cSlug)) {
       bySlug.set(cSlug, entry);
+    }
+  }
+
+  // Build High-Intent Property-Type Category & Location × Property-Type Pages for this EU market
+  const catSpecs = EU_CATEGORY_SPECS[market];
+  const topRegionSeed = seeds[0];
+  for (const spec of catSpecs) {
+    const natItems = marketListings.filter(spec.matches);
+    if (natItems.length >= 2 && !bySlug.has(spec.slug)) {
+      const stats = computeStats(natItems);
+      const natEntry: EuMarketLocationEntry = {
+        slug: spec.slug,
+        aliases: [spec.slug, ...spec.aliases],
+        market,
+        locale: meta.locale,
+        kind: "city",
+        name: spec.nationalTitle,
+        nativeRegionName: topRegionSeed.nativeName,
+        regionSlug: topRegionSeed.slug,
+        transferTaxPct: topRegionSeed.taxPct,
+        currency: meta.currency,
+        totalCount: natItems.length,
+        limitsWaivedCount: natItems.filter((i) => i.limitsWaived).length,
+        withDocsCount: natItems.filter((i) => i.documentUrl || i.exposeUrl || i.reportUrl).length,
+        ...stats,
+        subLinks: regions.slice(0, 12).map((r) => ({ name: r.name, slug: r.slug, count: r.totalCount })),
+        courtLinks: [],
+        listings: natItems.slice(0, 18).map(toPreviewListing),
+      };
+      cities.push(natEntry);
+      bySlug.set(spec.slug, natEntry);
+      for (const al of spec.aliases) {
+        if (!bySlug.has(al)) bySlug.set(al, natEntry);
+      }
+    }
+
+    // Region × Property-Type (minimum 3 real listings)
+    for (const seed of seeds) {
+      const regItems = (bySnapRegion.get(seed.snapshotRegion) ?? []).filter(spec.matches);
+      const comboSlug = `${spec.comboSlugPrefix}-${seed.slug}`;
+      if (regItems.length >= 3 && !bySlug.has(comboSlug)) {
+        const stats = computeStats(regItems);
+        const comboEntry: EuMarketLocationEntry = {
+          slug: comboSlug,
+          aliases: [comboSlug],
+          market,
+          locale: meta.locale,
+          kind: "city",
+          name: spec.comboTitle(seed.nativeName),
+          nativeRegionName: seed.nativeName,
+          regionSlug: seed.slug,
+          transferTaxPct: seed.taxPct,
+          currency: meta.currency,
+          totalCount: regItems.length,
+          limitsWaivedCount: regItems.filter((i) => i.limitsWaived).length,
+          withDocsCount: regItems.filter((i) => i.documentUrl || i.exposeUrl || i.reportUrl).length,
+          ...stats,
+          subLinks: [{ name: spec.nationalTitle, slug: spec.slug, count: natItems.length }],
+          courtLinks: [],
+          listings: regItems.slice(0, 14).map(toPreviewListing),
+        };
+        cities.push(comboEntry);
+        bySlug.set(comboSlug, comboEntry);
+        const regObj = regions.find((r) => r.slug === seed.slug);
+        if (regObj && regObj.subLinks.length < 22) {
+          regObj.subLinks.unshift({ name: comboEntry.name, slug: comboSlug, count: regItems.length });
+        }
+      }
+    }
+
+    // Top-City × Property-Type (minimum 3 real listings)
+    for (const [cSlug, { name: cName, items: cItems }] of rawByCity.entries()) {
+      const citySpecItems = cItems.filter(spec.matches);
+      const comboSlug = `${spec.comboSlugPrefix}-${cSlug}`;
+      if (citySpecItems.length >= 3 && !bySlug.has(comboSlug)) {
+        const first = citySpecItems[0];
+        const seed = seedBySnapRegion.get(first.region || "") ?? topRegionSeed;
+        const stats = computeStats(citySpecItems);
+        const comboEntry: EuMarketLocationEntry = {
+          slug: comboSlug,
+          aliases: [comboSlug],
+          market,
+          locale: meta.locale,
+          kind: "city",
+          name: spec.comboTitle(cName),
+          nativeRegionName: seed.nativeName,
+          regionSlug: seed.slug,
+          transferTaxPct: seed.taxPct,
+          currency: meta.currency,
+          totalCount: citySpecItems.length,
+          limitsWaivedCount: citySpecItems.filter((i) => i.limitsWaived).length,
+          withDocsCount: citySpecItems.filter((i) => i.documentUrl || i.exposeUrl || i.reportUrl).length,
+          ...stats,
+          subLinks: [{ name: cName, slug: bySlug.get(cSlug)?.slug ?? cSlug, count: cItems.length }],
+          courtLinks: [],
+          listings: citySpecItems.slice(0, 14).map(toPreviewListing),
+        };
+        cities.push(comboEntry);
+        bySlug.set(comboSlug, comboEntry);
+      }
     }
   }
   cities.sort((a, b) => b.totalCount - a.totalCount);
@@ -599,6 +700,61 @@ async function buildCatalog(): Promise<PseoCatalog> {
     };
     cities.push(entry);
     cityBySlug.set(theme.slug, entry);
+  }
+
+  // 1a-1. Build German Bundesland × Property-Type & Top-City × Property-Type Pages (minimum 3 real listings)
+  const deStateSeedsForCombo = STATES.filter((s) => s.country === "DE");
+  for (const spec of DE_COMBO_SPECS) {
+    for (const stSeed of deStateSeedsForCombo) {
+      const stSlug = slugifyPseo(stSeed.name);
+      const comboSlug = `${spec.prefix}-${stSlug}`;
+      if (cityBySlug.has(comboSlug)) continue;
+      const comboItems = deOnlyListings.filter((l) => l.region?.trim() === stSeed.name && spec.matches(l));
+      if (comboItems.length < 3) continue;
+      const stats = computeStats(comboItems);
+      const stCourts = courts
+        .filter((c) => c.region === stSeed.name)
+        .slice(0, 12)
+        .map((c) => ({ name: c.displayName, slug: c.slug, count: c.totalCount }));
+      const entry: CityPseoEntry = {
+        slug: comboSlug,
+        name: spec.label(stSeed.name),
+        postcode: null,
+        region: stSeed.name,
+        totalCount: comboItems.length,
+        limitsWaivedCount: comboItems.filter((i) => i.limitsWaived).length,
+        withDocsCount: comboItems.filter((i) => i.documentUrl || i.exposeUrl || i.reportUrl).length,
+        ...stats,
+        courts: stCourts,
+        listings: comboItems.slice(0, 16).map(toPreviewListing),
+      };
+      cities.push(entry);
+      cityBySlug.set(comboSlug, entry);
+    }
+
+    for (const [cSlug, { name: cName, items: cItems }] of byCity.entries()) {
+      const comboSlug = `${spec.prefix}-${cSlug}`;
+      if (cityBySlug.has(comboSlug)) continue;
+      const comboItems = cItems.filter(spec.matches);
+      if (comboItems.length < 3) continue;
+      const first = comboItems[0];
+      const stats = computeStats(comboItems);
+      const cityCourts = cityBySlug.get(cSlug)?.courts ?? [];
+      const entry: CityPseoEntry = {
+        slug: comboSlug,
+        name: spec.label(cName),
+        postcode: first.postcode,
+        region: first.region || "Deutschland",
+        totalCount: comboItems.length,
+        limitsWaivedCount: comboItems.filter((i) => i.limitsWaived).length,
+        withDocsCount: comboItems.filter((i) => i.documentUrl || i.exposeUrl || i.reportUrl).length,
+        ...stats,
+        courts: cityCourts,
+        listings: comboItems.slice(0, 16).map(toPreviewListing),
+      };
+      cities.push(entry);
+      cityBySlug.set(comboSlug, entry);
+    }
   }
 
   cities.sort((a, b) => b.totalCount - a.totalCount);
@@ -893,6 +1049,67 @@ async function buildCatalog(): Promise<PseoCatalog> {
     };
     trLocations.push(entry);
     trBySlug.set(theme.slug, entry);
+  }
+
+  // 2c. Build Turkish 81-Province × Property-Type & Top-District × Property-Type Pages (minimum 3 / 5 real parcels)
+  for (const [provSlug, { name: provName, items: provItems }] of byProvince.entries()) {
+    const provEntry = trBySlug.get(provSlug);
+    for (const spec of TR_COMBO_SPECS) {
+      const comboSlug = `${provSlug}-${spec.suffix}`;
+      if (trBySlug.has(comboSlug)) continue;
+      const comboItems = provItems.filter(spec.matches);
+      if (comboItems.length < 3) continue;
+      const stats = computeStats(comboItems);
+      const discounts = comboItems
+        .map((i) => i.tr?.discountPct)
+        .filter((d): d is number => typeof d === "number" && d > 0 && d < 95);
+      const avgDiscount =
+        discounts.length > 0 ? Math.round(discounts.reduce((a, b) => a + b, 0) / discounts.length) : 28;
+
+      const entry: TrLocationPseoEntry = {
+        slug: comboSlug,
+        name: spec.label(provName),
+        kind: "category",
+        provinceName: provName,
+        provinceSlug: provSlug,
+        totalCount: comboItems.length,
+        opportunityCount: comboItems.filter((i) => (i.tr?.discountPct ?? 0) >= 25).length,
+        avgAppraisedValueTry: stats.avgAppraisedValue,
+        avgDiscountPct: avgDiscount,
+        districts: provEntry?.districts.slice(0, 12) ?? [],
+        listings: comboItems.slice(0, 18).map(toPreviewListing),
+      };
+      trLocations.push(entry);
+      trBySlug.set(comboSlug, entry);
+      if (provEntry && provEntry.districts.length < 28) {
+        provEntry.districts.unshift({ name: entry.name, slug: comboSlug, count: comboItems.length });
+      }
+    }
+  }
+
+  for (const [distSlug, { name: distName, provName, provSlug, items: distItems }] of byDistrict.entries()) {
+    for (const spec of TR_COMBO_SPECS) {
+      const comboSlug = `${distSlug}-${spec.suffix}`;
+      if (trBySlug.has(comboSlug)) continue;
+      const comboItems = distItems.filter(spec.matches);
+      if (comboItems.length < 5) continue;
+      const stats = computeStats(comboItems);
+      const entry: TrLocationPseoEntry = {
+        slug: comboSlug,
+        name: `${distName} (${provName}) ${spec.label("").trim()}`,
+        kind: "category",
+        provinceName: provName,
+        provinceSlug: provSlug,
+        totalCount: comboItems.length,
+        opportunityCount: comboItems.filter((i) => (i.tr?.discountPct ?? 0) >= 25).length,
+        avgAppraisedValueTry: stats.avgAppraisedValue,
+        avgDiscountPct: 28,
+        districts: [],
+        listings: comboItems.slice(0, 16).map(toPreviewListing),
+      };
+      trLocations.push(entry);
+      trBySlug.set(comboSlug, entry);
+    }
   }
 
   trLocations.sort((a, b) => b.totalCount - a.totalCount);

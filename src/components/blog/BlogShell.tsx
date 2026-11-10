@@ -37,6 +37,7 @@ export default async function BlogShell({ lang, children }: BlogShellProps) {
   const nav = t.Navigation;
   const homePrefix = "/";
   const blogHref = lang === "de" ? ROUTES.blog : `/${lang}/blog`;
+  const atlasHref = lang === "en" || lang === "fr" || lang === "it" || lang === "es" || lang === "tr" ? `/${lang}/atlas` : "/atlas";
   const searchLabel = SEARCH_NAV_LABEL[lang] ?? "Live Search";
 
   return (
@@ -64,14 +65,14 @@ export default async function BlogShell({ lang, children }: BlogShellProps) {
         rights={t.Footer.Rights}
       >
         <FooterColumn title={t.Footer.ProductTitle}>
-          <FooterLink href="/suche" label="🔍 Live-Suche (8 Länder · 19.700+ Objekte)" />
-          <FooterLink href="/atlas" label="📊 Europäischer Markt-Atlas & Datenreport" />
+          <FooterLink href="/suche" label="🔍 Live-Suche (8 Länder · 22.700+ Objekte)" />
+          <FooterLink href={atlasHref} label="📊 Europäischer Markt-Atlas & Datenreport" />
           <FooterLink href="/zwangsversteigerungen" label="🇩🇪 DE · ZVG Verzeichnis (16 Länder)" />
           <FooterLink href="/oesterreich/ediktsdatei" label="🇦🇹 AT · Ediktsdatei (9 Länder)" />
-          <FooterLink href="/schweiz/shab-versteigerungen" label="🇨🇭 CH · SHAB Steigerungen (26 Kantone)" />
+          <FooterLink href={lang === "fr" ? "/fr/suisse/ventes-aux-encheres-shab" : lang === "it" ? "/it/svizzera/aste-ufficio-esecuzione-fosc" : "/schweiz/shab-versteigerungen"} label="🇨🇭 CH · SHAB / FOSC / FUSC (26 Kantone)" />
           <FooterLink href="/it/aste-giudiziarie" label="🇮🇹 IT · Aste Giudiziarie PVP (20 Regioni)" />
           <FooterLink href="/es/subastas-boe" label="🇪🇸 ES · Subastas BOE (17 CCAA)" />
-          <FooterLink href="/fr/encheres-immobilieres" label="🇫🇷 FR · Enchères Licitor (13 Régions)" />
+          <FooterLink href="/fr/encheres-immobilieres" label="🇫🇷 FR · Enchères Licitor & Avoventes" />
           <FooterLink href="/en/uk-property-auctions" label="🇬🇧 UK · Property Auctions (12 Regions)" />
           <FooterLink href="/tr/icra-ihale" label="🇹🇷 TR · İcra & İhale (81 İl)" />
         </FooterColumn>

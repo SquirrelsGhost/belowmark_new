@@ -88,6 +88,8 @@ const MARKET_HUB_LANGUAGES: Readonly<Record<string, string>> = {
   "de-DE": `${BELOWMARK_ORIGIN}/zwangsversteigerungen`,
   "de-AT": `${BELOWMARK_ORIGIN}/oesterreich/ediktsdatei`,
   "de-CH": `${BELOWMARK_ORIGIN}/schweiz/shab-versteigerungen`,
+  "fr-CH": `${BELOWMARK_ORIGIN}/fr/suisse/ventes-aux-encheres-shab`,
+  "it-CH": `${BELOWMARK_ORIGIN}/it/svizzera/aste-ufficio-esecuzione-fosc`,
   "it-IT": `${BELOWMARK_ORIGIN}/it/aste-giudiziarie`,
   "es-ES": `${BELOWMARK_ORIGIN}/es/subastas-boe`,
   "fr-FR": `${BELOWMARK_ORIGIN}/fr/encheres-immobilieres`,

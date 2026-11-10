@@ -29,8 +29,8 @@ export function getListingDachCountry(listing: Pick<Listing, "key" | "country" |
   if (listing.country === "CH" || listing.regionCode?.startsWith("ch-") || listing.key.startsWith("shab-")) return "CH";
   if (listing.country === "IT" || listing.regionCode?.startsWith("it-") || listing.key.startsWith("it-aste-")) return "IT";
   if (listing.country === "ES" || listing.regionCode?.startsWith("es-") || listing.key.startsWith("es-boe-")) return "ES";
-  if (listing.country === "FR" || listing.regionCode?.startsWith("fr-") || listing.key.startsWith("fr-licitor-")) return "FR";
-  if (listing.country === "GB" || listing.regionCode?.startsWith("gb-") || listing.key.startsWith("gb-eig-")) return "GB";
+  if (listing.country === "FR" || listing.regionCode?.startsWith("fr-") || listing.key.startsWith("fr-")) return "FR";
+  if (listing.country === "GB" || listing.regionCode?.startsWith("gb-") || listing.key.startsWith("gb-")) return "GB";
   return "DE";
 }
 

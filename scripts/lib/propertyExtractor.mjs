@@ -1587,6 +1587,180 @@ const FR_DEPT_TO_REGION = {
   "91": "Île-de-France", "92": "Île-de-France", "93": "Île-de-France", "94": "Île-de-France", "95": "Île-de-France",
 };
 
+const FR_DEPT_TO_TRIBUNAL = {
+  "01": "Tribunal Judiciaire de Bourg-en-Bresse", "02": "Tribunal Judiciaire de Laon", "03": "Tribunal Judiciaire de Moulins",
+  "04": "Tribunal Judiciaire de Digne-les-Bains", "05": "Tribunal Judiciaire de Gap", "06": "Tribunal Judiciaire de Nice",
+  "07": "Tribunal Judiciaire de Privas", "08": "Tribunal Judiciaire de Charleville-Mézières", "09": "Tribunal Judiciaire de Foix",
+  "10": "Tribunal Judiciaire de Troyes", "11": "Tribunal Judiciaire de Carcassonne", "12": "Tribunal Judiciaire de Rodez",
+  "13": "Tribunal Judiciaire de Marseille", "14": "Tribunal Judiciaire de Caen", "15": "Tribunal Judiciaire d'Aurillac",
+  "16": "Tribunal Judiciaire d'Angoulême", "17": "Tribunal Judiciaire de La Rochelle", "18": "Tribunal Judiciaire de Bourges",
+  "19": "Tribunal Judiciaire de Brive-la-Gaillarde", "2A": "Tribunal Judiciaire d'Ajaccio", "2B": "Tribunal Judiciaire de Bastia", "20": "Tribunal Judiciaire d'Ajaccio",
+  "21": "Tribunal Judiciaire de Dijon", "22": "Tribunal Judiciaire de Saint-Brieuc", "23": "Tribunal Judiciaire de Guéret",
+  "24": "Tribunal Judiciaire de Périgueux", "25": "Tribunal Judiciaire de Besançon", "26": "Tribunal Judiciaire de Valence",
+  "27": "Tribunal Judiciaire d'Évreux", "28": "Tribunal Judiciaire de Chartres", "29": "Tribunal Judiciaire de Quimper",
+  "30": "Tribunal Judiciaire de Nîmes", "31": "Tribunal Judiciaire de Toulouse", "32": "Tribunal Judiciaire d'Auch",
+  "33": "Tribunal Judiciaire de Bordeaux", "34": "Tribunal Judiciaire de Montpellier", "35": "Tribunal Judiciaire de Rennes",
+  "36": "Tribunal Judiciaire de Châteauroux", "37": "Tribunal Judiciaire de Tours", "38": "Tribunal Judiciaire de Grenoble",
+  "39": "Tribunal Judiciaire de Lons-le-Saunier", "40": "Tribunal Judiciaire de Mont-de-Marsan", "41": "Tribunal Judiciaire de Blois",
+  "42": "Tribunal Judiciaire de Saint-Étienne", "43": "Tribunal Judiciaire du Puy-en-Velay", "44": "Tribunal Judiciaire de Nantes",
+  "45": "Tribunal Judiciaire d'Orléans", "46": "Tribunal Judiciaire de Cahors", "47": "Tribunal Judiciaire d'Agen",
+  "48": "Tribunal Judiciaire de Mende", "49": "Tribunal Judiciaire d'Angers", "50": "Tribunal Judiciaire de Coutances",
+  "51": "Tribunal Judiciaire de Reims", "52": "Tribunal Judiciaire de Chaumont", "53": "Tribunal Judiciaire de Laval",
+  "54": "Tribunal Judiciaire de Nancy", "55": "Tribunal Judiciaire de Bar-le-Duc", "56": "Tribunal Judiciaire de Vannes",
+  "57": "Tribunal Judiciaire de Metz", "58": "Tribunal Judiciaire de Nevers", "59": "Tribunal Judiciaire de Lille",
+  "60": "Tribunal Judiciaire de Beauvais", "61": "Tribunal Judiciaire d'Alençon", "62": "Tribunal Judiciaire d'Arras",
+  "63": "Tribunal Judiciaire de Clermont-Ferrand", "64": "Tribunal Judiciaire de Pau", "65": "Tribunal Judiciaire de Tarbes",
+  "66": "Tribunal Judiciaire de Perpignan", "67": "Tribunal Judiciaire de Strasbourg", "68": "Tribunal Judiciaire de Mulhouse",
+  "69": "Tribunal Judiciaire de Lyon", "70": "Tribunal Judiciaire de Vesoul", "71": "Tribunal Judiciaire de Chalon-sur-Saône",
+  "72": "Tribunal Judiciaire du Mans", "73": "Tribunal Judiciaire de Chambéry", "74": "Tribunal Judiciaire d'Annecy",
+  "75": "Tribunal Judiciaire de Paris", "76": "Tribunal Judiciaire de Rouen", "77": "Tribunal Judiciaire de Meaux",
+  "78": "Tribunal Judiciaire de Versailles", "79": "Tribunal Judiciaire de Niort", "80": "Tribunal Judiciaire d'Amiens",
+  "81": "Tribunal Judiciaire d'Albi", "82": "Tribunal Judiciaire de Montauban", "83": "Tribunal Judiciaire de Toulon",
+  "84": "Tribunal Judiciaire d'Avignon", "85": "Tribunal Judiciaire de La Roche-sur-Yon", "86": "Tribunal Judiciaire de Poitiers",
+  "87": "Tribunal Judiciaire de Limoges", "88": "Tribunal Judiciaire d'Épinal", "89": "Tribunal Judiciaire d'Auxerre",
+  "90": "Tribunal Judiciaire de Belfort", "91": "Tribunal Judiciaire d'Évry", "92": "Tribunal Judiciaire de Nanterre",
+  "93": "Tribunal Judiciaire de Bobigny", "94": "Tribunal Judiciaire de Créteil", "95": "Tribunal Judiciaire de Pontoise",
+};
+
+const FR_MONTHS_MAP = {
+  janvier: "01", fevrier: "02", février: "02", mars: "03", avril: "04", mai: "05", juin: "06",
+  juillet: "07", aout: "08", août: "08", septembre: "09", octobre: "10", novembre: "11", decembre: "12", décembre: "12",
+};
+
+function parseFrNaturalDate(str = "", defaultTime = "14:00") {
+  const m = /(\d{1,2})\s+(janvier|f[ée]vrier|mars|avril|mai|juin|juillet|ao[ûu]t|septembre|octobre|novembre|d[ée]cembre)\s+(\d{4})(?:\s*[àa]\s*(\d{1,2})\s*h\s*(\d{0,2}))?/i.exec(str);
+  if (!m) return null;
+  const dd = m[1].padStart(2, "0");
+  const mm = FR_MONTHS_MAP[m[2].toLowerCase()] || "01";
+  const yyyy = m[3];
+  const hh = m[4] ? m[4].padStart(2, "0") : defaultTime.slice(0, 2);
+  const min = m[5] ? m[5].padStart(2, "0") : defaultTime.slice(3, 5);
+  return `${yyyy}-${mm}-${dd}T${hh}:${min}:00`;
+}
+
+/**
+ * Parses a French Avoventes (avoventes.fr — Enchères Immobilières des Avocats) detail page + card stub.
+ */
+export function parseFrAvoventesHtml(html, stub = {}) {
+  if (!stub.slug) return null;
+  const cleanSlug = stub.slug.replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 80);
+  const key = `fr-avo-${cleanSlug}`;
+  const encodedKey = encodeURIComponent(key);
+
+  const cleanText = html
+    ? decodeHtmlText(html.replace(/<script[\s\S]*?<\/script>/gi, " ").replace(/<style[\s\S]*?<\/style>/gi, " "), true)
+    : "";
+
+  const addrStr = stub.address || "";
+  const cpMatch = /\b(\d{5})\s+([^,\n]+?)(?:,\s*France)?$/i.exec(addrStr) || /\b(\d{5})\s+([A-ZÀ-Ÿ][A-Za-zÀ-ÿ' -]{2,35})/.exec(cleanText);
+  const postcode = cpMatch ? cpMatch[1] : null;
+  const dept = postcode ? postcode.slice(0, 2) : "75";
+  const place = cpMatch
+    ? cpMatch[2].trim().replace(/\s*,\s*France$/i, "")
+    : stub.city || "France";
+  const street = postcode && addrStr.includes(postcode)
+    ? addrStr.slice(0, addrStr.indexOf(postcode)).replace(/[,\s]+$/, "").trim() || null
+    : null;
+
+  const state = FR_DEPT_TO_REGION[dept] || "Île-de-France";
+  const tjMatch = /Tribunal\s+Judiciaire\s+(?:de\s+|du\s+|des\s+|d['’])([A-ZÀ-Ÿ][A-Za-zÀ-ÿ' -]{2,35})/i.exec(cleanText);
+  const authority = tjMatch
+    ? `Tribunal Judiciaire de ${tjMatch[1].trim()}`
+    : FR_DEPT_TO_TRIBUNAL[dept] || "Tribunal Judiciaire";
+
+  const venteIso = parseFrNaturalDate(stub.dateText || "", "14:00") || parseFrNaturalDate(/Vente\s+(\d{1,2}\s+[a-zéû]+\s+\d{4}(?:\s*[àa]\s*\d{1,2}h\d{0,2})?)/i.exec(cleanText)?.[1] || "", "14:00");
+  const surenchereMatch = /Surench[èe]re\s+possible\s+jusqu['’]au\s*:\s*([^\n]+)/i.exec(cleanText);
+  const surenchereIso = surenchereMatch ? parseFrNaturalDate(surenchereMatch[1], "17:00") : null;
+
+  const nowMs = Date.now();
+  const isSurenchereActive =
+    surenchereIso &&
+    Date.parse(surenchereIso) >= nowMs - 86_400_000 &&
+    (!venteIso || Date.parse(venteIso) < nowMs);
+
+  const hearingAt = isSurenchereActive ? surenchereIso : venteIso;
+  const surencherePriceMatch = /mise\s+[àa]\s+prix\s+sera\s+port[ée]e\s+[àa]\s*([\d\s.,]+)\s*€/i.exec(cleanText);
+  const baseMiseMatch = /Mise\s+[àa]\s+prix\s*:\s*([\d\s.,]+)\s*€/i.exec(cleanText) || /([\d\s.,]+)\s*€/.exec(stub.priceText || "");
+  const minimumBid = isSurenchereActive && surencherePriceMatch
+    ? parseLocalizedNumber(surencherePriceMatch[1])
+    : baseMiseMatch
+      ? parseLocalizedNumber(baseMiseMatch[1])
+      : null;
+
+  if (!minimumBid || minimumBid < 1000) return null;
+
+  const consMatch = /consigner\s+la\s+somme\s+de\s*([\d\s.,]+)\s*€/i.exec(cleanText);
+  const depositAmount = consMatch ? parseLocalizedNumber(consMatch[1]) : Math.max(3000, Math.round(minimumBid * 0.1));
+  const appraisedValue = Math.round(minimumBid * (isSurenchereActive ? 1.35 : 1.65));
+
+  const propHeading = stub.title || "Bien immobilier aux enchères";
+  const aboutMatch = /[ÀA]\s+propos\s+du\s+bien\s+([\s\S]{20,1600}?)(?:Cadastre|[ÀA]\s+proximit[ée]|Donn+ées\s+des\s+valeurs)/i.exec(cleanText);
+  const infoCompMatch = /Informations\s+compl[ée]mentaires\s*:\s*([\s\S]{20,1200}?)(?:Avocat|Cabinet|Mentions|Contact|$)/i.exec(cleanText);
+  const description = [
+    aboutMatch ? aboutMatch[1].replace(/\s+/g, " ").trim() : null,
+    infoCompMatch ? infoCompMatch[1].replace(/\s+/g, " ").trim() : null,
+  ].filter(Boolean).join("\n\n") || propHeading;
+
+  const m2Match = /\b(\d{1,4}(?:[.,]\d{1,2})?)\s*m(?:²|2)\s*(?:superficie)?/i.exec(cleanText);
+  const areaVal = m2Match ? parseLocalizedNumber(m2Match[1]) : null;
+  const seg = classifyDachSegment(propHeading, description);
+  const livingAreaM2 = areaVal && seg !== "land" && seg !== "farmland" && areaVal <= 1500 ? Math.round(areaVal) : null;
+  const landAreaM2 = areaVal && (seg === "land" || seg === "farmland" || areaVal > 1500) ? Math.round(areaVal) : null;
+
+  const piecesMatch = /\b(\d{1,2})\s*pi[èe]ces\b/i.exec(cleanText);
+  const rooms = piecesMatch ? `${piecesMatch[1]} Zi.` : null;
+  const yearMatch = /Construction\s*:\s*(1[89]\d{2}|20[0-2]\d)/i.exec(cleanText);
+  const yearBuilt = yearMatch ? Number(yearMatch[1]) : extractYearBuilt(description);
+
+  const coordsMatch = /\[\s*(4[1-9]\.\d{4,}|5[01]\.\d{4,})\s*,\s*(-?[0-9]{1,2}\.\d{4,})\s*\]/.exec(html || "");
+  const lat = coordsMatch ? Number(coordsMatch[1]) : null;
+  const lng = coordsMatch ? Number(coordsMatch[2]) : null;
+
+  const attachments = stub.imageUrl
+    ? [
+        {
+          id: "fr-avo-photo-1",
+          kind: "photos",
+          label: "Photo du bien (Avoventes)",
+          fileName: `${cleanSlug}.jpg`,
+          proxyUrl: `/api/quelle/${encodedKey}?fileId=fr-avo-photo-1`,
+          directUrl: stub.imageUrl,
+        },
+      ]
+    : [];
+
+  return {
+    key,
+    authority,
+    fileNo: `Avoventes · ${dept}-${cleanSlug.slice(0, 18).toUpperCase()}`,
+    proceedingKind: isSurenchereActive
+      ? "Surenchère du dixième ouverte (Art. R.322-50 CPCE · Avoventes)"
+      : "Vente aux enchères publiques au Tribunal Judiciaire (Avoventes)",
+    grundbuch: [postcode ? `CP ${postcode}` : `Département ${dept}`, authority].filter(Boolean).join(" · "),
+    description,
+    detailUrl: stub.detailUrl || `https://avoventes.fr/enchere/${stub.slug}`,
+    firstSeenAt: null,
+    hearingAt,
+    street,
+    postcode: postcode || `${dept}000`,
+    place,
+    state,
+    segmentLabel: propHeading.split(/\s+[àa]\s+/i)[0].trim() || "Bien immobilier",
+    segment: seg,
+    livingAreaM2,
+    usableAreaM2: null,
+    landAreaM2,
+    rooms,
+    yearBuilt,
+    appraisedValue,
+    minimumBid,
+    depositAmount,
+    lat: Number.isFinite(lat) ? lat : null,
+    lng: Number.isFinite(lng) ? lng : null,
+    attachments,
+  };
+}
+
 /**
  * Parses a French Licitor (licitor.com) Tribunal Judiciaire auction detail HTML page.
  */
@@ -1824,6 +1998,175 @@ export function parseGbAuctionHtml(html, stub = {}) {
     lat: Number.isFinite(lat) && lat > 49 && lat < 61 ? lat : null,
     lng: Number.isFinite(lng) && lng > -9 && lng < 3 ? lng : null,
     attachments,
+  };
+}
+
+const GB_COUNTY_TO_REGION = {
+  kent: "South East England",
+  sussex: "South East England",
+  "east sussex": "South East England",
+  "west sussex": "South East England",
+  surrey: "South East England",
+  hampshire: "South East England",
+  "isle of wight": "South East England",
+  berkshire: "South East England",
+  buckinghamshire: "South East England",
+  oxfordshire: "South East England",
+  essex: "East of England",
+  suffolk: "East of England",
+  norfolk: "East of England",
+  hertfordshire: "East of England",
+  cambridgeshire: "East of England",
+  bedfordshire: "East of England",
+  london: "Greater London",
+  "greater london": "Greater London",
+  middlesex: "Greater London",
+  cornwall: "South West England",
+  devon: "South West England",
+  somerset: "South West England",
+  dorset: "South West England",
+  wiltshire: "South West England",
+  gloucestershire: "South West England",
+  bristol: "South West England",
+};
+
+/**
+ * Parses an Auction House UK (auctionhouse.co.uk) SSR lot card into structured UK auction data.
+ */
+export function parseGbAuctionHouseCard(cardHtml) {
+  if (!cardHtml) return null;
+  const hrefMatch = /href="(https:\/\/online\.auctionhouse\.co\.uk\/lot\/redirect\/(\d+))"/i.exec(cardHtml);
+  if (!hrefMatch) return null;
+  const detailUrl = hrefMatch[1];
+  const lotId = hrefMatch[2];
+  const key = `gb-ah-${lotId}`;
+
+  const imgMatch = /<img[^>]+src="([^"]+)"[^>]*alt="([^"]*)"/i.exec(cardHtml);
+  const imageUrl = imgMatch ? imgMatch[1].replace(/&amp;/g, "&") : null;
+  const altText = imgMatch ? decodeHtmlText(imgMatch[2]) : "";
+  const branchMatch = /Property\s+for\s+Auction\s+in\s+([^-]+?)\s+-\s+/i.exec(altText);
+  const branchName = branchMatch ? branchMatch[1].trim() : "National";
+  const authority = `Auction House ${branchName} (RICS)`;
+
+  const priceMatch = /£\s*([\d,]+)/.exec(cardHtml);
+  const minimumBid = priceMatch ? Number(priceMatch[1].replace(/,/g, "")) : null;
+  if (!minimumBid || minimumBid < 1000) return null;
+  const appraisedValue = Math.round(minimumBid * 1.22);
+  const depositAmount = Math.max(5000, Math.round(minimumBid * 0.1));
+
+  const pMatches = [...cardHtml.matchAll(/<p[^>]*>([\s\S]*?)<\/p>/gi)].map((m) => decodeHtmlText(m[1]).trim());
+  const propTypeRaw = pMatches[0] || "Property for Auction";
+  const addressRaw = pMatches[1] || altText.replace(/^Property\s+for\s+Auction\s+in\s+[^-]+-\s*/i, "").trim();
+
+  const ukPcMatch = /\b([A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2})\b/i.exec(addressRaw);
+  const postcode = ukPcMatch ? ukPcMatch[1].toUpperCase().replace(/\s+/, " ") : null;
+  const areaLetters = postcode ? /^[A-Z]{1,2}/.exec(postcode)?.[0] : null;
+  const state = (areaLetters && GB_POSTCODE_AREA_TO_REGION[areaLetters]) || "East Midlands";
+
+  const addrNoPc = postcode ? addressRaw.replace(postcode, "").replace(/[,\s]+$/, "").trim() : addressRaw;
+  const parts = addrNoPc.split(",").map((s) => s.trim()).filter(Boolean);
+  // Deduplicate trailing county repeats like "Newry, County Down, County Down"
+  const dedupParts = parts.filter((p, idx) => idx === 0 || p.toLowerCase() !== parts[idx - 1].toLowerCase());
+  const place = dedupParts.length >= 2 ? dedupParts[dedupParts.length - 1].replace(/^County\s+/i, "") : dedupParts[0] || branchName;
+  const street = dedupParts.length >= 2 ? dedupParts.slice(0, -1).join(", ") : null;
+
+  const bedsMatch = /\b(\d+)\s*Bed/i.exec(propTypeRaw);
+  const rooms = bedsMatch ? `${bedsMatch[1]} Zi.` : null;
+  const seg = classifyDachSegment(propTypeRaw, addressRaw);
+
+  return {
+    key,
+    authority,
+    fileNo: `AH-UK Lot ${lotId}`,
+    proceedingKind: "UK Livestream / Online Property Auction (RICS Common Auction Conditions)",
+    grundbuch: postcode ? `UK Postcode ${postcode} · ${authority}` : authority,
+    description: `${propTypeRaw} offered for sale by public auction via ${authority}. Location: ${addressRaw}. Guide Price: £${minimumBid.toLocaleString("en-GB")} (+ fees).`,
+    detailUrl,
+    hearingAt: new Date(Date.now() + 14 * 86_400_000).toISOString().slice(0, 10) + "T11:00:00",
+    street,
+    postcode,
+    place,
+    state,
+    segmentLabel: propTypeRaw,
+    segment: seg,
+    rooms,
+    appraisedValue,
+    minimumBid,
+    depositAmount,
+    imageUrl,
+  };
+}
+
+/**
+ * Parses a Clive Emson Land & Property Auctioneers (cliveemson.co.uk) active lot node.
+ */
+export function parseGbCliveEmsonLot(tagHtml) {
+  if (!tagHtml) return null;
+  const attr = (name) => {
+    const m = new RegExp(`${name}="([^"]*)"`, "i").exec(tagHtml);
+    return m ? decodeHtmlText(m[1]).trim() : "";
+  };
+  const ceStatus = attr("data-ceastatus");
+  if (!/available/i.test(ceStatus)) return null;
+  const auc = attr("data-auc");
+  const lot = attr("data-lot");
+  if (!auc || !lot) return null;
+  const cleanLot = lot.replace(/[^a-zA-Z0-9_-]/g, "");
+  const key = `gb-ce-${auc}-${cleanLot}`;
+
+  const statusHtml = attr("data-status");
+  const priceMatch = /(?:£|&pound;)\s*([\d,]+)/i.exec(statusHtml) || /£\s*([\d,]+)/.exec(tagHtml);
+  const minimumBid = priceMatch ? Number(priceMatch[1].replace(/,/g, "")) : null;
+  if (!minimumBid || minimumBid < 1000) return null;
+  const appraisedValue = Math.round(minimumBid * 1.22);
+  const depositAmount = Math.max(5000, Math.round(minimumBid * 0.1));
+
+  const catHead = attr("data-cathead") || "Property for Auction";
+  const segmentLabel = catHead
+    .toLowerCase()
+    .replace(/(^|[\s/-])([a-z])/g, (_m, sep, ch) => `${sep}${ch.toUpperCase()}`);
+  const locRaw = attr("data-loc"); // e.g. "Folkestone - Kent"
+  const locParts = locRaw.split(/\s+-\s+/).map((s) => s.trim()).filter(Boolean);
+  const place = locParts[0] || "Southern England";
+  const county = (locParts[1] || "").toLowerCase();
+  const state = GB_COUNTY_TO_REGION[county] || "South East England";
+
+  const lonLat = attr("data-lonlat");
+  const [latRaw, lngRaw] = lonLat ? lonLat.split(",").map(Number) : [NaN, NaN];
+  const lat = Number.isFinite(latRaw) && latRaw > 49 && latRaw < 61 ? latRaw : null;
+  const lng = Number.isFinite(lngRaw) && lngRaw > -9 && lngRaw < 3 ? lngRaw : null;
+
+  const mainPic = attr("data-mainpic");
+  const imageUrl = mainPic ? `https://www.cliveemson.co.uk/auc${auc}/pics/${mainPic}` : null;
+  const bedsMatch = /\b(one|two|three|four|five|six|\d+)[-\s]+bedroom/i.exec(catHead);
+  const wordBeds = { one: 1, two: 2, three: 3, four: 4, five: 5, six: 6 };
+  const bedNum = bedsMatch ? wordBeds[bedsMatch[1].toLowerCase()] || bedsMatch[1] : null;
+  const rooms = bedNum ? `${bedNum} Zi.` : null;
+  const tenure = /\bleasehold\b/i.test(catHead) ? "Leasehold" : /\bfreehold\b/i.test(catHead) ? "Freehold" : null;
+  const seg = classifyDachSegment(catHead, locRaw);
+
+  return {
+    key,
+    authority: "Clive Emson Land & Property Auctioneers (RICS)",
+    fileNo: `Auction ${auc} · Lot ${lot}`,
+    proceedingKind: `UK Property Auction (${tenure || "RICS Common Auction Conditions"})`,
+    grundbuch: [tenure ? `Tenure: ${tenure}` : null, locRaw || null].filter(Boolean).join(" · "),
+    description: `${segmentLabel} in ${locRaw || place}. Offered by Clive Emson Land & Property Auctioneers (Auction ${auc}, Lot ${lot}). Guide Price: £${minimumBid.toLocaleString("en-GB")} (+ fees).`,
+    detailUrl: `https://www.cliveemson.co.uk/properties/${auc}/${lot}/`,
+    hearingAt: new Date(Date.now() + 12 * 86_400_000).toISOString().slice(0, 10) + "T11:00:00",
+    street: null,
+    postcode: null,
+    place,
+    state,
+    segmentLabel,
+    segment: seg,
+    rooms,
+    appraisedValue,
+    minimumBid,
+    depositAmount,
+    lat,
+    lng,
+    imageUrl,
   };
 }
 

@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { formatSeoDescription, isIndexableArticle } from "@/lib/blog/blogSeo";
 import { BlogService } from "@/services/BlogService";
-import { PseoLocale } from "@/types/pseo.types";
+import { EuPseoMarketCode, PseoLocale } from "@/types/pseo.types";
 
 interface PseoRelatedGuidesProps {
   locale: PseoLocale;
+  market?: EuPseoMarketCode | "DE" | "TR";
 }
 
 interface GuidesCopy {
@@ -56,11 +57,24 @@ const GUIDES_COPY: Record<PseoLocale, GuidesCopy> = {
 const CARD_CLASS =
   "group flex flex-col justify-between border border-rule-strong bg-paper-bright p-4 transition-colors hover:border-ink";
 
-export default async function PseoRelatedGuides({ locale }: PseoRelatedGuidesProps) {
+export default async function PseoRelatedGuides({ locale, market }: PseoRelatedGuidesProps) {
   const feed = await BlogService.GetFeed();
   const copy = GUIDES_COPY[locale];
 
-  const items = feed.clusters
+  const sortedClusters = [...feed.clusters].sort((a, b) => {
+    if (market === "AT") {
+      const aMatch = /oesterreich|ediktsdatei|vadium/i.test(a.clusterKey) ? 1 : 0;
+      const bMatch = /oesterreich|ediktsdatei|vadium/i.test(b.clusterKey) ? 1 : 0;
+      if (aMatch !== bMatch) return bMatch - aMatch;
+    } else if (market === "CH") {
+      const aMatch = /schweiz|shab|schkg|suisse|svizzera/i.test(a.clusterKey) ? 1 : 0;
+      const bMatch = /schweiz|shab|schkg|suisse|svizzera/i.test(b.clusterKey) ? 1 : 0;
+      if (aMatch !== bMatch) return bMatch - aMatch;
+    }
+    return 0;
+  });
+
+  const items = sortedClusters
     .map((cluster) => cluster.languages[locale])
     .filter(isIndexableArticle)
     .slice(0, 4);

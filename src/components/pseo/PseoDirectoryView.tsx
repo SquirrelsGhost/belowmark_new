@@ -253,7 +253,7 @@ export default function PseoDirectoryView({
         </div>
       )}
 
-      <PseoRelatedGuides locale={locale} />
+      <PseoRelatedGuides locale={locale} market={marketCode} />
 
       <BlogArticleCta lang={locale} />
     </section>

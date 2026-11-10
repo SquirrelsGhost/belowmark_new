@@ -45,6 +45,7 @@ const POLICY_RULES: readonly PolicyRule[] = [
   { methods: ["GET"], pattern: /^\/(de|tr|en|it|es|fr|ar|ru)\/blog(\/[^/]+)?$/, policy: PAGE_PUBLIC },
   { methods: ["GET"], pattern: /^\/zwangsversteigerung(en)?$/, policy: PAGE_PUBLIC },
   { methods: ["GET"], pattern: /^\/(suche|atlas|embed\/rechner)$/, policy: PAGE_PUBLIC },
+  { methods: ["GET"], pattern: /^\/(de|tr|en|it|es|fr)\/atlas$/, policy: PAGE_PUBLIC },
   { methods: ["GET", "POST"], pattern: /^\/objekt\/[^/]+$/, policy: PAGE_PUBLIC },
   { methods: ["GET", "POST"], pattern: /^\/tr\/ilan\/[^/]+$/, policy: PAGE_PUBLIC },
   { methods: ["GET", "POST"], pattern: /^\/lot\/[^/]+$/, policy: PAGE_PUBLIC },

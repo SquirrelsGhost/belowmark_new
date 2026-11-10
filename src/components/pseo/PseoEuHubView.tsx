@@ -223,7 +223,7 @@ export default function PseoEuHubView({ catalog }: PseoEuHubViewProps) {
         </section>
       )}
 
-      <PseoRelatedGuides locale={catalog.locale} />
+      <PseoRelatedGuides locale={catalog.locale} market={catalog.market} />
 
       <BlogArticleCta lang={catalog.locale} />
     </div>

@@ -30,7 +30,9 @@ if (deCount < 3500 || trCount < 8000) {
   process.exit(1);
 }
 
-const diffOut = execFileSync("git", ["status", "--porcelain", "data/snapshots/de.json", "data/snapshots/tr.json"], {
+runCmd(process.execPath, ["scripts/refresh-snapshot-ts.mjs"]);
+
+const diffOut = execFileSync("git", ["status", "--porcelain", "data/snapshots/de.json", "data/snapshots/tr.json", "src/lib/snapshot.ts"], {
   cwd: ROOT,
   encoding: "utf8",
 }).trim();
@@ -41,7 +43,7 @@ if (!diffOut) {
 }
 
 const day = new Date().toISOString().slice(0, 10);
-runCmd("git", ["add", "data/snapshots/de.json", "data/snapshots/tr.json"]);
+runCmd("git", ["add", "data/snapshots/de.json", "data/snapshots/tr.json", "src/lib/snapshot.ts"]);
 runCmd("git", ["commit", "-m", `chore(data): daily 8-country auction sync ${day} (${deCount + trCount} active)`]);
 runCmd("git", ["push", "origin", "main"]);
 

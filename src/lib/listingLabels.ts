@@ -65,8 +65,10 @@ export function getListingSourceTag(listing: Listing): string | null {
   if (listing.country === "CH" || listing.key.startsWith("shab-")) return "CH · SHAB";
   if (listing.country === "IT" || listing.key.startsWith("it-aste-")) return "IT · Aste Giudiziarie";
   if (listing.country === "ES" || listing.key.startsWith("es-boe-")) return "ES · Portal BOE";
-  if (listing.country === "FR" || listing.key.startsWith("fr-licitor-")) return "FR · Licitor TJ";
-  if (listing.country === "GB" || listing.key.startsWith("gb-eig-")) return "UK · Property Auction";
+  if (listing.country === "FR" || listing.key.startsWith("fr-")) {
+    return listing.key.startsWith("fr-avo-") ? "FR · Avoventes TJ" : "FR · Licitor TJ";
+  }
+  if (listing.country === "GB" || listing.key.startsWith("gb-")) return "UK · Property Auction";
   if (listing.sourcePortal === "zvg.com" || listing.key.startsWith("zvgcom-")) return "zvg.com";
   return null;
 }
@@ -136,8 +138,8 @@ export function getDachPurchaseLabels(
   const isCh = listing.country === "CH" || listing.key.startsWith("shab-");
   const isIt = listing.country === "IT" || listing.key.startsWith("it-aste-");
   const isEs = listing.country === "ES" || listing.key.startsWith("es-boe-");
-  const isFr = listing.country === "FR" || listing.key.startsWith("fr-licitor-");
-  const isGb = listing.country === "GB" || listing.key.startsWith("gb-eig-");
+  const isFr = listing.country === "FR" || listing.key.startsWith("fr-");
+  const isGb = listing.country === "GB" || listing.key.startsWith("gb-");
   const isTr = locale === "tr";
   return {
     isCh: isCh || isFr || isGb,

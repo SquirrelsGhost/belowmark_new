@@ -125,13 +125,13 @@ export function getBorisPortal(listing: Listing): { name: string; url: string } 
       url: listing.geoportalUrl ?? "https://www1.sedecatastro.gob.es/",
     };
   }
-  if (listing.country === "FR" || listing.key.startsWith("fr-licitor-")) {
+  if (listing.country === "FR" || listing.key.startsWith("fr-")) {
     return {
       name: listing.geoportalName ?? "DVF Etalab · Demandes de Valeurs Foncières & Cadastre",
       url: listing.geoportalUrl ?? "https://app.dvf.etalab.gouv.fr/",
     };
   }
-  if (listing.country === "GB" || listing.key.startsWith("gb-eig-")) {
+  if (listing.country === "GB" || listing.key.startsWith("gb-")) {
     return {
       name: listing.geoportalName ?? "HM Land Registry · Price Paid Data",
       url: listing.geoportalUrl ?? "https://landregistry.data.gov.uk/app/ppd/",
@@ -260,7 +260,7 @@ export function getMarketComparisonLinks(listing: Listing): ComparisonPortalLink
     ];
   }
 
-  if (listing.country === "FR" || listing.key.startsWith("fr-licitor-")) {
+  if (listing.country === "FR" || listing.key.startsWith("fr-")) {
     return [
       {
         name: "SeLoger.com Vergleich",
@@ -280,7 +280,7 @@ export function getMarketComparisonLinks(listing: Listing): ComparisonPortalLink
     ];
   }
 
-  if (listing.country === "GB" || listing.key.startsWith("gb-eig-")) {
+  if (listing.country === "GB" || listing.key.startsWith("gb-")) {
     return [
       {
         name: "Rightmove UK",
