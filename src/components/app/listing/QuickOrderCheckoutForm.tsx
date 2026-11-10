@@ -124,6 +124,7 @@ export default function QuickOrderCheckoutForm({
     <form action={action} className="grid w-full max-w-md gap-2.5 border-2 border-ink bg-paper-bright p-4">
       <input type="hidden" name="offer" value="investor-monat" />
       <input type="hidden" name="market" value={country} />
+      <input type="hidden" name="source" value="listing-inline" />
       <p className="font-mono text-[11px] font-medium leading-relaxed text-ink">
         {stripeTrialEligible ? L.trialSummary(monthPrice) : L.stdSummary(monthPrice)}
       </p>

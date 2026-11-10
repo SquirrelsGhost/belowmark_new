@@ -41,6 +41,11 @@ export async function placeOrderAction(_previous: OrderFormState, formData: Form
       new Date(),
       currentCountry,
     ));
+    const checkoutSrc = formData.get("source") === "listing-inline" ? "listing-inline" : "order-page";
+    RateLimitService.hit(`funnel:checkout:${checkoutSrc}:${offer}:${market}`, {
+      limit: 1_000_000,
+      windowMs: 365 * 24 * 60 * 60 * 1000,
+    }).catch(() => {});
   } catch (error) {
     console.error("[placeOrderAction]", error);
     return { status: "error", code: String(error).includes("order blocked") ? "blocked" : "failed", offer, market };

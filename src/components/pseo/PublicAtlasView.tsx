@@ -1,4 +1,5 @@
 import Link from "next/link";
+import AtlasEmbedBox from "@/components/pseo/AtlasEmbedBox";
 import { BELOWMARK_ORIGIN } from "@/lib/blog/blogSeo";
 import { EU_MARKET_META } from "@/lib/pseo/euMarketRegions";
 import { EuPseoMarketCode, PseoCatalog } from "@/types/pseo.types";
@@ -54,8 +55,6 @@ export default function PublicAtlasView({ catalog }: PublicAtlasViewProps) {
     isAccessibleForFree: true,
     creator: { "@type": "Organization", name: "Belowmark", url: `${BELOWMARK_ORIGIN}/` },
   };
-
-  const embedSnippet = `<iframe src="${BELOWMARK_ORIGIN}/rechner/5-10-und-7-10-grenze" width="100%" height="680" style="border:2px solid #141413;" loading="lazy" title="Belowmark ZVG 5/10 & 7/10 Rechner"></iframe>\n<p style="font-size:12px;">Quelle: <a href="${BELOWMARK_ORIGIN}/zwangsversteigerungen">Belowmark Zwangsversteigerungs-Datenbank</a></p>`;
 
   return (
     <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
@@ -134,15 +133,7 @@ export default function PublicAtlasView({ catalog }: PublicAtlasViewProps) {
             ))}
           </div>
         </div>
-        <div className="border-2 border-ink bg-paper-bright p-6">
-          <h2 className="font-display text-2xl text-ink">Für Presse, Blogs & Finanzierungsberater</h2>
-          <p className="mt-2 font-serif text-sm leading-relaxed text-ink-soft">
-            Alle aggregierten Kennzahlen aus diesem Atlas dürfen unter Quellenangabe („Quelle: Belowmark Zwangsversteigerungs-Atlas“) kostenfrei zitiert werden. Unseren Gebotsrechner können Sie direkt einbetten:
-          </p>
-          <pre className="mt-3 overflow-x-auto border border-rule-strong bg-paper p-3 font-mono text-[11px] text-ink">
-            {embedSnippet}
-          </pre>
-        </div>
+        <AtlasEmbedBox />
       </div>
     </section>
   );

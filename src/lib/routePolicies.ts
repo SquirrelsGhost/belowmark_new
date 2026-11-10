@@ -44,7 +44,7 @@ const POLICY_RULES: readonly PolicyRule[] = [
   { methods: ["GET"], pattern: /^\/blog\/[^/]+$/, policy: PAGE_PUBLIC },
   { methods: ["GET"], pattern: /^\/(de|tr|en|it|es|fr|ar|ru)\/blog(\/[^/]+)?$/, policy: PAGE_PUBLIC },
   { methods: ["GET"], pattern: /^\/zwangsversteigerung(en)?$/, policy: PAGE_PUBLIC },
-  { methods: ["GET"], pattern: /^\/(suche|atlas)$/, policy: PAGE_PUBLIC },
+  { methods: ["GET"], pattern: /^\/(suche|atlas|embed\/rechner)$/, policy: PAGE_PUBLIC },
   { methods: ["GET", "POST"], pattern: /^\/objekt\/[^/]+$/, policy: PAGE_PUBLIC },
   { methods: ["GET", "POST"], pattern: /^\/tr\/ilan\/[^/]+$/, policy: PAGE_PUBLIC },
   { methods: ["GET", "POST"], pattern: /^\/lot\/[^/]+$/, policy: PAGE_PUBLIC },
@@ -90,6 +90,7 @@ const POLICY_RULES: readonly PolicyRule[] = [
 
   // ─── 4. API Endpoints (Method-exact separation & capabilities) ──────────────
   { methods: ["GET"], pattern: /^\/api\/health$/, policy: API_PUBLIC },
+  { methods: ["GET"], pattern: /^\/api\/public\/atlas$/, policy: API_PUBLIC },
   { methods: ["GET", "POST"], pattern: /^\/api\/alerts\/run$/, policy: API_PUBLIC },
   // Termin-Begleiter: the run checks the cron secret, the feed its secret token (calendar apps have no session)
   { methods: ["GET", "POST"], pattern: /^\/api\/termine\/run$/, policy: API_PUBLIC },

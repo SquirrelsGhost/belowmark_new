@@ -10,7 +10,10 @@ import { field, signupSchema, toFieldErrors } from "@/lib/auth/validation";
 import { MARKET_COOKIE_NAME, pricingCountryToMarket, REGION_COOKIE_MAX_AGE } from "@/lib/constants";
 import { AuthService } from "@/services/AuthService";
 import { MailService } from "@/services/MailService";
+import { RateLimitService } from "@/services/RateLimitService";
 import { AuthFormState } from "@/types/auth.types";
+
+const FUNNEL_YEAR = { limit: 1_000_000, windowMs: 365 * 24 * 60 * 60 * 1000 } as const;
 
 /**
  * Server Action: create an account.
@@ -71,6 +74,8 @@ export async function signupAction(_prev: AuthFormState, formData: FormData): Pr
     const cookieStore = await cookies();
     cookieStore.set(MARKET_COOKIE_NAME, market, { path: "/", maxAge: REGION_COOKIE_MAX_AGE, sameSite: "lax" });
     await saveSignupContextCookie({ key: targetKey, city: targetCity, market });
+    const srcKind = targetKey ? "dossier-inline" : "direct";
+    RateLimitService.hit(`funnel:signup:${srcKind}:${market}`, FUNNEL_YEAR).catch(() => {});
   } catch (error) {
     return unknownError("signupAction", error, values);
   }
