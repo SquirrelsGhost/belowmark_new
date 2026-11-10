@@ -41,7 +41,9 @@ export async function generateMetadata({ params }: TrIcraEntityPageProps): Promi
     : isCategory
       ? `${entity.name}: ${entity.totalCount} Aktif UYAP E-İhale${minBidStr}`
       : `${entity.name} İcradan Satılık Daire, Ev & Arsa: ${entity.totalCount} İhale${minBidStr}`;
-  const compactTitle = `${entity.name} İcradan Satılık: ${entity.totalCount} İhale${minBidStr}`;
+  const compactTitle = isCategory
+    ? `${entity.name}: ${entity.totalCount} Aktif İhale`
+    : `${entity.name} İcradan Satılık: ${entity.totalCount} İhale${minBidStr}`;
   return MetaTagService.CreateMetaTags({
     title: fullTitle.length <= 68 ? fullTitle : compactTitle,
     description: isCourt
