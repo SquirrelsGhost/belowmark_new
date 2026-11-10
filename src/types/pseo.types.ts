@@ -54,7 +54,7 @@ export interface CityPseoEntry {
 export interface TrLocationPseoEntry {
   slug: string;
   name: string;
-  kind: "province" | "district";
+  kind: "province" | "district" | "court" | "category";
   provinceName: string;
   provinceSlug: string;
   totalCount: number;
@@ -62,6 +62,7 @@ export interface TrLocationPseoEntry {
   avgAppraisedValueTry: number | null;
   avgDiscountPct: number | null;
   districts: Array<{ name: string; slug: string; count: number }>;
+  courts?: Array<{ name: string; slug: string; count: number }>;
   listings: PseoPreviewListing[];
 }
 

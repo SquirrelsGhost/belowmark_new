@@ -553,11 +553,84 @@ async function buildCatalog(): Promise<PseoCatalog> {
     cities.push(entry);
     cityBySlug.set(slug, entry);
   }
+
+  // 1a-0. Build 5 high-intent German National Category & Opportunity Pages under /zwangsversteigerung/[stadt]
+  const deThemeDefs: Array<{
+    slug: string;
+    aliases: string[];
+    name: string;
+    region: string;
+    items: Listing[];
+  }> = [
+    {
+      slug: "ohne-wertgrenzen-5-10-grenze-entfallen",
+      aliases: ["ohne-wertgrenzen", "5-10-grenze-entfallen", "wertgrenzen-entfallen"],
+      name: "Ohne Wertgrenzen (5/10- & 7/10-Grenze entfallen)",
+      region: "Deutschland (§ 85a / § 74a ZVG)",
+      items: deOnlyListings.filter((i) => i.limitsWaived),
+    },
+    {
+      slug: "einfamilienhaus-kaufen",
+      aliases: ["einfamilienhaus", "haus-kaufen", "haeuser"],
+      name: "Einfamilienhaus & Wohnhaus",
+      region: "Deutschland (Alle 16 Bundesländer)",
+      items: deOnlyListings.filter((i) => i.segment === "house"),
+    },
+    {
+      slug: "eigentumswohnung-kaufen",
+      aliases: ["eigentumswohnung", "wohnung-kaufen", "wohnungen"],
+      name: "Eigentumswohnung & Wohnung",
+      region: "Deutschland (Alle 16 Bundesländer)",
+      items: deOnlyListings.filter((i) => i.segment === "apartment"),
+    },
+    {
+      slug: "grundstueck-ackerland",
+      aliases: ["grundstueck", "baugrundstueck", "ackerland-wald"],
+      name: "Grundstück, Baugrundstück & Ackerland",
+      region: "Deutschland (Alle 16 Bundesländer)",
+      items: deOnlyListings.filter((i) => i.segment === "land"),
+    },
+    {
+      slug: "mehrfamilienhaus-gewerbe",
+      aliases: ["mehrfamilienhaus", "gewerbeimmobilien", "renditeobjekte"],
+      name: "Mehrfamilienhaus & Gewerbeimmobilie",
+      region: "Deutschland (Alle 16 Bundesländer)",
+      items: deOnlyListings.filter((i) => i.segment === "commercial"),
+    },
+  ];
+
+  for (const theme of deThemeDefs) {
+    if (theme.items.length === 0) continue;
+    const stats = computeStats(theme.items);
+    const entry: CityPseoEntry = {
+      slug: theme.slug,
+      name: theme.name,
+      postcode: null,
+      region: theme.region,
+      totalCount: theme.items.length,
+      limitsWaivedCount: theme.items.filter((i) => i.limitsWaived).length,
+      withDocsCount: theme.items.filter((i) => i.documentUrl || i.exposeUrl || i.reportUrl).length,
+      ...stats,
+      courts: courts.slice(0, 16).map((c) => ({ name: c.displayName, slug: c.slug, count: c.totalCount })),
+      listings: theme.items.slice(0, 18).map(toPreviewListing),
+    };
+    cities.push(entry);
+    cityBySlug.set(theme.slug, entry);
+  }
+
   cities.sort((a, b) => b.totalCount - a.totalCount);
 
   // 1a. Map legacy non-DE court & city slugs to their canonical EU country pages (308 zero-loss SEO migration)
   const legacyCourtRedirects = new Map<string, string>();
   const legacyCityRedirects = new Map<string, string>();
+
+  for (const theme of deThemeDefs) {
+    for (const al of theme.aliases) {
+      if (!cityBySlug.has(al)) {
+        legacyCityRedirects.set(al, `/zwangsversteigerung/${theme.slug}`);
+      }
+    }
+  }
 
   // Map German "amtsgericht-<stadt>" and "<stadt>" aliases to canonical "/amtsgericht/ag-<stadt>"
   for (const c of courts) {
@@ -634,9 +707,10 @@ async function buildCatalog(): Promise<PseoCatalog> {
   }
   deStates.sort((a, b) => b.totalCount - a.totalCount);
 
-  // 2. Group TR by Province (İl) and District (İlçe)
+  // 2. Group TR by Province (İl), District (İlçe) and Court/Authority (İcra Dairesi / Satış Memurluğu)
   const byProvince = new Map<string, { name: string; items: Listing[] }>();
-  const byDistrict = new Map<string, { name: string; provName: string; provSlug: string; items: Listing[] }>();
+  const byDistrict = new Map<string, { name: string; bareSlug: string; provName: string; provSlug: string; items: Listing[] }>();
+  const byTrCourt = new Map<string, { name: string; provName: string; provSlug: string; items: Listing[] }>();
 
   for (const l of trListings) {
     const provName = l.region?.trim();
@@ -650,15 +724,34 @@ async function buildCatalog(): Promise<PseoCatalog> {
 
     if (l.place) {
       const distName = l.place.trim();
-      const distSlug = `${provSlug}-${slugifyPseo(distName)}`;
-      const dEntry = byDistrict.get(distSlug) ?? {
-        name: distName,
-        provName,
-        provSlug,
-        items: [],
-      };
-      dEntry.items.push(l);
-      byDistrict.set(distSlug, dEntry);
+      const bareDistSlug = slugifyPseo(distName);
+      if (bareDistSlug) {
+        const distSlug = `${provSlug}-${bareDistSlug}`;
+        const dEntry = byDistrict.get(distSlug) ?? {
+          name: distName,
+          bareSlug: bareDistSlug,
+          provName,
+          provSlug,
+          items: [],
+        };
+        dEntry.items.push(l);
+        byDistrict.set(distSlug, dEntry);
+      }
+    }
+
+    if (l.authority) {
+      const authName = l.authority.trim();
+      const rawAuthSlug = slugifyPseo(authName);
+      if (rawAuthSlug && rawAuthSlug.length >= 3) {
+        const cEntry = byTrCourt.get(rawAuthSlug) ?? {
+          name: authName,
+          provName,
+          provSlug,
+          items: [],
+        };
+        cEntry.items.push(l);
+        byTrCourt.set(rawAuthSlug, cEntry);
+      }
     }
   }
 
@@ -681,6 +774,15 @@ async function buildCatalog(): Promise<PseoCatalog> {
     }
     distList.sort((a, b) => b.count - a.count);
 
+    const courtList: Array<{ name: string; slug: string; count: number }> = [];
+    for (const [cSlug, cVal] of byTrCourt.entries()) {
+      if (cVal.provSlug === provSlug) {
+        const finalCSlug = byProvince.has(cSlug) || byDistrict.has(cSlug) ? `${cSlug}-icra-dairesi` : cSlug;
+        courtList.push({ name: cVal.name, slug: finalCSlug, count: cVal.items.length });
+      }
+    }
+    courtList.sort((a, b) => b.count - a.count);
+
     const entry: TrLocationPseoEntry = {
       slug: provSlug,
       name,
@@ -691,14 +793,15 @@ async function buildCatalog(): Promise<PseoCatalog> {
       opportunityCount: items.filter((i) => (i.tr?.discountPct ?? 0) >= 25).length,
       avgAppraisedValueTry: stats.avgAppraisedValue,
       avgDiscountPct: avgDiscount,
-      districts: distList.slice(0, 18),
+      districts: distList.slice(0, 24),
+      courts: courtList.slice(0, 24),
       listings: items.slice(0, 12).map(toPreviewListing),
     };
     trLocations.push(entry);
     trBySlug.set(provSlug, entry);
   }
 
-  for (const [distSlug, { name, provName, provSlug, items }] of byDistrict.entries()) {
+  for (const [distSlug, { name, bareSlug, provName, provSlug, items }] of byDistrict.entries()) {
     if (trBySlug.has(distSlug)) continue;
     const stats = computeStats(items);
     const discounts = items
@@ -722,6 +825,91 @@ async function buildCatalog(): Promise<PseoCatalog> {
     };
     trLocations.push(entry);
     trBySlug.set(distSlug, entry);
+    // Register bare district slug alias (e.g. /tr/icra-ihale/abana -> 308 to /tr/icra-ihale/kastamonu-abana)
+    if (bareSlug && !trBySlug.has(bareSlug)) {
+      trBySlug.set(bareSlug, entry);
+    }
+  }
+
+  // 2a. Build all 1,061 Turkish Court / İcra Dairesi / Satış Memurluğu pSEO Pages
+  for (const [rawAuthSlug, { name, provName, provSlug, items }] of byTrCourt.entries()) {
+    const finalSlug = trBySlug.has(rawAuthSlug) ? `${rawAuthSlug}-icra-dairesi` : rawAuthSlug;
+    if (trBySlug.has(finalSlug)) continue;
+    const stats = computeStats(items);
+    const discounts = items
+      .map((i) => i.tr?.discountPct)
+      .filter((d): d is number => typeof d === "number" && d > 0 && d < 95);
+    const avgDiscount =
+      discounts.length > 0 ? Math.round(discounts.reduce((a, b) => a + b, 0) / discounts.length) : 28;
+
+    const entry: TrLocationPseoEntry = {
+      slug: finalSlug,
+      name,
+      kind: "court",
+      provinceName: provName,
+      provinceSlug: provSlug,
+      totalCount: items.length,
+      opportunityCount: items.filter((i) => (i.tr?.discountPct ?? 0) >= 25).length,
+      avgAppraisedValueTry: stats.avgAppraisedValue,
+      avgDiscountPct: avgDiscount,
+      districts: [],
+      listings: items.slice(0, 12).map(toPreviewListing),
+    };
+    trLocations.push(entry);
+    trBySlug.set(finalSlug, entry);
+  }
+
+  // 2b. Build 5 high-intent Turkish National Category & Opportunity Pages
+  const trThemeDefs: Array<{
+    slug: string;
+    name: string;
+    items: Listing[];
+  }> = [
+    {
+      slug: "icradan-satilik-daire",
+      name: "İcradan Satılık Daire & Konut (81 İl)",
+      items: trListings.filter((i) => i.segment === "apartment" || /daire|konut|mesken/i.test(i.tr?.nitelik || i.title || "")),
+    },
+    {
+      slug: "icradan-satilik-mustakil-ev-villa",
+      name: "İcradan Satılık Müstakil Ev, Bina & Villa",
+      items: trListings.filter((i) => i.segment === "house" || /müstakil|villa|bina|ev/i.test(i.tr?.nitelik || i.title || "")),
+    },
+    {
+      slug: "icradan-satilik-arsa-tarla",
+      name: "İcradan Satılık Arsa, Tarla & Arazi (81 İl)",
+      items: trListings.filter((i) => i.segment === "land" || /arsa|tarla|arazi|bahçe|zeytinlik/i.test(i.tr?.nitelik || i.title || "")),
+    },
+    {
+      slug: "icradan-satilik-dukkan-isyeri",
+      name: "İcradan Satılık Dükkan, İşyeri & Ticari Taşınmaz",
+      items: trListings.filter((i) => i.segment === "commercial" || /dükkan|işyeri|depo|fabrika|ofis|ticari/i.test(i.tr?.nitelik || i.title || "")),
+    },
+    {
+      slug: "yuzde-50-firsat-ihaleleri",
+      name: "%50 Muhammen Bedel Açılışlı Fırsat İcra İhaleleri",
+      items: trListings.filter((i) => (i.tr?.discountPct ?? 0) >= 35),
+    },
+  ];
+
+  for (const theme of trThemeDefs) {
+    if (theme.items.length === 0 || trBySlug.has(theme.slug)) continue;
+    const stats = computeStats(theme.items);
+    const entry: TrLocationPseoEntry = {
+      slug: theme.slug,
+      name: theme.name,
+      kind: "category",
+      provinceName: "Türkiye Geneli (81 İl)",
+      provinceSlug: "istanbul",
+      totalCount: theme.items.length,
+      opportunityCount: theme.items.filter((i) => (i.tr?.discountPct ?? 0) >= 25).length,
+      avgAppraisedValueTry: stats.avgAppraisedValue,
+      avgDiscountPct: 35,
+      districts: [],
+      listings: theme.items.slice(0, 18).map(toPreviewListing),
+    };
+    trLocations.push(entry);
+    trBySlug.set(theme.slug, entry);
   }
 
   trLocations.sort((a, b) => b.totalCount - a.totalCount);

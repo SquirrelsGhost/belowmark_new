@@ -62,7 +62,7 @@ export const EU_MARKET_COPY: Record<EuPseoMarketCode, EuMarketCopyConfig> = {
     hubMetaDesc: (total, rCount) =>
       `Alle ${total} gerichtlichen Zwangsversteigerungen in Österreich (${rCount} Bundesländer, Ediktsdatei Justiz): Schätzwert, 50 % Geringstes Gebot (§ 151 EO) & Vadium.`,
     calcButtonLabel: "🧮 Kostenloser Österreich Edikte-Rechner (Geringstes Gebot & 10 % Vadium) →",
-    ctaButtonLabel: "Alle Edikte, Langgutachten & Grundbuchsauszüge freischalten →",
+    ctaButtonLabel: "🎁 1 Gratis-Dossier: Edikt, Langgutachten & PDF kostenlos öffnen →",
     regionsHeading: (c) => `Alle ${c} österreichischen Bundesländer (Ediktsdatei)`,
     citiesHeading: (c) => `Städte & Gemeinden in Österreich (${c} Orte)`,
     courtsHeading: (c) => `Österreichische Bezirksgerichte (${c} Gerichte)`,
@@ -135,11 +135,11 @@ export const EU_MARKET_COPY: Record<EuPseoMarketCode, EuMarketCopyConfig> = {
     hubLead:
       "Zentrales Verzeichnis aller im Schweizerischen Handelsamtsblatt (SHAB / FOSC / FUSC) publizierten betreibungs- und konkursamtlichen Grundstücksteigerungen nach SchKG aus allen 26 Kantonen — mit betreibungsamtlicher Schätzung (CHF), Deckungsprinzip (Art. 126 / 142a SchKG), Sicherheitsleistung und kantonaler Handänderungssteuer.",
     hubMetaTitle: (total) =>
-      `Grundstücksteigerung Schweiz (SHAB): ${total} Aktive Termine`,
+      `Zwangsversteigerung & Grundstücksteigerung Schweiz: ${total} SHAB-Termine`,
     hubMetaDesc: (total, rCount) =>
-      `Alle ${total} betreibungsamtlichen Grundstücksteigerungen in der Schweiz (${rCount} Kantone, SHAB / SchKG): Schätzung in CHF, Bedingungen & Handänderungssteuer.`,
+      `Alle ${total} betreibungsamtlichen Grundstücksteigerungen & Zwangsversteigerungen in der Schweiz (${rCount} Kantone, SHAB / SchKG): Schätzung in CHF & Termine.`,
     calcButtonLabel: "🧮 Kostenloser Schweiz SchKG-Steigerungsrechner (CHF & Kantonssteuer) →",
-    ctaButtonLabel: "Alle SHAB-Publikationen, Lastenverzeichnisse & Steigerungsbedingungen öffnen →",
+    ctaButtonLabel: "🎁 1 Gratis-Dossier: SHAB-Publikation, Lastenverzeichnis & PDF öffnen →",
     regionsHeading: (c) => `Alle ${c} Schweizer Kantone (SHAB Grundstücksteigerungen)`,
     citiesHeading: (c) => `Städte & Gemeinden in der Schweiz (${c} Orte)`,
     courtsHeading: (c) => `Betreibungs- & Konkursämter (${c} Ämter)`,
@@ -183,19 +183,21 @@ export const EU_MARKET_COPY: Record<EuPseoMarketCode, EuMarketCopyConfig> = {
     entryTitle: (e) =>
       e.kind === "court"
         ? `${e.name}: ${e.totalCount} aktuelle Grundstücksteigerungen & Zwangsversteigerungen (SHAB)`
-        : `Grundstücksteigerung & Zwangsversteigerung ${e.name} (SHAB): ${e.totalCount} aktuelle Termine`,
+        : `Zwangsversteigerung & Grundstücksteigerung ${e.name} (SHAB): ${e.totalCount} aktuelle Termine`,
     entryLead: (e) =>
-      `Alle amtlich im SHAB publizierten betreibungs- und konkursamtlichen Immobilien- und Grundstücksteigerungen für ${e.name} (${e.nativeRegionName}) — mit Schätzung in CHF, Steigerungsbedingungen nach SchKG und ${e.transferTaxPct} % kantonalen Gebühren.`,
+      `Alle amtlich im SHAB publizierten betreibungs- und konkursamtlichen Immobilien-, Zwangs- und Grundstücksteigerungen für ${e.name} (${e.nativeRegionName}) — mit Schätzung in CHF, Steigerungsbedingungen nach SchKG und ${e.transferTaxPct} % kantonalen Gebühren.`,
     entryMetaTitle: (e) => {
       const low = fmtMinEntry(e, 0.6, "de-CH", "CHF");
       if (e.kind === "court") {
-        return `${e.name}: ${e.totalCount} SHAB-Steigerungen${low ? ` ab ${low}` : ""}`;
+        const full = `${e.name}: ${e.totalCount} Versteigerungen & SHAB-Termine${low ? ` ab ${low}` : ""}`;
+        return full.length <= 66 ? full : `${e.name}: ${e.totalCount} SHAB-Versteigerungen${low ? ` ab ${low}` : ""}`;
       }
-      return `Grundstücksteigerung ${e.name}: ${e.totalCount} SHAB-Termine${low ? ` ab ${low}` : ""}`;
+      const fullCity = `Zwangsversteigerung ${e.name}: ${e.totalCount} SHAB-Steigerungen${low ? ` ab ${low}` : ""}`;
+      return fullCity.length <= 66 ? fullCity : `Versteigerung ${e.name}: ${e.totalCount} SHAB-Termine${low ? ` ab ${low}` : ""}`;
     },
     entryMetaDesc: (e) => {
       const low = fmtMinEntry(e, 0.6, "de-CH", "CHF");
-      return `Betreibungsamtliche Grundstücksteigerungen (SHAB / SchKG) in ${e.name}: ${e.totalCount} Immobilien${low ? ` ab ${low}` : ""} inkl. Schätzung in CHF & Terminen.`;
+      return `Alle ${e.totalCount} aktuellen Zwangsversteigerungen & Grundstücksteigerungen (SHAB / SchKG) für ${e.name}${low ? ` ab ${low}` : ""} — Schätzung in CHF, Termine & 1 Gratis-Dossier.`;
     },
   },
   IT: {
@@ -209,7 +211,7 @@ export const EU_MARKET_COPY: Record<EuPseoMarketCode, EuMarketCopyConfig> = {
     hubMetaDesc: (total, rCount) =>
       `Tutti i ${total} immobili all'asta giudiziaria in Italia (${rCount} regioni, PVP Giustizia): Prezzo Base, Offerta Minima 75% (art. 571 c.p.c.) e Cauzione 10%.`,
     calcButtonLabel: "🧮 Calcolatore Gratuito Offerta Minima 75% (art. 571 c.p.c.), Cauzione 10% e Imposte →",
-    ctaButtonLabel: "Sblocca Tutte le Perizie CTU, Avvisi di Vendita e Analisi Valore di Mercato →",
+    ctaButtonLabel: "🎁 1 Fascicolo Gratis: Sblocca Perizia CTU, R.G.E. & Avviso PDF →",
     regionsHeading: (c) => `Tutte le ${c} Regioni Italiane (Aste Giudiziarie PVP)`,
     citiesHeading: (c) => `Città e Comuni con Aste Attive (${c} Comuni)`,
     courtsHeading: (c) => `Tribunali Ordinari Italiani (${c} Tribunali)`,
@@ -274,7 +276,7 @@ export const EU_MARKET_COPY: Record<EuPseoMarketCode, EuMarketCopyConfig> = {
     hubMetaDesc: (total, rCount) =>
       `Buscador abierto de Subastas BOE sin Cl@ve ni certificado en las ${rCount} comunidades: ${total} viviendas, locales y solares activos con regla 70%/50% (LEC).`,
     calcButtonLabel: "🧮 Calculadora Gratuita Subasta BOE: Regla 70% / 50% (Art. 670 LEC), Depósito 5% e ITP →",
-    ctaButtonLabel: "Desbloquear Certificación de Cargas, Edicto BOE y Puja Máxima Recomendada →",
+    ctaButtonLabel: "🎁 1 Expediente Gratis: Desbloquear Edicto BOE, Cargas y PDF →",
     regionsHeading: (c) => `Las ${c} Comunidades Autónomas de España (Subastas BOE)`,
     citiesHeading: (c) => `Ciudades y Municipios con Subastas BOE (${c} Municipios)`,
     courtsHeading: (c) => `Juzgados de Primera Instancia y Autoridades (${c} Juzgados)`,
@@ -341,7 +343,7 @@ export const EU_MARKET_COPY: Record<EuPseoMarketCode, EuMarketCopyConfig> = {
     hubMetaDesc: (total, rCount) =>
       `Répertoire ouvert des ${total} ventes aux enchères immobilières judiciaires (Licitor & TJ, ${rCount} régions) : Mise à prix, décote DVF/m² et CARPA 10 %.`,
     calcButtonLabel: "🧮 Calculateur Gratuit Enchères Judiciaires : Mise à prix, Consignation CARPA 10 % & Frais →",
-    ctaButtonLabel: "Débloquer le Cahier des Conditions de Vente, PV Descriptif & Comparatif DVF/m² →",
+    ctaButtonLabel: "🎁 1 Dossier Gratuit : Cahier des Ventes, Rôle TJ & Comparatif DVF →",
     regionsHeading: (c) => `Les ${c} Régions de France (Ventes aux Enchères Licitor & TJ)`,
     citiesHeading: (c) => `Villes et Communes avec Enchères Judiciaires (${c} Villes)`,
     courtsHeading: (c) => `Tribunaux Judiciaires (${c} Juridictions)`,
@@ -406,7 +408,7 @@ export const EU_MARKET_COPY: Record<EuPseoMarketCode, EuMarketCopyConfig> = {
     hubMetaDesc: (total, rCount) =>
       `Browse all ${total} live UK property auction lots across ${rCount} UK regions: Guide Prices in GBP, 10% exchange deposit, Legal Pack check & Land Registry comps.`,
     calcButtonLabel: "🧮 Free UK Property Auction Calculator: Guide vs Reserve, 10% Deposit & Stamp Duty (SDLT) →",
-    ctaButtonLabel: "Unlock Full Auction Legal Pack Checks, Reserve Estimates & Land Registry Comps →",
+    ctaButtonLabel: "🎁 1 Free Dossier: Unlock Address, Legal Pack PDF & Land Registry Comps →",
     regionsHeading: (c) => `All ${c} UK Regions (England, Wales, Scotland & Northern Ireland)`,
     citiesHeading: (c) => `UK Cities & Towns with Active Auction Lots (${c} Locations)`,
     courtsHeading: () => "Regulated UK Property Auction Channels",

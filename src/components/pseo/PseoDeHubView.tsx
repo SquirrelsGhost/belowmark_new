@@ -72,6 +72,14 @@ export default function PseoDeHubView({ catalog }: PseoDeHubViewProps) {
         </div>
 
         <div className="mt-4 flex flex-wrap gap-2 pt-2 font-mono text-[11px]">
+          <Link href="/zwangsversteigerung/ohne-wertgrenzen-5-10-grenze-entfallen" className="border border-signal bg-signal/10 px-2.5 py-1 font-semibold text-signal hover:bg-signal hover:text-paper-bright">🔥 Ohne Wertgrenzen (5/10-Grenze entfallen)</Link>
+          <Link href="/zwangsversteigerung/einfamilienhaus-kaufen" className="border border-ink bg-paper-bright px-2.5 py-1 font-semibold text-ink hover:bg-ink hover:text-paper-bright">🏠 Einfamilienhaus &amp; Wohnhaus</Link>
+          <Link href="/zwangsversteigerung/eigentumswohnung-kaufen" className="border border-ink bg-paper-bright px-2.5 py-1 font-semibold text-ink hover:bg-ink hover:text-paper-bright">🏢 Eigentumswohnung</Link>
+          <Link href="/zwangsversteigerung/grundstueck-ackerland" className="border border-ink bg-paper-bright px-2.5 py-1 font-semibold text-ink hover:bg-ink hover:text-paper-bright">🌳 Grundstück &amp; Ackerland</Link>
+          <Link href="/zwangsversteigerung/mehrfamilienhaus-gewerbe" className="border border-ink bg-paper-bright px-2.5 py-1 font-semibold text-ink hover:bg-ink hover:text-paper-bright">🏛️ Mehrfamilienhaus &amp; Gewerbe</Link>
+        </div>
+
+        <div className="mt-2 flex flex-wrap gap-2 pt-1 font-mono text-[11px]">
           <Link href="/oesterreich/ediktsdatei" className="border border-rule-strong bg-paper px-2.5 py-1 text-ink-soft hover:border-ink hover:text-ink">🇦🇹 Österreich · Ediktsdatei (9 Länder)</Link>
           <Link href="/schweiz/shab-versteigerungen" className="border border-rule-strong bg-paper px-2.5 py-1 text-ink-soft hover:border-ink hover:text-ink">🇨🇭 Schweiz · SHAB (26 Kantone)</Link>
           <Link href="/it/aste-giudiziarie" className="border border-rule-strong bg-paper px-2.5 py-1 text-ink-soft hover:border-ink hover:text-ink">🇮🇹 Italia · Aste PVP (20 Regioni)</Link>

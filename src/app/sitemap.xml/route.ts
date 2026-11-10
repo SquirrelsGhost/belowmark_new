@@ -17,7 +17,7 @@ export async function GET(): Promise<Response> {
   try {
     const catalog = await PseoService.GetCatalog();
     const today = new Date().toISOString().slice(0, 10);
-    const snapDate = (catalog.generatedAt || today).slice(0, 10);
+    const snapDate = today;
 
     const byLoc = new Map<string, SitemapEntry>();
     const addUrl = (loc: string, priority: string, changefreq: "daily" | "weekly" | "monthly" = "daily", lastmod = snapDate) => {
@@ -53,9 +53,15 @@ export async function GET(): Promise<Response> {
       addUrl(`${BELOWMARK_ORIGIN}/zwangsversteigerung/${city.slug}`, "0.80", "daily");
     }
 
-    // 5. All 81 Turkish Provinces + Districts pSEO Pages
+    // 5. All 81 Turkish Provinces + Districts + 1,061 İcra Dairesi + Categories pSEO Pages
     for (const loc of catalog.trLocations) {
-      addUrl(`${BELOWMARK_ORIGIN}/tr/icra-ihale/${loc.slug}`, loc.kind === "province" ? "0.85" : "0.75", "daily");
+      const prio =
+        loc.kind === "province" || loc.kind === "category"
+          ? "0.88"
+          : loc.kind === "court"
+            ? "0.82"
+            : "0.75";
+      addUrl(`${BELOWMARK_ORIGIN}/tr/icra-ihale/${loc.slug}`, prio, "daily", today);
     }
 
     // 6. All 6 European Partner Markets (AT, CH, IT, ES, FR, GB): Hubs, Calculators, Regions, Cities & Courts

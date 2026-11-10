@@ -18,7 +18,10 @@ const formatTry = (val: number | null) =>
 export default function PseoTrHubView({ catalog }: PseoTrHubViewProps) {
   const provinces = catalog.trLocations.filter((l) => l.kind === "province");
   const districts = catalog.trLocations.filter((l) => l.kind === "district");
-  const topDistricts = districts.slice(0, 140);
+  const courts = catalog.trLocations.filter((l) => l.kind === "court");
+  const categories = catalog.trLocations.filter((l) => l.kind === "category");
+  const topDistricts = districts.slice(0, 120);
+  const topCourts = courts.slice(0, 80);
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -74,6 +77,14 @@ export default function PseoTrHubView({ catalog }: PseoTrHubViewProps) {
             🇩🇪 Almanya Zwangsversteigerungen ({formatNumber(catalog.deTotalListings, "tr")} İhale)
           </Link>
         </div>
+
+        <div className="mt-4 flex flex-wrap gap-2 pt-2 font-mono text-[11px]">
+          {categories.map((cat) => (
+            <Link key={cat.slug} href={`/tr/icra-ihale/${cat.slug}`} className="border border-ink bg-paper-bright px-2.5 py-1 font-semibold text-ink hover:bg-signal hover:text-paper-bright">
+              {cat.name} ({cat.totalCount})
+            </Link>
+          ))}
+        </div>
       </header>
 
       <section className="mt-12">
@@ -121,6 +132,29 @@ export default function PseoTrHubView({ catalog }: PseoTrHubViewProps) {
               <span className="truncate font-serif font-medium text-ink">{dist.name}</span>
               <span className="ml-2 shrink-0 font-mono text-[11px] font-semibold text-ink-muted">
                 {dist.totalCount}
+              </span>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <section className="mt-14">
+        <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-rule-strong pb-3">
+          <h2 className="font-display text-2xl text-ink">
+            İcra Daireleri &amp; Satış Memurlukları ({formatNumber(courts.length, "tr")} İcra Dairesi)
+          </h2>
+          <span className="font-mono text-xs text-ink-muted">Dosya sayısına göre en aktif icra daireleri</span>
+        </div>
+        <div className="mt-5 grid gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+          {topCourts.map((court) => (
+            <Link
+              key={court.slug}
+              href={`/tr/icra-ihale/${court.slug}`}
+              className="flex items-center justify-between border border-rule bg-paper px-3 py-2 text-xs transition-colors hover:border-ink hover:bg-paper-bright"
+            >
+              <span className="truncate font-serif font-medium text-ink">{court.name}</span>
+              <span className="ml-2 shrink-0 font-mono text-[11px] font-semibold text-ink-muted">
+                {court.totalCount}
               </span>
             </Link>
           ))}
