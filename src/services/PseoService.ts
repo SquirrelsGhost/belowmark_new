@@ -2,7 +2,7 @@ import "server-only";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { EU_MARKET_META, EU_REGION_SEEDS } from "@/lib/pseo/euMarketRegions";
-import { localizePublicSegmentLabel } from "@/lib/pseo/publicListingUrls";
+import { localizePublicSegmentLabel, sanitizePublicListingHeadline } from "@/lib/pseo/publicListingUrls";
 import { STATES } from "@/lib/snapshot";
 import { Listing, ListingSnapshot } from "@/types/listing.types";
 import {
@@ -122,37 +122,16 @@ function detectEuMarket(l: Listing): EuPseoMarketCode | "DE" {
   return "DE";
 }
 
-const CORPORATE_NAME_RE =
-  /\b(AG|GmbH|SA|Sàrl|Sarl|SagL|Ltd|LLC|Inc|KG|OG|GBR|Genossenschaft|Stiftung|Fondation|Immobilien|Immo|Holding|Bau|Treuhand|Bank|Group|Gruppe|Anstalt|Corp|UG|B\.V\.|S\.L\.|S\.A\.|S\.r\.l\.)\b/i;
-
-const CH_AUCTION_PREFIX_RE = /^((?:Betreibungsamtliche|Konkursamtliche)\s+Grundst(?:ü|ue)cksteigerung)\s+(.+)$/i;
-
 function sanitizePublicPseoTitle(l: Listing, euMarket: EuPseoMarketCode | "DE" | null): string {
-  const raw = (l.title || "").replace(/\s*(?:Schuldner|Eigentümer|Débiteur|Ejecutado|Debitore)\s*:\s*.+$/i, "").trim();
-  if (euMarket === "CH" || l.key.startsWith("shab-")) {
-    const match = CH_AUCTION_PREFIX_RE.exec(raw);
-    if (match) {
-      const [, prefix, trailingName] = match;
-      if (!CORPORATE_NAME_RE.test(trailingName)) {
-        const seg =
-          l.segmentLabel && !/steigerung/i.test(l.segmentLabel)
-            ? l.segmentLabel
-            : l.segment === "apartment"
-              ? "Stockwerkeigentum / Wohnung"
-              : l.segment === "house"
-                ? "Wohnhaus / Liegenschaft"
-                : l.segment === "commercial"
-                  ? "Gewerbeliegenschaft"
-                  : l.segment === "land"
-                    ? "Grundstück / Parzelle"
-                    : "Liegenschaft";
-        const place = cleanCityName(l.place || "");
-        const loc = place ? ` in ${l.postcode ? `${l.postcode} ` : ""}${place}` : "";
-        return `${prefix} — ${seg}${loc}`;
-      }
-    }
-  }
-  return raw || l.segmentLabel || "Immobilie";
+  const country = l.market === "TR" ? "TR" : euMarket ?? "DE";
+  const segLabel = localizePublicSegmentLabel(l.segment, l.segmentLabel || l.tr?.nitelik, country);
+  return sanitizePublicListingHeadline({
+    rawTitle: l.title || "",
+    segmentLabel: segLabel,
+    place: l.place || l.region,
+    postcode: l.postcode,
+    country,
+  });
 }
 
 function toPreviewListing(l: Listing): PseoPreviewListing {
@@ -175,7 +154,7 @@ function toPreviewListing(l: Listing): PseoPreviewListing {
     segmentLabel:
       l.market === "TR"
         ? localizePublicSegmentLabel(l.segment, l.segmentLabel || l.tr?.nitelik, "TR")
-        : l.segmentLabel || "Immobilie",
+        : localizePublicSegmentLabel(l.segment, l.segmentLabel, euMarket ?? "DE"),
     place: l.place || l.region || "Unbekannt",
     postcode: l.postcode,
     region: l.region,

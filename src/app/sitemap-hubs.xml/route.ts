@@ -80,6 +80,21 @@ export async function GET(): Promise<Response> {
       }
     }
 
+    // 7. Trilingual Switzerland (FR-CH Romandie / FOSC & IT-CH Ticino / FUSC) Hubs, Cantons, Cities & Offices
+    const chCat = catalog.euMarkets.CH;
+    for (const chPrefix of ["/fr/suisse/ventes-aux-encheres-shab", "/it/svizzera/aste-ufficio-esecuzione-fosc"]) {
+      addUrl(`${BELOWMARK_ORIGIN}${chPrefix}`, "0.93", "daily");
+      for (const reg of chCat.regions) {
+        addUrl(`${BELOWMARK_ORIGIN}${chPrefix}/${reg.slug}`, "0.86", "daily");
+      }
+      for (const city of chCat.cities) {
+        addUrl(`${BELOWMARK_ORIGIN}${chPrefix}/${city.slug}`, "0.78", "daily");
+      }
+      for (const court of chCat.courts) {
+        addUrl(`${BELOWMARK_ORIGIN}${chPrefix}/${court.slug}`, "0.78", "daily");
+      }
+    }
+
     const rows = [...byLoc.values()].map(
       (u) =>
         `  <url><loc>${escapeXml(u.loc)}</loc><lastmod>${u.lastmod}</lastmod><changefreq>${u.changefreq}</changefreq><priority>${u.priority}</priority></url>`,

@@ -36,6 +36,12 @@ export function slugifyPublicSegment(input: string, country?: PricingCountryCode
     .replace(/^-+|-+$/g, "");
 }
 
+function toCleanTitleCase(raw: string): string {
+  return raw
+    .toLowerCase()
+    .replace(/(^|[\s/-])(\p{L})/gu, (_m, sep: string, ch: string) => `${sep}${ch.toUpperCase()}`);
+}
+
 export function localizePublicSegmentLabel(
   segment: string | null | undefined,
   rawSegmentLabel: string | null | undefined,
@@ -43,7 +49,7 @@ export function localizePublicSegmentLabel(
 ): string {
   const raw = (rawSegmentLabel ?? "").trim();
   if (country === "TR") {
-    if (/olivenhain/i.test(raw)) return "Zeytinlik";
+    if (/olivenhain|zeytin/i.test(raw)) return "Zeytinlik";
     switch (segment) {
       case "apartment":
         return "Daire / Konut";
@@ -59,6 +65,96 @@ export function localizePublicSegmentLabel(
         return "Dükkan / İşyeri";
       default:
         return raw && !/ackerland|bauland|wohnung|haus|gewerbe/i.test(raw) ? raw : "Gayrimenkul";
+    }
+  }
+  if (country === "IT") {
+    if (/stalle|autorimesse|box|posto auto/i.test(raw)) return "Autorimessa / Posto Auto";
+    if (raw && raw === raw.toUpperCase() && raw.length >= 3) {
+      return toCleanTitleCase(raw.split(",")[0].trim());
+    }
+    switch (segment) {
+      case "apartment":
+        return raw || "Appartamento";
+      case "house":
+        return raw || "Villa / Abitazione";
+      case "commercial":
+        return raw || "Immobile Commerciale";
+      case "land":
+      case "farmland":
+        return raw || "Terreno";
+      default:
+        return raw || "Immobile all'Asta";
+    }
+  }
+  if (country === "ES") {
+    if (raw && !/^bien inmueble/i.test(raw)) return raw;
+    switch (segment) {
+      case "apartment":
+        return "Vivienda / Piso";
+      case "house":
+        return "Chalet / Vivienda Unifamiliar";
+      case "multiFamily":
+        return "Edificio Residencial";
+      case "commercial":
+        return "Local Comercial / Nave";
+      case "land":
+        return "Solar / Parcela Urbana";
+      case "farmland":
+        return "Finca Rústica";
+      default:
+        return "Inmueble en Subasta BOE";
+    }
+  }
+  if (country === "FR") {
+    const cleanedFr = raw.replace(/^(?:un|une|des)\s+/i, "").trim();
+    if (cleanedFr.length >= 3) {
+      return `${cleanedFr.charAt(0).toUpperCase()}${cleanedFr.slice(1)}`;
+    }
+    switch (segment) {
+      case "apartment":
+        return "Appartement";
+      case "house":
+        return "Maison Individuelle";
+      case "commercial":
+        return "Local Commercial";
+      case "land":
+      case "farmland":
+        return "Terrain";
+      default:
+        return "Bien Immobilier";
+    }
+  }
+  if (country === "GB") {
+    if (raw) return raw;
+    switch (segment) {
+      case "apartment":
+        return "Flat / Apartment";
+      case "house":
+        return "House";
+      case "commercial":
+        return "Commercial Property";
+      case "land":
+      case "farmland":
+        return "Land / Plot";
+      default:
+        return "Auction Property";
+    }
+  }
+  if (country === "CH") {
+    switch (segment) {
+      case "apartment":
+        return "Stockwerkeigentum / Wohnung";
+      case "house":
+        return "Einfamilienhaus";
+      case "multiFamily":
+        return "Mehrfamilienhaus";
+      case "commercial":
+        return "Gewerbeliegenschaft";
+      case "land":
+      case "farmland":
+        return "Grundstück / Parzelle";
+      default:
+        return raw || "Grundstücksteigerung";
     }
   }
   return raw || "Immobilie";
@@ -119,6 +215,32 @@ export function sanitizePublicListingHeadline(params: {
       .replace(/\b\d{4}\/\d+\s*(?:esas|talimat|satis|satış)\b/gi, "")
       .replace(/\s{2,}/g, " ")
       .trim();
+  }
+
+  if (country === "CH") {
+    const chKind = /konkurs/i.test(rawTitle) ? "Konkursamtliche Steigerung" : "Betreibungsamtliche Steigerung";
+    const seg = segmentLabel && !/steigerung/i.test(segmentLabel) ? `${segmentLabel} (${chKind})` : chKind;
+    return locPart ? `${seg} · ${locPart}` : seg;
+  }
+
+  if (country === "ES") {
+    const seg = segmentLabel || "Inmueble en Subasta BOE";
+    return locPart ? `${seg} en ${locPart}` : seg;
+  }
+
+  if (country === "FR") {
+    const seg = segmentLabel || "Bien Immobilier";
+    return locPart ? `${seg} à ${locPart}` : seg;
+  }
+
+  if (country === "IT") {
+    const seg = segmentLabel || "Immobile all'Asta";
+    return locPart ? `${seg} a ${locPart}` : seg;
+  }
+
+  if (country === "GB") {
+    const seg = segmentLabel || "Property for Auction";
+    return locPart ? `${seg} in ${locPart}` : seg;
   }
 
   // Strip raw file numbers like `0002 K 0005/2023`

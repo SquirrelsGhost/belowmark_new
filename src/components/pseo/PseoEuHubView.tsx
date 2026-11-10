@@ -101,9 +101,22 @@ export default function PseoEuHubView({ catalog }: PseoEuHubViewProps) {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
       <header className="border-b-2 border-ink pb-8">
-        <span className="inline-block bg-signal px-2.5 py-0.5 font-mono text-[11px] font-semibold uppercase tracking-widest text-paper-bright">
-          {copy.hubEyebrow}
-        </span>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <span className="inline-block bg-signal px-2.5 py-0.5 font-mono text-[11px] font-semibold uppercase tracking-widest text-paper-bright">
+            {copy.hubEyebrow}
+          </span>
+          {catalog.market === "CH" && (
+            <div className="flex gap-1.5 font-mono text-[11px]">
+              <span className="border border-signal bg-signal px-2.5 py-1 font-semibold text-paper-bright">🇨🇭 Deutsch (SHAB)</span>
+              <Link href="/fr/suisse/ventes-aux-encheres-shab" className="border border-rule-strong bg-paper px-2.5 py-1 text-ink-soft hover:border-ink hover:text-ink">
+                🇨🇭 Français (FOSC)
+              </Link>
+              <Link href="/it/svizzera/aste-ufficio-esecuzione-fosc" className="border border-rule-strong bg-paper px-2.5 py-1 text-ink-soft hover:border-ink hover:text-ink">
+                🇨🇭 Italiano (FUSC)
+              </Link>
+            </div>
+          )}
+        </div>
         <h1 className="mt-4 font-display text-3xl leading-[1.08] tracking-tight text-ink sm:text-5xl">
           {hubTitle}
         </h1>

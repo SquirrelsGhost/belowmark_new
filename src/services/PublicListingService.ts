@@ -61,12 +61,18 @@ function currencyForCountry(country: PricingCountryCode, raw?: string | null): "
 function sanitizeTeaserText(raw: string | null | undefined): string | null {
   if (!raw) return null;
   const stripped = raw
+    .replace(/\b(?:Schuldner|Eigentümer|Débiteur|Ejecutado|Debitore)\s*:[^.;\n]+/gi, "")
     .replace(/\b\d{1,4}\s*[A-Z]{1,3}\s*\d{1,5}\/\d{2,4}\b/gi, "•••/••••")
     .replace(/\b\d{4}\/\d+\s*(?:esas|talimat|satis|satış)\b/gi, "••••/•••")
     .replace(
-      /\b([A-Za-zÄÖÜäöüßéèàùçñ.\-]+(?:straße|strasse|str\.|weg|gasse|platz|allee|ring|damm|ufer|rue|avenue|calle|via|piazza|road|street|lane))\s+\d+[a-zA-Z0-9\s/-]*/gi,
+      /\b\d+\s*(?:bis|ter|quater|[a-z])?\s*,?\s*(?=(?:rue|avenue|av\.|boulevard|bd|allée|allee|impasse|chemin|route|quai|cours)\b)/gi,
+      "•• ",
+    )
+    .replace(
+      /\b([A-Za-zÄÖÜäöüßéèàùçñ.\-]+(?:straße|strasse|str\.|weg|gasse|platz|allee|ring|damm|ufer|rue|avenue|calle|avenida|avda|paseo|via|viale|corso|piazza|road|street|lane|grove|drive|close))\s*,?\s*(?:n[º°.]?\s*)?\d+[a-zA-Z0-9\s/-]*/gi,
       "$1 ••",
     )
+    .replace(/\b(?:casa|planta|puerta|bloque|escalera|flat|unit)\s+[a-z0-9ºª-]+\b/gi, "")
     .replace(/\s+/g, " ")
     .trim();
   if (stripped.length < 15) return null;

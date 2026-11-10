@@ -1341,12 +1341,13 @@ async function fetchAtEdikteAll(postcodes, prevByKey, portalCacheDir, nowIso) {
     }
 
     if (!parsed) return;
+    const hearingAt = parsed.hearingAt;
+    if (hearingAt && Date.parse(hearingAt) < Date.now() - 2 * 86_400_000) return;
     const prev = prevByKey.get(key);
     const postcode = parsed.postcode;
     const place = parsed.place;
     const street = parsed.street;
     const title = [parsed.segmentLabel || item.categoryCol, [postcode, place].filter(Boolean).join(" "), street].filter(Boolean).join(", ") || item.linkText;
-    const hearingAt = parsed.hearingAt;
     const endIso = hearingAt ? new Date(Date.parse(hearingAt) + 60 * 60000).toISOString() : null;
     const fYear = fileNoYear(parsed.fileNo);
     const pt = (postcode && postcodes[`AT-${postcode}`]) || postcodes[item.state.code.toUpperCase()] || null;
@@ -1437,7 +1438,7 @@ async function fetchChShabAll(postcodes, prevByKey, portalCacheDir, nowIso) {
   const startCutoff = new Date(Date.now() - 180 * 86_400_000).toISOString().slice(0, 10);
   const pubSummaries = [];
 
-  for (let page = 0; page < 8; page++) {
+  for (let page = 0; page < 18; page++) {
     try {
       const url = `https://www.shab.ch/api/v1/publications?publicationStates=PUBLISHED,CANCELLED&subRubrics=SB01,KK08&publicationDate.start=${startCutoff}&pageRequest.page=${page}&pageRequest.size=100`;
       const res = await fetch(url, {
@@ -1531,6 +1532,7 @@ async function fetchChShabAll(postcodes, prevByKey, portalCacheDir, nowIso) {
     const postcode = parsed.postcode;
     const place = parsed.place;
     const hearingAt = parsed.hearingAt;
+    if (hearingAt && Date.parse(hearingAt) < Date.now() - 2 * 86_400_000) return;
     const endIso = hearingAt ? new Date(Date.parse(hearingAt) + 60 * 60000).toISOString() : null;
     const pt = (postcode && postcodes[`CH-${postcode}`]) || postcodes[canton.code.toUpperCase()] || null;
     const precision = postcode && postcodes[`CH-${postcode}`] ? "postcode" : "province";
@@ -1553,13 +1555,16 @@ async function fetchChShabAll(postcodes, prevByKey, portalCacheDir, nowIso) {
       });
     }
 
+    const cleanChKind = meta.subRubric === "KK08" ? "Konkursamtliche Grundstücksteigerung" : "Betreibungsamtliche Grundstücksteigerung";
+    const cleanChLoc = [postcode, place].filter(Boolean).join(" ") || canton.name;
+
     out.push({
       key,
       market: "DE",
       country: "CH",
       currency: "CHF",
       sourcePortal: "shab.ch",
-      title: decodeHtmlText(titleRaw) || `${parsed.authority} · ${place ?? canton.name}`,
+      title: `${cleanChKind} · ${cleanChLoc}`,
       segment: parsed.segment ?? "other",
       segmentLabel: meta.subRubric === "KK08" ? "Konkursamtliche Steigerung" : "Betreibungsamtliche Steigerung",
       region: canton.name,
@@ -1698,7 +1703,7 @@ async function fetchItAsteAll(prevByKey, portalCacheDir, nowIso) {
     const mapRaw = await rMap.json();
     const allGeoItems = (Array.isArray(mapRaw) ? mapRaw : Object.values(mapRaw ?? {}))
       .filter((m) => m && m.idLotto && m.geolocalizzato && m.latitudine && m.longitudine);
-    const targetCount = 350;
+    const targetCount = 2400;
     const step = Math.max(1, Math.floor(allGeoItems.length / targetCount));
     const mapItems = [];
     for (let i = 0; i < allGeoItems.length && mapItems.length < targetCount; i += step) {
@@ -1712,7 +1717,7 @@ async function fetchItAsteAll(prevByKey, portalCacheDir, nowIso) {
     }
 
     const detailedLots = [];
-    await mapLimit(chunks, 3, async (idChunk) => {
+    await mapLimit(chunks, 6, async (idChunk) => {
       try {
         const rData = await fetch("https://webapi.astegiudiziarie.it/api/search/Data", {
           method: "POST",
@@ -1825,10 +1830,12 @@ async function fetchEsBoeAll(prevByKey, portalCacheDir, nowIso) {
 
   try {
     const queries = [
-      ["EJ", "SUBASTA.FECHA_FIN", "asc"],
-      ["EJ", "SUBASTA.FECHA_FIN", "desc"],
-      ["EJ", "SUBASTA.ID_SUBASTA_ORDENAR", "desc"],
-      ["EJ", "SUBASTA.ID_SUBASTA_ORDENAR", "asc"],
+      ["EJ", "SUBASTA.FECHA_FIN", "asc", ""],
+      ["EJ", "SUBASTA.FECHA_FIN", "desc", ""],
+      ["EJ", "SUBASTA.ID_SUBASTA_ORDENAR", "desc", ""],
+      ["EJ", "SUBASTA.ID_SUBASTA_ORDENAR", "asc", ""],
+      ["EJ", "SUBASTA.VALOR_SUBASTA", "desc", ""],
+      ["EJ", "SUBASTA.VALOR_SUBASTA", "asc", ""],
     ];
     const byId = new Map();
 
@@ -1880,7 +1887,7 @@ async function fetchEsBoeAll(prevByKey, portalCacheDir, nowIso) {
       byBucket.get(bucketKey).push(stub);
     }
     const stubs = [];
-    const maxTotal = 360;
+    const maxTotal = 1200;
     let round = 0;
     while (stubs.length < maxTotal) {
       let added = false;
@@ -1895,7 +1902,7 @@ async function fetchEsBoeAll(prevByKey, portalCacheDir, nowIso) {
     }
 
     console.log(`    subastas.boe.es · ${stubs.length} aktive Immobilien-Auktionen gefunden, lade Details ...`);
-    await mapLimit(stubs, 12, async (stub) => {
+    await mapLimit(stubs, 18, async (stub) => {
       const key = `es-boe-${stub.idSub}`;
       const cacheFile = join(portalCacheDir, `${key}.json`);
       let parsed = null;
@@ -2049,9 +2056,9 @@ async function fetchFrLicitorAll(prevByKey, portalCacheDir, nowIso) {
       }
     });
 
-    const targetAds = adStubs.slice(0, 400);
+    const targetAds = adStubs;
     console.log(`    licitor.com · ${targetAds.length} gerichtliche Versteigerungen gefunden, lade Details ...`);
-    await mapLimit(targetAds, 12, async (stub) => {
+    await mapLimit(targetAds, 16, async (stub) => {
       const key = `fr-licitor-${stub.adNo}`;
       const cacheFile = join(portalCacheDir, `${key}.json`);
       let parsed = null;
@@ -2085,9 +2092,10 @@ async function fetchFrLicitorAll(prevByKey, portalCacheDir, nowIso) {
       }
 
       if (!parsed || !parsed.minimumBid) return;
+      const hearingAt = parsed.hearingAt;
+      if (hearingAt && Date.parse(hearingAt) < Date.now() - 2 * 86_400_000) return;
       const reg = REGION_BY_KEY_FR.get(parsed.state) ?? REGIONEN_FR[0];
       const prev = prevByKey.get(key);
-      const hearingAt = parsed.hearingAt;
       const endIso = hearingAt ? new Date(Date.parse(hearingAt) + 60 * 60000).toISOString() : null;
       const livingAreaM2 = parsed.livingAreaM2 ?? null;
       const landAreaM2 = parsed.landAreaM2 ?? null;
@@ -2166,11 +2174,11 @@ async function fetchGbAuctionsAll(prevByKey, portalCacheDir, nowIso) {
   const ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
 
   try {
-    const pages = Array.from({ length: 22 }, (_, i) => i + 1);
+    const pages = Array.from({ length: 45 }, (_, i) => i + 1);
     const stubs = [];
     const seenUrls = new Set();
 
-    await mapLimit(pages, 6, async (page) => {
+    await mapLimit(pages, 8, async (page) => {
       try {
         const r = await fetch(`https://www.btgeddisonspropertyauctions.com/properties?page=${page}`, { headers: { "User-Agent": ua } });
         if (!r.ok) return;
@@ -2780,35 +2788,50 @@ async function run() {
   const euFast = process.argv.includes("--eu-fast");
 
   if (euFast) {
-    const dePath = join(OUT_DIR, "de.json");
-    const existing = JSON.parse(readFileSync(dePath, "utf8"));
-    const prevByKey = new Map(existing.listings.map((l) => [l.key, l]));
-    const portalCacheDir = join(PORTAL_CACHE_DIR, "de");
-    mkdirSync(portalCacheDir, { recursive: true });
-    const nowIso = new Date().toISOString();
-    const kept = existing.listings.filter((l) => !["IT", "ES", "FR", "GB"].includes(l.country));
-    const [itListings, esListings, frListings, gbListings] = await Promise.all([
-      fetchItAsteAll(prevByKey, portalCacheDir, nowIso),
-      fetchEsBoeAll(prevByKey, portalCacheDir, nowIso),
-      fetchFrLicitorAll(prevByKey, portalCacheDir, nowIso),
-      fetchGbAuctionsAll(prevByKey, portalCacheDir, nowIso),
-    ]);
-    const listings = [...kept, ...itListings, ...esListings, ...frListings, ...gbListings];
-    const stateCounts = new Map();
-    for (const l of listings) {
-      if (l.regionCode) stateCounts.set(l.regionCode, (stateCounts.get(l.regionCode) ?? 0) + 1);
-    }
-    const updated = {
-      meta: {
-        ...existing.meta,
-        generatedAt: nowIso,
-        states: existing.meta.states.map((s) => ({ ...s, included: stateCounts.get(s.code) ?? 0 })),
-      },
-      listings,
-    };
-    atomicWriteJson(dePath, updated);
-    console.log(`✓ data/snapshots/de.json aktualisiert (${listings.length} Objekte, IT=${itListings.length}, ES=${esListings.length}, FR=${frListings.length}, GB=${gbListings.length})`);
-    return;
+      const dePath = join(OUT_DIR, "de.json");
+      const postcodes = readPoints("de");
+      const existing = JSON.parse(readFileSync(dePath, "utf8"));
+      const prevByKey = new Map(existing.listings.map((l) => [l.key, l]));
+      const portalCacheDir = PORTAL_CACHE_DIR;
+      mkdirSync(portalCacheDir, { recursive: true });
+      const nowIso = new Date().toISOString();
+      const cutoffMs = Date.now() - 2 * 86_400_000;
+      const keptDe = existing.listings.filter(
+        (l) =>
+          (!l.country || l.country === "DE") &&
+          (!l.hearingAt || Date.parse(l.hearingAt) >= cutoffMs),
+      );
+      const [atListings, chListings, itListings, esListings, frListings, gbListings] = await Promise.all([
+        fetchAtEdikteAll(postcodes, prevByKey, portalCacheDir, nowIso),
+        fetchChShabAll(postcodes, prevByKey, portalCacheDir, nowIso),
+        fetchItAsteAll(prevByKey, portalCacheDir, nowIso),
+        fetchEsBoeAll(prevByKey, portalCacheDir, nowIso),
+        fetchFrLicitorAll(prevByKey, portalCacheDir, nowIso),
+        fetchGbAuctionsAll(prevByKey, portalCacheDir, nowIso),
+      ]);
+      const listings = [...keptDe, ...atListings, ...chListings, ...itListings, ...esListings, ...frListings, ...gbListings];
+      const stateCounts = new Map();
+      for (const l of listings) {
+        if (l.regionCode) stateCounts.set(l.regionCode, (stateCounts.get(l.regionCode) ?? 0) + 1);
+      }
+      const updated = {
+        meta: {
+          ...existing.meta,
+          generatedAt: nowIso,
+          states: existing.meta.states.map((s) => ({ ...s, included: stateCounts.get(s.code) ?? 0 })),
+        },
+        listings,
+      };
+      atomicWriteJson(dePath, updated);
+      console.log(
+        `✓ data/snapshots/de.json aktualisiert (${listings.length} Objekte: DE=${keptDe.length}, AT=${atListings.length}, CH=${chListings.length}, IT=${itListings.length}, ES=${esListings.length}, FR=${frListings.length}, GB=${gbListings.length})`,
+      );
+      if (!deOnly) {
+        const tr = await buildTrLive();
+        atomicWriteJson(join(OUT_DIR, "tr.json"), tr);
+        console.log(`✓ data/snapshots/tr.json aktualisiert (${tr.listings.length} Objekte, Stand ${tr.meta.generatedAt})`);
+      }
+      return;
   }
 
   if (!trOnly) {

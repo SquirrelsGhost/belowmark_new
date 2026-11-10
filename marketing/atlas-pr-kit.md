@@ -7,16 +7,16 @@
 
 ---
 
-## 1. Kernzahlen für Zitate & Pressemeldungen (Stand: Live-Katalog)
-- **19.785 aktive gerichtliche Immobilienversteigerungen** in **8 europäischen Märkten** ausgewertet:
-  - 🇹🇷 **Türkei (UYAP E-Satış):** `14.749` Verfahren (50 % Startgebot · 10 % elektronische Sicherheitsleistung)
-  - 🇩🇪 **Deutschland (ZVG-Portal der Länder):** `3.799` Verfahren an `487` Amtsgerichten (5/10- & 7/10-Grenzen §§ 74a, 85a ZVG · 10 % Sicherheit)
-  - 🇪🇸 **Spanien (Portal de Subastas BOE):** `286` Verfahren (70 % / 50 % Schwelle Art. 670 LEC · 5 % BOE-Kaution)
-  - 🇮🇹 **Italien (Portale Vendite Pubbliche PVP):** `249` Verfahren (75 % Offerta Minima Art. 571 c.p.c. · 10 % Cauzione)
-  - 🇬🇧 **Großbritannien (Property Auctions):** `240` Lots (Guide Price / Reserve · 10 % Exchange Deposit)
-  - 🇫🇷 **Frankreich (Licitor / Tribunaux Judiciaires):** `205` Verfahren (Mise à prix · 10 % Chèque CARPA)
-  - 🇦🇹 **Österreich (Ediktsdatei der Justiz):** `135` Verfahren (50 % Geringstes Gebot § 151 EO · 10 % Vadium)
-  - 🇨🇭 **Schweiz (SHAB / Betreibungsämter):** `122` Steigerungen (Deckungsprinzip Art. 126 SchKG)
+## 1. Kernzahlen für Zitate & Pressemeldungen (Stand: Live-Katalog 10.11.2026)
+- **21.055 aktive gerichtliche Immobilienversteigerungen** in **8 europäischen Märkten** ausgewertet:
+  - 🇹🇷 **Türkei (UYAP E-Satış / BİK / VakıfBank):** `14.752` Verfahren (50 % Startgebot · 10 % elektronische Sicherheitsleistung)
+  - 🇩🇪 **Deutschland (ZVG-Portal der Länder & zvg.com):** `3.396` Verfahren (5/10- & 7/10-Grenzen §§ 74a, 85a ZVG · 10 % Sicherheit)
+  - 🇮🇹 **Italien (Portale Vendite Pubbliche PVP / Astegiudiziarie):** `959` Verfahren (75 % Offerta Minima Art. 571 c.p.c. · 10 % Cauzione)
+  - 🇪🇸 **Spanien (Portal de Subastas BOE):** `726` Verfahren (70 % / 50 % Schwelle Art. 670 LEC · 5 % BOE-Kaution)
+  - 🇬🇧 **Großbritannien (Property Auctions):** `470` Lots (Guide Price / Reserve · 10 % Exchange Deposit)
+  - 🇦🇹 **Österreich (Ediktsdatei der Justiz):** `383` Verfahren (50 % Geringstes Gebot § 151 EO · 10 % Vadium)
+  - 🇫🇷 **Frankreich (Licitor / Tribunaux Judiciaires):** `213` Verfahren (Mise à prix · 10 % Chèque CARPA)
+  - 🇨🇭 **Schweiz (SHAB / FOSC / FUSC — DE · FR · IT):** `156` aktive zukünftige Steigerungen (Deckungsprinzip Art. 126 SchKG/LP/LEF)
 
 ---
 

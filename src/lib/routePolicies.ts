@@ -57,6 +57,8 @@ const POLICY_RULES: readonly PolicyRule[] = [
   { methods: ["GET"], pattern: /^\/oesterreich\/ediktsdatei(\/[^/]+)?$/, policy: PAGE_PUBLIC },
   { methods: ["GET"], pattern: /^\/oesterreich\/rechner\/geringstes-gebot-vadium$/, policy: PAGE_PUBLIC },
   { methods: ["GET"], pattern: /^\/schweiz\/shab-versteigerungen(\/[^/]+)?$/, policy: PAGE_PUBLIC },
+  { methods: ["GET"], pattern: /^\/fr\/suisse\/ventes-aux-encheres-shab(\/[^/]+)?$/, policy: PAGE_PUBLIC },
+  { methods: ["GET"], pattern: /^\/it\/svizzera\/aste-ufficio-esecuzione-fosc(\/[^/]+)?$/, policy: PAGE_PUBLIC },
   { methods: ["GET"], pattern: /^\/schweiz\/rechner\/betreibungsamtliche-steigerung-schkg$/, policy: PAGE_PUBLIC },
   { methods: ["GET"], pattern: /^\/it\/aste-giudiziarie(\/[^/]+)?$/, policy: PAGE_PUBLIC },
   { methods: ["GET"], pattern: /^\/it\/calcolatore\/offerta-minima-75-asta-giudiziaria$/, policy: PAGE_PUBLIC },
