@@ -34,6 +34,60 @@ export interface MailFrameOptions {
   baseUrl?: string;
 }
 
+const NAV_LABELS: Record<
+  string,
+  { app: string; deadlines: string; alerts: string; account: string; legal: string; subline: string }
+> = {
+  de: {
+    app: "Suche",
+    deadlines: "Termine",
+    alerts: "Such-Alerts",
+    account: "Konto",
+    legal: "Impressum & Datenschutz",
+    subline: "Amtliche Bekanntmachungen · Mit Quelle",
+  },
+  tr: {
+    app: "Arama",
+    deadlines: "Süreler",
+    alerts: "Alarmlar",
+    account: "Hesap",
+    legal: "Künye & Gizlilik",
+    subline: "Resmî İlan Verisi · Kaynaklı Takip",
+  },
+  en: {
+    app: "Search",
+    deadlines: "Deadlines",
+    alerts: "Alerts",
+    account: "Account",
+    legal: "Legal & Privacy",
+    subline: "Official Court & Registry Notices · Verified Sources",
+  },
+  fr: {
+    app: "Recherche",
+    deadlines: "Audiences",
+    alerts: "Alertes",
+    account: "Compte",
+    legal: "Mentions légales & Confidentialité",
+    subline: "Annonces Judiciaires Officielles · Sources Vérifiées",
+  },
+  es: {
+    app: "Búsqueda",
+    deadlines: "Plazos",
+    alerts: "Alertas",
+    account: "Cuenta",
+    legal: "Aviso legal y Privacidad",
+    subline: "Subastas Oficiales BOE y Juzgados · Fuentes Verificadas",
+  },
+  it: {
+    app: "Ricerca",
+    deadlines: "Scadenze",
+    alerts: "Avvisi",
+    account: "Account",
+    legal: "Note legali e Privacy",
+    subline: "Avvisi Giudiziari Ufficiali · Fonti Verificate",
+  },
+};
+
 /**
  * Shared HTML email shell in Belowmark's "Amtlicher Aushang / Official Dossier"
  * aesthetic. Uses table-based layout and inline styles for maximum compatibility
@@ -41,12 +95,9 @@ export interface MailFrameOptions {
  */
 export function renderMailFrame(opts: MailFrameOptions): string {
   const C = MAIL_COLORS;
-  const isTr = opts.lang === "tr";
   const base = (opts.baseUrl || "https://belowmark.com").replace(/\/+$/, "");
   const preheaderText = escapeHtml(opts.preheader || opts.subject);
-  const navLabels = isTr
-    ? { app: "Arama", deadlines: "Süreler", alerts: "Alarmlar", account: "Hesap", legal: "Künye & Gizlilik" }
-    : { app: "Suche", deadlines: "Termine", alerts: "Such-Alerts", account: "Konto", legal: "Impressum & Datenschutz" };
+  const navLabels = NAV_LABELS[opts.lang] ?? NAV_LABELS.de;
 
   const manageBlock =
     opts.manageLabel && opts.manageUrl
@@ -130,7 +181,7 @@ export function renderMailFrame(opts: MailFrameOptions): string {
                 <tr>
                   <td align="left" style="vertical-align:middle;">
                     <div style="font-family:'Courier New',Courier,monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:${C.muted};">
-                      ${isTr ? "Resmî İlan Verisi · Kaynaklı Takip" : "Amtliche Bekanntmachungen · Mit Quelle"}
+                      ${escapeHtml(navLabels.subline)}
                     </div>
                     <div style="font-size:14px;font-weight:700;color:${C.ink};margin-top:3px;">
                       ${escapeHtml(opts.signature)}
