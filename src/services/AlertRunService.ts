@@ -7,14 +7,16 @@ import { matchesAlert } from "@/lib/alerts/alertMatch";
 import { alertSearchPath, alertSummary } from "@/lib/alerts/alertSummary";
 import { listingHref } from "@/lib/appConstants";
 import { fill, formatHearing, formatMoney } from "@/lib/appFormat";
-import { MarketCode } from "@/lib/constants";
+import { MarketCode, PricingCountryCode } from "@/lib/constants";
 import { env } from "@/lib/env";
-import { getListingCountry } from "@/lib/listingCountry";
+import { accountCountry, getListingCountry } from "@/lib/listingCountry";
 import { getPlaceTitle } from "@/lib/listingLabels";
 import { AlertMailItem, AlertMailSection, renderAlertMail } from "@/lib/mail/renderAlertMail";
 import { effectiveUserPermissions, hasFullAppAccess } from "@/lib/permissions";
+import { redactListingForFreePlan } from "@/lib/sicherheit/antiScrapingRules";
 import { AlertService } from "@/services/AlertService";
 import { CountryAccessService } from "@/services/CountryAccessService";
+import { FreeUnlockService } from "@/services/FreeUnlockService";
 import { MailService } from "@/services/MailService";
 import { TranslationService } from "@/services/TranslationService";
 import { AlertsTranslations } from "@/translations/alerts/AlertsTranslations";
@@ -29,7 +31,9 @@ interface Recipient {
   id: string;
   email: string;
   locale: string;
+  country: PricingCountryCode;
   hasFullAccess: boolean;
+  unlockedListingKey: string | null;
 }
 
 interface AlertResult {
@@ -44,20 +48,25 @@ const globalForAlerts = globalThis as unknown as { alertRunActive: boolean | und
 
 async function recipients(userIds: string[]): Promise<Map<string, Recipient>> {
   if (userIds.length === 0) return new Map();
-  const rows = await db
-    .select({
-      id: users.id,
-      email: users.email,
-      locale: users.locale,
-      emailVerifiedAt: users.emailVerifiedAt,
-      plan: activePlanSql,
-      permissions: users.permissions,
-      trialEndsAt: users.trialEndsAt,
-      gesperrtAm: users.gesperrtAm,
-    })
-    .from(users)
-    .where(inArray(users.id, userIds));
-    const seats = await TeamSeatService.holders(userIds);
+  const [rows, seats, unlockedByUser] = await Promise.all([
+    db
+      .select({
+        id: users.id,
+        email: users.email,
+        locale: users.locale,
+        market: users.market,
+        country: users.country,
+        emailVerifiedAt: users.emailVerifiedAt,
+        plan: activePlanSql,
+        permissions: users.permissions,
+        trialEndsAt: users.trialEndsAt,
+        gesperrtAm: users.gesperrtAm,
+      })
+      .from(users)
+      .where(inArray(users.id, userIds)),
+    TeamSeatService.holders(userIds),
+    FreeUnlockService.getUnlockedKeysByUsers(userIds),
+  ]);
 
   return new Map(
     rows
@@ -70,13 +79,16 @@ async function recipients(userIds: string[]): Promise<Map<string, Recipient>> {
           bannedAt: row.gesperrtAm,
           teamSeat: seats.has(row.id),
         });
+        const market: MarketCode = row.market === "TR" ? "TR" : "DE";
         return [
           row.id,
           {
             id: row.id,
             email: row.email,
             locale: row.locale,
+            country: accountCountry(row.country, market),
             hasFullAccess: hasFullAppAccess(perms),
+            unlockedListingKey: unlockedByUser.get(row.id) ?? null,
           },
         ];
       }),
@@ -95,7 +107,11 @@ function mailFor(recipient: Recipient, results: AlertResult[]) {
   const segments = TranslationService.GetTranslations(locale).App.Segments;
   const total = results.reduce((sum, result) => sum + result.hits.length, 0);
 
-  const item = (hit: AlertHit, listing: Listing, market: MarketCode): AlertMailItem => {
+  const item = (hit: AlertHit, rawListing: Listing, market: MarketCode): AlertMailItem => {
+    const listing =
+      recipient.hasFullAccess || rawListing.key === recipient.unlockedListingKey
+        ? rawListing
+        : redactListingForFreePlan(rawListing);
     const date = (iso: string | null) => (iso ? formatHearing(iso, market, lang) : "—");
     const isMove = hit.kind === "rescheduled" || hit.kind === "reinstated";
     return {
@@ -103,7 +119,7 @@ function mailFor(recipient: Recipient, results: AlertResult[]) {
       title: getPlaceTitle(listing),
       reference: `${listing.authority} · ${listing.fileNo}`,
       dateLine: isMove ? fill(M.Moved, { before: date(hit.before), after: date(hit.after) }) : fill(M.NextDate, { date: date(hit.kind === "cancelled" ? hit.before : hit.after) }),
-      valueLine: recipient.hasFullAccess && listing.appraisedValue !== null ? `${M.Value[market]}: ${formatMoney(listing.appraisedValue, market, lang)}` : null,
+      valueLine: listing.appraisedValue !== null ? `${M.Value[market]}: ${formatMoney(listing.appraisedValue, market, lang)}` : null,
       url: absolute(listingHref(listing.key)),
     };
   };
@@ -127,6 +143,15 @@ function mailFor(recipient: Recipient, results: AlertResult[]) {
   });
 
   const markets = [...new Set(results.map(({ alert }) => (alert.market === "TR" ? "TR" : "DE") as MarketCode))];
+  const upgradeBox = recipient.hasFullAccess
+    ? null
+    : {
+        title: M.TrialTitle,
+        body: M.TrialBody,
+        cta: M.TrialCta,
+        url: absolute(`/buchen?markt=${encodeURIComponent(recipient.country)}&tarif=investor-monat`),
+      };
+
   return renderAlertMail({
     lang,
     subject: total === 1 ? M.SubjectOne : fill(M.Subject, { count: total }),
@@ -136,6 +161,7 @@ function mailFor(recipient: Recipient, results: AlertResult[]) {
     sections,
     openSearch: M.OpenSearch,
     note: recipient.hasFullAccess ? null : M.LockedValues,
+    upgradeBox,
     source: markets.map((market) => M.Source[market]).join(" · "),
     manage: M.Manage,
     manageUrl: absolute(ALERT_ROUTES.manage),

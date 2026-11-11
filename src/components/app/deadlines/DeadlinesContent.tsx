@@ -21,6 +21,7 @@ import { getPlaceTitle } from "@/lib/listingLabels";
 import { AppViewer } from "@/services/AppSessionService";
 import { DeadlineService } from "@/services/DeadlineService";
 import { DeadlineTimelineService } from "@/services/DeadlineTimelineService";
+import { FreeUnlockService } from "@/services/FreeUnlockService";
 import { ListingService } from "@/services/ListingService";
 import { IDeadlineTranslation } from "@/translations/deadlines/IDeadlineTranslation";
 
@@ -39,7 +40,9 @@ export default async function DeadlinesContent({ viewer, locale, labels }: Deadl
 
   const [follows, hasFeed] = await Promise.all([DeadlineService.list(viewer.id), DeadlineService.hasFeed(viewer.id)]);
   const mine = follows.filter((follow) => follow.market === viewer.market);
-  const listings = new Map((await ListingService.getMany(viewer.countries, mine.map((follow) => follow.listingKey))).map((listing) => [listing.key, listing]));
+  const rawListings = await ListingService.getMany(viewer.countries, mine.map((follow) => follow.listingKey));
+  const redactedListings = await FreeUnlockService.redactForViewer(viewer.id, viewer.plan === "free", rawListings);
+  const listings = new Map(redactedListings.map((listing) => [listing.key, listing]));
   const today = marketToday(viewer.market, viewer.now);
   const nextOf = new Map(
     await Promise.all(

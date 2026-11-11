@@ -105,10 +105,16 @@ export function maskFileNo(fileNo: string): string {
  * so free users see the opportunity and upgrade to Investor to unlock the full dossier.
  */
 export function redactListingForFreePlan(listing: Listing): Listing {
+  const maskedNo = maskFileNo(listing.fileNo);
+  const safeTitle =
+    listing.fileNo && listing.title.includes(listing.fileNo)
+      ? listing.title.split(listing.fileNo).join(maskedNo)
+      : listing.title;
   return {
     ...listing,
+    title: safeTitle,
     street: null,
-    fileNo: maskFileNo(listing.fileNo),
+    fileNo: maskedNo,
     grundbuch: null,
     description: listing.description ? `${listing.description.slice(0, 110)}…` : null,
     creditor: null,

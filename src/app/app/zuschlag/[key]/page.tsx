@@ -15,7 +15,9 @@ import { APP_MAIN_ID, listingHref } from "@/lib/appConstants";
 import { getAppPageContext } from "@/lib/appPage";
 import { closingHref } from "@/lib/closing/closingConstants";
 import { getAddressLine, getPlaceTitle } from "@/lib/listingLabels";
+import { redactListingForFreePlan } from "@/lib/sicherheit/antiScrapingRules";
 import { ClosingCaseService } from "@/services/ClosingCaseService";
+import { FreeUnlockService } from "@/services/FreeUnlockService";
 import { ListingService } from "@/services/ListingService";
 import { MetaTagService } from "@/services/MetaTagService";
 import { TranslationService } from "@/services/TranslationService";
@@ -35,9 +37,9 @@ export default async function ClosingTasksPage({ params }: PageProps<"/app/zusch
   const key = decodeURIComponent((await params).key);
   const { viewer, app, locale } = await getAppPageContext(closingHref(key));
   const { Tasks } = getClosingTranslation(locale);
-  const listing = await ListingService.getByKey(viewer.countries, key);
+  const rawListing = await ListingService.getByKey(viewer.countries, key);
 
-  if (!listing) {
+  if (!rawListing) {
     return (
       <AppMain id={APP_MAIN_ID}>
         <ListingNotFound title={app.Listing.NotFound.Title} body={app.Listing.NotFound.Body} backLabel={app.Listing.Back} />
@@ -45,7 +47,10 @@ export default async function ClosingTasksPage({ params }: PageProps<"/app/zusch
     );
   }
 
-  const closingCase = await ClosingCaseService.get(viewer.id, listing.key);
+  const isFreeUnlocked = viewer.plan === "free" ? await FreeUnlockService.isListingUnlockedForUser(viewer.id, key) : false;
+  const isLocked = viewer.plan === "free" && !isFreeUnlocked;
+  const listing = isLocked ? redactListingForFreePlan(rawListing) : rawListing;
+  const closingCase = isLocked ? null : await ClosingCaseService.get(viewer.id, listing.key);
   const subtitle = [listing.authority, listing.fileNo, getAddressLine(listing)].filter(Boolean).join(" · ");
 
   return (
@@ -54,7 +59,7 @@ export default async function ClosingTasksPage({ params }: PageProps<"/app/zusch
       <AppPageHeader eyebrow={`${Tasks.Kicker} · ${getPlaceTitle(listing)}`} title={Tasks.Title} lead={Tasks.Lead[listing.market]} />
       <PageNote variant="monoKicker" text={subtitle} />
       <ClosingDisclaimer text={Tasks.Disclaimer} />
-      {viewer.plan === "free" ? (
+      {isLocked ? (
         <PageStack variant="top8">
           <LockedPanel title={Tasks.Locked.Title} body={Tasks.Locked.Body} cta={Tasks.Locked.Cta} />
         </PageStack>

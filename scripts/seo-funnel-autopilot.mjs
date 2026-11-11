@@ -153,12 +153,16 @@ async function collectFunnelMetrics() {
     const countersQ = await client.query(`
       SELECT key, count
       FROM rate_limits
-      WHERE key LIKE 'funnel:%' OR key LIKE 'reengage:unverified-dossier-v1:%' OR key LIKE 'reengage:post-free-dossier-v1:%'
+      WHERE key LIKE 'funnel:%'
+         OR key LIKE 'reengage:unverified-dossier-v1:%'
+         OR key LIKE 'reengage:post-free-dossier-v1:%'
+         OR key LIKE 'reengage:unused-free-dossier-v1:%'
       ORDER BY key
     `);
 
     const reminderSentCount = countersQ.rows.filter((r) => r.key.startsWith("reengage:unverified-dossier-v1:")).length;
     const postFreeDossierSentCount = countersQ.rows.filter((r) => r.key.startsWith("reengage:post-free-dossier-v1:")).length;
+    const unusedFreeDossierSentCount = countersQ.rows.filter((r) => r.key.startsWith("reengage:unused-free-dossier-v1:")).length;
     const attributionCounters = Object.fromEntries(
       countersQ.rows.filter((r) => r.key.startsWith("funnel:")).map((r) => [r.key, r.count]),
     );
@@ -172,6 +176,7 @@ async function collectFunnelMetrics() {
       ordersByOfferStatus: ordersQ.rows,
       unverifiedRemindersSent: reminderSentCount,
       postFreeDossierSent: postFreeDossierSentCount,
+      unusedFreeDossierSent: unusedFreeDossierSentCount,
       attributionCounters,
     };
   } finally {
@@ -278,6 +283,205 @@ async function sendPendingUnverifiedReminders() {
       );
       sent += 1;
       recipients.push(u.email);
+    }
+    return { available: true, sent, recipients };
+  } finally {
+    transporter.close();
+    await client.end();
+  }
+}
+
+async function sendVerifiedUnusedFreeDossierActivation() {
+  if (!process.env.DATABASE_URL || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
+    return { available: false, sent: 0 };
+  }
+  const { MAIL_COLORS, escapeHtml, renderMailFrame } = await import(
+    pathToFileURL(path.join(ROOT, "src/lib/mail/mailLayout.ts")).href
+  );
+  const deSnap = JSON.parse(fs.readFileSync(path.join(ROOT, "data/snapshots/de.json"), "utf8")).listings ?? [];
+  const trSnap = JSON.parse(fs.readFileSync(path.join(ROOT, "data/snapshots/tr.json"), "utf8")).listings ?? [];
+  const allByKey = new Map();
+  for (const item of [...deSnap, ...trSnap]) allByKey.set(item.key, item);
+
+  const detectCountry = (item) => {
+    if (!item) return "DE";
+    if (item.market === "TR") return "TR";
+    if (item.country) return item.country;
+    if (item.key.startsWith("edikte-")) return "AT";
+    if (item.key.startsWith("shab-")) return "CH";
+    if (item.key.startsWith("it-")) return "IT";
+    if (item.key.startsWith("es-")) return "ES";
+    if (item.key.startsWith("fr-")) return "FR";
+    if (item.key.startsWith("gb-")) return "GB";
+    return "DE";
+  };
+
+  const fmtCurr = (val, curr, loc) =>
+    new Intl.NumberFormat(loc, { style: "currency", currency: curr, maximumFractionDigits: 0 }).format(Math.round(val));
+
+  const client = new pg.Client({ connectionString: process.env.DATABASE_URL });
+  await client.connect();
+  const transporter = nodemailer.createTransport({
+    name: "belowmark.com",
+    host: process.env.SMTP_HOST || "smtp.ionos.de",
+    port: Number(process.env.SMTP_PORT || 465),
+    secure: Number(process.env.SMTP_PORT || 465) === 465,
+    auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+    tls: { servername: process.env.SMTP_HOST || "smtp.ionos.de", rejectUnauthorized: false },
+  });
+
+  let sent = 0;
+  const recipients = [];
+  try {
+    const { rows } = await client.query(`
+      SELECT
+        u.id,
+        u.email,
+        u.locale,
+        u.market,
+        u.country,
+        (SELECT w.listing_id FROM watchlist w WHERE w.user_id = u.id ORDER BY w.created_at DESC LIMIT 1) AS watch_key,
+        (SELECT a.filters->>'region' FROM search_alerts a WHERE a.user_id = u.id AND a.is_active = true ORDER BY a.created_at DESC LIMIT 1) AS alert_region
+      FROM users u
+      WHERE u.email_verified_at IS NOT NULL
+        AND u.gesperrt_am IS NULL
+        AND u.plan IS NULL
+        AND u.stripe_trial_used_at IS NULL
+        AND u.created_at <= NOW() - INTERVAL '12 hours'
+        AND NOT EXISTS (SELECT 1 FROM free_listing_unlocks f WHERE f.user_id = u.id)
+      ORDER BY u.created_at ASC
+      LIMIT 25
+    `);
+
+    for (const u of rows) {
+      if (/\.(local|invalid|test)$/i.test(u.email) || u.email.includes("@belowmark.")) continue;
+      const idemKey = `reengage:unused-free-dossier-v1:${u.id}`;
+      const seen = await client.query(`SELECT 1 FROM rate_limits WHERE key = $1`, [idemKey]);
+      if (seen.rows.length > 0) continue;
+
+      const watchedItem = u.watch_key ? allByKey.get(u.watch_key) : null;
+      const country = u.country || (watchedItem ? detectCountry(watchedItem) : u.market === "TR" ? "TR" : "DE");
+      const pool = country === "TR" ? trSnap : deSnap.filter((i) => detectCountry(i) === country);
+      const preferredRegionCode = watchedItem?.regionCode || u.alert_region || null;
+      const matches = pool
+        .filter((i) => !i.cancelled && (i.appraisedValue ?? 0) >= 25_000)
+        .sort((a, b) => {
+          const aScore =
+            (a.key === u.watch_key ? 10 : 0) +
+            (preferredRegionCode && a.regionCode === preferredRegionCode ? 5 : 0) +
+            (a.documentUrl ? 2 : 0);
+          const bScore =
+            (b.key === u.watch_key ? 10 : 0) +
+            (preferredRegionCode && b.regionCode === preferredRegionCode ? 5 : 0) +
+            (b.documentUrl ? 2 : 0);
+          return bScore - aScore;
+        })
+        .slice(0, 3);
+      if (matches.length === 0) continue;
+
+      const locRaw = (u.locale ?? "").toLowerCase();
+      const lang = locRaw.startsWith("tr") || country === "TR"
+        ? "tr"
+        : locRaw.startsWith("fr") || country === "FR"
+          ? "fr"
+          : locRaw.startsWith("de") || ["DE", "AT", "CH"].includes(country)
+            ? "de"
+            : "en";
+      const numLoc = lang === "tr" ? "tr-TR" : lang === "fr" ? "fr-FR" : lang === "de" ? (country === "CH" ? "de-CH" : "de-DE") : "en-GB";
+      const curr = country === "CH" ? "CHF" : country === "GB" ? "GBP" : country === "TR" ? "TRY" : "EUR";
+      const zeroStr = fmtCurr(0, curr, numLoc);
+      const regionLabel = matches[0]?.region || matches[0]?.place || country;
+      const trialUrl = `${ORIGIN}/buchen?markt=${encodeURIComponent(country)}&tarif=investor-monat`;
+
+      const copy = {
+        de: {
+          eyebrow: "Neu in Ihrem Konto freigeschaltet",
+          subject: `Ihr 1 Gratis-Dossier + 7 Tage Vollzugang (${zeroStr}) ist jetzt aktiv`,
+          intro: `Guten Tag,\n\nwir haben für Ihr verifiziertes Belowmark-Konto 1 Gratis-Dossier dauerhaft freigeschaltet: Sie können ab sofort eine beliebige Versteigerungsakte inklusive vollständigem Aktenzeichen, Hausadresse, Gutachten-PDF und Gebotsrechner kostenlos öffnen.\n\nPassend zu Ihrem Markt (${regionLabel}) sind aktuell unter anderem diese 3 Verfahren aktiv:`,
+          valLabel: "Verkehrswert / Schätzung",
+          openItem: "Gratis-Dossier wählen",
+          outro: `Möchten Sie direkt alle Akten, Such-Alert-Aktenzeichen und PDF-Gutachten ohne Limit prüfen? Ab sofort können Sie den Investor-Vollzugang 7 Tage für ${zeroStr} testen (jederzeit vorab mit 1 Klick kündbar).`,
+          ctaTrial: `7 TAGE VOLLZUGANG TESTEN (${zeroStr})`,
+        },
+        tr: {
+          eyebrow: "Hesabınızda Yeni Hak Tanımlandı",
+          subject: `1 Ücretsiz Tam İhale Dosyası + 7 Gün Deneme (${zeroStr}) hesabınızda aktif`,
+          intro: `Merhaba,\n\ndoğrulanmış Belowmark hesabınıza 1 Ücretsiz Tam İhale Dosyası hakkı tanımladık: dilediğiniz bir icra/ihale dosyasını tam esas numarası, açık adres, şartname PDF'i ve teminat hesaplayıcısıyla kalıcı olarak ücretsiz açabilirsiniz.\n\nBölgenizde (${regionLabel}) şu an aktif olan öne çıkan 3 ihale dosyası:`,
+          valLabel: "Muhammen Bedel",
+          openItem: "Ücretsiz aç",
+          outro: `Tüm ihale dosyalarını, alarm esas numaralarını ve PDF şartnameleri sınırsız incelemek isterseniz Investor tam erişimini 7 gün boyunca ${zeroStr} ile deneyebilirsiniz (istediğiniz an tek tıkla iptal).`,
+          ctaTrial: `7 GÜN ÜCRETSİZ DENE (${zeroStr})`,
+        },
+        fr: {
+          eyebrow: "Nouveau crédit activé sur votre compte",
+          subject: `Votre 1 Dossier Gratuit + 7 jours d'essai complet (${zeroStr}) est disponible`,
+          intro: `Bonjour,\n\nnous avons activé 1 Dossier Gratuit permanent sur votre compte vérifié Belowmark : vous pouvez débloquer dès maintenant le dossier complet d'une vente aux enchères (numéro de rôle, adresse exacte, cahier des conditions PDF et comparatif DVF).\n\nVoici 3 ventes actuellement actives sur votre marché (${regionLabel}) :`,
+          valLabel: "Mise à prix / Valeur",
+          openItem: "Débloquer ce dossier",
+          outro: `Pour accéder sans limite à tous les dossiers, numéros de rôle dans vos alertes et cahiers des ventes PDF, essayez l'accès complet Investor pendant 7 jours à ${zeroStr} aujourd'hui (résiliable en 1 clic).`,
+          ctaTrial: `ESSAYER 7 JOURS GRATUITEMENT (${zeroStr})`,
+        },
+        en: {
+          eyebrow: "Unlocked on Your Verified Account",
+          subject: `Your 1 Free Property Dossier + 7-Day Full Trial (${zeroStr}) is ready`,
+          intro: `Hello,\n\nwe have credited 1 Free Property Dossier to your verified Belowmark account: you can unlock any live auction lot with its full case number, street address, legal pack PDF, and bid calculator permanently free.\n\nHere are 3 active auction lots in your market (${regionLabel}):`,
+          valLabel: "Appraised / Guide Price",
+          openItem: "Unlock free dossier",
+          outro: `Want unlimited access to every court file number, alert detail, and PDF pack? Start a 7-day Investor full-access trial for ${zeroStr} today (cancel anytime in 1 click).`,
+          ctaTrial: `START 7-DAY FREE TRIAL (${zeroStr})`,
+        },
+      }[lang];
+
+      const C = MAIL_COLORS;
+      const cardsHtml = matches
+        .map((m) => {
+          const valStr = fmtCurr(m.appraisedValue, m.currency || curr, numLoc);
+          const itemUrl = `${ORIGIN}/app/objekt/${encodeURIComponent(m.key)}`;
+          return `<div style="margin-top:10px;padding:12px 14px;border:1.5px solid ${C.ink};background:${C.bright};"><div style="font-family:monospace;font-size:11px;color:${C.muted};text-transform:uppercase;">${escapeHtml(m.authority || "")}</div><div style="font-size:15px;font-weight:700;color:${C.ink};margin-top:2px;">${escapeHtml(m.place || m.region || "")} — ${escapeHtml(m.segmentLabel || "")}</div><div style="font-family:monospace;font-size:13px;color:${C.ink};margin-top:4px;">${escapeHtml(copy.valLabel)}: <strong>${escapeHtml(valStr)}</strong> · <a href="${escapeHtml(itemUrl)}" style="color:${C.signal};font-weight:700;text-decoration:underline;">${escapeHtml(copy.openItem)} &rarr;</a></div></div>`;
+        })
+        .join("");
+
+      const bodyText = [
+        copy.intro,
+        "",
+        ...matches.map((m) => `- ${m.place || m.region} (${m.segmentLabel}) · ${fmtCurr(m.appraisedValue, m.currency || curr, numLoc)} -> ${ORIGIN}/app/objekt/${encodeURIComponent(m.key)}`),
+        "",
+        copy.outro,
+        `${copy.ctaTrial}: ${trialUrl}`,
+      ].join("\n");
+
+      const bodyHtml = `<tr><td style="padding:8px 32px 28px;"><p style="font-size:15px;line-height:1.65;color:${C.ink};">${escapeHtml(copy.intro).replace(/\n/g, "<br/>")}</p>${cardsHtml}<p style="margin-top:16px;font-size:14px;line-height:1.6;color:${C.ink};">${escapeHtml(copy.outro)}</p><div style="margin-top:16px;"><a href="${escapeHtml(trialUrl)}" style="display:inline-block;background:${C.ink};color:${C.bright};padding:12px 22px;font-weight:800;text-decoration:none;border-bottom:4px solid ${C.signal};">${escapeHtml(copy.ctaTrial)} &rarr;</a></div></td></tr>`;
+
+      const html = renderMailFrame({
+        lang,
+        docCode: "BM-CREDIT",
+        eyebrow: copy.eyebrow,
+        subject: copy.subject,
+        preheader: copy.subject,
+        bodyHtml,
+        signature: "Emre Ak — Belowmark",
+        footer: "Belowmark · belowmark.com",
+        baseUrl: ORIGIN,
+      });
+
+      await transporter.sendMail({
+        messageId: `<${crypto.randomUUID()}@belowmark.com>`,
+        from: process.env.MAIL_FROM || "Belowmark <contact@belowmark.com>",
+        replyTo: "contact@belowmark.com",
+        to: u.email,
+        subject: copy.subject,
+        text: bodyText,
+        html,
+        headers: { "X-Auto-Response-Suppress": "OOF, AutoReply" },
+      });
+
+      await client.query(
+        `INSERT INTO rate_limits (key, count, reset_at) VALUES ($1, 1, NOW() + INTERVAL '365 days') ON CONFLICT (key) DO UPDATE SET count = rate_limits.count + 1`,
+        [idemKey],
+      );
+      sent += 1;
+      recipients.push({ email: u.email, country, lang });
+      await new Promise((r) => setTimeout(r, 750));
     }
     return { available: true, sent, recipients };
   } finally {
@@ -497,6 +701,7 @@ const report = {
   funnel: await collectFunnelMetrics(),
   unverifiedReminders: shouldRemindUnverified ? await sendPendingUnverifiedReminders() : null,
   postFreeDossierFollowUps: shouldRemindUnverified ? await sendPostFreeDossierFollowUps() : null,
+  unusedFreeDossierActivations: shouldRemindUnverified ? await sendVerifiedUnusedFreeDossierActivation() : null,
   indexNowFullPush: shouldPushAllIndexNow ? await pushAllUrlsToIndexNow() : null,
 };
 
@@ -529,6 +734,9 @@ if (report.unverifiedReminders) {
 }
 if (report.postFreeDossierFollowUps) {
   console.log("Post-Free-Dossier Follow-Ups (2h–14d):", JSON.stringify(report.postFreeDossierFollowUps));
+}
+if (report.unusedFreeDossierActivations) {
+  console.log("Unused-Free-Dossier Activations (>12h verified):", JSON.stringify(report.unusedFreeDossierActivations));
 }
 if (report.indexNowFullPush) {
   console.log("IndexNow Full 25k Push:", JSON.stringify(report.indexNowFullPush));

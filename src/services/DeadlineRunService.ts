@@ -8,9 +8,11 @@ import { dueReminders } from "@/lib/deadlines/deadlineReminders";
 import { env } from "@/lib/env";
 import { getPlaceTitle } from "@/lib/listingLabels";
 import { DeadlineMailSection, renderDeadlineMail } from "@/lib/mail/renderDeadlineMail";
+import { redactListingForFreePlan } from "@/lib/sicherheit/antiScrapingRules";
 import { DeadlineService } from "@/services/DeadlineService";
 import { DeadlineRecipient, DeadlineTimelineService } from "@/services/DeadlineTimelineService";
 import { CountryAccessService } from "@/services/CountryAccessService";
+import { FreeUnlockService } from "@/services/FreeUnlockService";
 import { ListingService } from "@/services/ListingService";
 import { MailService } from "@/services/MailService";
 import { getDeadlineTranslation } from "@/translations/deadlines/DeadlineTranslations";
@@ -79,11 +81,16 @@ export class DeadlineRunService {
       report.follows = follows.length;
       const userIds = [...new Set(follows.map((follow) => follow.userId))];
       if (userIds.length === 0) return report;
-      const [people, sent] = await Promise.all([DeadlineTimelineService.recipients(userIds), DeadlineService.sentKeys(userIds)]);
+      const [people, sent, unlockedByUser] = await Promise.all([
+        DeadlineTimelineService.recipients(userIds),
+        DeadlineService.sentKeys(userIds),
+        FreeUnlockService.getUnlockedKeysByUsers(userIds),
+      ]);
 
       for (const userId of userIds) {
         const recipient = people.get(userId);
         if (!recipient) continue;
+        const unlockedKey = unlockedByUser.get(userId) ?? null;
         const mine = follows.filter((follow) => follow.userId === userId);
         try {
           const groups: ListingReminders[] = [];
@@ -93,8 +100,12 @@ export class DeadlineRunService {
             const keys = mine.filter((follow) => follow.market === market).map((follow) => follow.listingKey);
             if (keys.length === 0) continue;
             const today = marketToday(market, now);
-            for (const listing of await ListingService.getMany(countries, keys)) {
-              const items = await DeadlineTimelineService.forListing({ userId, listing, locale: recipient.locale, now, hideAmounts: !recipient.hasFullAccess });
+            for (const rawListing of await ListingService.getMany(countries, keys)) {
+              const listing =
+                recipient.hasFullAccess || rawListing.key === unlockedKey
+                  ? rawListing
+                  : redactListingForFreePlan(rawListing);
+              const items = await DeadlineTimelineService.forListing({ userId, listing, locale: recipient.locale, now, hideAmounts: !recipient.hasFullAccess && rawListing.key !== unlockedKey });
               const mineSent = sent.get(DeadlineService.sentGroup(userId, listing.key)) ?? new Set<string>();
               const due = dueReminders(listing.key, items, today, mineSent).filter(({ item }) => !item.time || Date.parse(item.time) >= now);
               if (due.length > 0) groups.push({ listing, due });

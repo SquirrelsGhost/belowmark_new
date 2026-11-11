@@ -1,10 +1,12 @@
 import "server-only";
-import { and, desc, eq, isNotNull, ne, or } from "drizzle-orm";
+import { and, desc, eq, inArray, isNotNull, ne, or } from "drizzle-orm";
 import { cache } from "react";
 import { db } from "@/db";
 import { freeListingUnlocks, sessions, users } from "@/db/schema";
+import { redactListingForFreePlan } from "@/lib/sicherheit/antiScrapingRules";
 import { CountryAccessService } from "@/services/CountryAccessService";
 import { ListingService } from "@/services/ListingService";
+import { Listing } from "@/types/listing.types";
 
 const HARDWARE_FP_REGEX = /^HW-[0-9a-f]{32}$/;
 
@@ -70,6 +72,25 @@ export class FreeUnlockService {
       .where(and(eq(freeListingUnlocks.userId, userId), eq(freeListingUnlocks.listingKey, listingKey)));
     return Boolean(row);
   });
+
+  /** Batch lookup of unlocked free dossier keys per user (used by alert & deadline runners). */
+  static getUnlockedKeysByUsers = async (userIds: string[]): Promise<Map<string, string>> => {
+    if (userIds.length === 0) return new Map();
+    const rows = await db
+      .select({ userId: freeListingUnlocks.userId, listingKey: freeListingUnlocks.listingKey })
+      .from(freeListingUnlocks)
+      .where(inArray(freeListingUnlocks.userId, userIds));
+    return new Map(rows.map((row) => [row.userId, row.listingKey]));
+  };
+
+  /** Redacts every listing for a free viewer EXCEPT their 1 unlocked free dossier. */
+  static redactForViewer = async (userId: string, isFreePlan: boolean, listings: Listing[]): Promise<Listing[]> => {
+    if (!isFreePlan || listings.length === 0) return listings;
+    const status = await FreeUnlockService.getStatus(userId);
+    return listings.map((listing) =>
+      listing.key === status.unlockedListingKey ? listing : redactListingForFreePlan(listing),
+    );
+  };
 
   /** Full status for rendering `ListingUnlockBanner` / `FreeUnlockedNotice`. */
   static getStatus = cache(async (userId: string, currentListingKey?: string): Promise<FreeUnlockStatus> => {

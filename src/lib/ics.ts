@@ -1,3 +1,4 @@
+import { listingHref } from "@/lib/appConstants";
 import { fill } from "@/lib/appFormat";
 import { getHearingStatus } from "@/lib/listingMath";
 import { IAppTranslation } from "@/translations/app/IAppTranslation";
@@ -41,7 +42,8 @@ function events(listing: Listing, labels: IAppTranslation["Ics"], now: number, c
   const status = getHearingStatus(listing, now);
   if (status.state === "cancelled" || status.state === "past" || status.state === "unknown") return [];
   const rounds = listing.rounds.length > 0 ? listing.rounds : listing.hearingAt ? [{ round: 1, start: listing.hearingAt, end: listing.hearingAt }] : [];
-  const values = { fileNo: listing.fileNo, place: listing.place ?? listing.region ?? "", authority: listing.authority, url: listing.officialUrl };
+  const targetUrl = listing.officialUrl || `https://www.belowmark.com${listingHref(listing.key)}`;
+  const values = { fileNo: listing.fileNo, place: listing.place ?? listing.region ?? "", authority: listing.authority, url: targetUrl };
 
   return rounds
     .filter((round) => Date.parse(round.end) >= now)
@@ -54,7 +56,7 @@ function events(listing: Listing, labels: IAppTranslation["Ics"], now: number, c
       fold(`SUMMARY:${escape(fill(labels.Summary, values))}`),
       fold(`DESCRIPTION:${escape(fill(labels.Description, values))}`),
       fold(`LOCATION:${escape(listing.authority)}`),
-      fold(`URL:${listing.officialUrl}`),
+      fold(`URL:${targetUrl}`),
       "END:VEVENT",
     ]);
 }

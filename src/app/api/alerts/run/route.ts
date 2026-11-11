@@ -5,10 +5,12 @@ import { UnverifiedReminderService } from "@/services/UnverifiedReminderService"
 import { AlertRunReport } from "@/types/alert.types";
 
 async function handleRun(req: Request): Promise<Response> {
-  if (!isAuthorisedRun(req.headers.get("authorization"), req.headers)) return err("Unauthorized", 401);
+  if (!(await isAuthorisedRun(req.headers.get("authorization"), req.headers, "alerts-run"))) {
+    return err("Unauthorized", 401);
+  }
   try {
     const now = Date.now();
-    const [data] = await Promise.all([
+    const [data]: [AlertRunReport, unknown] = await Promise.all([
       AlertRunService.run(now),
       UnverifiedReminderService.run(now).catch((e) => console.error("[alerts/run:unverified]", e)),
     ]);

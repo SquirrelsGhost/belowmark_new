@@ -1,7 +1,7 @@
 import { EuMarketLocationEntry, EuPseoMarketCode } from "@/types/pseo.types";
 
 function fmtMinEntry(e: EuMarketLocationEntry, ratio: number, locale: string, currency: "EUR" | "CHF" | "GBP"): string {
-  if (!e.minAppraisedValue || e.minAppraisedValue < 1000) return "";
+  if (!e.minAppraisedValue || e.minAppraisedValue < 15000) return "";
   const val = Math.round(e.minAppraisedValue * ratio);
   return new Intl.NumberFormat(locale, {
     style: "currency",
@@ -272,9 +272,9 @@ export const EU_MARKET_COPY: Record<EuPseoMarketCode, EuMarketCopyConfig> = {
     hubLead:
       "Directorio actualizado de subastas judiciales, notariales y de la Agencia Tributaria publicadas en el Portal de Subastas del Boletín Oficial del Estado (BOE) en las 17 comunidades autónomas — con Valor de Subasta, reglas del 70% y 50% (Art. 670 LEC), depósito del 5% y cálculo del ITP autonómico.",
     hubMetaTitle: (total) =>
-      `Subastas BOE Hoy: ${total} Pisos, Casas y Solares (-50% · Sin Cl@ve)`,
+      `Subastas BOE (${total} Inmuebles Activos): Pisos y Casas sin Cl@ve`,
     hubMetaDesc: (total, rCount) =>
-      `Portal abierto de Subastas Judiciales BOE hoy sin certificado digital en las ${rCount} CCAA: ${total} pisos, casas y locales desde el 50% (Regla 70% LEC y calculadora gratis).`,
+      `Buscador abierto de Subastas Judiciales y AEAT del BOE sin certificado digital (${rCount} CCAA): ${total} pisos, casas, locales y solares desde el 50% + 1 expediente gratis.`,
     calcButtonLabel: "🧮 Calculadora Gratuita Subasta BOE: Regla 70% / 50% (Art. 670 LEC), Depósito 5% e ITP →",
     ctaButtonLabel: "🎁 1 Expediente Gratis: Desbloquear Edicto BOE, Cargas y PDF →",
     regionsHeading: (c) => `Las ${c} Comunidades Autónomas de España (Subastas BOE)`,
@@ -323,13 +323,14 @@ export const EU_MARKET_COPY: Record<EuPseoMarketCode, EuMarketCopyConfig> = {
       `Listado actualizado de subastas judiciales del BOE (viviendas, locales y solares) en ${e.name} (${e.nativeRegionName}) — con Valor de Subasta BOE, umbral del 70% (Art. 670 LEC), depósito del 5% e ITP autonómico del ${e.transferTaxPct}%.`,
     entryMetaTitle: (e) => {
       const low = fmtMinEntry(e, 0.5, "es-ES", "EUR");
-      const full = `Subastas BOE ${e.name}: ${e.totalCount} Pisos y Casas${low ? ` desde ${low}` : ""} (-50%)`;
-      if (full.length <= 65) return full;
-      return `Subastas BOE ${e.name}: ${e.totalCount} Inmuebles${low ? ` desde ${low}` : ""}`;
+      const full = `Subastas BOE ${e.name}: ${e.totalCount} Pisos y Casas${low ? ` desde ${low}` : ""} (Sin Cl@ve)`;
+      if (full.length <= 66) return full;
+      const mid = `Subastas BOE ${e.name}: ${e.totalCount} Inmuebles${low ? ` desde ${low}` : ""}`;
+      return mid.length <= 66 ? mid : `Subastas BOE ${e.name} (${e.totalCount} Lotes Activos)`;
     },
     entryMetaDesc: (e) => {
       const low = fmtMinEntry(e, 0.5, "es-ES", "EUR");
-      return `Subastas BOE en ${e.name} hoy sin certificado: ${e.totalCount} pisos, casas y locales activos${low ? ` desde ${low} (-50%)` : ""}. Regla 70% LEC, depósito 5% y cargas.`;
+      return `Listado abierto de ${e.totalCount} Subastas Judiciales BOE en ${e.name} sin Cl@ve${low ? ` (desde ${low} al 50% LEC)` : ""}: pisos, casas y locales con Valor BOE, depósito 5% y 1 expediente gratis.`;
     },
   },
   FR: {

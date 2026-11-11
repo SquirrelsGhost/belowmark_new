@@ -86,6 +86,9 @@ export interface IAlertsTranslation {
     More: string;
     OpenSearch: string;
     LockedValues: string;
+    TrialTitle: string;
+    TrialBody: string;
+    TrialCta: string;
     Manage: string;
     Source: Record<MarketCode, string>;
     Signature: string;

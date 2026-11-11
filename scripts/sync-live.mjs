@@ -721,20 +721,31 @@ async function fetchZvgPortalState(state) {
 
     const plzMatch = /(\d{5})/.exec(address);
     const postcode = plzMatch && plzMatch[1] !== "00000" ? plzMatch[1] : null;
-    const cityRaw = plzMatch ? clean(address.slice(address.indexOf(plzMatch[1]) + 5)) : clean(address.split(",").pop());
-    const street = address.includes(",") ? clean(address.split(",")[0]) : null;
+    const rawCityPart = plzMatch ? clean(address.slice(address.indexOf(plzMatch[1]) + 5)) : clean(address.split(",").pop());
+    const cleanCity = rawCityPart
+      ? rawCityPart.replace(/^,\s*/, "").replace(/^(?:o\.\s*Angabe|unbekannt)$/i, "").trim()
+      : "";
+    const streetRaw = address.includes(",") ? clean(address.split(",")[0]) : null;
+    const street = streetRaw && !/^(?:o\.\s*Angabe|unbekannt|00000)$/i.test(streetRaw) ? streetRaw : null;
+    const sanitizedAddress = address
+      .replace(/\b00000\b\s*,?\s*/g, "")
+      .replace(/\bo\.\s*Angabe\b\s*,?\s*/gi, "")
+      .replace(/,\s*,/g, ", ")
+      .replace(/^[,\s]+|[,\s]+$/g, "");
+    const courtName = deCourt(court);
+    const fallbackCity = cleanCity || courtName.replace(/\s*\([^)]*\)\s*$/, "").trim() || null;
 
     rows.push({
       source: "zvg-portal.de",
       state,
       zvgId,
       fileNo,
-      court: deCourt(court),
+      court: courtName,
       kind,
-      address,
+      address: sanitizedAddress || fallbackCity || "",
       street,
       postcode,
-      city: cityRaw ? cityRaw.replace(/^,\s*/, "") : null,
+      city: fallbackCity,
       appraisedValue,
       hearingAt: termin.iso,
       cancelled,
@@ -818,10 +829,10 @@ async function fetchZvgComAll() {
       fileNo: String(row.az).trim(),
       court: deCourt(row.ag),
       kind: cleanTitle.split(/\s+in\s+/i)[0] || cleanTitle,
-      title: cleanTitle || `${row.ag} · ${row.az}`,
+      title: cleanTitle || `Grundstücksversteigerung ${deCourt(row.ag)}`,
       street,
       postcode,
-      city,
+      city: city || deCourt(row.ag).replace(/\s*\([^)]*\)\s*$/, "").trim() || null,
       appraisedValue,
       hearingAt: iso,
       cancelled: Boolean(row.terminAufgehoben),
@@ -892,7 +903,7 @@ async function buildDeLive() {
       const geoportal = GEOPORTALS_DE[state.code];
       const fYear = fileNoYear(r.fileNo);
       const endIso = r.hearingAt ? new Date(Date.parse(r.hearingAt) + 30 * 60000).toISOString() : null;
-      const fullTitle = [r.kind, r.address].filter(Boolean).join(": ") || `${r.court} · ${r.fileNo}`;
+      const fullTitle = [r.kind, r.address].filter(Boolean).join(": ") || `Grundstücksversteigerung ${r.court}`;
 
       byProceeding.set(procId, {
         key,
@@ -950,6 +961,8 @@ async function buildDeLive() {
         existing.postcode = r.postcode;
         existing.geo = geoPoint(postcodes[r.postcode], "postcode");
       }
+      if (!existing.place && r.city) existing.place = r.city;
+      if (!existing.street && r.street) existing.street = r.street;
       enrichedFromZvgCom++;
       continue;
     }

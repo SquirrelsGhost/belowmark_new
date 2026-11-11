@@ -4,7 +4,9 @@ import { DeadlineRunService } from "@/services/DeadlineRunService";
 import { DeadlineRunReport } from "@/types/deadline.types";
 
 async function handleRun(req: Request): Promise<Response> {
-  if (!isAuthorisedRun(req.headers.get("authorization"), req.headers)) return err("Unauthorized", 401);
+  if (!(await isAuthorisedRun(req.headers.get("authorization"), req.headers, "termine-run"))) {
+    return err("Unauthorized", 401);
+  }
   try {
     const data: DeadlineRunReport = await DeadlineRunService.run(Date.now());
     return ok(data);

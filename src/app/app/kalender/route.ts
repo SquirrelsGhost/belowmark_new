@@ -2,6 +2,7 @@ import { connection } from "next/server";
 import { err } from "@/lib/api";
 import { buildCalendar } from "@/lib/ics";
 import { CountryAccessService } from "@/services/CountryAccessService";
+import { FreeUnlockService } from "@/services/FreeUnlockService";
 import { ListingService } from "@/services/ListingService";
 import { SessionService } from "@/services/SessionService";
 import { TranslationService } from "@/services/TranslationService";
@@ -23,12 +24,14 @@ export async function GET(request: Request): Promise<Response> {
     const key = new URL(request.url).searchParams.get("key");
     const keys = key ? [key] : (await WatchlistService.list(user.id)).map((item) => item.listingId);
     const { countries } = await CountryAccessService.forUser(user);
-    const listings = await ListingService.getMany(countries, keys);
-    if (key && listings.length === 0) return err("Verfahren nicht gefunden", 404);
+    const rawListings = await ListingService.getMany(countries, keys);
+    if (key && rawListings.length === 0) return err("Verfahren nicht gefunden", 404);
+    const listings = await FreeUnlockService.redactForViewer(user.id, !user.hasFullAccess, rawListings);
 
     const t = await TranslationService.GetUserTranslations();
     const body = buildCalendar(listings, t.App.Ics, Date.now());
-    const filename = key ? `belowmark-${listings[0].fileNo.replace(/[^\w-]+/g, "-")}.ics` : "belowmark-merkliste.ics";
+    const safeSlug = key ? (user.hasFullAccess ? listings[0].fileNo : listings[0].key).replace(/[^\w-]+/g, "-") : "merkliste";
+    const filename = `belowmark-${safeSlug}.ics`;
 
     return new Response(body, {
       headers: {

@@ -20,6 +20,13 @@ export interface AlertMailSection {
   searchUrl: string;
 }
 
+export interface AlertMailUpgradeBox {
+  title: string;
+  body: string;
+  cta: string;
+  url: string;
+}
+
 interface AlertMailParts {
   lang: string;
   subject: string;
@@ -29,6 +36,7 @@ interface AlertMailParts {
   sections: AlertMailSection[];
   openSearch: string;
   note: string | null;
+  upgradeBox?: AlertMailUpgradeBox | null;
   source: string;
   manage: string;
   manageUrl: string;
@@ -145,6 +153,14 @@ export function renderAlertMail(parts: AlertMailParts): RenderedMail {
     parts.intro,
     "",
     ...parts.sections.flatMap((section) => sectionText(section, parts.openSearch)),
+    ...(parts.upgradeBox
+      ? [
+          `★ ${parts.upgradeBox.title}`,
+          parts.upgradeBox.body,
+          `→ ${parts.upgradeBox.cta}: ${parts.upgradeBox.url}`,
+          "",
+        ]
+      : []),
     ...(parts.note ? [parts.note, ""] : []),
     parts.source,
     "",
@@ -161,6 +177,21 @@ export function renderAlertMail(parts: AlertMailParts): RenderedMail {
         <p style="margin:0 0 8px;font-size:16px;font-weight:700;color:${C.ink};">${escapeHtml(parts.greeting)}</p>
         <p style="margin:0 0 18px;font-size:15px;line-height:1.6;color:${C.inkSoft};">${escapeHtml(parts.intro)}</p>
         ${parts.sections.map((section) => sectionHtml(section, parts.openSearch, isTr)).join("\n")}
+        ${
+          parts.upgradeBox
+            ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:${C.bright};border:2px solid ${C.ink};margin-bottom:18px;">
+                <tr>
+                  <td style="padding:18px 20px;">
+                    <div style="font-size:15px;font-weight:800;line-height:1.35;color:${C.ink};">${escapeHtml(parts.upgradeBox.title)}</div>
+                    <p style="margin:6px 0 14px;font-size:13px;line-height:1.55;color:${C.inkSoft};">${escapeHtml(parts.upgradeBox.body)}</p>
+                    <a href="${escapeHtml(parts.upgradeBox.url)}" style="display:inline-block;background-color:${C.ink};color:${C.bright};font-size:12px;font-weight:800;letter-spacing:0.8px;text-transform:uppercase;padding:11px 18px;border-bottom:4px solid ${C.signal};text-decoration:none;">
+                      ${escapeHtml(parts.upgradeBox.cta)} &rarr;
+                    </a>
+                  </td>
+                </tr>
+              </table>`
+            : ""
+        }
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:${C.paper};border:1px solid ${C.rule};padding:10px 14px;">
           <tr>
             <td style="font-family:'Courier New',Courier,monospace;font-size:11px;line-height:1.6;color:${C.muted};">

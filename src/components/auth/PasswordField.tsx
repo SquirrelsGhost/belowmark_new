@@ -32,12 +32,14 @@ export default function PasswordField({ id, name, label, number, autoComplete, f
   const [capsLock, setCapsLock] = useState(false);
   const [value, setValue] = useState("");
   const [editedSinceError, setEditedSinceError] = useState(false);
+  const [prevError, setPrevError] = useState(error);
   const inputRef = useRef<HTMLInputElement>(null);
   const valueRef = useRef("");
 
-  useEffect(() => {
+  if (prevError !== error) {
+    setPrevError(error);
     setEditedSinceError(false);
-  }, [error]);
+  }
 
   // React 19 resets uncontrolled/DOM form inputs after a Server Action submit.
   // Preserve the typed password in the field when a validation error returns so

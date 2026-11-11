@@ -137,9 +137,11 @@ async function initOrSyncDatabase(): Promise<DatabaseInstance> {
       connectionTimeoutMillis: 10000,
     });
     try {
-      await pool.query("SELECT 1");
       const pgDb = drizzlePg(pool, { schema });
-      await ensureSchemaOnDb(pgDb, true);
+      if (process.env.NODE_ENV !== "production") {
+        await pool.query("SELECT 1");
+        await ensureSchemaOnDb(pgDb, true);
+      }
       globalForDb.isRemotePg = true;
       globalForDb.dbInstance = pgDb;
       return pgDb;

@@ -17,6 +17,7 @@ import { getPlaceTitle, getStatusLabel } from "@/lib/listingLabels";
 import { getHearingStatus, getNextDate } from "@/lib/listingMath";
 import { AppViewer } from "@/services/AppSessionService";
 import { DeadlineService } from "@/services/DeadlineService";
+import { FreeUnlockService } from "@/services/FreeUnlockService";
 import { GeoService } from "@/services/GeoService";
 import { ListingService } from "@/services/ListingService";
 import { WatchlistService } from "@/services/WatchlistService";
@@ -43,7 +44,8 @@ export default async function WatchlistContent({ viewer, app, locale, isCompare 
     GeoService.getLocatorSprite(viewer.country),
   ]);
   const mailByKey = new Map(follows.map((follow) => [follow.listingKey, follow.mailEnabled]));
-  const listings = await ListingService.getMany(viewer.countries, entries.map((entry) => entry.listingId));
+  const rawListings = await ListingService.getMany(viewer.countries, entries.map((entry) => entry.listingId));
+  const listings = await FreeUnlockService.redactForViewer(viewer.id, viewer.plan === "free", rawListings);
   const byKey = new Map(listings.map((listing) => [listing.key, listing]));
   const notes = new Map(entries.map((entry) => [entry.listingId, entry.note]));
   const missing = entries.filter((entry) => !byKey.has(entry.listingId));
