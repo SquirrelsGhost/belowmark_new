@@ -10,8 +10,22 @@ interface PseoDeHubViewProps {
   catalog: PseoCatalog;
 }
 
+const STATE_COMBO_HIGHLIGHTS: ReadonlyArray<{ slug: string; label: string }> = [
+  { slug: "eigentumswohnung-nordrhein-westfalen", label: "ETW NRW" },
+  { slug: "einfamilienhaus-nordrhein-westfalen", label: "EFH NRW" },
+  { slug: "eigentumswohnung-bayern", label: "ETW Bayern" },
+  { slug: "ohne-wertgrenzen-bayern", label: "Ohne Wertgrenzen Bayern" },
+  { slug: "eigentumswohnung-baden-wuerttemberg", label: "ETW Baden-Württemberg" },
+  { slug: "einfamilienhaus-niedersachsen", label: "EFH Niedersachsen" },
+  { slug: "eigentumswohnung-hessen", label: "ETW Hessen" },
+  { slug: "eigentumswohnung-berlin", label: "ETW Berlin" },
+  { slug: "einfamilienhaus-sachsen", label: "EFH Sachsen" },
+  { slug: "ohne-wertgrenzen-nordrhein-westfalen", label: "Ohne Wertgrenzen NRW" },
+];
+
 export default function PseoDeHubView({ catalog }: PseoDeHubViewProps) {
-  const topCities = catalog.cities.slice(0, 120);
+  const topCities = catalog.cities.slice(0, 64);
+  const topCourts = catalog.courts.slice(0, 96);
   const courtCount = catalog.courts.length;
   const cityCount = catalog.cities.length;
   const waivedTotal = catalog.courts.reduce((acc, c) => acc + c.limitsWaivedCount, 0);
@@ -51,23 +65,14 @@ export default function PseoDeHubView({ catalog }: PseoDeHubViewProps) {
         />
 
         <div className="mt-6 flex flex-wrap gap-3">
-          <Link
-            href={ROUTES.signup}
-            className="inline-flex h-11 items-center border-2 border-signal bg-signal px-5 font-narrow text-xs font-semibold uppercase tracking-[0.08em] text-paper-bright transition-colors hover:bg-signal-deep"
-          >
+          <Link href={`${ROUTES.signup}?markt=DE`} className="inline-flex h-11 items-center border-2 border-signal bg-signal px-5 font-narrow text-xs font-semibold uppercase tracking-[0.08em] text-paper-bright transition-colors hover:bg-signal-deep">
             🎁 1 Gratis-Dossier (ohne Karte): Aktenzeichen &amp; PDF kostenlos öffnen →
           </Link>
-          <Link
-            href="/rechner/5-10-und-7-10-grenze"
-            className="inline-flex h-11 items-center border-2 border-ink bg-paper-bright px-5 font-narrow text-xs font-semibold uppercase tracking-[0.08em] text-ink transition-colors hover:bg-ink hover:text-paper-bright"
-          >
+          <Link href="/rechner/5-10-und-7-10-grenze" className="inline-flex h-11 items-center border-2 border-ink bg-paper-bright px-5 font-narrow text-xs font-semibold uppercase tracking-[0.08em] text-ink transition-colors hover:bg-ink hover:text-paper-bright">
             5/10- &amp; 7/10-Grenze Rechner öffnen
           </Link>
-          <Link
-            href="/tr/icra-ihale"
-            className="inline-flex h-11 items-center border border-rule-strong bg-paper px-4 font-mono text-xs text-ink-soft hover:border-ink hover:text-ink"
-          >
-            🇹🇷 Türkei İcra &amp; E-İhale ({formatNumber(catalog.trTotalListings, "de")} Objekte)
+          <Link href="/suche?markt=DE" className="inline-flex h-11 items-center border border-rule-strong bg-paper px-4 font-mono text-xs text-ink-soft hover:border-ink hover:text-ink">
+            🔍 Live-Suche ({formatNumber(catalog.deTotalListings, "de")} ZVG-Objekte)
           </Link>
         </div>
 
@@ -79,61 +84,45 @@ export default function PseoDeHubView({ catalog }: PseoDeHubViewProps) {
           <Link href="/zwangsversteigerung/mehrfamilienhaus-gewerbe" className="border border-ink bg-paper-bright px-2.5 py-1 font-semibold text-ink hover:bg-ink hover:text-paper-bright">🏛️ Mehrfamilienhaus &amp; Gewerbe</Link>
         </div>
 
-        <div className="mt-2 flex flex-wrap gap-2 pt-1 font-mono text-[11px]">
-          <Link href="/oesterreich/ediktsdatei" className="border border-rule-strong bg-paper px-2.5 py-1 text-ink-soft hover:border-ink hover:text-ink">🇦🇹 Österreich · Ediktsdatei (9 Länder)</Link>
-          <Link href="/schweiz/shab-versteigerungen" className="border border-rule-strong bg-paper px-2.5 py-1 text-ink-soft hover:border-ink hover:text-ink">🇨🇭 Schweiz · SHAB (26 Kantone)</Link>
-          <Link href="/it/aste-giudiziarie" className="border border-rule-strong bg-paper px-2.5 py-1 text-ink-soft hover:border-ink hover:text-ink">🇮🇹 Italia · Aste PVP (20 Regioni)</Link>
-          <Link href="/es/subastas-boe" className="border border-rule-strong bg-paper px-2.5 py-1 text-ink-soft hover:border-ink hover:text-ink">🇪🇸 España · BOE (17 CCAA)</Link>
-          <Link href="/fr/encheres-immobilieres" className="border border-rule-strong bg-paper px-2.5 py-1 text-ink-soft hover:border-ink hover:text-ink">🇫🇷 France · Licitor (13 Régions)</Link>
-          <Link href="/en/uk-property-auctions" className="border border-rule-strong bg-paper px-2.5 py-1 text-ink-soft hover:border-ink hover:text-ink">🇬🇧 UK · Property Auctions (12 Regions)</Link>
+        <div className="mt-2 flex flex-wrap gap-1.5 font-mono text-[11px]">
+          {STATE_COMBO_HIGHLIGHTS.filter((h) => catalog.cityBySlug.has(h.slug)).map((h) => (
+            <Link key={h.slug} href={`/zwangsversteigerung/${h.slug}`} className="border border-rule-strong bg-paper px-2 py-0.5 text-ink-soft hover:border-ink hover:text-ink">
+              {h.label}
+            </Link>
+          ))}
         </div>
       </header>
 
       <section className="mt-12">
         <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-rule-strong pb-3">
-          <h2 className="font-display text-2xl text-ink">Alle 16 Bundesländer (Zwangsversteigerung &amp; Grunderwerbsteuer)</h2>
+          <h2 className="font-display text-2xl text-ink">Alle 16 Bundesländer (inkl. aller lokalen Amtsgerichte &amp; Städte)</h2>
           <span className="font-mono text-xs text-ink-muted">Direkt zum Bundesland-Verzeichnis</span>
         </div>
         <div className="mt-5 grid gap-2.5 sm:grid-cols-2 md:grid-cols-4">
           {catalog.deStates.map((st) => (
-            <Link
-              key={st.slug}
-              href={`/bundesland/${st.slug}`}
-              className="flex items-center justify-between border-2 border-ink bg-paper-bright px-3.5 py-2.5 transition-colors hover:bg-paper-deep"
-            >
+            <Link key={st.slug} href={`/bundesland/${st.slug}`} className="flex items-center justify-between border-2 border-ink bg-paper-bright px-3.5 py-2.5 transition-colors hover:bg-paper-deep">
               <div className="min-w-0 pr-2">
                 <span className="block truncate font-display text-sm text-ink">{st.name}</span>
                 <span className="block font-mono text-[10px] uppercase text-ink-muted">GrESt: {st.transferTaxPct} %</span>
               </div>
-              <span className="shrink-0 bg-signal px-2 py-0.5 font-mono text-xs font-semibold text-paper-bright">
-                {st.totalCount}
-              </span>
+              <span className="shrink-0 bg-signal px-2 py-0.5 font-mono text-xs font-semibold text-paper-bright">{st.totalCount}</span>
             </Link>
           ))}
         </div>
       </section>
 
       <section className="mt-12">
-        <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-rule-strong pb-3">
-          <h2 className="font-display text-2xl text-ink">
-            Top-Städte nach aktiven Zwangsversteigerungen ({formatNumber(cityCount, "de")} Orte gesamt)
-          </h2>
-          <span className="font-mono text-xs text-ink-muted">Direkt zum lokalen Objektverzeichnis</span>
-        </div>
+        <h2 className="border-b border-rule-strong pb-3 font-display text-2xl text-ink">
+          Top-Städte nach aktiven Zwangsversteigerungen ({formatNumber(cityCount, "de")} Orte gesamt)
+        </h2>
         <div className="mt-5 grid gap-2.5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
           {topCities.map((city) => (
-            <Link
-              key={city.slug}
-              href={`/zwangsversteigerung/${city.slug}`}
-              className="flex items-center justify-between border border-rule-strong bg-paper-bright px-3.5 py-2.5 transition-colors hover:border-ink"
-            >
+            <Link key={city.slug} href={`/zwangsversteigerung/${city.slug}`} className="flex items-center justify-between border border-rule-strong bg-paper-bright px-3.5 py-2.5 transition-colors hover:border-ink">
               <div className="min-w-0 pr-2">
                 <span className="block truncate font-display text-sm text-ink">{city.name}</span>
                 <span className="block font-mono text-[10px] uppercase text-ink-muted">{city.region}</span>
               </div>
-              <span className="shrink-0 bg-paper-deep px-2 py-0.5 font-mono text-xs font-semibold text-signal">
-                {city.totalCount}
-              </span>
+              <span className="shrink-0 bg-paper-deep px-2 py-0.5 font-mono text-xs font-semibold text-signal">{city.totalCount}</span>
             </Link>
           ))}
         </div>
@@ -141,28 +130,20 @@ export default function PseoDeHubView({ catalog }: PseoDeHubViewProps) {
 
       <section className="mt-14">
         <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-rule-strong pb-3">
-          <h2 className="font-display text-2xl text-ink">
-            Alle {formatNumber(courtCount, "de")} deutschen Amtsgerichte (Vollständiges ZVG-Verzeichnis)
-          </h2>
-          <span className="font-mono text-xs text-ink-muted">Sortiert nach Terminanzahl</span>
+          <h2 className="font-display text-2xl text-ink">Größte Versteigerungsgerichte ({formatNumber(courtCount, "de")} Amtsgerichte gesamt)</h2>
+          <span className="font-mono text-xs text-ink-muted">Alle Gerichte je Bundesland oben abrufbar</span>
         </div>
         <div className="mt-5 grid gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-          {catalog.courts.map((court) => (
-            <Link
-              key={court.slug}
-              href={`/amtsgericht/${court.slug}`}
-              className="flex items-center justify-between border border-rule bg-paper px-3 py-2 text-xs transition-colors hover:border-ink hover:bg-paper-bright"
-            >
+          {topCourts.map((court) => (
+            <Link key={court.slug} href={`/amtsgericht/${court.slug}`} className="flex items-center justify-between border border-rule bg-paper px-3 py-2 text-xs transition-colors hover:border-ink hover:bg-paper-bright">
               <span className="truncate font-serif font-medium text-ink">{court.displayName}</span>
-              <span className="ml-2 shrink-0 font-mono text-[11px] font-semibold text-ink-muted">
-                {court.totalCount}
-              </span>
+              <span className="ml-2 shrink-0 font-mono text-[11px] font-semibold text-ink-muted">{court.totalCount}</span>
             </Link>
           ))}
         </div>
       </section>
 
-      <PseoRelatedGuides locale="de" />
+      <PseoRelatedGuides locale="de" market="DE" />
     </div>
   );
 }

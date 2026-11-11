@@ -12,6 +12,7 @@ import FreeUnlockedNotice from "@/components/app/listing/FreeUnlockedNotice";
 import ListingPurchase from "@/components/app/listing/ListingPurchase";
 import ListingUnlockBanner from "@/components/app/listing/ListingUnlockBanner";
 import QuotaExceededNotice from "@/components/app/listing/QuotaExceededNotice";
+import RelatedRegionalListings from "@/components/app/listing/RelatedRegionalListings";
 import NoteForm from "@/components/app/listing/NoteForm";
 import PreBidChecklist from "@/components/app/listing/PreBidChecklist";
 import CalendarLink from "@/components/app/listing/CalendarLink";
@@ -97,10 +98,11 @@ export default async function ListingPage({ params }: PageProps<"/app/objekt/[ke
 
   const listing = isLocked ? redactListingForFreePlan(rawListing) : rawListing;
   const market = listing.market;
-  const [entry, geo, sprite] = await Promise.all([
+  const [entry, geo, sprite, relatedItems] = await Promise.all([
     WatchlistService.get(viewer.id, listing.key),
     GeoService.getCountry(getListingCountry(listing)),
     GeoService.getLocatorSprite(getListingCountry(listing)),
+    ListingService.getRelatedInRegion(rawListing, 4),
   ]);
   const portalDetails = isLocked
     ? emptyPortalDetailsForFreePlan(listing.sourcePortal ?? "")
@@ -260,6 +262,12 @@ export default async function ListingPage({ params }: PageProps<"/app/objekt/[ke
           <PreBidChecklist listingId={listing.key} title={L.Checklist.Title} hint={L.Checklist.Hint} progressTemplate={L.Checklist.Progress} items={L.Checklist.Items[market]} />
         </PageAside>
       </PageSplitGrid>
+      <RelatedRegionalListings
+        items={relatedItems}
+        locale={locale}
+        regionLabel={rawListing.region || rawListing.place || rawListing.authority}
+        isFreePlan={isFreePlan}
+      />
     </AppMain>
   );
 }

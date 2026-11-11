@@ -284,6 +284,24 @@ export class ListingService {
     return (await getMarket(market)).snapshot.listings;
   };
 
+  /** Up to `limit` active proceedings in the same authority/region/country (for 2nd-dossier discovery). */
+  static getRelatedInRegion = async (listing: Listing, limit = 4): Promise<Listing[]> => {
+    const country = getListingCountry(listing);
+    const pool = (await getMarket(listing.market)).byCountry.get(country) ?? [];
+    const candidates = pool.filter(
+      (item) => !item.cancelled && item.key !== listing.key && (item.appraisedValue ?? 0) > 0,
+    );
+    const score = (item: Listing): number => {
+      let s = 0;
+      if (item.authority && item.authority === listing.authority) s += 4;
+      if (item.region && item.region === listing.region) s += 2;
+      if (item.segment === listing.segment) s += 1;
+      return s;
+    };
+    candidates.sort((a, b) => score(b) - score(a));
+    return candidates.slice(0, limit);
+  };
+
   /** Several proceedings by key, in the given order; unknown keys and keys outside `scope` are skipped. */
   static getMany = async (scope: CountryScope, keys: string[]): Promise<Listing[]> => {
     const loadedMarkets = await Promise.all(marketsOfScope(scope).map((market) => getMarket(market)));

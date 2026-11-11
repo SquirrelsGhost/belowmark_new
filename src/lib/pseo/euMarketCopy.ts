@@ -272,9 +272,9 @@ export const EU_MARKET_COPY: Record<EuPseoMarketCode, EuMarketCopyConfig> = {
     hubLead:
       "Directorio actualizado de subastas judiciales, notariales y de la Agencia Tributaria publicadas en el Portal de Subastas del Boletín Oficial del Estado (BOE) en las 17 comunidades autónomas — con Valor de Subasta, reglas del 70% y 50% (Art. 670 LEC), depósito del 5% y cálculo del ITP autonómico.",
     hubMetaTitle: (total) =>
-      `Subastas BOE Hoy (${total} Pisos y Casas -50%) · Sin Certificado`,
+      `Subastas BOE Hoy: ${total} Pisos, Casas y Solares (-50% · Sin Cl@ve)`,
     hubMetaDesc: (total, rCount) =>
-      `Buscador abierto de Subastas BOE sin Cl@ve ni certificado en las ${rCount} comunidades: ${total} viviendas, locales y solares activos con regla 70%/50% (LEC).`,
+      `Portal abierto de Subastas Judiciales BOE hoy sin certificado digital en las ${rCount} CCAA: ${total} pisos, casas y locales desde el 50% (Regla 70% LEC y calculadora gratis).`,
     calcButtonLabel: "🧮 Calculadora Gratuita Subasta BOE: Regla 70% / 50% (Art. 670 LEC), Depósito 5% e ITP →",
     ctaButtonLabel: "🎁 1 Expediente Gratis: Desbloquear Edicto BOE, Cargas y PDF →",
     regionsHeading: (c) => `Las ${c} Comunidades Autónomas de España (Subastas BOE)`,
@@ -404,9 +404,9 @@ export const EU_MARKET_COPY: Record<EuPseoMarketCode, EuMarketCopyConfig> = {
     hubLead:
       "Complete directory of live residential and commercial UK property auction lots across all 12 regions of England, Wales, Scotland, and Northern Ireland — featuring Guide Prices in GBP, estimated Reserve Prices, 10% Exchange Deposits, 28-day completion timelines, and Land Registry / EPC street-price comps.",
     hubMetaTitle: (total, rCount) =>
-      `UK Property Auctions: ${total} Live Lots Across ${rCount} Regions`,
+      `UK Property Auctions: ${total} Houses, Flats & Repossessions (${rCount} Regions)`,
     hubMetaDesc: (total, rCount) =>
-      `Browse all ${total} live UK property auction lots across ${rCount} UK regions: Guide Prices in GBP, 10% exchange deposit, Legal Pack check & Land Registry comps.`,
+      `Search ${total} live UK property auction houses, flats & repossession lots across ${rCount} regions (Auction House UK, Clive Emson, Eddisons): Guide Prices in GBP & SDLT calculator.`,
     calcButtonLabel: "🧮 Free UK Property Auction Calculator: Guide vs Reserve, 10% Deposit & Stamp Duty (SDLT) →",
     ctaButtonLabel: "🎁 1 Free Dossier: Unlock Address, Legal Pack PDF & Land Registry Comps →",
     regionsHeading: (c) => `All ${c} UK Regions (England, Wales, Scotland & Northern Ireland)`,
@@ -455,11 +455,12 @@ export const EU_MARKET_COPY: Record<EuPseoMarketCode, EuMarketCopyConfig> = {
       `Live residential and commercial UK property auction and repossession lots in ${e.name} (${e.nativeRegionName}) — complete with Guide Prices in GBP, 10% exchange deposit figures, 28-day completion terms, and HM Land Registry £/m² street benchmarks.`,
     entryMetaTitle: (e) => {
       const low = fmtMinEntry(e, 0.7, "en-GB", "GBP");
-      return `UK Property Auctions ${e.name}: ${e.totalCount} Lots${low ? ` from ${low}` : ""}`;
+      const full = `Property Auctions ${e.name}: ${e.totalCount} Houses & Lots${low ? ` from ${low}` : ""}`;
+      return full.length <= 66 ? full : `Property Auctions ${e.name}: ${e.totalCount} Lots${low ? ` from ${low}` : ""}`;
     },
     entryMetaDesc: (e) => {
       const low = fmtMinEntry(e, 0.7, "en-GB", "GBP");
-      return `Browse ${e.totalCount} live UK property auction & repossession lots in ${e.name}${low ? ` from ${low}` : ""}: Guide Prices in GBP, 10% deposit & Land Registry comps.`;
+      return `${e.totalCount} live houses, flats & commercial property auction lots in ${e.name}${low ? ` from ${low}` : ""}: Guide Prices in GBP, 10% deposit, Legal Pack & Land Registry comps.`;
     },
   },
 };
