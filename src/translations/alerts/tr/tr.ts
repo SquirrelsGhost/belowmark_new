@@ -81,7 +81,7 @@ export const ALERTS_TR: IAlertsTranslation = {
     OpenSearch: "Aramayı aç",
     LockedValues: "Tam esas numaralarını, açık adresleri ve şartname/bilirkişi PDF'lerini tam erişimde (veya 1 Ücretsiz Dosya hakkınızla) açabilirsiniz.",
     TrialTitle: "Tüm esas numaralarını, adresleri ve PDF şartnameleri açın",
-    TrialBody: "Investor tam erişimini 7 gün boyunca 0,00 TL ile deneyin (istediğiniz an tek tıkla iptal) — veya hesabınızdaki 1 Ücretsiz Dosya hakkınızı kullanın.",
+    TrialBody: "Alarm hesabınız ve 1 Ücretsiz Dosya hakkınız kalıcı olarak ücretsizdir (kart bilgisi yok, otomatik abonelik yok). Dilerseniz Investor tam erişimini 7 gün 0,00 TL ile deneyebilirsiniz.",
     TrialCta: "7 Gün Ücretsiz Dene (0,00 TL)",
     Manage: "Alarmları yönet veya duraklat",
     Source: { DE: "Tüm bilgilerin kaynağı: zvg-portal.de", TR: "Tüm bilgilerin kaynağı: ilan.gov.tr" },

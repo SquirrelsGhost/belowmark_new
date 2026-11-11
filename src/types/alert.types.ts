@@ -43,4 +43,5 @@ export interface AlertRunReport {
   newHits: number;
   changeHits: number;
   failed: number;
+  unverifiedRemindersSent?: number;
 }

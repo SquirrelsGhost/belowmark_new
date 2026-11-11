@@ -131,6 +131,9 @@ export interface IBillingTranslation {
     Status: string;
     RenewsOn: string;
     EndsOn: string;
+    FreeNoAutoRenew: string;
+    TrialEndsAuto: string;
+    NoSubscriptionNotice: string;
     Book: string;
     Extend: string;
     Upgrade: string;
@@ -171,6 +174,8 @@ export interface IBillingTranslation {
     Eyebrow: string;
     Title: string;
     Lead: string;
+    NoActivePlanNotice: string;
+    FixedTermNotice: string;
     Name: string;
     Email: string;
     EmailHint: string;

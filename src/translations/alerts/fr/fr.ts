@@ -81,7 +81,7 @@ export const ALERTS_FR: IAlertsTranslation = {
     OpenSearch: "Ouvrir la recherche",
     LockedValues: "Les numéros de rôle complets, adresses exactes et cahiers des ventes PDF sont inclus dans l'accès complet (ou via votre 1 Dossier Gratuit).",
     TrialTitle: "Débloquez tous les numéros de rôle, adresses et PDF judiciaires",
-    TrialBody: "Essayez l'accès complet Investor pendant 7 jours à 0,00 € aujourd'hui (résiliable en 1 clic à tout moment) — ou ouvrez 1 dossier complet gratuitement.",
+    TrialBody: "Votre compte d'alerte et votre 1 Dossier Gratuit restent gratuits sans carte ni abonnement automatique. En option, essayez l'accès Investor pendant 7 jours à 0,00 €.",
     TrialCta: "Essayer 7 jours gratuitement (0,00 €)",
     Manage: "Gérer ou mettre en pause les alertes",
     Source: { DE: "Source de toutes les données : zvg-portal.de", TR: "Source de toutes les données : ilan.gov.tr" },

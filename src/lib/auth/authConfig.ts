@@ -19,12 +19,15 @@ export const SESSION_TTL = {
 
 export const TOKEN_TTL = {
   verifyEmail: 24 * HOUR,
+  verifyEmailReminder: 72 * HOUR,
+  verifyEmailReminderMarker: 3650 * DAY,
   resetPassword: HOUR,
 } as const;
 
 export const TOKEN_PURPOSE = {
   verifyEmail: "verify_email",
   verifyEmailCode: "verify_email_code",
+  verifyEmailReminderSent: "verify_email_reminder_sent",
   resetPassword: "reset_password",
 } as const;
 export type TokenPurpose = (typeof TOKEN_PURPOSE)[keyof typeof TOKEN_PURPOSE];

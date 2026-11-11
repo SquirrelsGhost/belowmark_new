@@ -81,7 +81,7 @@ export const ALERTS_EN: IAlertsTranslation = {
     OpenSearch: "Open search",
     LockedValues: "Full court file numbers, street addresses, and appraisal PDFs are unlocked with Full Access (or via your 1 Free Dossier).",
     TrialTitle: "Unlock all court file numbers, street addresses & legal PDFs",
-    TrialBody: "Start a 7-day Investor full-access trial for 0.00 today (cancel anytime in 1 click) — or unlock 1 complete property dossier permanently free in your account.",
+    TrialBody: "Your alert account and 1 Free Dossier stay permanently free (no payment details stored, no auto-renewal). Optionally test Investor Full Access for 7 days at 0.00 today.",
     TrialCta: "Start 7-Day Free Trial (0.00)",
     Manage: "Manage or pause alerts",
     Source: { DE: "Source of all data: zvg-portal.de", TR: "Source of all data: ilan.gov.tr" },

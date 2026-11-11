@@ -26,6 +26,11 @@ export default function AccountPlanPanel({ t, view, notice, children }: AccountP
           <BillingNotice tone={notice.tone} message={notice.message} />
         </div>
       )}
+      {view.noSubscriptionNotice && (
+        <div className="mb-5">
+          <BillingNotice tone="verdict" message={view.noSubscriptionNotice} />
+        </div>
+      )}
       <AccountDetails>
         <AccountDetailRow label={t.PlanLabel} value={view.plan} tone={view.isActive ? "verdict" : "default"} />
         {view.term && <AccountDetailRow label={t.Status} value={view.term} />}

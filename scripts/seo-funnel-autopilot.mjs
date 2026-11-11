@@ -14,6 +14,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import * as dotenv from "dotenv";
 import nodemailer from "nodemailer";
 import pg from "pg";
+import { runUnverifiedReminders } from "./lib/unverifiedReminderRunner.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
@@ -160,7 +161,12 @@ async function collectFunnelMetrics() {
       ORDER BY key
     `);
 
-    const reminderSentCount = countersQ.rows.filter((r) => r.key.startsWith("reengage:unverified-dossier-v1:")).length;
+    const reminderMarkersQ = await client.query(`
+      SELECT COUNT(*)::int AS total
+      FROM auth_tokens
+      WHERE purpose = 'verify_email_reminder_sent'
+    `);
+    const reminderSentCount = reminderMarkersQ.rows[0]?.total ?? 0;
     const postFreeDossierSentCount = countersQ.rows.filter((r) => r.key.startsWith("reengage:post-free-dossier-v1:")).length;
     const unusedFreeDossierSentCount = countersQ.rows.filter((r) => r.key.startsWith("reengage:unused-free-dossier-v1:")).length;
     const attributionCounters = Object.fromEntries(
@@ -185,110 +191,7 @@ async function collectFunnelMetrics() {
 }
 
 async function sendPendingUnverifiedReminders() {
-  if (!process.env.DATABASE_URL || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
-    return { available: false, sent: 0 };
-  }
-  const { MAIL_COLORS, escapeHtml, renderMailFrame } = await import(
-    pathToFileURL(path.join(ROOT, "src/lib/mail/mailLayout.ts")).href
-  );
-  const client = new pg.Client({ connectionString: process.env.DATABASE_URL });
-  await client.connect();
-  const transporter = nodemailer.createTransport({
-    name: "belowmark.com",
-    host: process.env.SMTP_HOST || "smtp.ionos.de",
-    port: Number(process.env.SMTP_PORT || 465),
-    secure: Number(process.env.SMTP_PORT || 465) === 465,
-    auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
-    tls: { servername: process.env.SMTP_HOST || "smtp.ionos.de", rejectUnauthorized: false },
-  });
-
-  let sent = 0;
-  const recipients = [];
-  try {
-    const { rows } = await client.query(`
-      SELECT id, email, locale
-      FROM users
-      WHERE email_verified_at IS NULL
-        AND gesperrt_am IS NULL
-        AND created_at <= NOW() - INTERVAL '40 minutes'
-        AND created_at >= NOW() - INTERVAL '72 hours'
-      ORDER BY created_at ASC
-      LIMIT 8
-    `);
-
-    for (const u of rows) {
-      if (/\.(local|invalid|test)$/i.test(u.email) || u.email.includes("@belowmark.")) continue;
-      const idemKey = `reengage:unverified-dossier-v1:${u.id}`;
-      const seen = await client.query(`SELECT 1 FROM rate_limits WHERE key = $1`, [idemKey]);
-      if (seen.rows.length > 0) continue;
-
-      const token = crypto.randomBytes(32).toString("base64url");
-      const code = String(crypto.randomInt(100_000, 1_000_000));
-      const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
-      const codeHash = crypto.createHash("sha256").update(`bm-otp:${u.id}:${code}`).digest("hex");
-      const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
-      const codeFmt = `${code.slice(0, 3)} ${code.slice(3)}`;
-      const verifyUrl = `${ORIGIN}/email-bestaetigen?token=${encodeURIComponent(token)}`;
-      const isTr = (u.locale ?? "").startsWith("tr");
-      const isEn = !isTr && !((u.locale ?? "de").startsWith("de"));
-      const lang = isTr ? "tr" : isEn ? "en" : "de";
-
-      const subject = isTr
-        ? "1 Ücretsiz İhale Dosyanız hazır: Lütfen e-postanızı doğrulayın (Belowmark)"
-        : isEn
-          ? "Your 1 Free Property Dossier is waiting: Please verify your email (Belowmark)"
-          : "Ihr 1 Gratis-Dossier wartet: Bitte E-Mail-Adresse bestätigen (Belowmark)";
-      const bodyText = isTr
-        ? `Merhaba,\n\nBelowmark'taki 1 Ücretsiz Tam İhale Dosyası hakkınızı açmak için 6 haneli kodunuz: ${codeFmt}\nDoğrulama bağlantısı (24 saat geçerli):\n${verifyUrl}\n\n— Emre Ak — Belowmark`
-        : isEn
-          ? `Hello,\n\nYour 6-digit verification code to unlock your 1 Free Property Dossier on Belowmark: ${codeFmt}\nDirect verification link (valid 24h):\n${verifyUrl}\n\n— Emre Ak — Belowmark`
-          : `Guten Tag,\n\nIhr 6-stelliger Sicherheitscode zur Freischaltung Ihres 1 Gratis-Dossiers auf Belowmark lautet: ${codeFmt}\nDirektlink zur Bestätigung (24 Std. gültig):\n${verifyUrl}\n\n— Emre Ak — Belowmark`;
-
-      const C = MAIL_COLORS;
-      const bodyHtml = `<tr><td style="padding:8px 32px 28px;"><p style="font-size:15px;line-height:1.65;color:${C.ink};">${escapeHtml(bodyText).replace(/\n/g, "<br/>")}</p><div style="margin-top:16px;display:inline-block;font-family:monospace;font-size:24px;font-weight:900;letter-spacing:5px;padding:10px 18px;border:1.5px solid ${C.ink};background:${C.bright};">${escapeHtml(codeFmt)}</div><div style="margin-top:16px;"><a href="${escapeHtml(verifyUrl)}" style="display:inline-block;background:${C.ink};color:${C.bright};padding:12px 22px;font-weight:800;text-decoration:none;border-bottom:4px solid ${C.signal};">${isTr ? "E-POSTAYI DOĞRULA" : isEn ? "VERIFY EMAIL" : "E-MAIL BESTÄTIGEN"} &rarr;</a></div></td></tr>`;
-      const html = renderMailFrame({
-        lang,
-        docCode: "BM-ACCOUNT",
-        eyebrow: isTr ? "Hesap Doğrulama" : isEn ? "Account Verification" : "Kontobestätigung",
-        subject,
-        preheader: subject,
-        bodyHtml,
-        signature: "Emre Ak — Belowmark",
-        footer: "Belowmark · belowmark.com",
-        baseUrl: ORIGIN,
-      });
-
-      await client.query("BEGIN");
-      await client.query(`DELETE FROM auth_tokens WHERE user_id = $1 AND purpose IN ('verify_email', 'verify_email_code')`, [u.id]);
-      await client.query(
-        `INSERT INTO auth_tokens (id, user_id, purpose, expires_at) VALUES ($1, $2, 'verify_email', $3), ($4, $2, 'verify_email_code', $3)`,
-        [tokenHash, u.id, expiresAt, codeHash],
-      );
-      await client.query("COMMIT");
-
-      await transporter.sendMail({
-        messageId: `<${crypto.randomUUID()}@belowmark.com>`,
-        from: process.env.MAIL_FROM || "Belowmark <contact@belowmark.com>",
-        replyTo: "contact@belowmark.com",
-        to: u.email,
-        subject,
-        text: bodyText,
-        html,
-        headers: { "X-Auto-Response-Suppress": "OOF, AutoReply" },
-      });
-
-      await client.query(
-        `INSERT INTO rate_limits (key, count, reset_at) VALUES ($1, 1, NOW() + INTERVAL '365 days') ON CONFLICT (key) DO UPDATE SET count = rate_limits.count + 1`,
-        [idemKey],
-      );
-      sent += 1;
-      recipients.push(u.email);
-    }
-    return { available: true, sent, recipients };
-  } finally {
-    transporter.close();
-    await client.end();
-  }
+  return runUnverifiedReminders({ baseUrl: ORIGIN });
 }
 
 async function sendVerifiedUnusedFreeDossierActivation() {

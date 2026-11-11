@@ -81,7 +81,7 @@ export const ALERTS_DE: IAlertsTranslation = {
     OpenSearch: "Suche öffnen",
     LockedValues: "Vollständige Aktenzeichen, Hausadressen und Gutachten-PDFs sehen Sie im Vollzugang (oder über Ihr 1 Gratis-Dossier).",
     TrialTitle: "Alle Aktenzeichen, Hausadressen & Gutachten-PDFs freischalten",
-    TrialBody: "Testen Sie den Investor-Vollzugang 7 Tage für 0,00 € (jederzeit mit 1 Klick vorab kündbar) — oder öffnen Sie 1 Wunsch-Akte dauerhaft gratis in Ihrem Konto.",
+    TrialBody: "Ihr Alert-Konto und Ihr 1 Gratis-Dossier sind dauerhaft kostenlos (keine Zahlungsdaten, kein automatisches Abo). Optional können Sie den Investor-Vollzugang 7 Tage für 0,00 € testen.",
     TrialCta: "7 Tage Vollzugang testen (0,00 €)",
     Manage: "Alerts verwalten oder pausieren",
     Source: { DE: "Quelle aller Angaben: zvg-portal.de", TR: "Quelle aller Angaben: ilan.gov.tr" },

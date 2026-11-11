@@ -71,13 +71,15 @@ export default async function AccountPage({ searchParams }: PageProps<"/konto">)
 
   const { t: billing } = await getLegalPageContext();
   const access = await BillingService.access(user.id);
-  const inTrial = !user.plan && user.hasFullAccess && !user.teamSeat && !hasPermission(user.permissions, "*");
-  const basePlanView = buildAccountPlanView(access, billing, lang, inTrial, user.trialEndsAt);
+  const isAdmin = hasPermission(user.permissions, "*");
+  const inTrial = !user.plan && user.hasFullAccess && !user.teamSeat && !isAdmin;
+  const basePlanView = buildAccountPlanView(access, billing, lang, inTrial, user.trialEndsAt, user.hasTrialEnded);
   // A seat in a Pro owner's team gives full access without an own plan
   const viaTeam = !access.isActive && user.teamSeat;
   const planView = {
     ...basePlanView,
-    ...(viaTeam ? { plan: t.AccountMenu.Access.team, isActive: true } : {}),
+    ...(viaTeam ? { plan: t.AccountMenu.Access.team, isActive: true, noSubscriptionNotice: undefined } : {}),
+    ...(isAdmin ? { noSubscriptionNotice: undefined } : {}),
     // Invoices live on this page now; the Stripe portal only manages payment methods
     portalUnavailable: basePlanView.portalUnavailable && account.Portal.Unavailable,
   };
@@ -90,14 +92,17 @@ export default async function AccountPage({ searchParams }: PageProps<"/konto">)
   const invoices = invoiceRows.map((row) => buildInvoiceListView(row, account.Invoices, billing, lang));
 
   const trialEnded = user.hasTrialEnded;
-  const trialValue = user.trialEndsAt ? `${formatDate(user.trialEndsAt.toISOString(), lang)}${trialEnded ? ` · ${Account.Details.TrialEnded}` : ""}` : "—";
+  const trialValue = user.trialEndsAt
+    ? trialEnded
+      ? `${formatDate(user.trialEndsAt.toISOString(), lang)} · ${Account.Details.TrialEnded}`
+      : fill(billing.Account.TrialEndsAuto, { date: formatDate(user.trialEndsAt.toISOString(), lang) })
+    : "—";
   // The account's own country: every country is its own plan, so the packages shown are the ones for it
   const activePricingCountry: PricingCountryCode = accountCountry(user.country, user.market === "TR" ? "TR" : "DE");
   const marketLabel = `${t.Fields.Markets[activePricingCountry].Label} (${activePricingCountry})`;
   // Packages in the account's own country, with the same order gates as /buchen
   const marketAvailability = BillingService.availability(activePricingCountry === "TR" ? "TR" : "DE");
   const offerCards = buildAccountOfferCards(billing, access, lang, activePricingCountry, activePricingCountry, BillingService.orderBlocker, !marketAvailability.blocker);
-  const isAdmin = hasPermission(user.permissions, "*");
   const accessValue = isAdmin
     ? Account.Details.AccessAdmin
     : user.plan
@@ -145,8 +150,10 @@ export default async function AccountPage({ searchParams }: PageProps<"/konto">)
                 <AccountDetailRow label={Account.Details.Email} value={user.email} />
                 <AccountDetailRow label={Account.Details.Market} value={`${marketLabel} · ${user.market}`} />
                 <AccountDetailRow label={Account.Details.Verified} value={Account.Details.VerifiedValue} tone="verdict" />
-                <AccountDetailRow label={Account.Details.Access} value={accessValue} tone={user.hasFullAccess ? "verdict" : "signal"} />
-                {!isAdmin && !user.plan && !user.teamSeat && user.hasFullAccess && <AccountDetailRow label={Account.Details.Trial} value={trialValue} tone={trialEnded ? "signal" : "default"} />}
+                <AccountDetailRow label={Account.Details.Access} value={accessValue} tone="verdict" />
+                {!isAdmin && !user.plan && !user.teamSeat && Boolean(user.trialEndsAt) && (
+                  <AccountDetailRow label={Account.Details.Trial} value={trialValue} tone="verdict" />
+                )}
                 <AccountDetailRow label={Account.Details.Since} value={formatDate(user.createdAt.toISOString(), lang)} />
               </AccountDetails>
             </AccountPanel>

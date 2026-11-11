@@ -20,8 +20,8 @@ export interface VerificationContextParams {
   market?: string;
 }
 
-function link(path: string, token?: string, ctx?: VerificationContextParams): string {
-  const url = new URL(path, env.appUrl);
+function link(path: string, token?: string, ctx?: VerificationContextParams, baseOverride?: string): string {
+  const url = new URL(path, baseOverride || env.appUrl);
   if (token) url.searchParams.set(AUTH_PARAMS.token, token);
   if (ctx?.key) url.searchParams.set("objekt", ctx.key);
   if (ctx?.city) url.searchParams.set("stadt", ctx.city);
@@ -29,7 +29,16 @@ function link(path: string, token?: string, ctx?: VerificationContextParams): st
   return url.toString();
 }
 
+function resolvePublicBaseUrl(candidate?: string): string {
+  const raw = (candidate || env.appUrl || "https://www.belowmark.com").trim();
+  if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?(\/|$)/i.test(raw)) {
+    return "https://www.belowmark.com";
+  }
+  return raw;
+}
+
 import { LocaleOption } from "@/lib/constants";
+import { buildVerifyReminderMailBundle } from "@/lib/mail/verifyReminderMailCopy";
 import { buildWelcomeMailBundle } from "@/lib/mail/welcomeMailCopy";
 
 const INTL_LOCALES: Record<LocaleOption, string> = {
@@ -112,6 +121,33 @@ export class AuthMailService {
       docCode: bundle.docCode,
       eyebrow: bundle.eyebrow,
       baseUrl: env.appUrl,
+    });
+    await MailService.send({ to: to.email, ...rendered });
+  };
+
+  /** Sends the strict 1× verification reminder with a fresh 72h link + 6-digit code in the user's locale. */
+  static sendVerificationReminder = async (
+    to: Recipient,
+    token: string,
+    verificationCode: string,
+    baseUrl?: string,
+  ): Promise<void> => {
+    const locale = TranslationService.NormalizeLocale(to.locale);
+    const lang = TranslationService.ToLocaleOption(locale);
+    const publicBase = resolvePublicBaseUrl(baseUrl);
+    const bundle = buildVerifyReminderMailBundle(lang);
+
+    const rendered = renderAuthMail({
+      template: bundle.template,
+      url: link(AUTH_ROUTES.verifyEmail, token, undefined, publicBase),
+      signature: bundle.signature,
+      footer: bundle.footer,
+      lang,
+      verificationCode,
+      highlights: bundle.highlights,
+      docCode: bundle.docCode,
+      eyebrow: bundle.eyebrow,
+      baseUrl: publicBase,
     });
     await MailService.send({ to: to.email, ...rendered });
   };

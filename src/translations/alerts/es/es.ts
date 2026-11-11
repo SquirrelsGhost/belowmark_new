@@ -81,7 +81,7 @@ export const ALERTS_ES: IAlertsTranslation = {
     OpenSearch: "Abrir búsqueda",
     LockedValues: "Los números de expediente completos, direcciones exactas y edictos PDF están disponibles con acceso completo (o con su 1 Expediente Gratis).",
     TrialTitle: "Desbloquee todos los expedientes BOE, direcciones y edictos PDF",
-    TrialBody: "Pruebe el acceso completo Investor durante 7 días por 0,00 € hoy (cancelación en 1 clic en cualquier momento) — o abra 1 expediente completo gratis.",
+    TrialBody: "Su cuenta de alertas y su 1 Expediente Gratis son permanentes y gratuitos (sin tarjeta ni suscripción automática). Opcionalmente pruebe Investor 7 días por 0,00 € hoy.",
     TrialCta: "Probar 7 días gratis (0,00 €)",
     Manage: "Gestionar o pausar alertas",
     Source: { DE: "Fuente de todos los datos: zvg-portal.de", TR: "Fuente de todos los datos: ilan.gov.tr" },

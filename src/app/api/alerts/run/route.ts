@@ -10,10 +10,17 @@ async function handleRun(req: Request): Promise<Response> {
   }
   try {
     const now = Date.now();
-    const [data]: [AlertRunReport, unknown] = await Promise.all([
+    const [alertReport, reminderReport] = await Promise.all([
       AlertRunService.run(now),
-      UnverifiedReminderService.run(now).catch((e) => console.error("[alerts/run:unverified]", e)),
+      UnverifiedReminderService.run(now).catch((e) => {
+        console.error("[alerts/run:unverified]", e);
+        return null;
+      }),
     ]);
+    const data: AlertRunReport = {
+      ...alertReport,
+      unverifiedRemindersSent: reminderReport?.sent ?? 0,
+    };
     return ok(data);
   } catch (error) {
     console.error("[/api/alerts/run]", error);

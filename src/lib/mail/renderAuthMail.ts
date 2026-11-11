@@ -1,4 +1,5 @@
 import { escapeHtml, MAIL_COLORS, renderMailFrame } from "@/lib/mail/mailLayout";
+import { AUTH_MAIL_CHROME, normalizeMailLang } from "@/lib/mail/verifyReminderMailCopy";
 import { IMailTemplate } from "@/translations/auth/IAuthTranslation";
 
 export interface RenderedMail {
@@ -49,10 +50,10 @@ export function renderAuthMail({
   baseUrl,
 }: MailParts): RenderedMail {
   const C = MAIL_COLORS;
-  const isTr = lang === "tr";
+  const chrome = AUTH_MAIL_CHROME[normalizeMailLang(lang)];
 
   const lines = [
-    "BELOWMARK — KONTO & SICHERHEIT",
+    chrome.headerLine,
     "═".repeat(48),
     "",
     template.Greeting,
@@ -61,9 +62,8 @@ export function renderAuthMail({
     "",
   ];
   if (verificationCode) {
-    const codeHeading = isTr ? "6 Haneli Doğrulama Kodunuz" : "Ihr 6-stelliger Bestätigungscode";
     lines.push(`┌──────────────────────────────────────────────┐`);
-    lines.push(`│  ${codeHeading}: ${formatOtpDisplay(verificationCode)}`);
+    lines.push(`│  ${chrome.codeHeading}: ${formatOtpDisplay(verificationCode)}`);
     lines.push(`└──────────────────────────────────────────────┘`, "");
   }
   if (highlights && highlights.length > 0) {
@@ -77,12 +77,10 @@ export function renderAuthMail({
   lines.push(template.Ignore, "", "—", signature, footer);
 
   const safeUrl = escapeHtml(url);
-  const copyLabel = isTr ? "Kopyalamak için doğrudan bağlantı" : "Direktlink (falls die Schaltfläche nicht öffnet)";
-  const securityLabel = isTr ? "Güvenlik Notu" : "Sicherheitshinweis";
-  const otpLabel = isTr ? "Alternatif: 6 Haneli Doğrulama Kodu" : "Alternativ: 6-stelliger Bestätigungscode";
-  const otpHint = isTr
-    ? "Bu kodu kayıt veya doğrulama ekranına doğrudan girebilirsiniz."
-    : "Sie können diesen Code auch direkt auf der Registrierungs- oder Bestätigungsseite eingeben.";
+  const copyLabel = chrome.copyLabel;
+  const securityLabel = chrome.securityLabel;
+  const otpLabel = chrome.otpLabel;
+  const otpHint = chrome.otpHint;
 
   const otpHtml = verificationCode
     ? `
@@ -186,8 +184,8 @@ export function renderAuthMail({
 
   const html = renderMailFrame({
     lang,
-    docCode: docCode ?? (isTr ? "BM-HESAP · GÜVENLİK" : "BM-KONTO · SICHERHEIT"),
-    eyebrow: eyebrow ?? (isTr ? "Hesap ve Erişim Doğrulaması" : "Konto- & Zugangsbestätigung"),
+    docCode: docCode ?? chrome.defaultDocCode,
+    eyebrow: eyebrow ?? chrome.defaultEyebrow,
     subject: template.Subject,
     preheader: template.Preheader,
     bodyHtml,

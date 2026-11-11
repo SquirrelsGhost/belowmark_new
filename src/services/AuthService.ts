@@ -36,10 +36,13 @@ async function issueToken(userId: string, purpose: TokenPurpose): Promise<string
 }
 
 /** Issues both a 256-bit 1-click verification link token and a 6-digit OTP verification code. */
-async function issueVerificationCredentials(userId: string): Promise<{ token: string; code: string }> {
+async function issueVerificationCredentials(
+  userId: string,
+  ttlMs: number = TOKEN_TTL.verifyEmail,
+): Promise<{ token: string; code: string }> {
   const token = generateToken();
   const code = generateVerificationCode();
-  const expiresAt = new Date(Date.now() + TOKEN_TTL.verifyEmail);
+  const expiresAt = new Date(Date.now() + ttlMs);
   await db.transaction(async (tx) => {
     await tx
       .delete(authTokens)
@@ -215,6 +218,12 @@ export class AuthService {
     const { token, code } = await issueVerificationCredentials(user.id);
     await AuthMailService.sendVerification(user, token, code);
   };
+
+  /** Issues fresh 72-hour verification credentials (link token + 6-digit code) for the 1× reminder mail. */
+  static issueVerificationReminderCredentials = async (
+    userId: string,
+  ): Promise<{ token: string; code: string }> =>
+    issueVerificationCredentials(userId, TOKEN_TTL.verifyEmailReminder);
 
   static verifyEmail = async (token: string): Promise<string | null> => {
     const userId = await consumeToken(token, TOKEN_PURPOSE.verifyEmail);
