@@ -106,20 +106,22 @@ for (let i = 0; i < 7; i++) {
   });
 }
 
+const extraDailyFlags = args["no-agy"] ? ["--no-agy"] : [];
+
 // Alle Tage der aktuellen Woche vorrendern (für die 7-Tage-Wochenvorschau im CRM)
 for (const wd of weekDates) {
   if (wd.iso === todayIso) continue;
   const manifestPath = resolve(OUT_ROOT, wd.iso, "manifest.json");
   if (!existsSync(manifestPath) || args["force-week"]) {
     runNode(
-      ["scripts/instagram-daily.mjs", `--datum=${wd.iso}`, `--thema=${wd.theme}`, "--trotzdem", "--no-reel"],
+      ["scripts/instagram-daily.mjs", `--datum=${wd.iso}`, `--thema=${wd.theme}`, "--trotzdem", "--no-reel", ...extraDailyFlags],
       `Wochenplan-Tag ${wd.dayName} (${wd.iso} · ${wd.theme})`
     );
   }
 }
 
 // Heute mit allen 3 Themen rendern (aktualisiert latest.json + ads.json)
-runNode(["scripts/instagram-daily.mjs", `--datum=${todayIso}`, "--alle"], `Tages-Render (${todayIso} · alle 3 Themen)`);
+runNode(["scripts/instagram-daily.mjs", `--datum=${todayIso}`, "--alle", ...extraDailyFlags], `Tages-Render (${todayIso} · alle 3 Themen)`);
 
 // 3. Wochenplan-Manifest (week-plan.json) für DE & TR zusammenbauen
 const latest = JSON.parse(readFileSync(resolve(OUT_ROOT, "latest.json"), "utf8"));

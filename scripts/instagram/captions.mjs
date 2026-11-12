@@ -6,6 +6,7 @@
 
 import { T, money, number, dateLong, dateShort, time } from "./texts.mjs";
 import { placeLine, cleanObjectTitle, extractDealInsights } from "./data.mjs";
+import { getAgyObjectCopy } from "./agyCopy.mjs";
 
 const BASE_TAGS = {
   de: [
@@ -83,6 +84,7 @@ export function objectCaption({ listing, lang, day, snapshotDate }) {
   const t = T[lang];
   const v = listing.appraisedValue;
   const ins = extractDealInsights(listing);
+  const agy = getAgyObjectCopy({ listing, lang });
 
   if (lang === "de") {
     const kind = cleanObjectTitle(listing, t.segment[listing.segment]);
@@ -97,14 +99,21 @@ export function objectCaption({ listing, lang, day, snapshotDate }) {
         ? `${number(land, lang)} m² Grund`
         : "";
 
-    // Zeile 1 = Scroll-Stopper vor „… mehr“!
-    const hookLine = listing.limitsWaived
+    // Zeile 1 = Scroll-Stopper vor „… mehr“ (via lokaler agy.exe CLI mit deterministischem Fallback)
+    const fallbackHook = listing.limitsWaived
       ? `${city}: ${kind}${areaSnippet ? ` (${areaSnippet})` : ""} OHNE 5/10-Wertgrenze vorm ${listing.authority}! (Gutachten: ${money(v, lang)})`
       : `${city}: ${kind}${areaSnippet ? ` (${areaSnippet})` : ""} ab ${money(ins.startBid, lang)} vorm Amtsgericht? (Gutachten: ${money(v, lang)})`;
+    const hookLine = agy?.hookLine || fallbackHook;
+    const angleLine =
+      agy?.angleLine ||
+      "👉 Swipe durch die 5 Slides für den €/m²-Check, die komplette Cash-Rechnung & die Haken im Verfahren.";
+    const closingQuestion =
+      agy?.closingQuestion ||
+      `💬 Dein Urteil: Top-Chance in ${city} ab ${money(ins.startBid, lang)} oder zu heiß? Bis wohin würdest du maximal mitbieten? Schreib’s in die Kommentare 👇`;
 
     const lines = [
       hookLine,
-      "👉 Swipe durch die 5 Slides für den €/m²-Check, die komplette Cash-Rechnung & die Haken im Verfahren.",
+      angleLine,
       "",
       `📊 Die amtlichen Zahlen (${placeLine(listing)}):`,
       `• Verkehrswert (Gutachten): ${money(v, lang)}${ins.fullPerM2 ? ` (${money(ins.fullPerM2, lang)}/m²)` : ""}`,
@@ -120,7 +129,7 @@ export function objectCaption({ listing, lang, day, snapshotDate }) {
       `• Gerichtstermin: ${dateLong(listing.hearingAt, lang)}, ${time(listing.hearingAt, lang)} (${listing.authority})`,
       ...(ins.noInsideInspection ? ["• ⚠️ Hinweis: Laut Bekanntmachung fand keine Innenbesichtigung statt — Sanierungspuffer einplanen!"] : []),
       "",
-      `💬 Dein Urteil: Top-Chance in ${city} ab ${money(ins.startBid, lang)} oder zu heiß? Bis wohin würdest du maximal mitbieten? Schreib’s in die Kommentare 👇`,
+      closingQuestion,
       "📌 Speicher dir den Beitrag ab, wenn du den Termin verfolgen willst.",
     ];
 
@@ -138,9 +147,18 @@ export function objectCaption({ listing, lang, day, snapshotDate }) {
   const discountPct = Math.max(1, Math.round(100 - (tr.startingBid / v) * 100));
   const areaSnippet = ins.area ? `${number(ins.area, lang)} m²${tr.rooms ? ` · ${tr.rooms}` : ""}` : "";
 
+  const fallbackTrHook = `${placeLine(listing)}: Muhammen bedelin %${discountPct} altında ${segLower}${areaSnippet ? ` (${areaSnippet})` : ""}! Başlangıç: ${money(tr.startingBid, lang)}`;
+  const trHookLine = agy?.hookLine || fallbackTrHook;
+  const trAngleLine =
+    agy?.angleLine ||
+    "👉 Fiyat analizi, gerekli nakit hesabı ve ihale öncesi 3 kritik kontrol için yana kaydırın (5 Slide).";
+  const trClosingQuestion =
+    agy?.closingQuestion ||
+    `💬 Sizce fırsat mı, risk mi? ${listing.place} bölgesinde bu ihaleye girer miydiniz? Yorumlara yazın 👇`;
+
   const lines = [
-    `${placeLine(listing)}: Muhammen bedelin %${discountPct} altında ${segLower}${areaSnippet ? ` (${areaSnippet})` : ""}! Başlangıç: ${money(tr.startingBid, lang)}`,
-    "👉 Fiyat analizi, gerekli nakit hesabı ve ihale öncesi 3 kritik kontrol için yana kaydırın (5 Slide).",
+    trHookLine,
+    trAngleLine,
     "",
     `📊 Resmi İlan Özeti (${listing.authority}):`,
     `• Muhammen bedel: ${money(v, lang)}${ins.fullPerM2 ? ` (${money(ins.fullPerM2, lang)}/m²)` : ""}`,
@@ -148,7 +166,7 @@ export function objectCaption({ listing, lang, day, snapshotDate }) {
     `• Teminat (%10): ${money(ins.deposit10, lang)}${tr.vatRate !== null && tr.vatRate !== undefined ? ` · KDV %${tr.vatRate}` : ""}`,
     ...rounds.slice(0, 2).map((r) => `• ${t.round(r.round)}: ${dateShort(r.start, lang)} – ${dateShort(r.end, lang)}`),
     "",
-    `💬 Sizce fırsat mı, risk mi? ${listing.place} bölgesinde bu ihaleye girer miydiniz? Yorumlara yazın 👇`,
+    trClosingQuestion,
   ];
 
   const locationTags = [tag(listing.region, lang), tag(listing.place, lang), tag(`${listing.region}emlak`, lang)];

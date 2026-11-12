@@ -14,6 +14,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import * as dotenv from "dotenv";
 import nodemailer from "nodemailer";
 import pg from "pg";
+import { callAgyJson } from "./lib/agyCli.mjs";
 import { runUnverifiedReminders } from "./lib/unverifiedReminderRunner.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -598,14 +599,139 @@ async function pushAllUrlsToIndexNow() {
   return { totalUniqueUrls: unique.length, batches, gscSitemaps };
 }
 
+async function buildSeoCtrRecommendation({ gsc, funnel }) {
+  const generatedAt = new Date().toISOString();
+
+  // Deterministic baseline recommendation built from live GSC & Funnel numbers
+  const ctrQuickWins = [];
+  if (gsc?.available) {
+    const highImpPage = [...(gsc.topPages ?? [])].sort((a, b) => (b.impressions || 0) - (a.impressions || 0))[0];
+    if (highImpPage) {
+      ctrQuickWins.push(
+        `Top-Impression-URL ${highImpPage.page} (${highImpPage.impressions} Impr., ${highImpPage.clicks} Klicks, Pos. ${highImpPage.position}): Title-Hook mit konkreter 5/10-Einstiegsgrenze & Objektanzahl schärfen.`,
+      );
+    }
+    const strikingQuery = (gsc.topQueries ?? []).find((q) => q.position >= 3.5 && q.position <= 20 && q.impressions > 0) ?? gsc.topQueries?.[0];
+    if (strikingQuery) {
+      ctrQuickWins.push(
+        `Suchanfrage "${strikingQuery.query}" (${strikingQuery.impressions} Impr., Pos. ${strikingQuery.position}): H1/Meta-Description exakt auf Suchintention + Gebotsrechner ausrichten.`,
+      );
+    }
+    const totalSubmitted = (gsc.sitemaps ?? []).reduce((n, s) => n + (s.submitted || 0), 0);
+    const totalIndexed = (gsc.sitemaps ?? []).reduce((n, s) => n + (s.indexed || 0), 0);
+    if (totalSubmitted > 0) {
+      ctrQuickWins.push(
+        `Sitemap-Indexierung überwachen (${totalIndexed}/${totalSubmitted} indexiert): interne Verlinkung von starken Städte-Hubs auf noch nicht indexierte Objektseiten stärken.`,
+      );
+    }
+  }
+  if (ctrQuickWins.length === 0) {
+    ctrQuickWins.push("Städte- und Amtsgericht-Hubs mit tagesaktueller Objektanzahl und Einstiegspreisen im SERP-Title anreichern.");
+  }
+
+  let funnelNextAction = "Gratis-Dossier-Freischaltung auf öffentlichen Objektseiten prominent über dem Fold halten.";
+  if (funnel?.available && funnel.users) {
+    const u = funnel.users;
+    const unlocks = funnel.freeDossierUnlocks?.total ?? 0;
+    if (u.external_unverified > 0 && u.external_unverified >= u.external_verified) {
+      funnelNextAction = `${u.external_unverified} von ${u.external_total} Signups noch unverifiziert: OTP-Verifizierungs-Banner & 1x E-Mail-Erinnerung (40m–72h) engmaschig monitoren.`;
+    } else if (u.external_verified > unlocks) {
+      funnelNextAction = `${u.external_verified - unlocks} verifizierte Nutzer haben ihr 1 Gratis-Dossier noch nicht eingelöst: Direkt-Links auf regionale Top-Akten ausspielen.`;
+    } else if (unlocks > 0 && u.trials_started === 0) {
+      funnelNextAction = `${unlocks} Gratis-Dossiers eingelöst, ${u.trials_started} Trials gestartet: Nach dem 1. Dossier den automatisch endenden Testzugang mit 3 regionalen Vergleichsakten hervorheben.`;
+    }
+  }
+
+  const fallbackSummary = gsc?.available
+    ? `7d GSC: ${gsc.last7d?.clicks ?? 0} Klicks / ${gsc.last7d?.impressions ?? 0} Impressionen (Pos. ${Number(gsc.last7d?.position || 0).toFixed(1)}). Fokus heute: CTR auf Top-Impression-Hubs erhöhen und verifizierte Nutzer ins 1. Gratis-Dossier führen.`
+    : `Funnel aktiv (${funnel?.users?.external_total ?? 0} Signups). Fokus heute: SERP-CTR der Städte-Hubs und Gratis-Dossier-Aktivierung steigern.`;
+
+  const deterministic = {
+    provider: "deterministic-fallback",
+    generatedAt,
+    summary: fallbackSummary,
+    ctrQuickWins: ctrQuickWins.slice(0, 3),
+    funnelNextAction,
+  };
+
+  const compactMetrics = {
+    gsc: gsc?.available
+      ? {
+          last7d: gsc.last7d,
+          prev7d: gsc.prev7d,
+          sitemaps: (gsc.sitemaps ?? []).map((s) => ({ path: s.path, submitted: s.submitted, indexed: s.indexed, errors: s.errors })),
+          topQueries: (gsc.topQueries ?? []).slice(0, 8),
+          topPages: (gsc.topPages ?? []).slice(0, 8),
+        }
+      : { available: false },
+    funnel: funnel?.available
+      ? {
+          users: funnel.users,
+          freeDossierUnlocks: funnel.freeDossierUnlocks,
+          activeAlerts: funnel.activeAlerts,
+          watchlistItems: funnel.watchlistItems,
+          unverifiedRemindersSent: funnel.unverifiedRemindersSent,
+          postFreeDossierSent: funnel.postFreeDossierSent,
+          unusedFreeDossierSent: funnel.unusedFreeDossierSent,
+        }
+      : { available: false },
+  };
+
+  const prompt = [
+    "Du bist Head of SEO & CRO für Belowmark (www.belowmark.com — europäische & türkische Zwangsversteigerungs-Datenplattform).",
+    "Analysiere die heutigen Live-Zahlen (Google Search Console + Neon Conversion-Funnel) und gib eine kurze, extrem konkrete tägliche Handlungsempfehlung auf Deutsch.",
+    "Nenne echte URLs/Queries und echte Zahlen aus dem Datensatz — kein generisches Blabla.",
+    `LIVE-METRIKEN: ${JSON.stringify(compactMetrics)}`,
+    "Antworte ausschließlich mit diesem JSON-Schema:",
+    JSON.stringify({
+      summary: "1-2 prägnante Sätze Gesamtfazit mit den wichtigsten Ist-Zahlen (max 240 Zeichen)",
+      ctrQuickWins: [
+        "Konkrete SEO/CTR-Maßnahme 1 mit echter URL oder Query aus den Daten",
+        "Konkrete SEO/CTR-Maßnahme 2 mit echter URL, Query oder Sitemap-Indexierungshebel",
+      ],
+      funnelNextAction: "1 konkreter CRO-Hebel für den größten aktuellen Engpass im Funnel (Signup -> Verify -> Gratis-Dossier -> Trial)",
+    }),
+  ].join("\n");
+
+  const agyRes = await callAgyJson(prompt);
+  if (!agyRes?.data) return deterministic;
+
+  const d = agyRes.data;
+  const summary = typeof d.summary === "string" && d.summary.trim().length >= 20 ? d.summary.trim() : deterministic.summary;
+  const wins = Array.isArray(d.ctrQuickWins)
+    ? d.ctrQuickWins.map((x) => String(x || "").trim()).filter((x) => x.length >= 15).slice(0, 3)
+    : [];
+  const nextAct =
+    typeof d.funnelNextAction === "string" && d.funnelNextAction.trim().length >= 15
+      ? d.funnelNextAction.trim()
+      : deterministic.funnelNextAction;
+
+  return {
+    provider: agyRes.provider,
+    generatedAt,
+    summary,
+    ctrQuickWins: wins.length > 0 ? wins : deterministic.ctrQuickWins,
+    funnelNextAction: nextAct,
+  };
+}
+
+const gscMetrics = await collectGscMetrics();
+const funnelMetrics = await collectFunnelMetrics();
+const unverifiedReminders = shouldRemindUnverified ? await sendPendingUnverifiedReminders() : null;
+const postFreeDossierFollowUps = shouldRemindUnverified ? await sendPostFreeDossierFollowUps() : null;
+const unusedFreeDossierActivations = shouldRemindUnverified ? await sendVerifiedUnusedFreeDossierActivation() : null;
+const indexNowFullPush = shouldPushAllIndexNow ? await pushAllUrlsToIndexNow() : null;
+const agyRecommendation = await buildSeoCtrRecommendation({ gsc: gscMetrics, funnel: funnelMetrics });
+
 const report = {
   generatedAt: new Date().toISOString(),
-  gsc: await collectGscMetrics(),
-  funnel: await collectFunnelMetrics(),
-  unverifiedReminders: shouldRemindUnverified ? await sendPendingUnverifiedReminders() : null,
-  postFreeDossierFollowUps: shouldRemindUnverified ? await sendPostFreeDossierFollowUps() : null,
-  unusedFreeDossierActivations: shouldRemindUnverified ? await sendVerifiedUnusedFreeDossierActivation() : null,
-  indexNowFullPush: shouldPushAllIndexNow ? await pushAllUrlsToIndexNow() : null,
+  gsc: gscMetrics,
+  funnel: funnelMetrics,
+  agyRecommendation,
+  unverifiedReminders,
+  postFreeDossierFollowUps,
+  unusedFreeDossierActivations,
+  indexNowFullPush,
 };
 
 fs.mkdirSync(path.join(ROOT, ".data"), { recursive: true });
@@ -643,5 +769,12 @@ if (report.unusedFreeDossierActivations) {
 }
 if (report.indexNowFullPush) {
   console.log("IndexNow Full 25k Push:", JSON.stringify(report.indexNowFullPush));
+}
+if (report.agyRecommendation) {
+  console.log(`SEO/CTR Recommendation (${report.agyRecommendation.provider}): ${report.agyRecommendation.summary}`);
+  for (const win of report.agyRecommendation.ctrQuickWins) {
+    console.log(`  - CTR: ${win}`);
+  }
+  console.log(`  - Funnel: ${report.agyRecommendation.funnelNextAction}`);
 }
 console.log(`Saved snapshot -> ${outPath}`);

@@ -8,6 +8,7 @@
 import { T, money, number, dateLong, dateShort, time } from "./texts.mjs";
 import { placeLine, cleanObjectTitle, buildListingPublicUrl } from "./data.mjs";
 import { buildHashtags, tag } from "./captions.mjs";
+import { getAgyObjectCopy } from "./agyCopy.mjs";
 
 const BASE_URL = "https://www.belowmark.com";
 
@@ -31,6 +32,7 @@ export function buildAdUrl({ lang, theme, isoDay, placement = "feed", listing = 
 export function objectAdSpec({ listing, lang, day, isoDay, snapshotDate }) {
   const t = T[lang];
   const v = listing.appraisedValue;
+  const agy = getAgyObjectCopy({ listing, lang });
 
   if (lang === "de") {
     const kind = cleanObjectTitle(listing, t.segment[listing.segment]);
@@ -42,12 +44,16 @@ export function objectAdSpec({ listing, lang, day, isoDay, snapshotDate }) {
     const land = !isApartmentLike ? (listing.landAreaM2 ?? null) : null;
     const areaBadge = living ? `${number(living, lang)} m² Wfl.` : land ? `${number(land, lang)} m² Grundst.` : null;
 
-    const headline = listing.limitsWaived
+    const fallbackHeadline = listing.limitsWaived
       ? `${kind} in ${city}${areaBadge ? ` (${areaBadge})` : ""} · VW ${money(v, lang)}`
       : `${kind} in ${city}${areaBadge ? ` (${areaBadge})` : ""} · ab ${minBid}`;
-    const description = `${listing.authority} · Termin ${dateShort(listing.hearingAt, lang)} · Amtlicher Aushang`;
+    const headline = agy?.adHeadline || fallbackHeadline;
+    const description =
+      agy?.adDescription || `${listing.authority} · Termin ${dateShort(listing.hearingAt, lang)} · Amtlicher Aushang`;
+    const leadParagraph =
+      agy?.adLead || `Amtlicher Versteigerungstermin in ${placeLine(listing)} (${listing.region}): ${kind}.`;
     const primaryText = [
-      `Amtlicher Versteigerungstermin in ${placeLine(listing)} (${listing.region}): ${kind}.`,
+      leadParagraph,
       "",
       ...(listing.limitsWaived
         ? [`Verkehrswert laut Amtsgericht: ${money(v, lang)} (${t.limitsWaived})`]
@@ -62,7 +68,7 @@ export function objectAdSpec({ listing, lang, day, isoDay, snapshotDate }) {
       "",
       listing.limitsWaived ? t.minBidNote : `${t.limitsNote} ${t.minBidNote}`,
       "",
-      "Alle amtlichen Aushänge, Rechenwege und Wertgrenzen prüfen auf belowmark.com.",
+      "1 Gratis-Dossier inkl. Aktenzeichen, Gutachten-PDF & Gebotsrechner prüfen auf belowmark.com.",
       "",
       t.source(snapshotDate),
       t.disclaimer,
@@ -80,6 +86,7 @@ export function objectAdSpec({ listing, lang, day, isoDay, snapshotDate }) {
       market: "DE",
       theme: "objekt",
       isoDay,
+      copyProvider: agy?.provider || "deterministic-fallback",
       headline,
       description,
       primaryText,
@@ -107,10 +114,14 @@ export function objectAdSpec({ listing, lang, day, isoDay, snapshotDate }) {
   const landArea = tr.landAreaM2 ?? listing.landAreaM2 ?? null;
   const trAreaBadge = bldgArea ? `${number(bldgArea, lang)} m²` : landArea ? `${number(landArea, lang)} m² Arsa` : null;
 
-  const headline = `${placeLine(listing)} · ${segName}${trAreaBadge ? ` (${trAreaBadge})` : ""} · Başlangıç ${money(tr.startingBid, lang)}`;
-  const description = `Muhammen bedel ${money(v, lang)} (−%${discountPct}) · Resmi İcra İlanı`;
+  const fallbackTrHeadline = `${placeLine(listing)} · ${segName}${trAreaBadge ? ` (${trAreaBadge})` : ""} · Başlangıç ${money(tr.startingBid, lang)}`;
+  const headline = agy?.adHeadline || fallbackTrHeadline;
+  const description =
+    agy?.adDescription || `Muhammen bedel ${money(v, lang)} (−%${discountPct}) · Resmi İcra İlanı`;
+  const trLeadParagraph =
+    agy?.adLead || `Resmi icra satışı: ${placeLine(listing)} bölgesinde ${segName.toLocaleLowerCase("tr-TR")}.`;
   const primaryText = [
-    `Resmi icra satışı: ${placeLine(listing)} bölgesinde ${segName.toLocaleLowerCase("tr-TR")}.`,
+    trLeadParagraph,
     "",
     `Açık artırma başlangıç bedeli: ${money(tr.startingBid, lang)} (muhammen bedelin %${discountPct} altında).`,
     `Muhammen bedel: ${money(v, lang)} · Teminat (%10): ${money(v * 0.1, lang)}.`,
@@ -121,7 +132,7 @@ export function objectAdSpec({ listing, lang, day, isoDay, snapshotDate }) {
     "",
     t.limitsNote,
     "",
-    "Tüm resmi icra ilanları, hesaplama ve belgeler: belowmark.com",
+    "1 ücretsiz ihale dosyası, teminat hesaplama ve şartnameler: belowmark.com",
     "",
     t.source(snapshotDate),
     t.disclaimer,
@@ -139,13 +150,14 @@ export function objectAdSpec({ listing, lang, day, isoDay, snapshotDate }) {
     market: "TR",
     theme: "objekt",
     isoDay,
+    copyProvider: agy?.provider || "deterministic-fallback",
     headline,
     description,
     primaryText,
     ctaType: "LEARN_MORE",
     ctaLabel: t.ctaFeed,
-    targetUrlFeed: buildAdUrl({ lang, theme: "objekt", isoDay, placement: "feed_4x5" }),
-    targetUrlStory: buildAdUrl({ lang, theme: "objekt", isoDay, placement: "story_9x16" }),
+    targetUrlFeed: buildAdUrl({ lang, theme: "objekt", isoDay, placement: "feed_4x5", listing }),
+    targetUrlStory: buildAdUrl({ lang, theme: "objekt", isoDay, placement: "story_9x16", listing }),
     targeting: {
       countries: ["TR", "DE"],
       regionFocus: listing.region,

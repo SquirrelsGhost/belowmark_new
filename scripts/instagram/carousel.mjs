@@ -95,7 +95,6 @@ export function buildObjectCarouselSlides({ listing, lang, size, day, aerial }) 
     : 50;
 
   const titleSize = title.length > 20 ? 64 : title.length > 15 ? 74 : 84;
-  const swipeWord = isTr ? "KAYDIR →" : "SWIPE →";
 
   // ── SLIDE 1: LUFTBILD + PREIS-SCHOCK ───────────────────────────────────────
   const trRound = isTr ? nextRound(listing, day) : null;

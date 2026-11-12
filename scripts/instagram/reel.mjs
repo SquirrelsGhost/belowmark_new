@@ -9,7 +9,7 @@
 // ---------------------------------------------------------------------------
 
 import { execFileSync } from "node:child_process";
-import { existsSync, mkdirSync, readdirSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, rmSync } from "node:fs";
 import os from "node:os";
 import { join, resolve } from "node:path";
 import { C, F, Frame, SIZES, el, mono, upper, MarketLine } from "./brand.mjs";
