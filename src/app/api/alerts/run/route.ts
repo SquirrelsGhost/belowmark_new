@@ -4,6 +4,8 @@ import { AlertRunService } from "@/services/AlertRunService";
 import { UnverifiedReminderService } from "@/services/UnverifiedReminderService";
 import { AlertRunReport } from "@/types/alert.types";
 
+export const maxDuration = 60;
+
 async function handleRun(req: Request): Promise<Response> {
   if (!(await isAuthorisedRun(req.headers.get("authorization"), req.headers, "alerts-run"))) {
     return err("Unauthorized", 401);

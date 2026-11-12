@@ -5,7 +5,7 @@ import { and, count, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { alertSeen, searchAlerts } from "@/db/schema";
 import { ALERTS } from "@/lib/alerts/alertConfig";
-import { diffAlert, matchesAlert, scheduleOf } from "@/lib/alerts/alertMatch";
+import { diffAlert, matchesAlert, sameSchedule, scheduleOf } from "@/lib/alerts/alertMatch";
 import { MarketCode } from "@/lib/constants";
 import { getListingCountry } from "@/lib/listingCountry";
 import { AlertHit, AlertSchedule, AlertView, StoredAlertFilters } from "@/types/alert.types";
@@ -95,9 +95,24 @@ export class AlertService {
 
   /** What has changed for one alert since its last run; nothing is stored yet. */
   static diff = async (alertId: string, matches: Listing[], now: number): Promise<AlertHit[]> => {
+    const { hits } = await AlertService.diffWithDirty(alertId, matches, now);
+    return hits;
+  };
+
+  /** Returns both user-facing hits and the subset of listings whose stored schedule actually changed or is new. */
+  static diffWithDirty = async (
+    alertId: string,
+    matches: Listing[],
+    now: number,
+  ): Promise<{ hits: AlertHit[]; dirty: Listing[] }> => {
     const rows = await db.select({ key: alertSeen.listingKey, schedule: alertSeen.schedule }).from(alertSeen).where(eq(alertSeen.alertId, alertId));
     const seen = new Map<string, AlertSchedule>(rows.map((row) => [row.key, row.schedule]));
-    return diffAlert(matches, seen, now);
+    const hits = diffAlert(matches, seen, now);
+    const dirty = matches.filter((listing) => {
+      const before = seen.get(listing.key);
+      return !before || !sameSchedule(before, scheduleOf(listing));
+    });
+    return { hits, dirty };
   };
 
   /** Stores the current dates of the given proceedings for the alert (insert or update). */

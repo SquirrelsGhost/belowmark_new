@@ -3,6 +3,8 @@ import { isAuthorisedRun } from "@/lib/alerts/cronAuth";
 import { DeadlineRunService } from "@/services/DeadlineRunService";
 import { DeadlineRunReport } from "@/types/deadline.types";
 
+export const maxDuration = 60;
+
 async function handleRun(req: Request): Promise<Response> {
   if (!(await isAuthorisedRun(req.headers.get("authorization"), req.headers, "termine-run"))) {
     return err("Unauthorized", 401);

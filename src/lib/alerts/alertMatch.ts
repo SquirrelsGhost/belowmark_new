@@ -62,7 +62,7 @@ export function scheduleOf(listing: Listing): AlertSchedule {
   };
 }
 
-const sameSchedule = (a: AlertSchedule, b: AlertSchedule): boolean =>
+export const sameSchedule = (a: AlertSchedule, b: AlertSchedule): boolean =>
   a.hearingAt === b.hearingAt && a.cancelled === b.cancelled && a.rounds.join("|") === b.rounds.join("|");
 
 /** First date of a remembered schedule — the round start or the hearing. */

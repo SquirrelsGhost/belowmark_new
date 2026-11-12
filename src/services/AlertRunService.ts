@@ -39,6 +39,7 @@ interface Recipient {
 interface AlertResult {
   alert: ActiveAlert;
   matches: Listing[];
+  dirty: Listing[];
   hits: AlertHit[];
 }
 
@@ -204,8 +205,9 @@ export class AlertRunService {
         const market: MarketCode = alert.market === "TR" ? "TR" : "DE";
         const countries = await countriesOf(alert.userId);
         const matches = (await listingsOf(market)).filter((listing) => countries.includes(getListingCountry(listing)) && matchesAlert(listing, alert.filters, now));
-        const hits = wanted(alert, await AlertService.diff(alert.id, matches, now));
-        byUser.set(alert.userId, [...(byUser.get(alert.userId) ?? []), { alert, matches, hits }]);
+        const { hits: rawHits, dirty } = await AlertService.diffWithDirty(alert.id, matches, now);
+        const hits = wanted(alert, rawHits);
+        byUser.set(alert.userId, [...(byUser.get(alert.userId) ?? []), { alert, matches, dirty, hits }]);
         report.checked += 1;
       }
 
@@ -225,7 +227,9 @@ export class AlertRunService {
               report.changeHits += hits.filter((hit) => hit.kind !== "new").length;
             }
           }
-          for (const { alert, matches } of results) await AlertService.remember(alert.id, matches);
+          for (const { alert, dirty } of results) {
+            if (dirty.length > 0) await AlertService.remember(alert.id, dirty);
+          }
           await AlertService.markChecked(results.map(({ alert }) => alert.id), withHits.length > 0 && Boolean(recipient), now);
         } catch (error) {
           console.error("[AlertRunService.run]", userId, error);
