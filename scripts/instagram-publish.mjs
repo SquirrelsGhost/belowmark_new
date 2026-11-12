@@ -1136,10 +1136,14 @@ c.close()
   await syncLiveMetrics(page, { account, publishedLog });
 
   logLine(`[Belowmark Publish] 🎉 Lauf für ${isoDay} erfolgreich abgeschlossen.`);
+} catch (err) {
+  const errMsg = err instanceof Error ? err.message : String(err);
+  logLine(`[Belowmark Publish] ❌ FEHLER: ${errMsg}`);
+  process.exitCode = 1;
 } finally {
   await Promise.race([
     context.close().catch(() => {}),
     new Promise((resolve) => setTimeout(resolve, 5000)),
   ]);
 }
-process.exit(0);
+process.exit(process.exitCode || 0);
