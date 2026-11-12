@@ -5,6 +5,7 @@ import PseoListingPreviewCard from "@/components/pseo/PseoListingPreviewCard";
 import PseoMarketComparisonTable from "@/components/pseo/PseoMarketComparisonTable";
 import PseoRelatedGuides from "@/components/pseo/PseoRelatedGuides";
 import PseoStatsBanner from "@/components/pseo/PseoStatsBanner";
+import PseoStickyDossierBar from "@/components/pseo/PseoStickyDossierBar";
 import { BELOWMARK_ORIGIN } from "@/lib/blog/blogSeo";
 import { PricingCountryCode } from "@/lib/constants";
 import { buildPreviewCardListingHref } from "@/lib/pseo/publicListingUrls";
@@ -256,6 +257,15 @@ export default function PseoDirectoryView({
       <PseoRelatedGuides locale={locale} market={marketCode} />
 
       <BlogArticleCta lang={locale} />
+
+      {listings.length > 0 && (
+        <PseoStickyDossierBar
+          locale={locale}
+          locationName={locationName}
+          totalCount={listings.length}
+          targetHref={`${buildPreviewCardListingHref(listings[0], locale)}#unlock-dossier`}
+        />
+      )}
     </section>
   );
 }

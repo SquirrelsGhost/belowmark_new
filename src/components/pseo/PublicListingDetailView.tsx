@@ -10,9 +10,14 @@ import { PublicListingResolved } from "@/services/PublicListingService";
 interface PublicListingDetailViewProps {
   item: PublicListingResolved;
   isSignedIn: boolean;
+  canClaimFreeUnlock?: boolean;
 }
 
-export default function PublicListingDetailView({ item, isSignedIn }: PublicListingDetailViewProps) {
+export default function PublicListingDetailView({
+  item,
+  isSignedIn,
+  canClaimFreeUnlock = false,
+}: PublicListingDetailViewProps) {
   const L = PUBLIC_LISTING_LABELS[item.locale];
   const faqs = buildPublicListingFaqs(item);
   const price = item.minBidValue ?? item.appraisedValue;
@@ -107,7 +112,11 @@ export default function PublicListingDetailView({ item, isSignedIn }: PublicList
           <PublicListingFactsCard item={item} />
         </div>
         <div className="lg:sticky lg:top-6 lg:col-span-5">
-          <PublicListingUnlockCard item={item} isSignedIn={isSignedIn} />
+          <PublicListingUnlockCard
+            item={item}
+            isSignedIn={isSignedIn}
+            canClaimFreeUnlock={canClaimFreeUnlock}
+          />
         </div>
       </div>
 

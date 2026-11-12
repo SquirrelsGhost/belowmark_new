@@ -6,6 +6,7 @@ import PublicListingDetailView from "@/components/pseo/PublicListingDetailView";
 import { DEFAULT_BLOG_OG } from "@/lib/blog/blogSeo";
 import { buildPublicListingMeta } from "@/lib/pseo/publicListingCopy";
 import { MetaTagService } from "@/services/MetaTagService";
+import { FreeUnlockService } from "@/services/FreeUnlockService";
 import { PublicListingService } from "@/services/PublicListingService";
 import { SessionService } from "@/services/SessionService";
 
@@ -34,9 +35,16 @@ export async function renderPublicListingPage(slug: string, currentPrefix: "/obj
     permanentRedirect(item.canonicalPath);
   }
   const user = await SessionService.getCurrentUser();
+  const freeStatus = user && !user.hasFullAccess
+    ? await FreeUnlockService.getStatus(user.id, item.key)
+    : null;
   return (
     <BlogShell lang={item.locale}>
-      <PublicListingDetailView item={item} isSignedIn={Boolean(user)} />
+      <PublicListingDetailView
+        item={item}
+        isSignedIn={Boolean(user)}
+        canClaimFreeUnlock={freeStatus?.canClaimFreeUnlock ?? false}
+      />
     </BlogShell>
   );
 }

@@ -12,6 +12,7 @@ import QuickFilterChip from "@/components/app/search/QuickFilterChip";
 import QuickFilters from "@/components/app/search/QuickFilters";
 import SearchEmpty from "@/components/app/search/SearchEmpty";
 import SearchFilterPanel from "@/components/app/search/SearchFilterPanel";
+import SearchFreeCreditBanner from "@/components/app/search/SearchFreeCreditBanner";
 import SearchToolbar from "@/components/app/search/SearchToolbar";
 import SearchViewSwitch from "@/components/app/search/SearchViewSwitch";
 import SortLink from "@/components/app/search/SortLink";
@@ -25,6 +26,8 @@ import { getHearingStatus, isNewListing } from "@/lib/listingMath";
 import { calendarEntries, quickFilters } from "@/lib/searchOptions";
 import { buildHoneypotListingKey, redactSearchResultForFreePlan } from "@/lib/sicherheit/antiScrapingRules";
 import { AppViewer } from "@/services/AppSessionService";
+import { BillingService } from "@/services/billing/BillingService";
+import { FreeUnlockService } from "@/services/FreeUnlockService";
 import { GeoService } from "@/services/GeoService";
 import { ListingService } from "@/services/ListingService";
 import { AntiScrapingService } from "@/services/sicherheit/AntiScrapingService";
@@ -61,11 +64,13 @@ export default async function SearchResultsContent({
     return <QuotaExceededNotice locale={locale} retryAfterMinutes={quota.retryAfterMinutes} isLocked={isLocked} />;
   }
 
-  const [rawResult, saved, geo, sprite] = await Promise.all([
+  const [rawResult, saved, geo, sprite, freeStatus, stripeTrialEligible] = await Promise.all([
     ListingService.search(country, filters, viewer.now),
     WatchlistService.keys(viewer.id),
     GeoService.getCountry(country),
     GeoService.getLocatorSprite(country),
+    isLocked ? FreeUnlockService.getStatus(viewer.id) : Promise.resolve(null),
+    isLocked ? BillingService.isTrialEligible(viewer.id) : Promise.resolve(false),
   ]);
   const result = isLocked ? redactSearchResultForFreePlan(rawResult) : rawResult;
   const isMap = filters.view === "map";
@@ -74,6 +79,17 @@ export default async function SearchResultsContent({
 
   return (
     <>
+      {isLocked && freeStatus && (
+        <SearchFreeCreditBanner
+          country={country}
+          locale={locale}
+          canClaimFreeUnlock={freeStatus.canClaimFreeUnlock}
+          unlockedListingKey={freeStatus.unlockedListingKey}
+          suggestedListing={rawResult.items[0] ?? null}
+          stripeTrialEligible={stripeTrialEligible}
+        />
+      )}
+
       <HearingCalendar
         title={Search.Calendar.Title}
         hint={Search.Calendar.Hint}

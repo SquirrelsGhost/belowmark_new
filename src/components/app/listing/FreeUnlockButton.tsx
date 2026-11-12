@@ -13,6 +13,7 @@ interface FreeUnlockButtonProps {
   errorUsedLabel: string;
   errorDeviceLabel: string;
   errorGenericLabel: string;
+  redirectHref?: string;
 }
 
 const INITIAL_STATE: FreeUnlockActionState = { status: "idle" };
@@ -32,15 +33,20 @@ export default function FreeUnlockButton({
   errorUsedLabel,
   errorDeviceLabel,
   errorGenericLabel,
+  redirectHref,
 }: FreeUnlockButtonProps) {
   const router = useRouter();
   const [state, action, isPending] = useActionState(claimFreeUnlockAction, INITIAL_STATE);
 
   useEffect(() => {
     if (state.status === "unlocked") {
-      router.refresh();
+      if (redirectHref) {
+        router.push(redirectHref);
+      } else {
+        router.refresh();
+      }
     }
-  }, [router, state.status]);
+  }, [redirectHref, router, state.status]);
 
   const errorMessage =
     state.status === "error"

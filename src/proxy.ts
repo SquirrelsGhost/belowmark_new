@@ -85,6 +85,10 @@ function attachRotatedCookie(response: NextResponse, user: SessionUser, rawCooki
  */
 export async function proxy(req: NextRequest): Promise<NextResponse> {
   const { pathname, search } = req.nextUrl;
+  const host = (req.headers.get("x-forwarded-host") ?? req.headers.get("host") ?? "").split(",")[0].trim().toLowerCase();
+  if (host === "belowmark.com") {
+    return NextResponse.redirect(new URL(`${pathname}${search}`, "https://www.belowmark.com"), 301);
+  }
   const policy = findPolicy(req.method, pathname);
 
   // 1. Deny by default: no policy = no access (403 Forbidden)
