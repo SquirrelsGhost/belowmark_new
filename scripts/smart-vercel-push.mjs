@@ -73,7 +73,7 @@ export async function triggerLiveVercelAlerts(prodOrigin = "https://www.belowmar
     const res = await fetch(`${prodOrigin}/api/alerts/run`, {
       method: "POST",
       headers,
-      signal: AbortSignal.timeout(30_000),
+      signal: AbortSignal.timeout(120_000),
     });
     const body = await res.json().catch(() => null);
     if (res.ok && body?.success) {
@@ -92,7 +92,7 @@ export async function triggerLiveVercelAlerts(prodOrigin = "https://www.belowmar
     const resTermine = await fetch(`${prodOrigin}/api/termine/run`, {
       method: "POST",
       headers,
-      signal: AbortSignal.timeout(20_000),
+      signal: AbortSignal.timeout(60_000),
     });
     if (resTermine.ok) {
       log("[Live Termine-Reminder OK] /api/termine/run ausgeführt.");
