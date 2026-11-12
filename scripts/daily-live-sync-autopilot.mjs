@@ -53,7 +53,7 @@ const day = new Date().toISOString().slice(0, 10);
 runCmd("git", ["add", ...targetFiles]);
 runCmd("git", ["commit", "-m", `chore(data): daily 8-country auction sync ${day} (${deCount + trCount} active)`]);
 try {
-  runCmd("git", ["pull", "--rebase", "-X", "theirs", "origin", "main"]);
+  runCmd("git", ["pull", "--rebase", "--autostash", "-X", "theirs", "origin", "main"]);
 } catch {
   try {
     runCmd("git", ["rebase", "--abort"]);
@@ -61,7 +61,12 @@ try {
     // ignore
   }
 }
-runCmd("git", ["push", "origin", "main"]);
+try {
+  runCmd("git", ["push", "origin", "main"]);
+} catch {
+  runCmd("git", ["pull", "--rebase", "--autostash", "-X", "theirs", "origin", "main"]);
+  runCmd("git", ["push", "origin", "main"]);
+}
 
 console.log("Waiting 85s for Vercel production build before Live Customer Alerts & IndexNow...");
 await new Promise((r) => setTimeout(r, 85_000));

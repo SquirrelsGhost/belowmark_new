@@ -151,7 +151,7 @@ async function main() {
   );
 
   try {
-    execFileSync("git", ["pull", "--rebase", "-X", "theirs", "origin", "main"], { cwd: ROOT, stdio: "inherit" });
+    execFileSync("git", ["pull", "--rebase", "--autostash", "-X", "theirs", "origin", "main"], { cwd: ROOT, stdio: "inherit" });
   } catch {
     try {
       execFileSync("git", ["rebase", "--abort"], { cwd: ROOT, stdio: "ignore" });
@@ -160,7 +160,12 @@ async function main() {
     }
   }
 
-  execFileSync("git", ["push", "origin", "main"], { cwd: ROOT, stdio: "inherit" });
+  try {
+    execFileSync("git", ["push", "origin", "main"], { cwd: ROOT, stdio: "inherit" });
+  } catch {
+    execFileSync("git", ["pull", "--rebase", "--autostash", "-X", "theirs", "origin", "main"], { cwd: ROOT, stdio: "inherit" });
+    execFileSync("git", ["push", "origin", "main"], { cwd: ROOT, stdio: "inherit" });
+  }
   log(`Git-Push nach origin/main erfolgreich (${deCount + trCount} aktive Auktionen).`);
 
   if (!skipWait) {

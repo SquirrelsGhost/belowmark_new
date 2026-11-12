@@ -62,15 +62,24 @@ function mergeListingFields(prev, incoming, defaults = {}) {
   return merged;
 }
 
-function isFutureOrRecentListing(l, cutoffMs) {
-  if (!l?.hearingAt) return true;
-  const t = Date.parse(l.hearingAt);
-  if (!Number.isFinite(t)) return true;
-  return t >= cutoffMs;
+function getListingLastActiveMs(l) {
+  const candidates = [
+    l?.hearingAt,
+    ...(Array.isArray(l?.rounds) ? l.rounds.flatMap((r) => [r?.end, r?.start]) : []),
+  ]
+    .filter(Boolean)
+    .map((s) => Date.parse(s))
+    .filter(Number.isFinite);
+  return candidates.length > 0 ? Math.max(...candidates) : Number.POSITIVE_INFINITY;
+}
+
+function isRetainedListing(l, cutoffMs) {
+  return getListingLastActiveMs(l) >= cutoffMs;
 }
 
 const nowIso = new Date().toISOString();
-const cutoffMs = Date.now() - 2 * 86_400_000; // keep hearings from last 48h + all future hearings
+const deCutoffMs = Date.now() - 2 * 86_400_000;
+const trCutoffMs = Date.now() - 45 * 86_400_000; // retain 45d rolling pSEO & 2nd-round UYAP corpus
 
 const watcherDePath = path.join(WATCHER_SNAP_DIR, "de.json");
 const watcherTrPath = path.join(WATCHER_SNAP_DIR, "tr.json");
@@ -102,7 +111,7 @@ if (fs.existsSync(watcherDePath) && fs.existsSync(targetDePath)) {
   const mergedDeMap = new Map();
   // Keep valid recent/future DE listings from previous full sync, then overlay watcher DE listings
   for (const [k, prevItem] of prevDeByKey.entries()) {
-    if (isFutureOrRecentListing(prevItem, cutoffMs)) {
+    if (isRetainedListing(prevItem, deCutoffMs)) {
       mergedDeMap.set(k, prevItem);
     }
   }
@@ -166,13 +175,13 @@ if (fs.existsSync(watcherTrPath)) {
 
   const mergedTrMap = new Map();
   for (const prevItem of targetTr.listings ?? []) {
-    if (prevItem?.key && isFutureOrRecentListing(prevItem, cutoffMs)) {
+    if (prevItem?.key && isRetainedListing(prevItem, trCutoffMs)) {
       mergedTrMap.set(prevItem.key, prevItem);
     }
   }
 
   for (const wItem of watcherTr.listings ?? []) {
-    if (!wItem?.key || !isFutureOrRecentListing(wItem, cutoffMs)) continue;
+    if (!wItem?.key || !isRetainedListing(wItem, trCutoffMs)) continue;
     const prev = mergedTrMap.get(wItem.key);
     if (!prev) trAdded++;
     else if (
