@@ -13,11 +13,24 @@ import { buildOrderOffersByMarket, pickInitialOffer, vatNote } from "@/lib/billi
 import { isPricingCountry, PRICING_COUNTRIES, PricingCountryCode, ROUTES } from "@/lib/constants";
 import { env } from "@/lib/env";
 import { getLegalPageContext, legalMetadata } from "@/lib/legal/legalPage";
-import { AppSessionService } from "@/services/AppSessionService";
 import { BillingService } from "@/services/billing/BillingService";
+import { CountryAccessService } from "@/services/CountryAccessService";
+import { RegionService } from "@/services/RegionService";
+import { SessionService } from "@/services/SessionService";
 import { TranslationService } from "@/services/TranslationService";
 import { AuthTranslations } from "@/translations/auth/AuthTranslations";
 import { openLegalGaps } from "@/translations/legal/LegalDocuments";
+import { BillingAccess } from "@/types/billing.types";
+
+const GUEST_ACCESS: BillingAccess = {
+  plan: null,
+  offer: null,
+  endsAt: null,
+  cancelAt: null,
+  renews: false,
+  isActive: false,
+  hasStripeCustomer: false,
+};
 
 // Reads the session and the locale cookie on every request.
 // instant = false opts it out of prerender validation — rendering is still server-side.
@@ -32,36 +45,37 @@ export default async function OrderPage({ searchParams }: PageProps<"/buchen">) 
   const params = await searchParams;
   const wanted = typeof params[OFFER_PARAM] === "string" ? params[OFFER_PARAM] : undefined;
   const rawMarket = typeof params[MARKET_PARAM] === "string" ? params[MARKET_PARAM].toUpperCase() : undefined;
-  const returnQuery = [wanted && `${OFFER_PARAM}=${wanted}`, isPricingCountry(rawMarket) && `${MARKET_PARAM}=${rawMarket}`]
-    .filter(Boolean)
-    .join("&");
-  const viewer = await AppSessionService.requireViewer(`${BILLING_ROUTES.order}${returnQuery ? `?${returnQuery}` : ""}`);
-  const [{ t, layout, lang }, userLocale, homeTranslations] = await Promise.all([
+  const initialGuestEmail = typeof params.email === "string" ? params.email.trim().slice(0, 254) : undefined;
+
+  const [currentUser, { t, layout, lang }, userLocale, homeTranslations, region] = await Promise.all([
+    SessionService.getCurrentUser(),
     getLegalPageContext(),
     TranslationService.GetUserLocale(),
     TranslationService.GetUserTranslations(),
+    RegionService.GetRegion(),
   ]);
+  const viewerCountry: PricingCountryCode = currentUser
+    ? (await CountryAccessService.forUser(currentUser)).country
+    : region.pricingCountry;
+
   const { Fields } = AuthTranslations[userLocale];
   const { Order } = t;
   const pricingMarkets = homeTranslations.HomePage.Pricing.Markets;
 
-  const initialMarket: PricingCountryCode =
-    isPricingCountry(rawMarket) ? rawMarket : viewer.country;
-
+  const initialMarket: PricingCountryCode = isPricingCountry(rawMarket) ? rawMarket : viewerCountry;
   const availabilityDe = BillingService.availability("DE");
   const availabilityTr = BillingService.availability("TR");
   const availability = initialMarket === "TR" ? availabilityTr : availabilityDe;
-  const [access, trialEligible] = await Promise.all([
-    BillingService.access(viewer.id),
-    BillingService.isTrialEligible(viewer.id),
-  ]);
+  const [access, trialEligible] = currentUser
+    ? await Promise.all([BillingService.access(currentUser.id), BillingService.isTrialEligible(currentUser.id)])
+    : [GUEST_ACCESS, true];
   const vatNotes = Object.fromEntries(
     PRICING_COUNTRIES.map((code) => [
       code,
       vatNote(t, code === "TR" ? availabilityTr.vatMode : availabilityDe.vatMode, code, env.billingTrKdvIncluded),
     ]),
   ) as Record<PricingCountryCode, string>;
-  const offersByMarket = buildOrderOffersByMarket(t, viewer.country, lang, access, BillingService.orderBlocker, {
+  const offersByMarket = buildOrderOffersByMarket(t, viewerCountry, lang, access, BillingService.orderBlocker, {
     trialEligible,
     vatNotes,
   });
@@ -117,7 +131,9 @@ export default async function OrderPage({ searchParams }: PageProps<"/buchen">) 
             markets={markets}
             initialMarket={initialMarket}
             initialOffer={pickInitialOffer(offersByMarket[initialMarket], wanted)}
-            email={viewer.email}
+            email={currentUser?.email ?? null}
+            initialGuestEmail={initialGuestEmail}
+            locale={lang}
             upgrade={upgrade}
             vatNotes={vatNotes}
             labels={{ ...Order, MarketNote: homeTranslations.HomePage.Pricing.MarketHint || Fields.MarketNote }}

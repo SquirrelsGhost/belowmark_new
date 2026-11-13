@@ -1,13 +1,14 @@
 "use server";
 
+import { randomBytes } from "node:crypto";
 import { cookies } from "next/headers";
 import { limitOrNull, mayMail, requestLocale, unknownError } from "@/lib/auth/actionHelpers";
 import { RATE_LIMITS } from "@/lib/auth/authConfig";
 import { verifyLoginPoW } from "@/lib/auth/loginPow";
 import { getRequestInfo } from "@/lib/auth/requestInfo";
 import { saveSignupContextCookie } from "@/lib/auth/signupContext";
-import { field, signupSchema, toFieldErrors } from "@/lib/auth/validation";
-import { MARKET_COOKIE_NAME, pricingCountryToMarket, REGION_COOKIE_MAX_AGE } from "@/lib/constants";
+import { field, quickSignupSchema, signupSchema, toFieldErrors } from "@/lib/auth/validation";
+import { MARKET_COOKIE_NAME, PricingCountryCode, pricingCountryToMarket, REGION_COOKIE_MAX_AGE } from "@/lib/constants";
 import { AuthService } from "@/services/AuthService";
 import { MailService } from "@/services/MailService";
 import { RateLimitService } from "@/services/RateLimitService";
@@ -16,7 +17,8 @@ import { AuthFormState } from "@/types/auth.types";
 const FUNNEL_YEAR = { limit: 1_000_000, windowMs: 365 * 24 * 60 * 60 * 1000 } as const;
 
 /**
- * Server Action: create an account.
+ * Server Action: create an account (supports both 1-field passwordless quick signup
+ * and optional user-chosen password).
  * Hardened with Browser Micro-PoW + Honeypot, canonical e-mail normalization,
  * disposable e-mail block, and hardware fingerprint ban check (`HW-...`).
  */
@@ -37,14 +39,36 @@ export async function signupAction(_prev: AuthFormState, formData: FormData): Pr
   const ipLimit = await limitOrNull(`signup:ip:${ip}`, RATE_LIMITS.signupIp, values);
   if (ipLimit) return ipLimit;
 
-  const parsed = signupSchema.safeParse({
-    email: field(formData, "email"),
-    password: field(formData, "password"),
-    market: field(formData, "market"),
-    terms: formData.get("terms") === "on",
-  });
-  if (!parsed.success) return toFieldErrors(parsed.error, values);
-  const { email, password, market } = parsed.data;
+  const rawPassword = field(formData, "password");
+  const isPasswordless = formData.get("passwordless") === "1" && rawPassword.length === 0;
+
+  let email: string;
+  let password: string;
+  let market: PricingCountryCode;
+
+  if (isPasswordless) {
+    const parsedQuick = quickSignupSchema.safeParse({
+      email: field(formData, "email"),
+      market: field(formData, "market"),
+      terms: formData.get("terms") === "on",
+    });
+    if (!parsedQuick.success) return toFieldErrors(parsedQuick.error, values);
+    email = parsedQuick.data.email;
+    market = parsedQuick.data.market;
+    password = `${randomBytes(24).toString("base64url")}!9Aa`;
+  } else {
+    const parsed = signupSchema.safeParse({
+      email: field(formData, "email"),
+      password: rawPassword,
+      market: field(formData, "market"),
+      terms: formData.get("terms") === "on",
+    });
+    if (!parsed.success) return toFieldErrors(parsed.error, values);
+    email = parsed.data.email;
+    password = parsed.data.password;
+    market = parsed.data.market;
+  }
+
   const hardwareFingerprint = field(formData, "hardwareFingerprint").trim() || undefined;
   const targetKey = field(formData, "targetKey").trim().slice(0, 128) || undefined;
   const targetCity = field(formData, "targetCity").trim().slice(0, 80) || undefined;
@@ -55,7 +79,7 @@ export async function signupAction(_prev: AuthFormState, formData: FormData): Pr
     if (await AuthService.isHardwareBanned(hardwareFingerprint)) {
       return { status: "error", code: "device_banned", values };
     }
-    if (await AuthService.isBreached(password)) {
+    if (!isPasswordless && (await AuthService.isBreached(password))) {
       return { status: "error", fieldErrors: { password: "password_breached" }, values };
     }
     const canMail = await mayMail(email);
@@ -68,6 +92,7 @@ export async function signupAction(_prev: AuthFormState, formData: FormData): Pr
         locale: await requestLocale(),
         hardwareFingerprint,
         signupCtx: { key: targetKey, city: targetCity, market },
+        passwordless: isPasswordless,
       },
       canMail,
     );

@@ -59,6 +59,14 @@ export const signupSchema = notEmail(
   }),
 );
 
+export const nonDisposableEmailSchema = nonDisposableEmail;
+
+export const quickSignupSchema = z.object({
+  email: nonDisposableEmail,
+  market: z.enum(PRICING_COUNTRIES, { message: "market_invalid" }),
+  terms: z.literal(true, { message: "terms_required" }),
+});
+
 export const emailOnlySchema = z.object({ email });
 
 export const resetSchema = z.object({

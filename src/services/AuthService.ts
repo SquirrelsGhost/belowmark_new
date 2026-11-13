@@ -22,6 +22,26 @@ export interface SignupInput {
   locale: string;
   hardwareFingerprint?: string;
   signupCtx?: VerificationContextParams;
+  /** When true, existing verified accounts receive a 6-digit sign-in code instead of "account exists" */
+  passwordless?: boolean;
+}
+
+export interface OrderAccountInput {
+  email: string;
+  password: string;
+  market: MarketCode;
+  country: PricingCountryCode;
+  locale: string;
+  hardwareFingerprint?: string;
+}
+
+export interface OrderAccountResult {
+  id: string;
+  email: string;
+  market: string;
+  country: string | null;
+  locale: string;
+  isNew: boolean;
 }
 
 async function issueToken(userId: string, purpose: TokenPurpose): Promise<string> {
@@ -140,7 +160,7 @@ export class AuthService {
 
   /** Creates the account (or re-sends mail if it exists) — same outcome either way. */
   static signup = async (
-    { email, password, market, country, locale, hardwareFingerprint, signupCtx }: SignupInput,
+    { email, password, market, country, locale, hardwareFingerprint, signupCtx, passwordless }: SignupInput,
     allowExistingMail = true,
   ): Promise<void> => {
     if (isBlockedSyntheticEmailInProd(email)) {
@@ -163,7 +183,14 @@ export class AuthService {
     const existing = await findByEmail(email);
     if (!existing || existing.gesperrtAm) return;
     if (existing.emailVerifiedAt) {
-      if (allowExistingMail) await AuthMailService.sendAccountExists(existing);
+      if (allowExistingMail) {
+        if (passwordless) {
+          const { token, code } = await issueVerificationCredentials(existing.id);
+          await AuthMailService.sendVerification({ email, locale: existing.locale || locale }, token, code, signupCtx);
+        } else {
+          await AuthMailService.sendAccountExists(existing);
+        }
+      }
       return;
     }
     // Unverified account re-registering: update password, market and locale so the user's latest entry applies
@@ -181,6 +208,75 @@ export class AuthService {
       const { token, code } = await issueVerificationCredentials(existing.id);
       await AuthMailService.sendVerification({ email, locale }, token, code, signupCtx);
     }
+  };
+
+  /** Issues a 6-digit OTP + 1-click sign-in link for passwordless login on `/login`. */
+  static requestLoginCode = async (email: string): Promise<void> => {
+    if (isBlockedSyntheticEmailInProd(email)) return;
+    const user = await findByEmail(email);
+    if (!user || user.gesperrtAm) return;
+    const { token, code } = await issueVerificationCredentials(user.id);
+    await AuthMailService.sendVerification(user, token, code);
+  };
+
+  /**
+   * Ensures an account exists for `/buchen` direct guest checkout without leaking
+   * existing account state: returns `isNew: true` only when newly created.
+   */
+  static ensureOrderAccount = async ({
+    email,
+    password,
+    market,
+    country,
+    locale,
+    hardwareFingerprint,
+  }: OrderAccountInput): Promise<OrderAccountResult | null> => {
+    if (isBlockedSyntheticEmailInProd(email)) return null;
+    const existing = await findByEmail(email);
+    if (existing) {
+      if (existing.gesperrtAm) return null;
+      return {
+        id: existing.id,
+        email: existing.email,
+        market: existing.market,
+        country: existing.country,
+        locale: existing.locale,
+        isNew: false,
+      };
+    }
+
+    const passwordHash = await hashPassword(password);
+    const hw = hardwareFingerprint && HARDWARE_FP_REGEX.test(hardwareFingerprint) ? hardwareFingerprint : null;
+    const [created] = await db
+      .insert(users)
+      .values({ email, passwordHash, market, country, locale, hardwareFingerprint: hw })
+      .onConflictDoNothing({ target: users.email })
+      .returning({
+        id: users.id,
+        email: users.email,
+        market: users.market,
+        country: users.country,
+        locale: users.locale,
+      });
+
+    if (!created) {
+      const raced = await findByEmail(email);
+      if (!raced || raced.gesperrtAm) return null;
+      return {
+        id: raced.id,
+        email: raced.email,
+        market: raced.market,
+        country: raced.country,
+        locale: raced.locale,
+        isNew: false,
+      };
+    }
+
+    const { token, code } = await issueVerificationCredentials(created.id);
+    await AuthMailService.sendVerification({ email, locale }, token, code).catch((err) =>
+      console.error("[AuthService.ensureOrderAccount] verification mail failed", err),
+    );
+    return { ...created, isNew: true };
   };
 
   static login = async (email: string, password: string, hardwareFingerprint?: string): Promise<LoginResult> => {

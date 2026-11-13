@@ -24,10 +24,12 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function LoginPage({ searchParams }: PageProps<"/login">) {
-  const { t, lang, region } = await getAuthPageContext();
-  const next = safeRedirect((await searchParams)[AUTH_PARAMS.next]);
+  const [{ t, lang, region }, params] = await Promise.all([getAuthPageContext(), searchParams]);
+  const next = safeRedirect(params[AUTH_PARAMS.next]);
   if (await SessionService.getCurrentUser()) redirect(next);
   const showDevLogin = isDevLoginEnabled() && (await isLocalRequest());
+  const initialEmail = typeof params.email === "string" ? params.email.trim().slice(0, 254) : undefined;
+  const preferCode = params.code === "1";
 
   return (
     <AuthLayout lang={lang} layout={t.Layout} detector={!region.isFromGeoHeader && <RegionDetector country={region.country} />}>
@@ -39,7 +41,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
         description={t.Login.Description}
         footer={<AuthCardFooter question={t.Login.NoAccount} href={AUTH_ROUTES.signup} label={t.Login.SignupLink} />}
       >
-        <LoginForm t={{ Fields: t.Fields, Errors: t.Errors, Login: t.Login }} next={next} />
+        <LoginForm t={{ Fields: t.Fields, Errors: t.Errors, Login: t.Login }} next={next} initialEmail={initialEmail} preferCode={preferCode} />
         {showDevLogin && (
           <DevQuickLogin label={t.DevLogin.Label} title={t.DevLogin.Title} note={t.DevLogin.Note}>
             {DEV_ACCOUNT_LIST.map((account) => (

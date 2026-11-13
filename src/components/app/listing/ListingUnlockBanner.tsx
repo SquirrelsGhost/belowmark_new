@@ -40,8 +40,9 @@ export default function ListingUnlockBanner({
 
   return (
     <section
+      id="free-unlock"
       aria-label={title}
-      className="my-6 border-2 border-ink bg-paper-dark p-5 sm:p-6 shadow-[4px_4px_0_0_var(--color-ink)]"
+      className="my-6 scroll-mt-6 border-2 border-ink bg-paper-dark p-5 sm:p-6 shadow-[4px_4px_0_0_var(--color-ink)]"
     >
       <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
         <div className="max-w-3xl">

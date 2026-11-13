@@ -295,7 +295,7 @@ async function sendVerifiedUnusedFreeDossierActivation() {
       const curr = country === "CH" ? "CHF" : country === "GB" ? "GBP" : country === "TR" ? "TRY" : "EUR";
       const zeroStr = fmtCurr(0, curr, numLoc);
       const regionLabel = matches[0]?.region || matches[0]?.place || country;
-      const trialUrl = `${ORIGIN}/buchen?markt=${encodeURIComponent(country)}&tarif=investor-monat`;
+      const trialUrl = `${ORIGIN}/buchen?markt=${encodeURIComponent(country)}&tarif=investor-monat&email=${encodeURIComponent(u.email)}`;
 
       const copy = {
         de: {
@@ -340,7 +340,7 @@ async function sendVerifiedUnusedFreeDossierActivation() {
       const cardsHtml = matches
         .map((m) => {
           const valStr = fmtCurr(m.appraisedValue, m.currency || curr, numLoc);
-          const itemUrl = `${ORIGIN}/app/objekt/${encodeURIComponent(m.key)}`;
+          const itemUrl = `${ORIGIN}/app/objekt/${encodeURIComponent(m.key)}#free-unlock`;
           return `<div style="margin-top:10px;padding:12px 14px;border:1.5px solid ${C.ink};background:${C.bright};"><div style="font-family:monospace;font-size:11px;color:${C.muted};text-transform:uppercase;">${escapeHtml(m.authority || "")}</div><div style="font-size:15px;font-weight:700;color:${C.ink};margin-top:2px;">${escapeHtml(m.place || m.region || "")} — ${escapeHtml(m.segmentLabel || "")}</div><div style="font-family:monospace;font-size:13px;color:${C.ink};margin-top:4px;">${escapeHtml(copy.valLabel)}: <strong>${escapeHtml(valStr)}</strong> · <a href="${escapeHtml(itemUrl)}" style="color:${C.signal};font-weight:700;text-decoration:underline;">${escapeHtml(copy.openItem)} &rarr;</a></div></div>`;
         })
         .join("");
@@ -348,7 +348,7 @@ async function sendVerifiedUnusedFreeDossierActivation() {
       const bodyText = [
         copy.intro,
         "",
-        ...matches.map((m) => `- ${m.place || m.region} (${m.segmentLabel}) · ${fmtCurr(m.appraisedValue, m.currency || curr, numLoc)} -> ${ORIGIN}/app/objekt/${encodeURIComponent(m.key)}`),
+        ...matches.map((m) => `- ${m.place || m.region} (${m.segmentLabel}) · ${fmtCurr(m.appraisedValue, m.currency || curr, numLoc)} -> ${ORIGIN}/app/objekt/${encodeURIComponent(m.key)}#free-unlock`),
         "",
         copy.outro,
         `${copy.ctaTrial}: ${trialUrl}`,
@@ -475,8 +475,8 @@ async function sendPostFreeDossierFollowUps() {
       const lang = isTr ? "tr" : isDe ? "de" : "en";
       const numLoc = isTr ? "tr-TR" : isDe ? "de-DE" : "en-GB";
       const curr = country === "CH" ? "CHF" : country === "GB" ? "GBP" : country === "TR" ? "TRY" : "EUR";
-      const trialUrl = `${ORIGIN}/buchen?markt=${encodeURIComponent(country)}&tarif=investor-monat`;
-      const passUrl = `${ORIGIN}/buchen?markt=${encodeURIComponent(country)}&tarif=investor-quartal`;
+      const trialUrl = `${ORIGIN}/buchen?markt=${encodeURIComponent(country)}&tarif=investor-monat&email=${encodeURIComponent(u.email)}`;
+      const passUrl = `${ORIGIN}/buchen?markt=${encodeURIComponent(country)}&tarif=investor-quartal&email=${encodeURIComponent(u.email)}`;
 
       const subject = isTr
         ? `${regionName}: İncelediğiniz dosyaya benzer 3 aktif icra ihalesi (Belowmark)`

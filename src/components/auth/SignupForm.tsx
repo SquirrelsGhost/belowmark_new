@@ -8,8 +8,8 @@ import AuthField from "@/components/auth/AuthField";
 import AuthNotice from "@/components/auth/AuthNotice";
 import AuthSubmit from "@/components/auth/AuthSubmit";
 import MarketPicker from "@/components/auth/MarketPicker";
-import PasswordField from "@/components/auth/PasswordField";
 import ResendVerificationForm from "@/components/auth/ResendVerificationForm";
+import SignupOptionalPassword from "@/components/auth/SignupOptionalPassword";
 import TermsConsent from "@/components/auth/TermsConsent";
 import VerifyOtpForm from "@/components/auth/VerifyOtpForm";
 import { useFocusFirstError } from "@/hooks/useFocusFirstError";
@@ -27,15 +27,18 @@ interface SignupFormProps {
   initialEmail?: string;
   targetKey?: string;
   targetCity?: string;
+  /** Hides the country selector when embedded inside a specific country's listing dossier */
+  hideMarketPicker?: boolean;
 }
 
-/** Sign-up: e-mail, password, market, consent — then "check your inbox". */
+/** Sign-up: 1-field passwordless quick entry (with optional password) -> 6-digit OTP / 1-click link. */
 export default function SignupForm({
   t,
   defaultMarket,
   initialEmail,
   targetKey,
   targetCity,
+  hideMarketPicker = false,
 }: SignupFormProps) {
   const [state, formAction] = useActionState(signupAction, INITIAL_AUTH_STATE);
   const formRef = useRef<HTMLFormElement>(null);
@@ -72,7 +75,7 @@ export default function SignupForm({
   const market: PricingCountryCode = isPricingCountry(rawMarket) ? rawMarket : defaultMarket;
 
   return (
-    <form ref={formRef} action={formAction} noValidate className="grid min-w-0 gap-5">
+    <form ref={formRef} action={formAction} noValidate className="grid min-w-0 gap-4">
       <AuthBotShield refreshKey={state} />
       {targetKey && <input type="hidden" name="targetKey" value={targetKey} />}
       {targetCity && <input type="hidden" name="targetCity" value={targetCity} />}
@@ -89,31 +92,25 @@ export default function SignupForm({
         defaultValue={state.values?.email ?? initialEmail}
         error={fieldError("email")}
       />
-      <PasswordField
-        id="signup-password"
-        name="password"
-        number="02"
-        label={t.Fields.Password}
-        autoComplete="new-password"
-        fields={t.Fields}
-        hint={t.Fields.PasswordHint}
-        error={fieldError("password")}
-        withStrength
-      />
-      <MarketPicker
-        number="03"
-        legend={t.Fields.Market}
-        note={t.Fields.MarketNote}
-        defaultValue={market}
-        error={fieldError("market")}
-        compactInitial={true}
-        options={PRICING_COUNTRIES.map((code) => ({
-          code,
-          label: t.Fields.Markets[code].Label,
-          hint: t.Fields.Markets[code].Hint,
-        }))}
-      />
-      <TermsConsent fields={t.Fields} defaultChecked={state.values?.terms} error={fieldError("terms")} />
+      {hideMarketPicker && !fieldError("market") ? (
+        <input type="hidden" name="market" value={market} />
+      ) : (
+        <MarketPicker
+          number="02"
+          legend={t.Fields.Market}
+          note={t.Fields.MarketNote}
+          defaultValue={market}
+          error={fieldError("market")}
+          compactInitial={true}
+          options={PRICING_COUNTRIES.map((code) => ({
+            code,
+            label: t.Fields.Markets[code].Label,
+            hint: t.Fields.Markets[code].Hint,
+          }))}
+        />
+      )}
+      <SignupOptionalPassword fields={t.Fields} error={fieldError("password")} number={hideMarketPicker ? "02" : "03"} />
+      <TermsConsent fields={t.Fields} defaultChecked={state.values?.terms ?? true} error={fieldError("terms")} />
       <AuthSubmit label={t.Signup.Submit} pendingLabel={t.Signup.Pending} variant="signal" />
     </form>
   );

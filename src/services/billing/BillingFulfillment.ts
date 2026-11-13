@@ -1,5 +1,5 @@
 import "server-only";
-import { and, eq, ne } from "drizzle-orm";
+import { and, eq, ne, sql } from "drizzle-orm";
 import Stripe from "stripe";
 import { db } from "@/db";
 import { billingEvents, billingOrders, users } from "@/db/schema";
@@ -98,6 +98,7 @@ export class BillingFulfillment {
         planEndsAt: endsAt,
         planCancelAt: cancelAt,
         stripeSubscriptionId: details.subscription?.id ?? null,
+        emailVerifiedAt: sql`coalesce(${users.emailVerifiedAt}, ${now})`,
         ...(isTrialStart ? { stripeTrialUsedAt: now } : {}),
       })
       .where(eq(users.id, claimed.userId));
@@ -158,6 +159,20 @@ export class BillingFulfillment {
     if (!isCheckoutSessionSettled(session)) return "pending";
     await BillingFulfillment.fromCheckoutSession(session);
     return "paid";
+  };
+
+  /**
+   * Success URL fallback when opened in an email In-App Browser without a session cookie:
+   * settles the order directly from Stripe's verified session state without creating a cookie.
+   */
+  static confirmAnonymousSession = async (
+    sessionId: string,
+  ): Promise<{ settled: boolean; email?: string }> => {
+    const session = await stripeClient().checkout.sessions.retrieve(sessionId);
+    const email = session.customer_details?.email ?? session.customer_email ?? undefined;
+    if (!isCheckoutSessionSettled(session)) return { settled: false, email };
+    await BillingFulfillment.fromCheckoutSession(session);
+    return { settled: true, email };
   };
 
   /** Mirrors a subscription change (renewal, cancellation, end) onto the account. */

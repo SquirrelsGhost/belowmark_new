@@ -77,11 +77,11 @@ const POLICY_RULES: readonly PolicyRule[] = [
   { methods: ["GET"], pattern: /^\/konto\/export$/, policy: API_AUTH },
   { methods: ["GET"], pattern: /^\/konto\/rechnungen\/[0-9a-f-]{36}\/pdf$/i, policy: API_AUTH },
 
-  // ─── 2b. Booking (order overview, local test checkout, Stripe success URL) ──
-  { methods: ["GET", "POST"], pattern: /^\/buchen$/, policy: PAGE_AUTH },
+  // ─── 2b. Booking (public offer preview + inline checkout; upgrades/test stay auth-gated) ──
+  { methods: ["GET", "POST"], pattern: /^\/buchen$/, policy: PAGE_PUBLIC },
   { methods: ["GET", "POST"], pattern: /^\/buchen\/upgrade$/, policy: PAGE_AUTH },
   { methods: ["GET", "POST"], pattern: /^\/bezahlen\/test$/, policy: PAGE_AUTH },
-  { methods: ["GET"], pattern: /^\/api\/billing\/bestaetigen$/, policy: PAGE_AUTH },
+  { methods: ["GET"], pattern: /^\/api\/billing\/bestaetigen$/, policy: PAGE_PUBLIC },
 
   // ─── 3. Protected App Routes & Calendar Export ──────────────────────────────
   { methods: ["GET"], pattern: /^\/app\/kalender$/, policy: API_AUTH },

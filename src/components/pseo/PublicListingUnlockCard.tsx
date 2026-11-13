@@ -85,6 +85,7 @@ export default function PublicListingUnlockCard({
         defaultMarket={item.country}
         targetKey={item.key}
         targetCity={item.cleanCity}
+        hideMarketPicker
       />
 
       <p className="mt-4 border-t border-rule pt-3 text-center font-mono text-xs text-ink-soft">

@@ -8,6 +8,7 @@ import AuthErrorSummary from "@/components/auth/AuthErrorSummary";
 import AuthField from "@/components/auth/AuthField";
 import AuthSubmit from "@/components/auth/AuthSubmit";
 import AuthTextLink from "@/components/auth/AuthTextLink";
+import LoginCodeBox from "@/components/auth/LoginCodeBox";
 import PasswordField from "@/components/auth/PasswordField";
 import ResendVerificationForm from "@/components/auth/ResendVerificationForm";
 import VerifyOtpForm from "@/components/auth/VerifyOtpForm";
@@ -22,10 +23,12 @@ interface LoginFormProps {
   t: Pick<IAuthTranslation, "Fields" | "Errors" | "Login">;
   /** Already-sanitised path to return to after sign-in */
   next: string;
+  initialEmail?: string;
+  preferCode?: boolean;
 }
 
-/** Sign-in: e-mail, password, "stay signed in". Works without JavaScript, too. */
-export default function LoginForm({ t, next }: LoginFormProps) {
+/** Sign-in: e-mail, password, "stay signed in" + passwordless 6-digit code fallback. */
+export default function LoginForm({ t, next, initialEmail, preferCode = false }: LoginFormProps) {
   const [state, formAction] = useActionState(loginAction, INITIAL_AUTH_STATE);
   const formRef = useRef<HTMLFormElement>(null);
   useFocusFirstError(formRef, state);
@@ -50,7 +53,7 @@ export default function LoginForm({ t, next }: LoginFormProps) {
           placeholder={t.Fields.EmailPlaceholder}
           autoComplete="username"
           inputMode="email"
-          defaultValue={state.values?.email}
+          defaultValue={state.values?.email ?? initialEmail}
           error={fieldError("email")}
         />
         <PasswordField
@@ -75,10 +78,18 @@ export default function LoginForm({ t, next }: LoginFormProps) {
             errors={t.Errors}
             emailLabel={t.Fields.Email}
             emailPlaceholder={t.Fields.EmailPlaceholder}
+            next={next}
           />
           <ResendVerificationForm email={state.values.email} label={t.Login.ResendVerification} sentLabel={t.Login.ResendSent} errors={t.Errors} />
         </div>
       )}
+      <LoginCodeBox
+        fields={t.Fields}
+        errors={t.Errors}
+        next={next}
+        initialEmail={initialEmail}
+        defaultOpen={preferCode}
+      />
     </div>
   );
 }

@@ -4,6 +4,7 @@
 import { useActionState } from "react";
 import AuthSubmit from "@/components/auth/AuthSubmit";
 import { verifyEmailAction } from "@/lib/auth/actions/verifyEmailAction";
+import { AUTH_PARAMS } from "@/lib/auth/authConfig";
 import { errorMessage } from "@/lib/auth/errorMessage";
 import { FIELD_INPUT_CLASSES, FIELD_LABEL_CLASSES } from "@/lib/auth/fieldStyles";
 import { IAuthTranslation } from "@/translations/auth/IAuthTranslation";
@@ -17,6 +18,7 @@ interface VerifyOtpFormProps {
   emailPlaceholder: string;
   targetKey?: string;
   targetCity?: string;
+  next?: string;
 }
 
 const BOX_CLASSES = "grid gap-3 border border-rule bg-paper-bright p-4";
@@ -79,6 +81,7 @@ export default function VerifyOtpForm({
   emailPlaceholder,
   targetKey,
   targetCity,
+  next,
 }: VerifyOtpFormProps) {
   const [state, formAction] = useActionState(verifyEmailAction, INITIAL_AUTH_STATE);
   const copy = OTP_COPY[detectOtpLang(emailLabel)];
@@ -87,6 +90,7 @@ export default function VerifyOtpForm({
     <form action={formAction} className={BOX_CLASSES}>
       {targetKey && <input type="hidden" name="targetKey" value={targetKey} />}
       {targetCity && <input type="hidden" name="targetCity" value={targetCity} />}
+      {next && <input type="hidden" name={AUTH_PARAMS.next} value={next} />}
       {email ? (
         <input type="hidden" name="email" value={email} />
       ) : (

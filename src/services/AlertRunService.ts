@@ -121,7 +121,11 @@ function mailFor(recipient: Recipient, results: AlertResult[]) {
       reference: `${listing.authority} · ${listing.fileNo}`,
       dateLine: isMove ? fill(M.Moved, { before: date(hit.before), after: date(hit.after) }) : fill(M.NextDate, { date: date(hit.kind === "cancelled" ? hit.before : hit.after) }),
       valueLine: listing.appraisedValue !== null ? `${M.Value[market]}: ${formatMoney(listing.appraisedValue, market, lang)}` : null,
-      url: absolute(listingHref(listing.key)),
+      url: absolute(
+        !recipient.hasFullAccess && !recipient.unlockedListingKey
+          ? `${listingHref(listing.key)}#free-unlock`
+          : listingHref(listing.key),
+      ),
     };
   };
 
@@ -150,7 +154,9 @@ function mailFor(recipient: Recipient, results: AlertResult[]) {
         title: M.TrialTitle,
         body: M.TrialBody,
         cta: M.TrialCta,
-        url: absolute(`/buchen?markt=${encodeURIComponent(recipient.country)}&tarif=investor-monat`),
+        url: absolute(
+          `/buchen?markt=${encodeURIComponent(recipient.country)}&tarif=investor-monat&email=${encodeURIComponent(recipient.email)}`,
+        ),
       };
 
   return renderAlertMail({

@@ -3,9 +3,10 @@ import { DeclarationErrorCode, DeleteErrorCode } from "@/translations/billing/IB
 
 export interface OrderFormState {
   status: "idle" | "error";
-  code?: "consent_required" | "failed" | "blocked";
+  code?: "consent_required" | "email_invalid" | "failed" | "blocked";
   offer?: string;
   market?: PricingCountryCode;
+  guestEmail?: string;
 }
 
 export interface DeclarationFormState {
