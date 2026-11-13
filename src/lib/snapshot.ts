@@ -8,11 +8,11 @@
 export const SNAPSHOT_DATE = "2026-11-13";
 
 export const SNAPSHOT_STATS = {
-  proceedings: 7929,
-  withAppraisal: 7613,
+  proceedings: 7931,
+  withAppraisal: 7615,
   statesWithHearings: 106,
-  totalAppraisedEuro: 1977586487,
-  medianAppraisedEuro: 81000,
+  totalAppraisedEuro: 1977975487,
+  medianAppraisedEuro: 81242,
 } as const;
 
 export type DeStateCode =
@@ -74,8 +74,8 @@ export interface StateSnapshot {
 
 /** All 16 German states + European partner markets summary rows for the landing index. */
 export const STATES: StateSnapshot[] = [
-  { code: "nw", name: "Nordrhein-Westfalen", country: "DE", transferTaxPct: 6.5, hearings: 790 },
-  { code: "by", name: "Bayern", country: "DE", transferTaxPct: 3.5, hearings: 405 },
+  { code: "nw", name: "Nordrhein-Westfalen", country: "DE", transferTaxPct: 6.5, hearings: 791 },
+  { code: "by", name: "Bayern", country: "DE", transferTaxPct: 3.5, hearings: 406 },
   { code: "ni", name: "Niedersachsen", country: "DE", transferTaxPct: 5, hearings: 312 },
   { code: "rp", name: "Rheinland-Pfalz", country: "DE", transferTaxPct: 5, hearings: 320 },
   { code: "he", name: "Hessen", country: "DE", transferTaxPct: 6, hearings: 274 },
