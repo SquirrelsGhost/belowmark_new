@@ -22,7 +22,9 @@
     "insta:daily": "node --use-system-ca scripts/instagram-daily.mjs",
     "insta:autopilot": "node --use-system-ca scripts/instagram-autopilot.mjs",
     "insta:login": "node --use-system-ca scripts/instagram-login.mjs",
-    "seo:monitor": "node --use-system-ca scripts/seo-funnel-autopilot.mjs"
+    "seo:monitor": "node --use-system-ca scripts/seo-funnel-autopilot.mjs",
+    "seo:flywheel": "node --use-system-ca --no-warnings scripts/seo-daily-flywheel.mjs",
+    "seo:autopilot": "node --use-system-ca --no-warnings scripts/seo-daily-flywheel.mjs --push-indexnow --auto-deploy"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.3.0",

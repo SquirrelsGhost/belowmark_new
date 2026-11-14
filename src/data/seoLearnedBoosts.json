@@ -1,0 +1,538 @@
+{
+  "updatedAt": "2026-11-14T00:26:44.183Z",
+  "source": "belowmark-seo-flywheel-v1",
+  "markets": {
+    "DE": [
+      "teilungsversteigerung immobilie",
+      "teilungsversteigerung immobilie erbengemeinschaft",
+      "teilungsversteigerung immobilie kosten",
+      "teilungsversteigerung immobilie in frankreich",
+      "ablauf teilungsversteigerung immobilie",
+      "teilungsversteigerung mehrere immobilien",
+      "teilungsversteigerung erbengemeinschaft mehrere immobilien",
+      "erbauseinandersetzung immobilie teilungsversteigerung",
+      "zwangsversteigerung haus",
+      "zwangsversteigerung haus kaufen",
+      "zwangsversteigerung haus ablauf",
+      "zwangsversteigerung haus in der nähe"
+    ],
+    "AT": [
+      "gerichtliche versteigerung immobilien",
+      "bezirksgericht voitsberg"
+    ],
+    "CH": [
+      "ks schild immobilien ag",
+      "liegenschaftsversteigerung solothurn",
+      "luc eric preuvot",
+      "luc preuvot",
+      "nazmi krasniqi versteigerung"
+    ],
+    "TR": [
+      "uyap e satış ihale",
+      "uyap e satış ihale sonrası işlemler",
+      "uyap e satış ihaleye nasıl girilir",
+      "uyap e satış ihale süreci",
+      "uyap e satış ihale kazandıktan sonra ne yapılır",
+      "uyap e satış ihale nasıl yapılır",
+      "uyap e satış ihale ilanları",
+      "uyap e satış ihale bedeli nasıl ödenir",
+      "uyap e satış ihaleye nasıl teklif verilir",
+      "uyap e satış ihale kuralları",
+      "icradan satılık daire",
+      "icradan satılık daire istanbul"
+    ],
+    "IT": [
+      "aste giudiziarie immobiliari",
+      "aste giudiziarie immobiliari e fallimentari online",
+      "aste giudiziarie immobiliari e mobiliari - aste giudiziarie inlinea s.p.a",
+      "aste giudiziarie immobiliari varazze",
+      "aste giudiziarie immobiliari tribunale di ravenna",
+      "aste giudiziarie immobiliari tribunale di firenze",
+      "aste giudiziarie immobiliari provincia di pisa",
+      "aste giudiziarie immobiliari barletta",
+      "aste giudiziarie immobiliari vicenza"
+    ],
+    "ES": [
+      "subastas boe",
+      "subasta boe",
+      "subastas boe valencia",
+      "subastas del boe",
+      "subastasboe"
+    ],
+    "FR": [
+      "licitor encheres immobilieres",
+      "licitor immobilier enchères",
+      "enchères immobilières judiciaires",
+      "enchères immobilières judiciaires paris",
+      "encheres juridiques immobilieres",
+      "ventes aux enchères immobilières judiciaires dans le 77",
+      "ventes aux enchères immobilières judiciaires lyon",
+      "ventes aux enchères immobilières judiciaires marseille",
+      "ventes aux enchères immobilières judiciaires bordeaux",
+      "ventes aux enchères immobilières judiciaires maroc",
+      "ventes aux enchères immobilières judiciaires nice",
+      "ventes aux enchères immobilières judiciaires nîmes"
+    ],
+    "GB": [
+      "repossessed property auction uk",
+      "repossessed house auctions uk",
+      "repossessed land auctions uk",
+      "bank repossessed property auctions uk",
+      "what happens if a property doesn't sell at auction uk",
+      "where to buy repossessed houses uk",
+      "can you get a mortgage on an auction property uk",
+      "uk property auctions",
+      "west midlands property auction"
+    ]
+  },
+  "pages": {
+    "/es/subastas-boe/sevilla": [
+      "subastas boe",
+      "subasta boe"
+    ],
+    "/amtsgericht/betreibungsamt-bonstetten": [
+      "loyan osman"
+    ],
+    "/zwangsversteigerung/rorschach": [
+      "versteigerung rorschach"
+    ],
+    "/amtsgericht/betreibungs-und-konkursamt-des-kantons-basel-landschaft-abteilung-betreibungen": [
+      "luc eric preuvot"
+    ],
+    "/amtsgericht/betreibungsamt-wallisellen-dietlikon": [
+      "sejbit murati"
+    ],
+    "/es/subastas-boe": [
+      "subastas boe",
+      "subasta boe",
+      "subastas del boe"
+    ],
+    "/amtsgericht/ag-naumburg": [
+      "zwangsversteigerung naumburg",
+      "ag naumburg"
+    ],
+    "/zwangsversteigerung/oberwart": [
+      "zwangsversteigerung oberwart"
+    ],
+    "/tr/icra-ihale/kastamonu-abana": [
+      "abana da icradan satilik daireler"
+    ],
+    "/amtsgericht/ag-blomberg": [
+      "amtsgericht blomberg zwangsversteigerungen",
+      "ag blomberg"
+    ],
+    "/amtsgericht/ag-rendsburg": [
+      "amtsgericht rendsburg termine"
+    ],
+    "/amtsgericht/ag-rheinberg": [
+      "amtsgericht rheinberg",
+      "ag rheinberg"
+    ],
+    "/amtsgericht/ag-tecklenburg": [
+      "amtsgericht tecklenburg termine",
+      "zwangsversteigerung tecklenburg"
+    ],
+    "/amtsgericht/ag-cottbus": [
+      "amtsgericht zwangsversteigerungen"
+    ],
+    "/tr/icra-ihale/aydin-efeler": [
+      "aydın icradan satılık evler"
+    ],
+    "/tr/icra-ihale/istanbul-bayrampasa": [
+      "bayrampaşa da icradan satılık daireler"
+    ],
+    "/amtsgericht/betreibungsamt-des-sensebezirks": [
+      "bert poeckes"
+    ],
+    "/zwangsversteigerung/tafers": [
+      "bettina stoll tafers"
+    ],
+    "/oesterreich/ediktsdatei/bg-voitsberg": [
+      "bezirksgericht voitsberg"
+    ],
+    "/tr/icra-ihale/zonguldak-devrek": [
+      "devrek te icradan satılık evler"
+    ],
+    "/tr/icra-ihale/sivas-gemerek": [
+      "gemerek icradan satılık tarla"
+    ],
+    "/amtsgericht/konkursamt-aargau": [
+      "konkursamt aargau versteigerung",
+      "konkursamtliche versteigerung aargau"
+    ],
+    "/tr/icra-ihale/konya-karapinar": [
+      "konya karapınar icradan satılık tarla"
+    ],
+    "/zwangsversteigerung/aarau": [
+      "ks schild immobilien ag",
+      "versteigerung aargau immobilien",
+      "zwangsversteigerung aarau"
+    ],
+    "/schweiz/shab-versteigerungen/konkursamt-aargau": [
+      "ks schild immobilien ag"
+    ],
+    "/schweiz/shab-versteigerungen/solothurn": [
+      "liegenschaftsversteigerung solothurn"
+    ],
+    "/zwangsversteigerung/miteigentum-am": [
+      "loyan osman"
+    ],
+    "/schweiz/shab-versteigerungen/lupsingen-betreibungsamtliche": [
+      "luc eric preuvot"
+    ],
+    "/schweiz/shab-versteigerungen/betreibungs-und-konkursamt-des-kantons-basel-landschaft-abteilung-betreibungen": [
+      "luc eric preuvot",
+      "luc preuvot"
+    ],
+    "/amtsgericht/betreibungsamt-olten-goesgen": [
+      "nazmi krasniqi versteigerung"
+    ],
+    "/schweiz/shab-versteigerungen/betreibungsamt-ruemlang-oberglatt": [
+      "nazmi krasniqi versteigerung"
+    ],
+    "/schweiz/shab-versteigerungen/ruemlang": [
+      "nazmi krasniqi versteigerung"
+    ],
+    "/tr/icra-ihale/kirklareli-pinarhisar": [
+      "pınarhisar icradan satılık"
+    ],
+    "/tr/icra-ihale/sivas": [
+      "sivas icralık evler"
+    ],
+    "/es/subastas-boe/las-palmas-de-gran-canaria": [
+      "subastas boe"
+    ],
+    "/es/subastas-boe/valencia": [
+      "subastas boe valencia"
+    ],
+    "/es/subastas-boe/malaga": [
+      "subastasboe"
+    ],
+    "/en/uk-property-auctions/london": [
+      "uk property auctions"
+    ],
+    "/fr/blog/encheres-judiciaires-espagne-boe-subastas-guide": [
+      "vente aux enchères liquidation judiciaire espagne"
+    ],
+    "/fr/encheres-immobilieres/tribunal-judiciaire-de-moulins-allier": [
+      "vente aux enchères liquidation judiciaire près de moulins"
+    ],
+    "/zwangsversteigerung/baernbach": [
+      "versteigerung bärnbach"
+    ],
+    "/zwangsversteigerung/st-jakob-im-rosental": [
+      "versteigerungen st jakob im rosental"
+    ],
+    "/en/uk-property-auctions/west-midlands-stadt": [
+      "west midlands property auction"
+    ],
+    "/zwangsversteigerung/hamburg": [
+      "zwangsversteigerung"
+    ],
+    "/zwangsversteigerung/innsbruck": [
+      "zwangsversteigerung",
+      "zwangsversteigerungen"
+    ],
+    "/amtsgericht/ag-diez": [
+      "zwangsversteigerung amtsgericht diez"
+    ],
+    "/zwangsversteigerung/nordwalde": [
+      "zwangsversteigerung nordwalde"
+    ],
+    "/zwangsversteigerung/oberndorf-in-tirol": [
+      "zwangsversteigerung oberndorf"
+    ],
+    "/amtsgericht/betreibungsamt-schaffhausen": [
+      "zwangsversteigerung schaffhausen"
+    ],
+    "/zwangsversteigerung/sylt-ot-keitum": [
+      "zwangsversteigerung sylt"
+    ],
+    "/amtsgericht/bg-wels": [
+      "zwangsversteigerung wels"
+    ],
+    "/amtsgericht/ag-chemnitz": [
+      "zwangsversteigerungen amtsgericht",
+      "amtsgericht chemnitz"
+    ],
+    "/amtsgericht/betreibungs-und-konkursamt-der-region-maloja": [
+      "zwangsversteigerungen graubünden"
+    ],
+    "/zwangsversteigerung/freilassing": [
+      "zwangsversteigerungen immobilien freilassing"
+    ],
+    "/zwangsversteigerung/schwabach": [
+      "zwangsversteigerungen schwabach"
+    ],
+    "/zwangsversteigerung/schwegenheim": [
+      "zwangsversteigerungen schwegenheim"
+    ],
+    "/tr/icra-ihale/corum-kargi": [
+      "çorum kargı da icradan satılık evler"
+    ],
+    "/fr/encheres-immobilieres/hennebont": [
+      "13 rue christian le corre hennebont"
+    ],
+    "/fr/encheres-immobilieres/tribunal-judiciaire-de-bordeaux-gironde": [
+      "15 rue leveque soulac sur mer"
+    ],
+    "/fr/encheres-immobilieres/saint-maur-des-fosses": [
+      "60 rue rochambeau saint maur des fosses"
+    ],
+    "/blog/zwangsversteigerung-5-10-und-7-10-grenze-zuschlag": [
+      "7/10 grenze zwangsversteigerung"
+    ],
+    "/blog/zwangsversteigerung-5-und-7-zehntel-grenze-erklaert": [
+      "7/10 grenze zwangsversteigerung"
+    ],
+    "/rechner/5-10-und-7-10-grenze": [
+      "7/10 grenze zwangsversteigerung"
+    ],
+    "/fr/encheres-immobilieres/tribunal-judiciaire-de-paris": [
+      "adjudication immobiliere paris"
+    ],
+    "/amtsgericht/ag-aalen": [
+      "ag aalen",
+      "amtsgericht aalen zwangsversteigerungen termine"
+    ],
+    "/amtsgericht/ag-andernach": [
+      "ag andernach"
+    ],
+    "/amtsgericht/ag-ansbach": [
+      "ag ansbach"
+    ],
+    "/amtsgericht/ag-augsburg": [
+      "ag augsburg"
+    ],
+    "/amtsgericht/ag-dortmund": [
+      "ag dortmund",
+      "amtsgericht dortmund zwangsversteigerungen"
+    ],
+    "/amtsgericht/ag-esslingen-am-neckar": [
+      "ag esslingen",
+      "amtsgericht esslingen zwangsversteigerungen"
+    ],
+    "/amtsgericht/ag-gruenstadt": [
+      "ag grünstadt"
+    ],
+    "/amtsgericht/ag-heilbronn": [
+      "ag heilbronn",
+      "ag heilbronn bestätigt eigenverwaltung"
+    ],
+    "/amtsgericht/ag-muelheim-an-der-ruhr": [
+      "ag mülheim"
+    ],
+    "/amtsgericht/ag-muenchen": [
+      "ag münchen"
+    ],
+    "/amtsgericht/ag-nettetal": [
+      "ag nettetal"
+    ],
+    "/amtsgericht/ag-neuruppin": [
+      "ag neuruppin"
+    ],
+    "/amtsgericht/ag-pirmasens": [
+      "ag pirmasens"
+    ],
+    "/amtsgericht/ag-rheinbach": [
+      "ag rheinbach"
+    ],
+    "/amtsgericht/ag-rinteln": [
+      "ag rinteln"
+    ],
+    "/amtsgericht/ag-stadthagen": [
+      "ag stadthagen"
+    ],
+    "/amtsgericht/ag-voelklingen": [
+      "ag völklingen"
+    ],
+    "/amtsgericht/ag-weiden-i-d-opf": [
+      "ag weiden"
+    ],
+    "/amtsgericht/ag-worms": [
+      "ag worms"
+    ],
+    "/tr/icra-ihale/yozgat-akdagmadeni": [
+      "akdağmadeni icralık evler"
+    ],
+    "/tr/icra-ihale/konya-aksehir": [
+      "akşehir icradan satılık evler"
+    ],
+    "/tr/icra-ihale/zonguldak-alapli": [
+      "alaplı icradan satılık arsa"
+    ],
+    "/tr/icra-ihale/amasya-merkez": [
+      "amasya icradan satılık"
+    ],
+    "/amtsgericht/bg-innsbruck": [
+      "amraser straße 117"
+    ],
+    "/amtsgericht/ag-aachen": [
+      "amtsgericht aachen zwangsversteigerungen"
+    ],
+    "/amtsgericht/ag-ahaus": [
+      "amtsgericht ahaus zwangsversteigerungen"
+    ],
+    "/amtsgericht/ag-ahlen": [
+      "amtsgericht ahlen zwangsversteigerungen"
+    ],
+    "/amtsgericht/ag-ahrensburg": [
+      "amtsgericht ahrensburg termine"
+    ],
+    "/amtsgericht/ag-amberg": [
+      "amtsgericht amberg zwangsversteigerungen termine"
+    ],
+    "/amtsgericht/ag-bad-hersfeld": [
+      "amtsgericht bad hersfeld"
+    ],
+    "/amtsgericht/ag-bad-segeberg": [
+      "amtsgericht bad segeberg",
+      "amtsgericht bad segeberg termine"
+    ],
+    "/zwangsversteigerung/bamberg": [
+      "amtsgericht bamberg zwangsversteigerung"
+    ],
+    "/amtsgericht/ag-bayreuth": [
+      "amtsgericht bayreuth verhandlungstermine"
+    ],
+    "/amtsgericht/ag-bergheim": [
+      "amtsgericht bergheim zwangsversteigerungen"
+    ],
+    "/amtsgericht/ag-bitterfeld-wolfen": [
+      "amtsgericht bitterfeld"
+    ],
+    "/amtsgericht/ag-bonn": [
+      "amtsgericht bonn zwangsversteigerungen"
+    ],
+    "/amtsgericht/ag-bottrop": [
+      "amtsgericht bottrop zwangsversteigerungen"
+    ],
+    "/amtsgericht/ag-brilon": [
+      "amtsgericht brilon zwangsversteigerungen"
+    ],
+    "/amtsgericht/ag-bruehl": [
+      "amtsgericht brühl zwangsversteigerungen"
+    ],
+    "/amtsgericht/ag-celle": [
+      "amtsgericht celle zwangsversteigerungen"
+    ],
+    "/amtsgericht/ag-charlottenburg": [
+      "amtsgericht charlottenburg"
+    ],
+    "/amtsgericht/ag-coesfeld": [
+      "amtsgericht coesfeld zwangsversteigerungen"
+    ],
+    "/amtsgericht/ag-deggendorf": [
+      "amtsgericht deggendorf"
+    ],
+    "/amtsgericht/ag-dillenburg": [
+      "amtsgericht dillenburg"
+    ],
+    "/amtsgericht/ag-dinslaken": [
+      "amtsgericht dinslaken termine"
+    ],
+    "/amtsgericht/betreibungsamt-dorneck-thierstein": [
+      "amtsgericht dornach"
+    ],
+    "/amtsgericht/ag-dresden": [
+      "amtsgericht dresden"
+    ],
+    "/amtsgericht/ag-duesseldorf": [
+      "amtsgericht düsseldorf termine",
+      "amtsgericht düsseldorf zwangsversteigerung"
+    ],
+    "/zwangsversteigerung/eggenfelden": [
+      "amtsgericht eggenfelden zwangsversteigerungen"
+    ],
+    "/amtsgericht/ag-erkelenz": [
+      "amtsgericht erkelenz termine"
+    ],
+    "/amtsgericht/ag-essen": [
+      "amtsgericht essen termine"
+    ],
+    "/amtsgericht/ag-euskirchen": [
+      "amtsgericht euskirchen zwangsversteigerungen"
+    ],
+    "/amtsgericht/ag-frankenberg-eder": [
+      "amtsgericht frankenberg"
+    ],
+    "/amtsgericht/ag-friedberg-hessen": [
+      "amtsgericht friedberg",
+      "amtsgericht friedberg hessen",
+      "amtsgericht friedberg termine"
+    ],
+    "/amtsgericht/ag-fuerth": [
+      "amtsgericht fürth"
+    ],
+    "/amtsgericht/ag-geestland": [
+      "amtsgericht geestland zwangsversteigerungen"
+    ],
+    "/amtsgericht/ag-geldern": [
+      "amtsgericht geldern zwangsversteigerungen"
+    ],
+    "/amtsgericht/ag-giessen": [
+      "amtsgericht giessen",
+      "amtsgericht gießen termine"
+    ],
+    "/amtsgericht/ag-grevenbroich": [
+      "amtsgericht grevenbroich zwangsversteigerungen"
+    ],
+    "/amtsgericht/ag-goeppingen": [
+      "amtsgericht göppingen",
+      "amtsgericht göppingen zwangsversteigerungen"
+    ],
+    "/amtsgericht/ag-hagen": [
+      "amtsgericht hagen zwangsversteigerungen"
+    ],
+    "/amtsgericht/ag-halberstadt": [
+      "amtsgericht halberstadt"
+    ],
+    "/amtsgericht/ag-marl": [
+      "amtsgericht haltern am see"
+    ],
+    "/amtsgericht/ag-hamburg-mitte": [
+      "amtsgericht hamburg mitte"
+    ],
+    "/amtsgericht/ag-hamburg-wandsbek": [
+      "amtsgericht hamburg wandsbek"
+    ],
+    "/amtsgericht/ag-hameln": [
+      "amtsgericht hameln"
+    ],
+    "/amtsgericht/ag-herzberg-am-harz": [
+      "amtsgericht herzberg"
+    ],
+    "/amtsgericht/ag-kassel-zweigstelle-hofgeismar": [
+      "amtsgericht hofgeismar"
+    ],
+    "/amtsgericht/ag-homburg": [
+      "amtsgericht homburg"
+    ],
+    "/amtsgericht/ag-huenfeld": [
+      "amtsgericht hünfeld"
+    ],
+    "/amtsgericht/ag-iserlohn": [
+      "amtsgericht iserlohn",
+      "amtsgericht iserlohn zwangsversteigerungen"
+    ],
+    "/zwangsversteigerung/iserlohn": [
+      "amtsgericht iserlohn zwangsversteigerungen"
+    ],
+    "/amtsgericht/ag-jever": [
+      "amtsgericht jever",
+      "amtsgericht jever zwangsversteigerungen"
+    ],
+    "/amtsgericht/ag-juelich": [
+      "amtsgericht jülich zwangsversteigerungen"
+    ],
+    "/amtsgericht/ag-kassel": [
+      "amtsgericht kassel termine"
+    ],
+    "/amtsgericht/ag-kaufbeuren": [
+      "amtsgericht kaufbeuren"
+    ],
+    "/amtsgericht/ag-kerpen": [
+      "amtsgericht kerpen zwangsversteigerungen"
+    ]
+  }
+}

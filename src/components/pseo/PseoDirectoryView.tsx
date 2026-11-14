@@ -8,6 +8,7 @@ import PseoStatsBanner from "@/components/pseo/PseoStatsBanner";
 import PseoStickyDossierBar from "@/components/pseo/PseoStickyDossierBar";
 import { BELOWMARK_ORIGIN } from "@/lib/blog/blogSeo";
 import { PricingCountryCode } from "@/lib/constants";
+import { getMergedLearnedFaqs } from "@/lib/seo/learnedBoosts";
 import { buildPreviewCardListingHref } from "@/lib/pseo/publicListingUrls";
 import { PseoLocale, PseoPreviewListing } from "@/types/pseo.types";
 
@@ -91,6 +92,13 @@ export default function PseoDirectoryView({
   const lowPrice = validBids.length > 0 ? Math.min(...validBids) : null;
   const highPrice = validBids.length > 0 ? Math.max(...validBids) : null;
   const primaryCurrency = listings[0]?.currency ?? (marketCode === "CH" ? "CHF" : marketCode === "GB" ? "GBP" : marketCode === "TR" ? "TRY" : "EUR");
+  const mergedFaqs = getMergedLearnedFaqs({
+    locale,
+    marketCode,
+    locationName,
+    canonicalUrl,
+    existingFaqs: faqs,
+  });
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -152,11 +160,11 @@ export default function PseoDirectoryView({
           },
         })),
       },
-      ...(faqs.length > 0
+      ...(mergedFaqs.length > 0
         ? [
             {
               "@type": "FAQPage",
-              mainEntity: faqs.map((f) => ({
+              mainEntity: mergedFaqs.map((f) => ({
                 "@type": "Question",
                 name: f.q,
                 acceptedAnswer: { "@type": "Answer", text: f.a },
@@ -238,13 +246,13 @@ export default function PseoDirectoryView({
         </div>
       )}
 
-      {faqs.length > 0 && (
+      {mergedFaqs.length > 0 && (
         <div className="mt-12 border-2 border-ink bg-paper-bright p-6 sm:p-8">
           <h2 className="font-display text-2xl text-ink sm:text-3xl">
             {faqHeading ?? (isTr ? "Sıkça Sorulan Sorular (SSS)" : "Häufig gestellte Fragen (FAQ)")}
           </h2>
           <div className="mt-5 space-y-4">
-            {faqs.map((f) => (
+            {mergedFaqs.map((f) => (
               <div key={f.q} className="border-b border-rule-strong pb-4 last:border-b-0">
                 <h3 className="font-display text-lg text-ink">{f.q}</h3>
                 <p className="mt-1.5 font-serif text-base leading-relaxed text-ink-soft">{f.a}</p>
