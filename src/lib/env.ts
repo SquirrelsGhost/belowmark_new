@@ -19,6 +19,8 @@ const SMTP_PASS_ENC = "WTUJ7wfK2f6eRctp.86vS-paSoNgC2n6i2IBMBA.vyw_G2sK2lucQaqGT
 const STRIPE_SK_ENC =
   "0Kd-0uUbbI_p8EY-.1P_i0xoZNxz6-XrYj7Zdig.FbLYzYHS7oPPvaIGUVW5MtgeFW8clTvnTsQEZqBdy7Ojm2qs7Or5kBuqGKprw_jX-5ujgmSSfApt-ZFQFBL6ey_EfyzogvP5tocU4Vq8HGfDMLM_qciK_WaX5d-VdaMYpDh4oNfXK02pkjI";
 const STRIPE_WH_ENC = "EwqNEoO3fU_7WTCO.0_PWCVAJl1lw82AdEtXXoQ._18xc_KK5WZj31ntccjJs1XvLx9dmAb4L47fbW8RlqUQkYSXWwI";
+const PRIMARY_DB_URL_ENC =
+  "fKZQE64Bcy4RCkf1.GsjfN2F6e-wyIMZD0ABBTQ.ywNYyRex1uFVw3tLIGBAM719Xu1RQ3eSfImYr5dmgvFThkJAPFKzBtZ_Hr3radNyqn8DYUkeku509XnLLE0_yHJvtp70rYNqSEm9aecZJIUjXVH08mBebqBHzMWkcLOR_-LQZW_jlZiNO741VV3X0HXT8zlLqJLUtPwdbvFI4AOJf99TgxDD8KKllNashsE7U5BqNEELBnS7iaOlfLCU1g";
 
 const DEFAULT_STRIPE_PRICES: Readonly<Record<string, string>> = {
   STRIPE_PRICE_DE_INVESTOR_MONAT: "price_1UWAzSLy4gh2xV0YerVnrm28",
@@ -111,9 +113,14 @@ export const env = {
   },
 
   // ── PostgreSQL ─────────────────────────────────────────────
-  /** Full PostgreSQL connection string (supports DATABASE_URL & POSTGRES_URL). SERVER ONLY. */
+  /** Full PostgreSQL connection string (supports PRIMARY_DATABASE_URL, VPS TLS-443 bridge, DATABASE_URL & POSTGRES_URL). SERVER ONLY. */
   get databaseUrl(): string {
-    const val = process.env.DATABASE_URL || process.env.POSTGRES_URL;
+    const primary = optionalEnv("PRIMARY_DATABASE_URL").trim();
+    if (primary) return primary;
+    const val = process.env.DATABASE_URL || process.env.POSTGRES_URL || "";
+    if (val && !val.includes("ep-gentle-frost-ba531cq2")) return val;
+    const decryptedPrimary = decryptRuntimeSecret(PRIMARY_DB_URL_ENC);
+    if (decryptedPrimary) return decryptedPrimary;
     if (val) return val;
     return requireEnv("DATABASE_URL");
   },

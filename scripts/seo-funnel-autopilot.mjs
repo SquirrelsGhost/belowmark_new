@@ -14,6 +14,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import * as dotenv from "dotenv";
 import nodemailer from "nodemailer";
 import pg from "pg";
+import { buildPgConnectionConfig } from "../src/db/pgHttpsTunnel.ts";
 import { callAgyJson } from "./lib/agyCli.mjs";
 import { runUnverifiedReminders } from "./lib/unverifiedReminderRunner.mjs";
 
@@ -126,7 +127,7 @@ async function collectGscMetrics() {
 
 async function collectFunnelMetrics() {
   if (!process.env.DATABASE_URL) return { available: false };
-  const client = new pg.Client({ connectionString: process.env.DATABASE_URL });
+  const client = new pg.Client(buildPgConnectionConfig(process.env.DATABASE_URL));
   await client.connect();
   try {
     const usersQ = await client.query(`
@@ -223,7 +224,7 @@ async function sendVerifiedUnusedFreeDossierActivation() {
   const fmtCurr = (val, curr, loc) =>
     new Intl.NumberFormat(loc, { style: "currency", currency: curr, maximumFractionDigits: 0 }).format(Math.round(val));
 
-  const client = new pg.Client({ connectionString: process.env.DATABASE_URL });
+  const client = new pg.Client(buildPgConnectionConfig(process.env.DATABASE_URL));
   await client.connect();
   const transporter = nodemailer.createTransport({
     name: "belowmark.com",
@@ -422,7 +423,7 @@ async function sendPostFreeDossierFollowUps() {
   const fmtCurr = (val, curr, loc) =>
     new Intl.NumberFormat(loc, { style: "currency", currency: curr, maximumFractionDigits: 0 }).format(Math.round(val));
 
-  const client = new pg.Client({ connectionString: process.env.DATABASE_URL });
+  const client = new pg.Client(buildPgConnectionConfig(process.env.DATABASE_URL));
   await client.connect();
   const transporter = nodemailer.createTransport({
     name: "belowmark.com",

@@ -6,6 +6,7 @@ import { drizzle as drizzlePg, NodePgDatabase } from "drizzle-orm/node-postgres"
 import { drizzle as drizzlePglite, PgliteDatabase } from "drizzle-orm/pglite";
 import { Pool } from "pg";
 import { env } from "@/lib/env";
+import { buildPgConnectionConfig } from "./pgHttpsTunnel";
 import * as schema from "./schema";
 
 /**
@@ -127,15 +128,15 @@ async function initOrSyncDatabase(): Promise<DatabaseInstance> {
   const isPgliteExplicit = connectionString.startsWith("pglite://") || connectionString === "pglite";
 
   if (!isPgliteExplicit) {
-    const pool = new Pool({
-      connectionString,
-      max: 10,
-      // A new TLS connection to a hosted Postgres (Neon) costs several round
-      // trips, so idle connections stay open for a while instead of 30 s.
-      idleTimeoutMillis: 5 * 60_000,
-      keepAlive: true,
-      connectionTimeoutMillis: 10000,
-    });
+    const pool = new Pool(
+      buildPgConnectionConfig(connectionString, {
+        max: 10,
+        // Keep pooled TLS connections open across bursts to avoid extra handshakes.
+        idleTimeoutMillis: 5 * 60_000,
+        keepAlive: true,
+        connectionTimeoutMillis: 10000,
+      }),
+    );
     try {
       const pgDb = drizzlePg(pool, { schema });
       if (process.env.NODE_ENV !== "production") {

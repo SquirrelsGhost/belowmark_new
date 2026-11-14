@@ -3,6 +3,7 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import nodemailer from "nodemailer";
 import pg from "pg";
+import { buildPgConnectionConfig } from "../../src/db/pgHttpsTunnel.ts";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..", "..");
@@ -206,7 +207,7 @@ export async function runUnverifiedReminders({ dryRun = false, limit = 25, baseU
     ]);
 
   const publicBase = resolvePublicBaseUrl(baseUrl);
-  const client = new pg.Client({ connectionString: process.env.DATABASE_URL });
+  const client = new pg.Client(buildPgConnectionConfig(process.env.DATABASE_URL));
   await client.connect();
 
   const transporter = dryRun
