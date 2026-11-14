@@ -76,10 +76,10 @@ async function ensureSchemaOnDb(dbInst: DatabaseInstance, isRemotePg = false): P
   if (isRemotePg) {
     try {
       const check = await dbInst.execute(
-        sql.raw(`SELECT count(*)::int AS cnt FROM information_schema.columns WHERE table_schema = 'public' AND ((table_name = 'users' AND column_name = 'sitzungs_version') OR (table_name = 'users' AND column_name = 'country') OR (table_name = 'users' AND column_name = 'stripe_trial_used_at') OR (table_name = 'free_listing_unlocks' AND column_name = 'listing_key') OR (table_name = 'sessions' AND column_name = 'aktives_token_id') OR (table_name = 'billing_invoices' AND column_name = 'seq') OR (table_name = 'closing_cases' AND column_name = 'done') OR (table_name = 'billing_orders' AND column_name = 'upgrade_from')) AND EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname = 'public' AND indexname = 'billing_invoices_order_kind_unique' AND indexdef ILIKE '%upgrade%')`),
+        sql.raw(`SELECT count(*)::int AS cnt FROM information_schema.columns WHERE table_schema = 'public' AND ((table_name = 'users' AND column_name = 'sitzungs_version') OR (table_name = 'users' AND column_name = 'country') OR (table_name = 'users' AND column_name = 'stripe_trial_used_at') OR (table_name = 'free_listing_unlocks' AND column_name = 'listing_key') OR (table_name = 'sessions' AND column_name = 'aktives_token_id') OR (table_name = 'sessions' AND column_name = 'aktives_token_bestaetigt') OR (table_name = 'billing_invoices' AND column_name = 'seq') OR (table_name = 'closing_cases' AND column_name = 'done') OR (table_name = 'billing_orders' AND column_name = 'upgrade_from')) AND EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname = 'public' AND indexname = 'billing_invoices_order_kind_unique' AND indexdef ILIKE '%upgrade%')`),
       );
       const rows = (check as unknown as { rows?: Array<{ cnt: number }> }).rows;
-      if (rows && rows[0]?.cnt === 8) {
+      if (rows && rows[0]?.cnt === 9) {
         globalForDb.lastMigratedJournalSignature = signature;
         return;
       }
