@@ -2,11 +2,20 @@ import rawBoosts from "@/data/seoLearnedBoosts.json";
 import { PricingCountryCode } from "@/lib/constants";
 import { PseoLocale } from "@/types/pseo.types";
 
+export interface CtrBoostEntry {
+  topQuery: string;
+  impressions: number;
+  clicks: number;
+  ctr: number;
+  position: number;
+}
+
 interface LearnedBoostsData {
   updatedAt: string;
   source: string;
   markets: Record<string, string[]>;
   pages: Record<string, string[]>;
+  ctrBoosts?: Record<string, CtrBoostEntry>;
 }
 
 const BOOSTS = rawBoosts as LearnedBoostsData;
@@ -45,6 +54,58 @@ const QUESTION_TEMPLATES: Record<PseoLocale, (kw: string, loc: string) => { q: s
     a: `Pour « ${kw} » à ${loc}, Belowmark centralise les annonces officielles, la mise à prix, la consignation CARPA de 10 % et les dates d'audience à venir.`,
   }),
 };
+
+function formatQueryHeading(query: string): string {
+  return query
+    .trim()
+    .split(/\s+/)
+    .map((w) => (w.length > 2 ? w.charAt(0).toUpperCase() + w.slice(1) : w))
+    .join(" ");
+}
+
+/**
+ * Rewrites <title> (<= 65c) & meta description (<= 156c) when a page has >= 50 GSC impressions
+ * and < 1% CTR by weaving the #1 verified GSC query directly into the SERP snippet.
+ */
+export function applyCtrBoostMeta(
+  canonicalUrl: string,
+  baseTitle: string,
+  baseDescription: string,
+): { title: string; description: string; extraKeyword?: string } {
+  let pathname = "/";
+  try {
+    pathname = new URL(canonicalUrl).pathname;
+  } catch {
+    pathname = canonicalUrl;
+  }
+  const striker = BOOSTS.ctrBoosts?.[pathname];
+  if (!striker?.topQuery) {
+    return { title: baseTitle, description: baseDescription };
+  }
+
+  const cleanKw = striker.topQuery.trim();
+  const formattedKw = formatQueryHeading(cleanKw);
+
+  let nextTitle = baseTitle;
+  if (!baseTitle.toLowerCase().includes(cleanKw.toLowerCase())) {
+    const combined = `${formattedKw} · ${baseTitle}`;
+    if (combined.length <= 65) {
+      nextTitle = combined;
+    } else {
+      const compactCore = baseTitle.split(/[:|·—–]/)[0]?.trim() || "Belowmark";
+      const alt = `${formattedKw} | ${compactCore}`;
+      nextTitle = alt.length <= 65 ? alt : `${formattedKw.slice(0, 52).trim()} | Belowmark`;
+    }
+  }
+
+  let nextDesc = baseDescription;
+  if (!baseDescription.toLowerCase().includes(cleanKw.toLowerCase())) {
+    const prefixed = `${formattedKw}: ${baseDescription}`;
+    nextDesc = prefixed.length <= 156 ? prefixed : `${prefixed.slice(0, 153).replace(/\s+\S*$/, "")}…`;
+  }
+
+  return { title: nextTitle, description: nextDesc, extraKeyword: cleanKw };
+}
 
 export function getMergedLearnedFaqs({
   locale,

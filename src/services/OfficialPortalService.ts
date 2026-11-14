@@ -1,6 +1,7 @@
 import "server-only";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
-import { join } from "node:path";
+import os from "node:os";
+import path from "node:path";
 import tls from "node:tls";
 import { inflateSync } from "node:zlib";
 import { Listing, OfficialAttachment, OfficialPortalDetails } from "@/types/listing.types";
@@ -21,8 +22,16 @@ try {
   // Ignore on runtimes without system CA support
 }
 
-const CACHE_DIR = join(process.cwd(), ".data", "portal-cache");
-const PHOTO_CACHE_DIR = join(CACHE_DIR, "photos");
+function resolvePortalCacheDir(): string {
+  const custom = process.env.BELOWMARK_PORTAL_CACHE_DIR?.trim();
+  if (custom) return custom;
+  if (process.env.VERCEL) return path.join(os.tmpdir(), "belowmark-portal-cache");
+  const root = process.env.INIT_CWD || process.cwd();
+  return [root, ".data", "portal-cache"].join(path.sep);
+}
+
+const CACHE_DIR = resolvePortalCacheDir();
+const PHOTO_CACHE_DIR = [CACHE_DIR, "photos"].join(path.sep);
 const MAX_EXTRACTED_PHOTOS = 12;
 
 const ZVG_PORTAL_REFERER = "https://www.zvg-portal.de/index.php?button=Suchen";
@@ -256,8 +265,8 @@ async function readCache(key: string): Promise<OfficialPortalDetails | null> {
   const mem = portalMemoryCache.get(key);
   if (mem) return mem;
   try {
-    const file = join(CACHE_DIR, `${safeCacheName(key)}.json`);
-    const raw = await readFile(file, "utf8");
+    const file = [CACHE_DIR, `${safeCacheName(key)}.json`].join(path.sep);
+    const raw = await readFile(/*turbopackIgnore: true*/ file, "utf8");
     const parsed = JSON.parse(raw) as OfficialPortalDetails;
     if (portalMemoryCache.size > 1000) portalMemoryCache.clear();
     portalMemoryCache.set(key, parsed);
@@ -271,9 +280,9 @@ async function writeCache(key: string, details: OfficialPortalDetails): Promise<
   if (portalMemoryCache.size > 1000) portalMemoryCache.clear();
   portalMemoryCache.set(key, details);
   try {
-    await mkdir(CACHE_DIR, { recursive: true });
-    const file = join(CACHE_DIR, `${safeCacheName(key)}.json`);
-    await writeFile(file, JSON.stringify(details), "utf8");
+    await mkdir(/*turbopackIgnore: true*/ CACHE_DIR, { recursive: true });
+    const file = [CACHE_DIR, `${safeCacheName(key)}.json`].join(path.sep);
+    await writeFile(/*turbopackIgnore: true*/ file, JSON.stringify(details), "utf8");
   } catch {
     // Ignore on read-only fs
   }
@@ -404,11 +413,11 @@ async function extractAndCachePortalPhotos(
       const jpegs = extractJpegsFromPdf(buf);
       if (jpegs.length === 0) continue;
 
-      await mkdir(PHOTO_CACHE_DIR, { recursive: true });
+      await mkdir(/*turbopackIgnore: true*/ PHOTO_CACHE_DIR, { recursive: true });
       const urls: string[] = [];
       for (let i = 0; i < jpegs.length; i++) {
-        const photoFile = join(PHOTO_CACHE_DIR, `${safeKey}-${i}.jpg`);
-        await writeFile(photoFile, jpegs[i]);
+        const photoFile = [PHOTO_CACHE_DIR, `${safeKey}-${i}.jpg`].join(path.sep);
+        await writeFile(/*turbopackIgnore: true*/ photoFile, jpegs[i]);
         urls.push(`/api/quelle/${encodedKey}?photo=${i}`);
       }
       return urls;
@@ -1105,14 +1114,14 @@ export class OfficialPortalService {
 
   static async fetchPhotoBuffer(listing: Listing, index: number): Promise<Buffer | null> {
     const safeKey = safeCacheName(listing.key);
-    const cachedFile = join(PHOTO_CACHE_DIR, `${safeKey}-${index}.jpg`);
+    const cachedFile = [PHOTO_CACHE_DIR, `${safeKey}-${index}.jpg`].join(path.sep);
     try {
-      return await readFile(cachedFile);
+      return await readFile(/*turbopackIgnore: true*/ cachedFile);
     } catch {
       // Populate details & photo cache on miss
       await this.getDetails(listing);
       try {
-        return await readFile(cachedFile);
+        return await readFile(/*turbopackIgnore: true*/ cachedFile);
       } catch {
         return null;
       }

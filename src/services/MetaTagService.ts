@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import { formatSeoDescription, formatSeoTitle, normalizeCanonicalUrl } from "@/lib/blog/blogSeo";
 import { APP_NAME } from "@/lib/constants";
+import { applyCtrBoostMeta } from "@/lib/seo/learnedBoosts";
 
 /**
  * Shape of the meta tag data each page translation must provide.
@@ -32,13 +33,17 @@ export class MetaTagService {
   static CreateMetaTags = (props: IMetaTags): Metadata => {
     const canonicalUrl = normalizeCanonicalUrl(props.url);
     const normalizedImgUrl = props.imgUrl.replace(/^https?:\/\/belowmark\.com(?=\/|$)/i, "https://www.belowmark.com");
-    const seoTitle = formatSeoTitle(props.title, 65);
-    const seoDescription = formatSeoDescription(props.description, 158);
+    const boosted = applyCtrBoostMeta(canonicalUrl, props.title, props.description);
+    const seoTitle = formatSeoTitle(boosted.title, 65);
+    const seoDescription = formatSeoDescription(boosted.description, 158);
+    const keywords = boosted.extraKeyword
+      ? Array.from(new Set([boosted.extraKeyword, ...props.tags]))
+      : props.tags;
 
     return {
       title: seoTitle,
       description: seoDescription,
-      keywords: props.tags,
+      keywords,
       alternates: {
         canonical: canonicalUrl,
       },

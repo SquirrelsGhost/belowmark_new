@@ -1,6 +1,6 @@
 {
-  "updatedAt": "2026-11-14T00:26:44.183Z",
-  "source": "belowmark-seo-flywheel-v1",
+  "updatedAt": "2026-11-14T01:18:50.269Z",
+  "source": "belowmark-seo-flywheel-v2",
   "markets": {
     "DE": [
       "teilungsversteigerung immobilie",
@@ -534,5 +534,14 @@
     "/amtsgericht/ag-kerpen": [
       "amtsgericht kerpen zwangsversteigerungen"
     ]
+  },
+  "ctrBoosts": {
+    "/es/subastas-boe/las-palmas-de-gran-canaria": {
+      "topQuery": "subastas boe",
+      "impressions": 135,
+      "clicks": 1,
+      "ctr": 0.74,
+      "position": 7.1
+    }
   }
 }

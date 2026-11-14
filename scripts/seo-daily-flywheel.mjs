@@ -117,10 +117,11 @@ function mergeUniqueCapped(existing, incoming, cap) {
 
 const boosts = existsSync(BOOSTS_FILE)
   ? JSON.parse(readFileSync(BOOSTS_FILE, "utf8"))
-  : { updatedAt: "", source: "belowmark-seo-flywheel-v1", markets: {}, pages: {} };
-boosts.source = "belowmark-seo-flywheel-v1";
+  : { updatedAt: "", source: "belowmark-seo-flywheel-v2", markets: {}, pages: {}, ctrBoosts: {} };
+boosts.source = "belowmark-seo-flywheel-v2";
 boosts.markets ??= {};
 boosts.pages ??= {};
+boosts.ctrBoosts ??= {};
 
 let newlyLearned = 0;
 
@@ -153,12 +154,27 @@ if (gscToken) {
   );
   const qJson = await qRes.json();
   const rows = Array.isArray(qJson.rows) ? qJson.rows : [];
+  const pageStats = new Map();
   for (const row of rows) {
     const query = row.keys?.[0];
     const pageUrl = row.keys?.[1];
-    if (!query || !pageUrl || Number(row.impressions ?? 0) < 2) continue;
+    if (!query || !pageUrl) continue;
+    const imp = Number(row.impressions ?? 0);
+    const clk = Number(row.clicks ?? 0);
+    const pos = Number(row.position ?? 0);
     try {
       const pathname = new URL(pageUrl).pathname;
+      const cur = pageStats.get(pathname) ?? { impressions: 0, clicks: 0, topQuery: "", topImp: 0, topPos: 0 };
+      cur.impressions += imp;
+      cur.clicks += clk;
+      if (imp > cur.topImp && query.length >= 6 && query.length <= 52 && !/https?:|belowmark/i.test(query)) {
+        cur.topImp = imp;
+        cur.topQuery = query;
+        cur.topPos = pos;
+      }
+      pageStats.set(pathname, cur);
+
+      if (imp < 2) continue;
       const mergedPage = mergeUniqueCapped(boosts.pages[pathname], [query], 6);
       boosts.pages[pathname] = mergedPage.list;
       newlyLearned += mergedPage.added;
@@ -172,11 +188,33 @@ if (gscToken) {
     }
   }
 
+  let ctrStrikersUpdated = 0;
+  const nextCtrBoosts = {};
+  for (const [pathname, st] of pageStats.entries()) {
+    const ctrPct = st.impressions > 0 ? (st.clicks / st.impressions) * 100 : 0;
+    if (st.impressions >= 50 && ctrPct < 1.0 && st.topQuery) {
+      nextCtrBoosts[pathname] = {
+        topQuery: st.topQuery,
+        impressions: st.impressions,
+        clicks: st.clicks,
+        ctr: Number(ctrPct.toFixed(2)),
+        position: Number(st.topPos.toFixed(1)),
+      };
+      if (boosts.ctrBoosts?.[pathname]?.topQuery !== st.topQuery) {
+        newlyLearned++;
+        ctrStrikersUpdated++;
+      }
+    }
+  }
+  boosts.ctrBoosts = nextCtrBoosts;
+
   const smUrl = `https://www.googleapis.com/webmasters/v3/sites/${encodeURIComponent(GSC_SITE)}/sitemaps/${encodeURIComponent(`${ORIGIN}/sitemap.xml`)}`;
   const smRes = await fetch(smUrl, { method: "PUT", headers: { Authorization: `Bearer ${gscToken}` } });
   gscReport = {
     available: true,
     rowsHarvested: rows.length,
+    ctrStrikersActive: Object.keys(nextCtrBoosts).length,
+    ctrStrikersUpdated,
     sitemapSubmitStatus: smRes.status,
   };
 }
@@ -231,7 +269,17 @@ if (shouldAutoDeploy && newlyLearned > 0) {
     } else {
       execFileSync("git", ["add", "src/data/seoLearnedBoosts.json"], { cwd: ROOT });
       execFileSync("git", ["commit", "-m", `chore(seo-flywheel): learn +${newlyLearned} live GSC & autocomplete queries`], { cwd: ROOT });
-      execFileSync("git", ["push", "origin", "HEAD"], { cwd: ROOT });
+      try {
+        execFileSync("git", ["pull", "--rebase", "origin", "main"], { cwd: ROOT });
+      } catch (rebaseErr) {
+        try {
+          execFileSync("git", ["rebase", "--abort"], { cwd: ROOT });
+        } catch {
+          // ignore
+        }
+        throw rebaseErr;
+      }
+      execFileSync("git", ["push", "origin", "main"], { cwd: ROOT });
       const sha = execFileSync("git", ["rev-parse", "--short", "HEAD"], { cwd: ROOT, encoding: "utf8" }).trim();
       autoDeploy = { status: "pushed_origin", commit: sha };
     }

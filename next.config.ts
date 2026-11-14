@@ -5,6 +5,9 @@ const nextConfig: NextConfig = {
   cacheComponents: true,
   partialPrefetching: true,
   serverExternalPackages: ["@electric-sql/pglite", "pg"],
+  outputFileTracingExcludes: {
+    "*": ["./.data/**"],
+  },
   experimental: {
     agentUpgrade: "security",
   },
