@@ -65,6 +65,12 @@ export const BILLING_TR: IBillingTranslation = {
         Summary: "Bireysel tam erişim, her ay peşin",
         Term: "Her ay yenilenir. Ödenmiş ayın sonuna kadar istediğiniz zaman feshedilebilir.",
       },
+      "investor-pass": {
+        Name: "Investor · 14 Günlük Paket (Abonelik Yok)",
+        Period: "tek sefer",
+        Summary: "14 gün boyunca tüm esas numaraları, şartname PDF'leri ve yapay zekâ analizlerine tam erişim",
+        Term: "Tek ödeme, abonelik yoktur. 14 gün sonunda kendiliğinden sona erer, iptal gerekmez.",
+      },
       "investor-quartal": {
         Name: "Investor · üç ay",
         Period: "tek sefer",

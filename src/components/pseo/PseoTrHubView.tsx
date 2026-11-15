@@ -1,4 +1,5 @@
 import Link from "next/link";
+import PseoAlertCaptureBox from "@/components/pseo/PseoAlertCaptureBox";
 import PseoRelatedGuides from "@/components/pseo/PseoRelatedGuides";
 import PseoStatsBanner from "@/components/pseo/PseoStatsBanner";
 import { BELOWMARK_ORIGIN } from "@/lib/blog/blogSeo";
@@ -11,9 +12,7 @@ interface PseoTrHubViewProps {
 }
 
 const formatTry = (val: number | null) =>
-  val === null
-    ? "—"
-    : `${new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 0 }).format(Math.round(val))} ₺`;
+  val === null ? "—" : `${new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 0 }).format(Math.round(val))} ₺`;
 
 const ITEM_LINK_CLASS =
   "flex items-center justify-between border border-rule bg-paper px-3 py-2 text-xs transition-colors hover:border-ink hover:bg-paper-bright";
@@ -91,6 +90,8 @@ export default function PseoTrHubView({ catalog }: PseoTrHubViewProps) {
           </div>
         )}
       </header>
+
+      <PseoAlertCaptureBox locale="tr" locationName="Türkiye" marketCode="TR" activeCount={catalog.trTotalListings} targetKey={provinces[0]?.listings[0]?.key} />
 
       <section className="mt-12">
         <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-rule-strong pb-3">

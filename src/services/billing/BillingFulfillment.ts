@@ -4,7 +4,7 @@ import Stripe from "stripe";
 import { db } from "@/db";
 import { billingEvents, billingOrders, users } from "@/db/schema";
 import { BillingOffer, BillingOfferId, isOfferId, OFFERS } from "@/lib/billing/billingConfig";
-import { addCalendarMonths, laterOf } from "@/lib/billing/billingDates";
+import { addOfferDuration, laterOf } from "@/lib/billing/billingDates";
 import { STRIPE_TRIAL_DAYS } from "@/lib/billing/trialCopy";
 import { isPricingCountry } from "@/lib/constants";
 import { BillingMailService } from "@/services/billing/BillingMailService";
@@ -53,7 +53,7 @@ const isUuid = (value: string | null | undefined): value is string =>
   typeof value === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
 
 function computePlanEndsAt(offer: BillingOffer, now: Date): Date | null {
-  return offer.kind === "subscription" ? addCalendarMonths(now, offer.months) : null;
+  return offer.kind === "subscription" ? addOfferDuration(now, offer) : null;
 }
 
 /**
@@ -80,10 +80,10 @@ export class BillingFulfillment {
     const now = new Date();
     const isTrialStart = details.subscription?.status === "trialing" || (claimed.amount === 0 && offer.kind === "subscription");
     const endsAt = details.subscription
-      ? (periodEnd(details.subscription) ?? addCalendarMonths(now, offer.months))
+      ? (periodEnd(details.subscription) ?? addOfferDuration(now, offer))
       : isTrialStart
         ? new Date(now.getTime() + STRIPE_TRIAL_DAYS * 86_400_000)
-        : addCalendarMonths(laterOf(user?.planEndsAt ?? null, now), offer.months);
+        : addOfferDuration(laterOf(user?.planEndsAt ?? null, now), offer);
     // A subscription renews (no end set); a one-time term ends by itself. The test checkout has no Stripe object.
     const cancelAt = offer.kind === "one_time" ? endsAt : details.subscription ? cancelDate(details.subscription) : null;
 

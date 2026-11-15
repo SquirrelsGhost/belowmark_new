@@ -19,8 +19,17 @@ export function invoiceNumber(seq: number, issuedAt: Date): string {
   return `${INVOICE_NUMBER_PREFIX}-${year}-${String(seq).padStart(INVOICE_NUMBER_DIGITS, "0")}`;
 }
 
-/** Period an order paid for: the months before the access end it set (an extension starts where the old term ended). */
-export function orderServicePeriod(paidAt: Date, accessEndsAt: Date | null, months: number): { from: Date; to: Date } {
+/** Period an order paid for: the months (or fixed days) before the access end it set. */
+export function orderServicePeriod(
+  paidAt: Date,
+  accessEndsAt: Date | null,
+  months: number,
+  days?: number,
+): { from: Date; to: Date } {
+  if (days && days > 0) {
+    const to = accessEndsAt ?? new Date(paidAt.getTime() + days * 86_400_000);
+    return { from: new Date(to.getTime() - days * 86_400_000), to };
+  }
   const to = accessEndsAt ?? addCalendarMonths(paidAt, months);
   return { from: addCalendarMonths(to, -months), to };
 }

@@ -99,7 +99,7 @@ export class InvoiceService {
     // An upgrade covers the rest of the running period: from payment to the unchanged end
     const period = order.upgradeFrom
       ? { from: order.paidAt, to: order.accessEndsAt ?? order.paidAt }
-      : orderServicePeriod(order.paidAt, order.accessEndsAt, OFFERS[order.offer].months);
+      : orderServicePeriod(order.paidAt, order.accessEndsAt, OFFERS[order.offer].months, OFFERS[order.offer].days);
     return InvoiceService.issue({
       kind,
       userId: order.userId,

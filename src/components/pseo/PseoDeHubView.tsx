@@ -1,4 +1,5 @@
 import Link from "next/link";
+import PseoAlertCaptureBox from "@/components/pseo/PseoAlertCaptureBox";
 import PseoRelatedGuides from "@/components/pseo/PseoRelatedGuides";
 import PseoStatsBanner from "@/components/pseo/PseoStatsBanner";
 import { BELOWMARK_ORIGIN } from "@/lib/blog/blogSeo";
@@ -11,16 +12,11 @@ interface PseoDeHubViewProps {
 }
 
 const STATE_COMBO_HIGHLIGHTS: ReadonlyArray<{ slug: string; label: string }> = [
-  { slug: "eigentumswohnung-nordrhein-westfalen", label: "ETW NRW" },
-  { slug: "einfamilienhaus-nordrhein-westfalen", label: "EFH NRW" },
-  { slug: "eigentumswohnung-bayern", label: "ETW Bayern" },
-  { slug: "ohne-wertgrenzen-bayern", label: "Ohne Wertgrenzen Bayern" },
-  { slug: "eigentumswohnung-baden-wuerttemberg", label: "ETW Baden-Württemberg" },
-  { slug: "einfamilienhaus-niedersachsen", label: "EFH Niedersachsen" },
-  { slug: "eigentumswohnung-hessen", label: "ETW Hessen" },
-  { slug: "eigentumswohnung-berlin", label: "ETW Berlin" },
-  { slug: "einfamilienhaus-sachsen", label: "EFH Sachsen" },
-  { slug: "ohne-wertgrenzen-nordrhein-westfalen", label: "Ohne Wertgrenzen NRW" },
+  { slug: "eigentumswohnung-nordrhein-westfalen", label: "ETW NRW" }, { slug: "einfamilienhaus-nordrhein-westfalen", label: "EFH NRW" },
+  { slug: "eigentumswohnung-bayern", label: "ETW Bayern" }, { slug: "ohne-wertgrenzen-bayern", label: "Ohne Wertgrenzen Bayern" },
+  { slug: "eigentumswohnung-baden-wuerttemberg", label: "ETW Baden-Württemberg" }, { slug: "einfamilienhaus-niedersachsen", label: "EFH Niedersachsen" },
+  { slug: "eigentumswohnung-hessen", label: "ETW Hessen" }, { slug: "eigentumswohnung-berlin", label: "ETW Berlin" },
+  { slug: "einfamilienhaus-sachsen", label: "EFH Sachsen" }, { slug: "ohne-wertgrenzen-nordrhein-westfalen", label: "Ohne Wertgrenzen NRW" },
 ];
 
 export default function PseoDeHubView({ catalog }: PseoDeHubViewProps) {
@@ -92,6 +88,8 @@ export default function PseoDeHubView({ catalog }: PseoDeHubViewProps) {
           ))}
         </div>
       </header>
+
+      <PseoAlertCaptureBox locale="de" locationName="Deutschland" marketCode="DE" activeCount={catalog.deTotalListings} targetKey={topCities[0]?.listings[0]?.key} />
 
       <section className="mt-12">
         <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-rule-strong pb-3">

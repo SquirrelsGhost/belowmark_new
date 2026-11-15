@@ -272,9 +272,9 @@ export const EU_MARKET_COPY: Record<EuPseoMarketCode, EuMarketCopyConfig> = {
     hubLead:
       "Directorio actualizado de subastas judiciales, notariales y de la Agencia Tributaria publicadas en el Portal de Subastas del Boletín Oficial del Estado (BOE) en las 17 comunidades autónomas — con Valor de Subasta, reglas del 70% y 50% (Art. 670 LEC), depósito del 5% y cálculo del ITP autonómico.",
     hubMetaTitle: (total) =>
-      `Subastas BOE Hoy en Directo (${total} Activas): Pisos y Locales`,
+      `Subastas BOE (${total} Activas Hoy): Buscador sin Cl@ve -50%`,
     hubMetaDesc: (total, rCount) =>
-      `Portal abierto de Subastas BOE hoy en directo (${total} subastas judiciales y AEAT activas en las ${rCount} CCAA): filtra sin Cl@ve pisos, casas y locales desde -50% + 1 expediente gratis.`,
+      `Buscador abierto de Subastas BOE (${total} pisos, casas y locales activos en ${rCount} CCAA): consulta sin Cl@ve umbrales 70%/50% LEC, depósito 5% y 1 expediente gratis.`,
     calcButtonLabel: "🧮 Calculadora Gratuita Subasta BOE: Regla 70% / 50% (Art. 670 LEC), Depósito 5% e ITP →",
     ctaButtonLabel: "🎁 1 Expediente Gratis: Desbloquear Edicto BOE, Cargas y PDF →",
     regionsHeading: (c) => `Las ${c} Comunidades Autónomas de España (Subastas BOE)`,

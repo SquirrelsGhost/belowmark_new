@@ -85,7 +85,7 @@ export default async function SearchResultsContent({
           locale={locale}
           canClaimFreeUnlock={freeStatus.canClaimFreeUnlock}
           unlockedListingKey={freeStatus.unlockedListingKey}
-          suggestedListing={rawResult.items[0] ?? null}
+          suggestedListings={rawResult.items.filter((i) => !i.cancelled && (i.appraisedValue ?? 0) > 0).slice(0, 3)}
           stripeTrialEligible={stripeTrialEligible}
         />
       )}

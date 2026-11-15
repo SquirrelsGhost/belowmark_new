@@ -1,4 +1,4 @@
-import { PricingCountryCode } from "@/lib/constants";
+import type { PricingCountryCode } from "@/lib/constants";
 
 /**
  * Everything that can be booked, in one place. The visible price on the order
@@ -12,7 +12,7 @@ import { PricingCountryCode } from "@/lib/constants";
  *   calendar months. They do not renew, so nothing has to be cancelled.
  * - Larger team packages ("ab 299 €") are agreed individually.
  */
-export const BILLING_OFFERS = ["investor-monat", "investor-quartal", "pro-monat", "pro-quartal"] as const;
+export const BILLING_OFFERS = ["investor-monat", "investor-pass", "investor-quartal", "pro-monat", "pro-quartal"] as const;
 export type BillingOfferId = (typeof BILLING_OFFERS)[number];
 
 export type BillingKind = "subscription" | "one_time";
@@ -36,8 +36,10 @@ export interface BillingOffer {
   id: BillingOfferId;
   plan: "investor" | "pro";
   kind: BillingKind;
-  /** Calendar months of access per payment */
+  /** Calendar months of access per payment (0 when `days` is used instead) */
   months: number;
+  /** Fixed days of access per payment (e.g. 14-day one-time pass) */
+  days?: number;
   prices: Record<PricingCountryCode, OfferPrice>;
   /** Environment variable holding the Stripe price id, per country */
   priceEnv: Record<PricingCountryCode, string>;
@@ -68,6 +70,33 @@ export const OFFERS: Record<BillingOfferId, BillingOffer> = {
       CH: "STRIPE_PRICE_CH_INVESTOR_MONAT",
       GB: "STRIPE_PRICE_GB_INVESTOR_MONAT",
       TR: "STRIPE_PRICE_TR_INVESTOR_MONAT",
+    },
+  },
+  "investor-pass": {
+    id: "investor-pass",
+    plan: "investor",
+    kind: "one_time",
+    months: 0,
+    days: 14,
+    prices: {
+      DE: { amount: 1_490, currency: "eur" },
+      AT: { amount: 1_490, currency: "eur" },
+      FR: { amount: 1_490, currency: "eur" },
+      IT: { amount: 1_290, currency: "eur" },
+      ES: { amount: 1_290, currency: "eur" },
+      CH: { amount: 1_900, currency: "chf" },
+      GB: { amount: 1_290, currency: "gbp" },
+      TR: { amount: 24_900, currency: "try" },
+    },
+    priceEnv: {
+      DE: "STRIPE_PRICE_DE_INVESTOR_PASS",
+      AT: "STRIPE_PRICE_AT_INVESTOR_PASS",
+      FR: "STRIPE_PRICE_FR_INVESTOR_PASS",
+      IT: "STRIPE_PRICE_IT_INVESTOR_PASS",
+      ES: "STRIPE_PRICE_ES_INVESTOR_PASS",
+      CH: "STRIPE_PRICE_CH_INVESTOR_PASS",
+      GB: "STRIPE_PRICE_GB_INVESTOR_PASS",
+      TR: "STRIPE_PRICE_TR_INVESTOR_PASS",
     },
   },
   "investor-quartal": {

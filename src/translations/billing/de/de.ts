@@ -65,6 +65,12 @@ export const BILLING_DE: IBillingTranslation = {
         Summary: "Vollzugang für eine Person, monatlich im Voraus",
         Term: "Verlängert sich monatlich. Jederzeit zum Ende des bezahlten Monats kündbar.",
       },
+      "investor-pass": {
+        Name: "Investor · 14-Tage-Pass (kein Abo)",
+        Period: "einmalig",
+        Summary: "14 Tage kompletter Vollzugang für alle Akten, PDFs & KI-Analysen",
+        Term: "Einmalzahlung ohne Abo. Endet automatisch nach 14 Tagen, keine Kündigung nötig.",
+      },
       "investor-quartal": {
         Name: "Investor · drei Monate",
         Period: "einmalig",

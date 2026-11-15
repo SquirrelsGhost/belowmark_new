@@ -99,7 +99,8 @@ export async function signupAction(_prev: AuthFormState, formData: FormData): Pr
     const cookieStore = await cookies();
     cookieStore.set(MARKET_COOKIE_NAME, market, { path: "/", maxAge: REGION_COOKIE_MAX_AGE, sameSite: "lax" });
     await saveSignupContextCookie({ key: targetKey, city: targetCity, market });
-    const srcKind = targetKey ? "dossier-inline" : "direct";
+    const explicitSrc = field(formData, "signupSource").trim();
+    const srcKind = explicitSrc === "hub-inline" ? "hub-inline" : targetKey ? "dossier-inline" : "direct";
     RateLimitService.hit(`funnel:signup:${srcKind}:${market}`, FUNNEL_YEAR).catch(() => {});
   } catch (error) {
     return unknownError("signupAction", error, values);

@@ -17,8 +17,10 @@ export function proratedUpgradeAmount(from: BillingOfferId, to: BillingOfferId, 
   const fromPrice = OFFERS[from].prices[market];
   const toPrice = OFFERS[to].prices[market];
   const difference = toPrice.amount - fromPrice.amount;
-  const months = OFFERS[from].months;
-  const termMs = endsAt.getTime() - addCalendarMonths(endsAt, -months).getTime();
+  const fromOffer = OFFERS[from];
+  const termMs = fromOffer.days
+    ? fromOffer.days * 86_400_000
+    : endsAt.getTime() - addCalendarMonths(endsAt, -fromOffer.months).getTime();
   const remainingMs = Math.max(0, endsAt.getTime() - now.getTime());
   if (difference <= 0 || termMs <= 0) return 0;
   return Math.round((difference * remainingMs) / termMs);

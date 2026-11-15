@@ -65,6 +65,12 @@ export const BILLING_IT: IBillingTranslation = {
         Summary: "Accesso completo individuale, mensile anticipato",
         Term: "Si rinnova ogni mese. Disdicibile in qualsiasi momento per la fine del mese pagato.",
       },
+      "investor-pass": {
+        Name: "Investor · Pass 14 Giorni (Senza Abbonamento)",
+        Period: "una tantum",
+        Summary: "14 giorni di accesso completo a tutti i R.G.E., perizie PDF e analisi IA",
+        Term: "Pagamento unico senza abbonamento. Scade automaticamente dopo 14 giorni.",
+      },
       "investor-quartal": {
         Name: "Investor · tre mesi",
         Period: "una tantum",

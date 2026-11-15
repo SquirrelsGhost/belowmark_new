@@ -16,3 +16,11 @@ export function addCalendarMonths(start: Date, months: number): Date {
 export function laterOf(a: Date | null, b: Date): Date {
   return a && a.getTime() > b.getTime() ? a : b;
 }
+
+/** Adds either fixed `days` (e.g. 14-day pass) or calendar `months` to `start`. */
+export function addOfferDuration(start: Date, offer: { months: number; days?: number }): Date {
+  if (offer.days && offer.days > 0) {
+    return new Date(start.getTime() + offer.days * 86_400_000);
+  }
+  return addCalendarMonths(start, offer.months);
+}

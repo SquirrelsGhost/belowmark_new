@@ -65,6 +65,12 @@ export const BILLING_ES: IBillingTranslation = {
         Summary: "Acceso completo para una persona, mensual por adelantado",
         Term: "Se renueva mensualmente. Cancelable en cualquier momento al final del mes abonado.",
       },
+      "investor-pass": {
+        Name: "Investor · Pase 14 Días (Sin Suscripción)",
+        Period: "pago único",
+        Summary: "14 días de acceso completo a todos los edictos BOE, PDFs y análisis IA",
+        Term: "Pago único sin suscripción. Finaliza automáticamente a los 14 días.",
+      },
       "investor-quartal": {
         Name: "Investor · tres meses",
         Period: "pago único",

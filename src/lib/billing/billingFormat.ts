@@ -1,5 +1,5 @@
-import { LocaleOption } from "@/lib/constants";
-import { OfferPrice } from "@/lib/billing/billingConfig";
+import type { LocaleOption } from "@/lib/constants";
+import type { OfferPrice } from "@/lib/billing/billingConfig";
 
 const INTL_LOCALES: Record<LocaleOption, string> = {
   de: "de-DE",

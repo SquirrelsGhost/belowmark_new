@@ -58,7 +58,12 @@ export function buildAccountOfferCards(
     const base = {
       id,
       // "Monatlich" already says the period; the three-month line adds "einmalig"
-      cadence: offer.kind === "subscription" ? Account.Pick.Cadence.monthly : `${Account.Pick.Cadence.quarter} · ${text.Period}`,
+      cadence:
+        offer.kind === "subscription"
+          ? Account.Pick.Cadence.monthly
+          : offer.days
+            ? `${offer.days}d · ${text.Period}`
+            : `${Account.Pick.Cadence.quarter} · ${text.Period}`,
       price: formatCardPrice(offer.prices[country], lang),
       isCurrent,
     };

@@ -33,36 +33,42 @@ export function toStripeLocale(locale: string | null | undefined): StripeSupport
 const OFFER_NAMES: Record<StripeSupportedLocale, Record<BillingOfferId, string>> = {
   de: {
     "investor-monat": "Belowmark Investor · Monatlich",
+    "investor-pass": "Belowmark Investor · 14-Tage-Einmalpass (kein Abo)",
     "investor-quartal": "Belowmark Investor · 3 Monate",
     "pro-monat": "Belowmark Pro · Monatlich",
     "pro-quartal": "Belowmark Pro · 3 Monate",
   },
   tr: {
     "investor-monat": "Belowmark Investor · Aylık",
+    "investor-pass": "Belowmark Investor · 14 Gün Tek Seferlik Paket (Abonelik Yok)",
     "investor-quartal": "Belowmark Investor · 3 Ay",
     "pro-monat": "Belowmark Pro · Aylık",
     "pro-quartal": "Belowmark Pro · 3 Ay",
   },
   en: {
     "investor-monat": "Belowmark Investor · Monthly",
+    "investor-pass": "Belowmark Investor · 14-Day One-Time Pass (No Subscription)",
     "investor-quartal": "Belowmark Investor · 3 Months",
     "pro-monat": "Belowmark Pro · Monthly",
     "pro-quartal": "Belowmark Pro · 3 Months",
   },
   fr: {
     "investor-monat": "Belowmark Investor · Mensuel",
+    "investor-pass": "Belowmark Investor · Pass 14 Jours Paiement Unique (Sans Abonnement)",
     "investor-quartal": "Belowmark Investor · 3 Mois",
     "pro-monat": "Belowmark Pro · Mensuel",
     "pro-quartal": "Belowmark Pro · 3 Mois",
   },
   es: {
     "investor-monat": "Belowmark Investor · Mensual",
+    "investor-pass": "Belowmark Investor · Pase Único 14 Días (Sin Suscripción)",
     "investor-quartal": "Belowmark Investor · 3 Meses",
     "pro-monat": "Belowmark Pro · Mensual",
     "pro-quartal": "Belowmark Pro · 3 Meses",
   },
   it: {
     "investor-monat": "Belowmark Investor · Mensile",
+    "investor-pass": "Belowmark Investor · Pass Unico 14 Giorni (Senza Abbonamento)",
     "investor-quartal": "Belowmark Investor · 3 Mesi",
     "pro-monat": "Belowmark Pro · Mensile",
     "pro-quartal": "Belowmark Pro · 3 Mesi",

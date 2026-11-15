@@ -160,6 +160,7 @@ async function collectFunnelMetrics() {
          OR key LIKE 'reengage:unverified-dossier-v1:%'
          OR key LIKE 'reengage:post-free-dossier-v1:%'
          OR key LIKE 'reengage:unused-free-dossier-v1:%'
+         OR key LIKE 'reengage:abandoned-checkout-v1:%'
       ORDER BY key
     `);
 
@@ -171,6 +172,7 @@ async function collectFunnelMetrics() {
     const reminderSentCount = reminderMarkersQ.rows[0]?.total ?? 0;
     const postFreeDossierSentCount = countersQ.rows.filter((r) => r.key.startsWith("reengage:post-free-dossier-v1:")).length;
     const unusedFreeDossierSentCount = countersQ.rows.filter((r) => r.key.startsWith("reengage:unused-free-dossier-v1:")).length;
+    const abandonedCheckoutSentCount = countersQ.rows.filter((r) => r.key.startsWith("reengage:abandoned-checkout-v1:")).length;
     const attributionCounters = Object.fromEntries(
       countersQ.rows.filter((r) => r.key.startsWith("funnel:")).map((r) => [r.key, r.count]),
     );
@@ -185,6 +187,7 @@ async function collectFunnelMetrics() {
       unverifiedRemindersSent: reminderSentCount,
       postFreeDossierSent: postFreeDossierSentCount,
       unusedFreeDossierSent: unusedFreeDossierSentCount,
+      abandonedCheckoutSent: abandonedCheckoutSentCount,
       attributionCounters,
     };
   } finally {
@@ -555,6 +558,131 @@ async function sendPostFreeDossierFollowUps() {
   }
 }
 
+async function sendAbandonedCheckoutFollowUps() {
+  if (!process.env.DATABASE_URL || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
+    return { available: false, sent: 0 };
+  }
+  const { MAIL_COLORS, escapeHtml, renderMailFrame } = await import(
+    pathToFileURL(path.join(ROOT, "src/lib/mail/mailLayout.ts")).href
+  );
+
+  const client = new pg.Client(buildPgConnectionConfig(process.env.DATABASE_URL));
+  await client.connect();
+  const transporter = nodemailer.createTransport({
+    name: "belowmark.com",
+    host: process.env.SMTP_HOST || "smtp.ionos.de",
+    port: Number(process.env.SMTP_PORT || 465),
+    secure: Number(process.env.SMTP_PORT || 465) === 465,
+    auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+    tls: { servername: process.env.SMTP_HOST || "smtp.ionos.de", rejectUnauthorized: false },
+  });
+
+  const PASS_PRICE_LABEL = {
+    TR: "249 TL",
+    CH: "19 CHF",
+    GB: "£12.90",
+    IT: "12,90 €",
+    ES: "12,90 €",
+    DE: "14,90 €",
+    AT: "14,90 €",
+    FR: "14,90 €",
+  };
+
+  let sent = 0;
+  const recipients = [];
+  try {
+    const { rows } = await client.query(`
+      SELECT DISTINCT ON (u.id)
+        u.id, u.email, u.locale, coalesce(u.country, b.market, u.market) AS country, b.offer, b.status, b.created_at
+      FROM billing_orders b
+      INNER JOIN users u ON u.id = b.user_id
+      WHERE u.gesperrt_am IS NULL
+        AND u.plan IS NULL
+        AND u.stripe_trial_used_at IS NULL
+        AND (
+          b.status IN ('expired', 'cancelled')
+          OR (b.status = 'pending' AND b.created_at <= NOW() - INTERVAL '60 minutes')
+        )
+        AND b.created_at >= NOW() - INTERVAL '14 days'
+      ORDER BY u.id, b.created_at DESC
+      LIMIT 8
+    `);
+
+    for (const u of rows) {
+      if (/\.(local|invalid|test)$/i.test(u.email) || u.email.includes("@belowmark.")) continue;
+      const idemKey = `reengage:abandoned-checkout-v1:${u.id}`;
+      const seen = await client.query(`SELECT 1 FROM rate_limits WHERE key = $1`, [idemKey]);
+      if (seen.rows.length > 0) continue;
+
+      const country = u.country || "DE";
+      const priceLabel = PASS_PRICE_LABEL[country] || "14,90 €";
+      const isTr = (u.locale ?? "").startsWith("tr") || country === "TR";
+      const isDe = !isTr && ((u.locale ?? "de").startsWith("de") || ["DE", "AT", "CH"].includes(country));
+      const lang = isTr ? "tr" : isDe ? "de" : "en";
+
+      const passUrl = `${ORIGIN}/buchen?markt=${encodeURIComponent(country)}&tarif=investor-pass&email=${encodeURIComponent(u.email)}`;
+      const trialUrl = `${ORIGIN}/buchen?markt=${encodeURIComponent(country)}&tarif=investor-monat&email=${encodeURIComponent(u.email)}`;
+
+      const subject = isTr
+        ? `Abonelik olmadan 14 Günlük Tam Erişim Paketi (${priceLabel} tek çekim) — Belowmark`
+        : isDe
+          ? `Ohne Abo freischalten: Neuer 14-Tage-Einmalpass (${priceLabel}) für Ihr Belowmark-Konto`
+          : `Unlock without a subscription: 14-Day One-Time Pass (${priceLabel}) — Belowmark`;
+
+      const intro = isTr
+        ? `Merhaba,\n\nKısa süre önce Belowmark üzerinde tam erişim adımını başlattığınızı ancak kart onayının tamamlanmadığını gördük (bazı banka kartları 0,00 TL abonelik provizyonunu reddedebiliyor).\n\nBunun için hiçbir abonelik veya otomatik yenileme içermeyen 14 Günlük Tek Seferlik Paketi (${priceLabel}) aktif ettik. Tüm banka/kredi kartlarıyla tek çekim olarak çalışır ve 14 gün sonunda kendiliğinden sona erer:`
+        : isDe
+          ? `Guten Tag,\n\nSie hatten kürzlich die Freischaltung auf Belowmark gestartet, der Vorgang wurde bei Stripe jedoch nicht abgeschlossen.\n\nFalls Sie kein laufendes Monatsabo wünschen, können Sie ab sofort unseren neuen 14-Tage-Einmalpass (${priceLabel} einmalig) nutzen — voller Zugriff auf alle Aktenzeichen, Gutachten-PDFs und KI-Analysen, komplett ohne Abo (endet automatisch nach 14 Tagen):`
+          : `Hello,\n\nWe noticed your recent Belowmark checkout session expired before completion.\n\nIf you prefer not to start a recurring subscription, you can now unlock full access with our 14-Day One-Time Pass (${priceLabel} single payment) — all court files, legal pack PDFs, and AI analysis with zero auto-renewal:`;
+
+      const C = MAIL_COLORS;
+      const bodyText = [
+        intro,
+        "",
+        `${isTr ? `14 Günlük Paket (${priceLabel} · Abonelik Yok)` : isDe ? `14-Tage-Einmalpass (${priceLabel} · kein Abo)` : `14-Day One-Time Pass (${priceLabel} · No Sub)`}: ${passUrl}`,
+        `${isTr ? "Alternatif 7 Gün Ücretsiz Deneme" : isDe ? "Alternativ: 7 Tage für 0,00 € testen" : "Alternative: 7-Day Free Trial"}: ${trialUrl}`,
+      ].join("\n");
+
+      const bodyHtml = `<tr><td style="padding:8px 32px 28px;"><p style="font-size:15px;line-height:1.65;color:${C.ink};">${escapeHtml(intro).replace(/\n/g, "<br/>")}</p><div style="margin-top:20px;"><a href="${escapeHtml(passUrl)}" style="display:inline-block;background:${C.signal};color:${C.bright};padding:13px 22px;font-weight:800;text-decoration:none;border:2px solid ${C.ink};">${escapeHtml(isTr ? `14 GÜNLÜK PAKETİ BAŞLAT (${priceLabel} · ABONELİK YOK)` : isDe ? `14-TAGE-PASS OHNE ABO STARTEN (${priceLabel})` : `GET 14-DAY PASS (${priceLabel} · NO SUBSCRIPTION)`)} &rarr;</a></div><div style="margin-top:12px;font-family:monospace;font-size:12px;"><a href="${escapeHtml(trialUrl)}" style="color:${C.ink};text-decoration:underline;">${escapeHtml(isTr ? "Veya 7 Gün Ücretsiz Denemeyi (0,00 TL) tekrar aç →" : isDe ? "Oder 7-Tage-Test (0,00 € heute) fortsetzen →" : "Or resume 7-Day Free Trial (0.00 today) →")}</a></div></td></tr>`;
+
+      const html = renderMailFrame({
+        lang,
+        docCode: "BM-PASS",
+        eyebrow: isTr ? "Tek Seferlik Erişim" : isDe ? "Einmalpass ohne Abo" : "One-Time Pass",
+        subject,
+        preheader: subject,
+        bodyHtml,
+        signature: "Emre Ak — Belowmark",
+        footer: "Belowmark · belowmark.com",
+        baseUrl: ORIGIN,
+      });
+
+      await transporter.sendMail({
+        messageId: `<${crypto.randomUUID()}@belowmark.com>`,
+        from: process.env.MAIL_FROM || "Belowmark <contact@belowmark.com>",
+        replyTo: "contact@belowmark.com",
+        to: u.email,
+        subject,
+        text: bodyText,
+        html,
+        headers: { "X-Auto-Response-Suppress": "OOF, AutoReply" },
+      });
+
+      await client.query(
+        `INSERT INTO rate_limits (key, count, reset_at) VALUES ($1, 1, NOW() + INTERVAL '365 days') ON CONFLICT (key) DO UPDATE SET count = rate_limits.count + 1`,
+        [idemKey],
+      );
+      sent += 1;
+      recipients.push({ email: u.email, country, offer: u.offer });
+      await new Promise((r) => setTimeout(r, 750));
+    }
+    return { available: true, sent, recipients };
+  } finally {
+    transporter.close();
+    await client.end();
+  }
+}
+
 async function pushAllUrlsToIndexNow() {
   const urlSitemaps = [
     `${ORIGIN}/sitemap-hubs.xml`,
@@ -721,6 +849,7 @@ const funnelMetrics = await collectFunnelMetrics();
 const unverifiedReminders = shouldRemindUnverified ? await sendPendingUnverifiedReminders() : null;
 const postFreeDossierFollowUps = shouldRemindUnverified ? await sendPostFreeDossierFollowUps() : null;
 const unusedFreeDossierActivations = shouldRemindUnverified ? await sendVerifiedUnusedFreeDossierActivation() : null;
+const abandonedCheckoutFollowUps = shouldRemindUnverified ? await sendAbandonedCheckoutFollowUps() : null;
 const indexNowFullPush = shouldPushAllIndexNow ? await pushAllUrlsToIndexNow() : null;
 const agyRecommendation = await buildSeoCtrRecommendation({ gsc: gscMetrics, funnel: funnelMetrics });
 
@@ -732,6 +861,7 @@ const report = {
   unverifiedReminders,
   postFreeDossierFollowUps,
   unusedFreeDossierActivations,
+  abandonedCheckoutFollowUps,
   indexNowFullPush,
 };
 
@@ -767,6 +897,9 @@ if (report.postFreeDossierFollowUps) {
 }
 if (report.unusedFreeDossierActivations) {
   console.log("Unused-Free-Dossier Activations (>12h verified):", JSON.stringify(report.unusedFreeDossierActivations));
+}
+if (report.abandonedCheckoutFollowUps) {
+  console.log("Abandoned-Checkout Follow-Ups (>1h):", JSON.stringify(report.abandonedCheckoutFollowUps));
 }
 if (report.indexNowFullPush) {
   console.log("IndexNow Full 25k Push:", JSON.stringify(report.indexNowFullPush));

@@ -53,7 +53,13 @@ export interface IBillingTranslation {
     Lead: string;
     Points: string[];
     ChooseOffer: string;
-    Offers: { "investor-monat": IOfferText; "investor-quartal": IOfferText; "pro-monat": IOfferText; "pro-quartal": IOfferText };
+    Offers: {
+      "investor-monat": IOfferText;
+      "investor-pass": IOfferText;
+      "investor-quartal": IOfferText;
+      "pro-monat": IOfferText;
+      "pro-quartal": IOfferText;
+    };
     Recommended: string;
     SummaryTitle: string;
     Account: string;

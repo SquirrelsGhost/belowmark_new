@@ -1,5 +1,6 @@
 import Link from "next/link";
 import BlogArticleCta from "@/components/blog/BlogArticleCta";
+import PseoAlertCaptureBox from "@/components/pseo/PseoAlertCaptureBox";
 import PseoListingPreviewCard from "@/components/pseo/PseoListingPreviewCard";
 import PseoRelatedGuides from "@/components/pseo/PseoRelatedGuides";
 import PseoStatsBanner from "@/components/pseo/PseoStatsBanner";
@@ -168,6 +169,14 @@ export default function PseoEuHubView({ catalog }: PseoEuHubViewProps) {
           </Link>
         </div>
       </header>
+
+      <PseoAlertCaptureBox
+        locale={meta.locale}
+        locationName={meta.shortLabel.split("·")[0].trim()}
+        marketCode={catalog.market}
+        activeCount={catalog.totalListings}
+        targetKey={topListings[0]?.key}
+      />
 
       <section className="mt-12">
         <h2 className="font-display text-2xl text-ink">{copy.regionsHeading(catalog.regions.length)}</h2>

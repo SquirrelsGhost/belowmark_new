@@ -207,6 +207,7 @@ export default function PseoDirectoryView({
         locationName={locationName}
         marketCode={marketCode}
         activeCount={listings.length}
+        targetKey={listings[0]?.key}
       />
 
       <div className="mt-10">

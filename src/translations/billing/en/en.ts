@@ -65,6 +65,12 @@ export const BILLING_EN: IBillingTranslation = {
         Summary: "Full access for one person, billed monthly in advance",
         Term: "Renews monthly. Cancel anytime effective at the end of the paid month.",
       },
+      "investor-pass": {
+        Name: "Investor · 14-Day Pass (No Subscription)",
+        Period: "one-time",
+        Summary: "14 days of full access to all court files, legal pack PDFs & AI valuations",
+        Term: "One-time payment, no subscription. Ends automatically after 14 days.",
+      },
       "investor-quartal": {
         Name: "Investor · Three Months",
         Period: "one-time",

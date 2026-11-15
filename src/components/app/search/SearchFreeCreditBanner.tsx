@@ -1,6 +1,7 @@
 import Link from "next/link";
 import FreeUnlockButton from "@/components/app/listing/FreeUnlockButton";
 import QuickOrderCheckoutForm from "@/components/app/listing/QuickOrderCheckoutForm";
+import SearchFreeCreditPicks from "@/components/app/search/SearchFreeCreditPicks";
 import { APP_ROUTES, listingHref } from "@/lib/appConstants";
 import { TRIAL_COPY } from "@/lib/billing/trialCopy";
 import { LocaleOption } from "@/lib/constants";
@@ -11,7 +12,7 @@ interface SearchFreeCreditBannerProps {
   locale: LocaleOption;
   canClaimFreeUnlock: boolean;
   unlockedListingKey: string | null;
-  suggestedListing: Listing | null;
+  suggestedListings: Listing[];
   stripeTrialEligible: boolean;
 }
 
@@ -20,7 +21,7 @@ export default function SearchFreeCreditBanner({
   locale,
   canClaimFreeUnlock,
   unlockedListingKey,
-  suggestedListing,
+  suggestedListings,
   stripeTrialEligible,
 }: SearchFreeCreditBannerProps) {
   const c = (TRIAL_COPY[locale] ?? TRIAL_COPY.de).unlock;
@@ -30,10 +31,8 @@ export default function SearchFreeCreditBanner({
     return null;
   }
 
-  const targetHref = suggestedListing ? listingHref(suggestedListing.key) : null;
-  const placeLabel = suggestedListing
-    ? `${suggestedListing.postcode ? `${suggestedListing.postcode} ` : ""}${suggestedListing.place} · ${suggestedListing.authority}`
-    : null;
+  const primarySuggestion = suggestedListings[0] ?? null;
+  const targetHref = primarySuggestion ? listingHref(primarySuggestion.key) : null;
 
   return (
     <section
@@ -59,11 +58,6 @@ export default function SearchFreeCreditBanner({
                 ? c.bodyTrial
                 : c.bodyStandard}
           </p>
-          {canClaimFreeUnlock && placeLabel && (
-            <p className="mt-2 font-mono text-[11px] font-semibold text-ink">
-              → {placeLabel}
-            </p>
-          )}
           {!canClaimFreeUnlock && unlockedListingKey && (
             <p className="mt-2 font-mono text-xs text-ink-soft">
               {c.viewUnlockedPrefix}{" "}
@@ -78,10 +72,10 @@ export default function SearchFreeCreditBanner({
         </div>
 
         <div className="flex shrink-0 flex-col items-stretch gap-2 sm:items-start lg:items-end">
-          {canClaimFreeUnlock && suggestedListing && targetHref ? (
+          {canClaimFreeUnlock && primarySuggestion && targetHref ? (
             <>
               <FreeUnlockButton
-                listingKey={suggestedListing.key}
+                listingKey={primarySuggestion.key}
                 ctaLabel={c.claimFreeCta}
                 pendingLabel={c.claimFreePending}
                 noteLabel={c.claimFreeNote}
@@ -110,6 +104,10 @@ export default function SearchFreeCreditBanner({
           )}
         </div>
       </div>
+
+      {canClaimFreeUnlock && suggestedListings.length > 0 && (
+        <SearchFreeCreditPicks listings={suggestedListings} country={country} locale={locale} />
+      )}
     </section>
   );
 }

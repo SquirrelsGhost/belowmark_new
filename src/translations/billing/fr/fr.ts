@@ -65,6 +65,12 @@ export const BILLING_FR: IBillingTranslation = {
         Summary: "Accès complet pour une personne, mensuel payable d'avance",
         Term: "Se renouvelle chaque mois. Résiliable à tout moment pour la fin du mois payé.",
       },
+      "investor-pass": {
+        Name: "Investor · Pass 14 Jours (Sans Abonnement)",
+        Period: "paiement unique",
+        Summary: "14 jours d'accès complet à tous les rôles TJ, cahiers PDF et analyses IA",
+        Term: "Paiement unique sans abonnement. Prend fin automatiquement au bout de 14 jours.",
+      },
       "investor-quartal": {
         Name: "Investor · trois mois",
         Period: "paiement unique",
