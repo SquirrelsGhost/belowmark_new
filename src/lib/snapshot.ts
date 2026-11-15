@@ -5,13 +5,13 @@
  * Nothing here is invented: counts and values come from data/snapshots/de.json.
  */
 
-export const SNAPSHOT_DATE = "2026-11-14";
+export const SNAPSHOT_DATE = "2026-11-15";
 
 export const SNAPSHOT_STATS = {
-  proceedings: 7935,
+  proceedings: 7934,
   withAppraisal: 7622,
   statesWithHearings: 106,
-  totalAppraisedEuro: 1943556712,
+  totalAppraisedEuro: 1941754165,
   medianAppraisedEuro: 80800,
 } as const;
 
@@ -90,11 +90,11 @@ export const STATES: StateSnapshot[] = [
   { code: "sh", name: "Schleswig-Holstein", country: "DE", transferTaxPct: 6.5, hearings: 57 },
   { code: "hh", name: "Hamburg", country: "DE", transferTaxPct: 5.5, hearings: 26 },
   { code: "hb", name: "Bremen", country: "DE", transferTaxPct: 5.5, hearings: 12 },
-  { code: "at", name: "Österreich (9 Bundesländer · Ediktsdatei)", country: "AT", transferTaxPct: 4.6, hearings: 326 },
-  { code: "ch", name: "Schweiz (26 Kantone · SHAB)", country: "CH", transferTaxPct: 1.5, hearings: 159 },
+  { code: "at", name: "Österreich (9 Bundesländer · Ediktsdatei)", country: "AT", transferTaxPct: 4.6, hearings: 327 },
+  { code: "ch", name: "Schweiz (26 Kantone · SHAB)", country: "CH", transferTaxPct: 1.5, hearings: 155 },
   { code: "it", name: "Italien (20 Regionen · Aste Giudiziarie / PVP)", country: "IT", transferTaxPct: 9.0, hearings: 2237 },
-  { code: "es", name: "Spanien (17 Comunidades · Portal BOE)", country: "ES", transferTaxPct: 8.0, hearings: 798 },
-  { code: "fr", name: "Frankreich (13 Regionen · Licitor TJ)", country: "FR", transferTaxPct: 5.8, hearings: 395 },
+  { code: "es", name: "Spanien (17 Comunidades · Portal BOE)", country: "ES", transferTaxPct: 8.0, hearings: 807 },
+  { code: "fr", name: "Frankreich (13 Regionen · Licitor TJ)", country: "FR", transferTaxPct: 5.8, hearings: 388 },
   { code: "gb", name: "England / UK (12 Regionen · RICS Auctions)", country: "GB", transferTaxPct: 5.0, hearings: 853 },
 ];
 
@@ -106,7 +106,7 @@ export const AT_STATES: StateSnapshot[] = [
   { code: "at-ooe", name: "Oberösterreich (AT)", country: "AT", transferTaxPct: 4.6, hearings: 23 },
   { code: "at-sbg", name: "Salzburg (AT)", country: "AT", transferTaxPct: 4.6, hearings: 7 },
   { code: "at-stmk", name: "Steiermark (AT)", country: "AT", transferTaxPct: 4.6, hearings: 48 },
-  { code: "at-ktn", name: "Kärnten (AT)", country: "AT", transferTaxPct: 4.6, hearings: 18 },
+  { code: "at-ktn", name: "Kärnten (AT)", country: "AT", transferTaxPct: 4.6, hearings: 19 },
   { code: "at-tir", name: "Tirol (AT)", country: "AT", transferTaxPct: 4.6, hearings: 23 },
   { code: "at-vbg", name: "Vorarlberg (AT)", country: "AT", transferTaxPct: 4.6, hearings: 14 },
 ];
@@ -131,9 +131,9 @@ export const CH_CANTONS: StateSnapshot[] = [
   { code: "ch-ai", name: "Appenzell Innerrhoden (CH)", country: "CH", transferTaxPct: 1.0, hearings: 1 },
   { code: "ch-sg", name: "St. Gallen (CH)", country: "CH", transferTaxPct: 1.0, hearings: 4 },
   { code: "ch-gr", name: "Graubünden (CH)", country: "CH", transferTaxPct: 2.0, hearings: 2 },
-  { code: "ch-ag", name: "Aargau (CH)", country: "CH", transferTaxPct: 0.4, hearings: 14 },
+  { code: "ch-ag", name: "Aargau (CH)", country: "CH", transferTaxPct: 0.4, hearings: 13 },
   { code: "ch-tg", name: "Thurgau (CH)", country: "CH", transferTaxPct: 1.0, hearings: 8 },
-  { code: "ch-ti", name: "Tessin (CH)", country: "CH", transferTaxPct: 1.1, hearings: 39 },
+  { code: "ch-ti", name: "Tessin (CH)", country: "CH", transferTaxPct: 1.1, hearings: 36 },
   { code: "ch-vd", name: "Waadt (CH)", country: "CH", transferTaxPct: 2.2, hearings: 25 },
   { code: "ch-vs", name: "Wallis (CH)", country: "CH", transferTaxPct: 1.5, hearings: 8 },
   { code: "ch-ne", name: "Neuenburg (CH)", country: "CH", transferTaxPct: 3.3, hearings: 3 },
@@ -142,15 +142,15 @@ export const CH_CANTONS: StateSnapshot[] = [
 ];
 
 export const IT_REGIONS: StateSnapshot[] = [
-  { code: "it-lom", name: "Lombardei (IT)", country: "IT", transferTaxPct: 9.0, hearings: 178 },
-  { code: "it-laz", name: "Latium / Rom (IT)", country: "IT", transferTaxPct: 9.0, hearings: 232 },
-  { code: "it-ven", name: "Venetien (IT)", country: "IT", transferTaxPct: 9.0, hearings: 22 },
-  { code: "it-pie", name: "Piemont (IT)", country: "IT", transferTaxPct: 9.0, hearings: 286 },
+  { code: "it-lom", name: "Lombardei (IT)", country: "IT", transferTaxPct: 9.0, hearings: 175 },
+  { code: "it-laz", name: "Latium / Rom (IT)", country: "IT", transferTaxPct: 9.0, hearings: 234 },
+  { code: "it-ven", name: "Venetien (IT)", country: "IT", transferTaxPct: 9.0, hearings: 23 },
+  { code: "it-pie", name: "Piemont (IT)", country: "IT", transferTaxPct: 9.0, hearings: 287 },
   { code: "it-emr", name: "Emilia-Romagna (IT)", country: "IT", transferTaxPct: 9.0, hearings: 77 },
   { code: "it-tos", name: "Toskana (IT)", country: "IT", transferTaxPct: 9.0, hearings: 166 },
-  { code: "it-cam", name: "Kampanien (IT)", country: "IT", transferTaxPct: 9.0, hearings: 120 },
-  { code: "it-sic", name: "Sizilien (IT)", country: "IT", transferTaxPct: 9.0, hearings: 446 },
-  { code: "it-pug", name: "Apulien (IT)", country: "IT", transferTaxPct: 9.0, hearings: 158 },
+  { code: "it-cam", name: "Kampanien (IT)", country: "IT", transferTaxPct: 9.0, hearings: 119 },
+  { code: "it-sic", name: "Sizilien (IT)", country: "IT", transferTaxPct: 9.0, hearings: 448 },
+  { code: "it-pug", name: "Apulien (IT)", country: "IT", transferTaxPct: 9.0, hearings: 156 },
   { code: "it-lig", name: "Ligurien (IT)", country: "IT", transferTaxPct: 9.0, hearings: 20 },
   { code: "it-sar", name: "Sardinien (IT)", country: "IT", transferTaxPct: 9.0, hearings: 68 },
   { code: "it-taa", name: "Südtirol / Trentino (IT)", country: "IT", transferTaxPct: 9.0, hearings: 3 },
@@ -165,13 +165,13 @@ export const IT_REGIONS: StateSnapshot[] = [
 ];
 
 export const ES_REGIONS: StateSnapshot[] = [
-  { code: "es-md", name: "Madrid (ES)", country: "ES", transferTaxPct: 6.0, hearings: 94 },
-  { code: "es-ct", name: "Katalonien (ES)", country: "ES", transferTaxPct: 10.0, hearings: 161 },
-  { code: "es-an", name: "Andalusien (ES)", country: "ES", transferTaxPct: 7.0, hearings: 164 },
+  { code: "es-md", name: "Madrid (ES)", country: "ES", transferTaxPct: 6.0, hearings: 97 },
+  { code: "es-ct", name: "Katalonien (ES)", country: "ES", transferTaxPct: 10.0, hearings: 162 },
+  { code: "es-an", name: "Andalusien (ES)", country: "ES", transferTaxPct: 7.0, hearings: 168 },
   { code: "es-vc", name: "Valencia (ES)", country: "ES", transferTaxPct: 10.0, hearings: 122 },
   { code: "es-ib", name: "Balearen / Mallorca (ES)", country: "ES", transferTaxPct: 8.0, hearings: 11 },
   { code: "es-cn", name: "Kanarische Inseln (ES)", country: "ES", transferTaxPct: 6.5, hearings: 30 },
-  { code: "es-pv", name: "Baskenland (ES)", country: "ES", transferTaxPct: 4.0, hearings: 16 },
+  { code: "es-pv", name: "Baskenland (ES)", country: "ES", transferTaxPct: 4.0, hearings: 17 },
   { code: "es-ga", name: "Galicien (ES)", country: "ES", transferTaxPct: 8.0, hearings: 20 },
   { code: "es-cl", name: "Kastilien und León (ES)", country: "ES", transferTaxPct: 8.0, hearings: 29 },
   { code: "es-cm", name: "Kastilien-La Mancha (ES)", country: "ES", transferTaxPct: 9.0, hearings: 43 },
@@ -185,11 +185,11 @@ export const ES_REGIONS: StateSnapshot[] = [
 ];
 
 export const FR_REGIONS: StateSnapshot[] = [
-  { code: "fr-idf", name: "Île-de-France / Paris (FR)", country: "FR", transferTaxPct: 5.8, hearings: 80 },
-  { code: "fr-paca", name: "Provence-Alpes-Côte d'Azur (FR)", country: "FR", transferTaxPct: 5.8, hearings: 50 },
+  { code: "fr-idf", name: "Île-de-France / Paris (FR)", country: "FR", transferTaxPct: 5.8, hearings: 78 },
+  { code: "fr-paca", name: "Provence-Alpes-Côte d'Azur (FR)", country: "FR", transferTaxPct: 5.8, hearings: 48 },
   { code: "fr-ara", name: "Auvergne-Rhône-Alpes (FR)", country: "FR", transferTaxPct: 5.8, hearings: 38 },
   { code: "fr-naq", name: "Nouvelle-Aquitaine (FR)", country: "FR", transferTaxPct: 5.8, hearings: 36 },
-  { code: "fr-occ", name: "Okzitanien (FR)", country: "FR", transferTaxPct: 5.8, hearings: 53 },
+  { code: "fr-occ", name: "Okzitanien (FR)", country: "FR", transferTaxPct: 5.8, hearings: 50 },
   { code: "fr-hdf", name: "Hauts-de-France (FR)", country: "FR", transferTaxPct: 5.8, hearings: 26 },
   { code: "fr-ges", name: "Grand Est / Elsass (FR)", country: "FR", transferTaxPct: 5.8, hearings: 23 },
   { code: "fr-bre", name: "Bretagne (FR)", country: "FR", transferTaxPct: 5.8, hearings: 16 },
