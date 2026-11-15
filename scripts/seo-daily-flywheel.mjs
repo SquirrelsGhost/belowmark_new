@@ -261,8 +261,8 @@ if (shouldPushIndexNow) {
 let autoDeploy = { status: "skipped" };
 if (shouldAutoDeploy && newlyLearned > 0) {
   try {
-    const porcelain = execFileSync("git", ["status", "--porcelain"], { cwd: ROOT, encoding: "utf8" }).trim();
-    const dirtyFiles = porcelain ? porcelain.split(/\r?\n/).map((l) => l.slice(3).trim().replace(/\\/g, "/")) : [];
+    const porcelain = execFileSync("git", ["status", "--porcelain"], { cwd: ROOT, encoding: "utf8" }).trimEnd();
+    const dirtyFiles = porcelain ? porcelain.split(/\r?\n/).filter(Boolean).map((l) => l.slice(3).trim().replace(/\\/g, "/")) : [];
     const onlyBoosts = dirtyFiles.length > 0 && dirtyFiles.every((f) => f === "src/data/seoLearnedBoosts.json");
     if (!onlyBoosts) {
       autoDeploy = { status: "skipped_dirty_worktree", dirtyFiles };
