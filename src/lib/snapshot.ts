@@ -8,10 +8,10 @@
 export const SNAPSHOT_DATE = "2026-11-16";
 
 export const SNAPSHOT_STATS = {
-  proceedings: 7994,
-  withAppraisal: 7683,
+  proceedings: 7999,
+  withAppraisal: 7688,
   statesWithHearings: 106,
-  totalAppraisedEuro: 1961558257,
+  totalAppraisedEuro: 1963145757,
   medianAppraisedEuro: 82000,
 } as const;
 
@@ -75,18 +75,18 @@ export interface StateSnapshot {
 /** All 16 German states + European partner markets summary rows for the landing index. */
 export const STATES: StateSnapshot[] = [
   { code: "nw", name: "Nordrhein-Westfalen", country: "DE", transferTaxPct: 6.5, hearings: 788 },
-  { code: "by", name: "Bayern", country: "DE", transferTaxPct: 3.5, hearings: 413 },
+  { code: "by", name: "Bayern", country: "DE", transferTaxPct: 3.5, hearings: 416 },
   { code: "ni", name: "Niedersachsen", country: "DE", transferTaxPct: 5, hearings: 312 },
   { code: "rp", name: "Rheinland-Pfalz", country: "DE", transferTaxPct: 5, hearings: 321 },
   { code: "he", name: "Hessen", country: "DE", transferTaxPct: 6, hearings: 271 },
   { code: "sn", name: "Sachsen", country: "DE", transferTaxPct: 5.5, hearings: 185 },
   { code: "th", name: "Thüringen", country: "DE", transferTaxPct: 5, hearings: 170 },
-  { code: "bw", name: "Baden-Württemberg", country: "DE", transferTaxPct: 5, hearings: 133 },
+  { code: "bw", name: "Baden-Württemberg", country: "DE", transferTaxPct: 5, hearings: 134 },
   { code: "st", name: "Sachsen-Anhalt", country: "DE", transferTaxPct: 5, hearings: 145 },
   { code: "bb", name: "Brandenburg", country: "DE", transferTaxPct: 6.5, hearings: 123 },
   { code: "be", name: "Berlin", country: "DE", transferTaxPct: 6, hearings: 106 },
   { code: "mv", name: "Mecklenburg-Vorpommern", country: "DE", transferTaxPct: 6, hearings: 86 },
-  { code: "sl", name: "Saarland", country: "DE", transferTaxPct: 6.5, hearings: 74 },
+  { code: "sl", name: "Saarland", country: "DE", transferTaxPct: 6.5, hearings: 75 },
   { code: "sh", name: "Schleswig-Holstein", country: "DE", transferTaxPct: 6.5, hearings: 54 },
   { code: "hh", name: "Hamburg", country: "DE", transferTaxPct: 5.5, hearings: 26 },
   { code: "hb", name: "Bremen", country: "DE", transferTaxPct: 5.5, hearings: 12 },
