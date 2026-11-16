@@ -8,11 +8,11 @@
 export const SNAPSHOT_DATE = "2026-11-16";
 
 export const SNAPSHOT_STATS = {
-  proceedings: 7967,
-  withAppraisal: 7656,
+  proceedings: 7994,
+  withAppraisal: 7683,
   statesWithHearings: 106,
-  totalAppraisedEuro: 1953716857,
-  medianAppraisedEuro: 81640,
+  totalAppraisedEuro: 1961558257,
+  medianAppraisedEuro: 82000,
 } as const;
 
 export type DeStateCode =
@@ -74,20 +74,20 @@ export interface StateSnapshot {
 
 /** All 16 German states + European partner markets summary rows for the landing index. */
 export const STATES: StateSnapshot[] = [
-  { code: "nw", name: "Nordrhein-Westfalen", country: "DE", transferTaxPct: 6.5, hearings: 781 },
-  { code: "by", name: "Bayern", country: "DE", transferTaxPct: 3.5, hearings: 409 },
-  { code: "ni", name: "Niedersachsen", country: "DE", transferTaxPct: 5, hearings: 309 },
+  { code: "nw", name: "Nordrhein-Westfalen", country: "DE", transferTaxPct: 6.5, hearings: 788 },
+  { code: "by", name: "Bayern", country: "DE", transferTaxPct: 3.5, hearings: 413 },
+  { code: "ni", name: "Niedersachsen", country: "DE", transferTaxPct: 5, hearings: 312 },
   { code: "rp", name: "Rheinland-Pfalz", country: "DE", transferTaxPct: 5, hearings: 321 },
-  { code: "he", name: "Hessen", country: "DE", transferTaxPct: 6, hearings: 269 },
-  { code: "sn", name: "Sachsen", country: "DE", transferTaxPct: 5.5, hearings: 181 },
-  { code: "th", name: "Thüringen", country: "DE", transferTaxPct: 5, hearings: 169 },
+  { code: "he", name: "Hessen", country: "DE", transferTaxPct: 6, hearings: 271 },
+  { code: "sn", name: "Sachsen", country: "DE", transferTaxPct: 5.5, hearings: 185 },
+  { code: "th", name: "Thüringen", country: "DE", transferTaxPct: 5, hearings: 170 },
   { code: "bw", name: "Baden-Württemberg", country: "DE", transferTaxPct: 5, hearings: 133 },
   { code: "st", name: "Sachsen-Anhalt", country: "DE", transferTaxPct: 5, hearings: 145 },
-  { code: "bb", name: "Brandenburg", country: "DE", transferTaxPct: 6.5, hearings: 118 },
-  { code: "be", name: "Berlin", country: "DE", transferTaxPct: 6, hearings: 105 },
+  { code: "bb", name: "Brandenburg", country: "DE", transferTaxPct: 6.5, hearings: 123 },
+  { code: "be", name: "Berlin", country: "DE", transferTaxPct: 6, hearings: 106 },
   { code: "mv", name: "Mecklenburg-Vorpommern", country: "DE", transferTaxPct: 6, hearings: 86 },
-  { code: "sl", name: "Saarland", country: "DE", transferTaxPct: 6.5, hearings: 73 },
-  { code: "sh", name: "Schleswig-Holstein", country: "DE", transferTaxPct: 6.5, hearings: 55 },
+  { code: "sl", name: "Saarland", country: "DE", transferTaxPct: 6.5, hearings: 74 },
+  { code: "sh", name: "Schleswig-Holstein", country: "DE", transferTaxPct: 6.5, hearings: 54 },
   { code: "hh", name: "Hamburg", country: "DE", transferTaxPct: 5.5, hearings: 26 },
   { code: "hb", name: "Bremen", country: "DE", transferTaxPct: 5.5, hearings: 12 },
   { code: "at", name: "Österreich (9 Bundesländer · Ediktsdatei)", country: "AT", transferTaxPct: 4.6, hearings: 327 },
