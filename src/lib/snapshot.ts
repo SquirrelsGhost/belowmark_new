@@ -8,11 +8,11 @@
 export const SNAPSHOT_DATE = "2026-11-17";
 
 export const SNAPSHOT_STATS = {
-  proceedings: 8310,
-  withAppraisal: 7995,
-  statesWithHearings: 106,
-  totalAppraisedEuro: 2094849901,
-  medianAppraisedEuro: 90000,
+  proceedings: 10353,
+  withAppraisal: 10045,
+  statesWithHearings: 115,
+  totalAppraisedEuro: 2248841091,
+  medianAppraisedEuro: 65000,
 } as const;
 
 export type DeStateCode =
@@ -106,11 +106,11 @@ export const STATES: StateSnapshot[] = [
   { code: "at", name: "Österreich (9 Bundesländer · Ediktsdatei)", country: "AT", transferTaxPct: 4.6, hearings: 330 },
   { code: "ch", name: "Schweiz (26 Kantone · SHAB)", country: "CH", transferTaxPct: 1.5, hearings: 155 },
   { code: "it", name: "Italien (20 Regionen · Aste Giudiziarie / PVP)", country: "IT", transferTaxPct: 9.0, hearings: 2237 },
-  { code: "es", name: "Spanien (17 Comunidades · Portal BOE)", country: "ES", transferTaxPct: 8.0, hearings: 999 },
-  { code: "fr", name: "Frankreich (13 Regionen · Licitor TJ)", country: "FR", transferTaxPct: 5.8, hearings: 577 },
-  { code: "gb", name: "England / UK (12 Regionen · RICS Auctions)", country: "GB", transferTaxPct: 5.0, hearings: 785 },
-  { code: "nl", name: "Niederlande (12 Provinzen · Executieveilingen)", country: "NL", transferTaxPct: 10.4, hearings: 84 },
-  { code: "pl", name: "Polen (16 Woiwodschaften · Licytacje Komornicze)", country: "PL", transferTaxPct: 2.0, hearings: 3085 },
+  { code: "es", name: "Spanien (17 Comunidades · Portal BOE)", country: "ES", transferTaxPct: 8.0, hearings: 0 },
+  { code: "fr", name: "Frankreich (13 Regionen · Licitor TJ)", country: "FR", transferTaxPct: 5.8, hearings: 575 },
+  { code: "gb", name: "England / UK (12 Regionen · RICS Auctions)", country: "GB", transferTaxPct: 5.0, hearings: 789 },
+  { code: "nl", name: "Niederlande (12 Provinzen · Executieveilingen)", country: "NL", transferTaxPct: 10.4, hearings: 71 },
+  { code: "pl", name: "Polen (16 Woiwodschaften · Licytacje Komornicze)", country: "PL", transferTaxPct: 2.0, hearings: 2969 },
 ];
 
 /** All 9 Austrian Bundesländer (3.5% GrESt + 1.1% Grundbuchseintragungsgebühr = 4.6%). */
@@ -157,26 +157,26 @@ export const CH_CANTONS: StateSnapshot[] = [
 ];
 
 export const IT_REGIONS: StateSnapshot[] = [
-  { code: "it-lom", name: "Lombardei (IT)", country: "IT", transferTaxPct: 9.0, hearings: 211 },
-  { code: "it-laz", name: "Latium / Rom (IT)", country: "IT", transferTaxPct: 9.0, hearings: 229 },
-  { code: "it-ven", name: "Venetien (IT)", country: "IT", transferTaxPct: 9.0, hearings: 19 },
-  { code: "it-pie", name: "Piemont (IT)", country: "IT", transferTaxPct: 9.0, hearings: 287 },
-  { code: "it-emr", name: "Emilia-Romagna (IT)", country: "IT", transferTaxPct: 9.0, hearings: 76 },
-  { code: "it-tos", name: "Toskana (IT)", country: "IT", transferTaxPct: 9.0, hearings: 151 },
-  { code: "it-cam", name: "Kampanien (IT)", country: "IT", transferTaxPct: 9.0, hearings: 101 },
-  { code: "it-sic", name: "Sizilien (IT)", country: "IT", transferTaxPct: 9.0, hearings: 432 },
-  { code: "it-pug", name: "Apulien (IT)", country: "IT", transferTaxPct: 9.0, hearings: 158 },
+  { code: "it-lom", name: "Lombardei (IT)", country: "IT", transferTaxPct: 9.0, hearings: 215 },
+  { code: "it-laz", name: "Latium / Rom (IT)", country: "IT", transferTaxPct: 9.0, hearings: 231 },
+  { code: "it-ven", name: "Venetien (IT)", country: "IT", transferTaxPct: 9.0, hearings: 15 },
+  { code: "it-pie", name: "Piemont (IT)", country: "IT", transferTaxPct: 9.0, hearings: 267 },
+  { code: "it-emr", name: "Emilia-Romagna (IT)", country: "IT", transferTaxPct: 9.0, hearings: 72 },
+  { code: "it-tos", name: "Toskana (IT)", country: "IT", transferTaxPct: 9.0, hearings: 164 },
+  { code: "it-cam", name: "Kampanien (IT)", country: "IT", transferTaxPct: 9.0, hearings: 121 },
+  { code: "it-sic", name: "Sizilien (IT)", country: "IT", transferTaxPct: 9.0, hearings: 442 },
+  { code: "it-pug", name: "Apulien (IT)", country: "IT", transferTaxPct: 9.0, hearings: 169 },
   { code: "it-lig", name: "Ligurien (IT)", country: "IT", transferTaxPct: 9.0, hearings: 23 },
-  { code: "it-sar", name: "Sardinien (IT)", country: "IT", transferTaxPct: 9.0, hearings: 83 },
+  { code: "it-sar", name: "Sardinien (IT)", country: "IT", transferTaxPct: 9.0, hearings: 65 },
   { code: "it-taa", name: "Südtirol / Trentino (IT)", country: "IT", transferTaxPct: 9.0, hearings: 1 },
-  { code: "it-fvg", name: "Friaul-Julisch Venetien (IT)", country: "IT", transferTaxPct: 9.0, hearings: 9 },
+  { code: "it-fvg", name: "Friaul-Julisch Venetien (IT)", country: "IT", transferTaxPct: 9.0, hearings: 6 },
   { code: "it-mar", name: "Marken (IT)", country: "IT", transferTaxPct: 9.0, hearings: 68 },
-  { code: "it-abr", name: "Abruzzen (IT)", country: "IT", transferTaxPct: 9.0, hearings: 123 },
-  { code: "it-umb", name: "Umbrien (IT)", country: "IT", transferTaxPct: 9.0, hearings: 38 },
-  { code: "it-cal", name: "Kalabrien (IT)", country: "IT", transferTaxPct: 9.0, hearings: 145 },
-  { code: "it-bas", name: "Basilikata (IT)", country: "IT", transferTaxPct: 9.0, hearings: 67 },
-  { code: "it-mol", name: "Molise (IT)", country: "IT", transferTaxPct: 9.0, hearings: 11 },
-  { code: "it-vda", name: "Aostatal (IT)", country: "IT", transferTaxPct: 9.0, hearings: 5 },
+  { code: "it-abr", name: "Abruzzen (IT)", country: "IT", transferTaxPct: 9.0, hearings: 113 },
+  { code: "it-umb", name: "Umbrien (IT)", country: "IT", transferTaxPct: 9.0, hearings: 50 },
+  { code: "it-cal", name: "Kalabrien (IT)", country: "IT", transferTaxPct: 9.0, hearings: 135 },
+  { code: "it-bas", name: "Basilikata (IT)", country: "IT", transferTaxPct: 9.0, hearings: 66 },
+  { code: "it-mol", name: "Molise (IT)", country: "IT", transferTaxPct: 9.0, hearings: 10 },
+  { code: "it-vda", name: "Aostatal (IT)", country: "IT", transferTaxPct: 9.0, hearings: 4 },
 ];
 
 export const ES_REGIONS: StateSnapshot[] = [
@@ -200,8 +200,8 @@ export const ES_REGIONS: StateSnapshot[] = [
 ];
 
 export const FR_REGIONS: StateSnapshot[] = [
-  { code: "fr-idf", name: "Île-de-France / Paris (FR)", country: "FR", transferTaxPct: 5.8, hearings: 110 },
-  { code: "fr-paca", name: "Provence-Alpes-Côte d'Azur (FR)", country: "FR", transferTaxPct: 5.8, hearings: 90 },
+  { code: "fr-idf", name: "Île-de-France / Paris (FR)", country: "FR", transferTaxPct: 5.8, hearings: 109 },
+  { code: "fr-paca", name: "Provence-Alpes-Côte d'Azur (FR)", country: "FR", transferTaxPct: 5.8, hearings: 89 },
   { code: "fr-ara", name: "Auvergne-Rhône-Alpes (FR)", country: "FR", transferTaxPct: 5.8, hearings: 56 },
   { code: "fr-naq", name: "Nouvelle-Aquitaine (FR)", country: "FR", transferTaxPct: 5.8, hearings: 55 },
   { code: "fr-occ", name: "Okzitanien (FR)", country: "FR", transferTaxPct: 5.8, hearings: 60 },
@@ -217,51 +217,51 @@ export const FR_REGIONS: StateSnapshot[] = [
 
 export const GB_REGIONS: StateSnapshot[] = [
   { code: "gb-lon", name: "Greater London (UK)", country: "GB", transferTaxPct: 5.0, hearings: 26 },
-  { code: "gb-see", name: "South East England (UK)", country: "GB", transferTaxPct: 5.0, hearings: 79 },
-  { code: "gb-swe", name: "South West England (UK)", country: "GB", transferTaxPct: 5.0, hearings: 72 },
-  { code: "gb-wmd", name: "West Midlands (UK)", country: "GB", transferTaxPct: 5.0, hearings: 68 },
-  { code: "gb-emd", name: "East Midlands (UK)", country: "GB", transferTaxPct: 5.0, hearings: 142 },
+  { code: "gb-see", name: "South East England (UK)", country: "GB", transferTaxPct: 5.0, hearings: 80 },
+  { code: "gb-swe", name: "South West England (UK)", country: "GB", transferTaxPct: 5.0, hearings: 70 },
+  { code: "gb-wmd", name: "West Midlands (UK)", country: "GB", transferTaxPct: 5.0, hearings: 69 },
+  { code: "gb-emd", name: "East Midlands (UK)", country: "GB", transferTaxPct: 5.0, hearings: 143 },
   { code: "gb-nwe", name: "North West England (UK)", country: "GB", transferTaxPct: 5.0, hearings: 132 },
-  { code: "gb-yrk", name: "Yorkshire & Humber (UK)", country: "GB", transferTaxPct: 5.0, hearings: 146 },
+  { code: "gb-yrk", name: "Yorkshire & Humber (UK)", country: "GB", transferTaxPct: 5.0, hearings: 147 },
   { code: "gb-ee", name: "East of England (UK)", country: "GB", transferTaxPct: 5.0, hearings: 41 },
-  { code: "gb-nee", name: "North East England (UK)", country: "GB", transferTaxPct: 5.0, hearings: 47 },
+  { code: "gb-nee", name: "North East England (UK)", country: "GB", transferTaxPct: 5.0, hearings: 49 },
   { code: "gb-sct", name: "Schottland (UK)", country: "GB", transferTaxPct: 4.5, hearings: 11 },
   { code: "gb-wls", name: "Wales (UK)", country: "GB", transferTaxPct: 4.5, hearings: 20 },
   { code: "gb-nir", name: "Nordirland (UK)", country: "GB", transferTaxPct: 5.0, hearings: 1 },
 ];
 
 export const NL_REGIONS: StateSnapshot[] = [
-  { code: "nl-nh", name: "Noord-Holland (NL)", country: "NL", transferTaxPct: 10.4, hearings: 0 },
-  { code: "nl-zh", name: "Zuid-Holland (NL)", country: "NL", transferTaxPct: 10.4, hearings: 0 },
-  { code: "nl-nb", name: "Noord-Brabant (NL)", country: "NL", transferTaxPct: 10.4, hearings: 0 },
-  { code: "nl-ge", name: "Gelderland (NL)", country: "NL", transferTaxPct: 10.4, hearings: 0 },
-  { code: "nl-ut", name: "Utrecht (NL)", country: "NL", transferTaxPct: 10.4, hearings: 0 },
-  { code: "nl-ov", name: "Overijssel (NL)", country: "NL", transferTaxPct: 10.4, hearings: 0 },
-  { code: "nl-li", name: "Limburg (NL)", country: "NL", transferTaxPct: 10.4, hearings: 0 },
-  { code: "nl-fr", name: "Friesland (NL)", country: "NL", transferTaxPct: 10.4, hearings: 0 },
+  { code: "nl-nh", name: "Noord-Holland (NL)", country: "NL", transferTaxPct: 10.4, hearings: 14 },
+  { code: "nl-zh", name: "Zuid-Holland (NL)", country: "NL", transferTaxPct: 10.4, hearings: 19 },
+  { code: "nl-nb", name: "Noord-Brabant (NL)", country: "NL", transferTaxPct: 10.4, hearings: 9 },
+  { code: "nl-ge", name: "Gelderland (NL)", country: "NL", transferTaxPct: 10.4, hearings: 7 },
+  { code: "nl-ut", name: "Utrecht (NL)", country: "NL", transferTaxPct: 10.4, hearings: 2 },
+  { code: "nl-ov", name: "Overijssel (NL)", country: "NL", transferTaxPct: 10.4, hearings: 7 },
+  { code: "nl-li", name: "Limburg (NL)", country: "NL", transferTaxPct: 10.4, hearings: 7 },
+  { code: "nl-fr", name: "Friesland (NL)", country: "NL", transferTaxPct: 10.4, hearings: 2 },
   { code: "nl-gr", name: "Groningen (NL)", country: "NL", transferTaxPct: 10.4, hearings: 0 },
   { code: "nl-dr", name: "Drenthe (NL)", country: "NL", transferTaxPct: 10.4, hearings: 0 },
-  { code: "nl-fl", name: "Flevoland (NL)", country: "NL", transferTaxPct: 10.4, hearings: 0 },
-  { code: "nl-ze", name: "Zeeland (NL)", country: "NL", transferTaxPct: 10.4, hearings: 0 },
+  { code: "nl-fl", name: "Flevoland (NL)", country: "NL", transferTaxPct: 10.4, hearings: 2 },
+  { code: "nl-ze", name: "Zeeland (NL)", country: "NL", transferTaxPct: 10.4, hearings: 2 },
 ];
 
 export const PL_REGIONS: StateSnapshot[] = [
-  { code: "pl-mz", name: "Mazowieckie (PL)", country: "PL", transferTaxPct: 2.0, hearings: 0 },
-  { code: "pl-sl", name: "Śląskie (PL)", country: "PL", transferTaxPct: 2.0, hearings: 0 },
-  { code: "pl-ma", name: "Małopolskie (PL)", country: "PL", transferTaxPct: 2.0, hearings: 0 },
-  { code: "pl-wp", name: "Wielkopolskie (PL)", country: "PL", transferTaxPct: 2.0, hearings: 0 },
-  { code: "pl-ds", name: "Dolnośląskie (PL)", country: "PL", transferTaxPct: 2.0, hearings: 0 },
-  { code: "pl-pm", name: "Pomorskie (PL)", country: "PL", transferTaxPct: 2.0, hearings: 0 },
-  { code: "pl-ld", name: "Łódzkie (PL)", country: "PL", transferTaxPct: 2.0, hearings: 0 },
-  { code: "pl-kp", name: "Kujawsko-Pomorskie (PL)", country: "PL", transferTaxPct: 2.0, hearings: 0 },
-  { code: "pl-zp", name: "Zachodniopomorskie (PL)", country: "PL", transferTaxPct: 2.0, hearings: 0 },
-  { code: "pl-lu", name: "Lubelskie (PL)", country: "PL", transferTaxPct: 2.0, hearings: 0 },
-  { code: "pl-pk", name: "Podkarpackie (PL)", country: "PL", transferTaxPct: 2.0, hearings: 0 },
-  { code: "pl-wn", name: "Warmińsko-Mazurskie (PL)", country: "PL", transferTaxPct: 2.0, hearings: 0 },
-  { code: "pl-lb", name: "Lubuskie (PL)", country: "PL", transferTaxPct: 2.0, hearings: 0 },
-  { code: "pl-pd", name: "Podlaskie (PL)", country: "PL", transferTaxPct: 2.0, hearings: 0 },
-  { code: "pl-sk", name: "Świętokrzyskie (PL)", country: "PL", transferTaxPct: 2.0, hearings: 0 },
-  { code: "pl-op", name: "Opolskie (PL)", country: "PL", transferTaxPct: 2.0, hearings: 0 },
+  { code: "pl-mz", name: "Mazowieckie (PL)", country: "PL", transferTaxPct: 2.0, hearings: 377 },
+  { code: "pl-sl", name: "Śląskie (PL)", country: "PL", transferTaxPct: 2.0, hearings: 327 },
+  { code: "pl-ma", name: "Małopolskie (PL)", country: "PL", transferTaxPct: 2.0, hearings: 196 },
+  { code: "pl-wp", name: "Wielkopolskie (PL)", country: "PL", transferTaxPct: 2.0, hearings: 243 },
+  { code: "pl-ds", name: "Dolnośląskie (PL)", country: "PL", transferTaxPct: 2.0, hearings: 267 },
+  { code: "pl-pm", name: "Pomorskie (PL)", country: "PL", transferTaxPct: 2.0, hearings: 141 },
+  { code: "pl-ld", name: "Łódzkie (PL)", country: "PL", transferTaxPct: 2.0, hearings: 215 },
+  { code: "pl-kp", name: "Kujawsko-Pomorskie (PL)", country: "PL", transferTaxPct: 2.0, hearings: 144 },
+  { code: "pl-zp", name: "Zachodniopomorskie (PL)", country: "PL", transferTaxPct: 2.0, hearings: 177 },
+  { code: "pl-lu", name: "Lubelskie (PL)", country: "PL", transferTaxPct: 2.0, hearings: 267 },
+  { code: "pl-pk", name: "Podkarpackie (PL)", country: "PL", transferTaxPct: 2.0, hearings: 135 },
+  { code: "pl-wn", name: "Warmińsko-Mazurskie (PL)", country: "PL", transferTaxPct: 2.0, hearings: 124 },
+  { code: "pl-lb", name: "Lubuskie (PL)", country: "PL", transferTaxPct: 2.0, hearings: 79 },
+  { code: "pl-pd", name: "Podlaskie (PL)", country: "PL", transferTaxPct: 2.0, hearings: 111 },
+  { code: "pl-sk", name: "Świętokrzyskie (PL)", country: "PL", transferTaxPct: 2.0, hearings: 106 },
+  { code: "pl-op", name: "Opolskie (PL)", country: "PL", transferTaxPct: 2.0, hearings: 60 },
 ];
 
 export const DACH_STATES: StateSnapshot[] = [
