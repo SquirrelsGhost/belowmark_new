@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-14T06:20:04.287Z",
+  "updatedAt": "2026-11-17T08:35:27.604Z",
   "source": "belowmark-seo-flywheel-v2",
   "markets": {
     "DE": [
@@ -18,14 +18,17 @@
     ],
     "AT": [
       "gerichtliche versteigerung immobilien",
-      "bezirksgericht voitsberg"
+      "bezirksgericht voitsberg",
+      "immobilien scheibbs versteigerungen",
+      "edikte kärnten"
     ],
     "CH": [
       "ks schild immobilien ag",
       "liegenschaftsversteigerung solothurn",
       "luc eric preuvot",
       "luc preuvot",
-      "nazmi krasniqi versteigerung"
+      "nazmi krasniqi versteigerung",
+      "helene oberholzer"
     ],
     "TR": [
       "uyap e satış ihale",
@@ -158,7 +161,8 @@
     ],
     "/amtsgericht/konkursamt-aargau": [
       "konkursamt aargau versteigerung",
-      "konkursamtliche versteigerung aargau"
+      "konkursamtliche versteigerung aargau",
+      "konkursamtliche versteigerung immobilien aargau"
     ],
     "/tr/icra-ihale/konya-karapinar": [
       "konya karapınar icradan satılık tarla"
@@ -533,12 +537,54 @@
     ],
     "/amtsgericht/ag-kerpen": [
       "amtsgericht kerpen zwangsversteigerungen"
+    ],
+    "/oesterreich/ediktsdatei/bg-scheibbs": [
+      "immobilien scheibbs versteigerungen"
+    ],
+    "/zwangsversteigerung/boeblingen": [
+      "amtsgericht böblingen zwangsversteigerungen termine"
+    ],
+    "/oesterreich/ediktsdatei/kaernten": [
+      "edikte kärnten"
+    ],
+    "/schweiz/shab-versteigerungen/eschenbach-sg": [
+      "helene oberholzer"
+    ],
+    "/tr/icra-ihale/malatya-puetuerge": [
+      "pütürge icradan satılık evler"
+    ],
+    "/zwangsversteigerung/helmstedt": [
+      "zwangsversteigerung"
+    ],
+    "/zwangsversteigerung/kuenzelsau": [
+      "zwangsversteigerung künzelsau"
+    ],
+    "/amtsgericht/bg-salzburg": [
+      "zwangsversteigerung salzburg"
+    ],
+    "/tr/icra-ihale/artvin-savsat": [
+      "şavşat ta icradan satılık daire"
+    ],
+    "/amtsgericht/ag-potsdam": [
+      "ag potsdam"
+    ],
+    "/amtsgericht/ag-alzey": [
+      "amtsgericht alzey"
+    ],
+    "/amtsgericht/ag-bensheim": [
+      "amtsgericht bensheim"
+    ],
+    "/amtsgericht/ag-betzdorf": [
+      "amtsgericht betzdorf"
+    ],
+    "/amtsgericht/ag-hof": [
+      "amtsgericht hof"
     ]
   },
   "ctrBoosts": {
     "/es/subastas-boe/las-palmas-de-gran-canaria": {
       "topQuery": "subastas boe",
-      "impressions": 135,
+      "impressions": 136,
       "clicks": 1,
       "ctr": 0.74,
       "position": 7.1
