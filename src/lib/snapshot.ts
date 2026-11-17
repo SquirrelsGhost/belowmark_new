@@ -8,10 +8,10 @@
 export const SNAPSHOT_DATE = "2026-11-17";
 
 export const SNAPSHOT_STATS = {
-  proceedings: 8306,
-  withAppraisal: 7991,
+  proceedings: 8310,
+  withAppraisal: 7995,
   statesWithHearings: 106,
-  totalAppraisedEuro: 2093316901,
+  totalAppraisedEuro: 2094849901,
   medianAppraisedEuro: 90000,
 } as const;
 
@@ -74,14 +74,14 @@ export interface StateSnapshot {
 
 /** All 16 German states + European partner markets summary rows for the landing index. */
 export const STATES: StateSnapshot[] = [
-  { code: "nw", name: "Nordrhein-Westfalen", country: "DE", transferTaxPct: 6.5, hearings: 784 },
-  { code: "by", name: "Bayern", country: "DE", transferTaxPct: 3.5, hearings: 411 },
+  { code: "nw", name: "Nordrhein-Westfalen", country: "DE", transferTaxPct: 6.5, hearings: 785 },
+  { code: "by", name: "Bayern", country: "DE", transferTaxPct: 3.5, hearings: 412 },
   { code: "ni", name: "Niedersachsen", country: "DE", transferTaxPct: 5, hearings: 318 },
   { code: "rp", name: "Rheinland-Pfalz", country: "DE", transferTaxPct: 5, hearings: 326 },
-  { code: "he", name: "Hessen", country: "DE", transferTaxPct: 6, hearings: 273 },
+  { code: "he", name: "Hessen", country: "DE", transferTaxPct: 6, hearings: 274 },
   { code: "sn", name: "Sachsen", country: "DE", transferTaxPct: 5.5, hearings: 183 },
   { code: "th", name: "Thüringen", country: "DE", transferTaxPct: 5, hearings: 170 },
-  { code: "bw", name: "Baden-Württemberg", country: "DE", transferTaxPct: 5, hearings: 133 },
+  { code: "bw", name: "Baden-Württemberg", country: "DE", transferTaxPct: 5, hearings: 134 },
   { code: "st", name: "Sachsen-Anhalt", country: "DE", transferTaxPct: 5, hearings: 148 },
   { code: "bb", name: "Brandenburg", country: "DE", transferTaxPct: 6.5, hearings: 125 },
   { code: "be", name: "Berlin", country: "DE", transferTaxPct: 6, hearings: 104 },
