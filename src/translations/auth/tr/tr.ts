@@ -40,6 +40,8 @@ export const AUTH_TR: IAuthTranslation = {
       ES: { Label: "İspanya", Hint: "BOE Subastas Judiciales resmî ihaleleri · 17 bölge" },
       FR: { Label: "Fransa", Hint: "Licitor / Ventes aux enchères mahkeme ihaleleri · 13 bölge" },
       GB: { Label: "İngiltere / UK", Hint: "Property & Receivership müzayedeleri · 12 bölge" },
+      NL: { Label: "Hollanda", Hint: "Executieveilingen (Art. 3:268 BW) · 12 eyalet" },
+      PL: { Label: "Polonya", Hint: "Licytacje Komornicze (KRK) · 16 voyvodalık" },
       TR: { Label: "Türkiye", Hint: "UYAP e-Satış icra ve kamu ihaleleri · 81 il" },
     },
     MarketNote: "Ana ülke ve pazarınızı seçin (DE, AT, CH, IT, ES, FR, UK veya TR). Hesabınızdan istediğiniz zaman değiştirebilirsiniz.",

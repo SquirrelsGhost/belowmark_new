@@ -69,7 +69,11 @@ const POLICY_RULES: readonly PolicyRule[] = [
   { methods: ["GET"], pattern: /^\/fr\/calculateur\/encheres-judiciaires-licitor-frais$/, policy: PAGE_PUBLIC },
   { methods: ["GET"], pattern: /^\/en\/uk-property-auctions(\/[^/]+)?$/, policy: PAGE_PUBLIC },
   { methods: ["GET"], pattern: /^\/en\/calculator\/uk-property-auction-stamp-duty-deposit$/, policy: PAGE_PUBLIC },
-  { methods: ["GET"], pattern: /^\/karten\/(de|at|ch|it|es|fr|gb|tr)\.svg$/, policy: API_PUBLIC },
+  { methods: ["GET"], pattern: /^\/nl\/executieveiling(\/[^/]+)?$/, policy: PAGE_PUBLIC },
+  { methods: ["GET"], pattern: /^\/nl\/calculator\/executieveiling-kosten-overdrachtsbelasting$/, policy: PAGE_PUBLIC },
+  { methods: ["GET"], pattern: /^\/pl\/licytacje-komornicze(\/[^/]+)?$/, policy: PAGE_PUBLIC },
+  { methods: ["GET"], pattern: /^\/pl\/kalkulator\/licytacja-komornicza-wadium$/, policy: PAGE_PUBLIC },
+  { methods: ["GET"], pattern: /^\/karten\/(de|at|ch|it|es|fr|gb|nl|pl|tr)\.svg$/, policy: API_PUBLIC },
   { methods: ["GET"], pattern: /^\/(sitemap\.xml|sitemap-hubs\.xml|sitemap-listings-eu\.xml|sitemap-listings-tr\.xml|sitemap-blog\.xml|robots\.txt|llms\.txt|llms-full\.txt|pycie2026seoindexnowkey\.txt|sw\.js|favicon\.ico|icon\.svg)$/, policy: API_PUBLIC },
 
   // ─── 2. Protected Account Page ──────────────────────────────────────────────

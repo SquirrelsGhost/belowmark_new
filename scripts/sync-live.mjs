@@ -45,6 +45,8 @@ import {
   parseGbAuctionHtml,
   parseGbAuctionHouseCard,
   parseGbCliveEmsonLot,
+  parseNlVastgoedItem,
+  parsePlKomornikItem,
   extractTrEnrichedDetails,
   parseTrIlanGovDetail,
 } from "./lib/propertyExtractor.mjs";
@@ -470,6 +472,42 @@ const REGIONEN_GB = [
   { key: "Northern Ireland", code: "gb-nir", name: "Nordirland (UK)", transferTaxPct: 5.0, lat: 54.5973, lng: -5.9301 },
 ];
 const REGION_BY_KEY_GB = new Map(REGIONEN_GB.map((r) => [r.key, r]));
+
+const REGIONEN_NL = [
+  { key: "Noord-Holland", code: "nl-nh", name: "Noord-Holland (NL)", transferTaxPct: 10.4, lat: 52.3676, lng: 4.9041 },
+  { key: "Zuid-Holland", code: "nl-zh", name: "Zuid-Holland (NL)", transferTaxPct: 10.4, lat: 52.0116, lng: 4.3571 },
+  { key: "Noord-Brabant", code: "nl-nb", name: "Noord-Brabant (NL)", transferTaxPct: 10.4, lat: 51.5719, lng: 5.0672 },
+  { key: "Gelderland", code: "nl-ge", name: "Gelderland (NL)", transferTaxPct: 10.4, lat: 52.0452, lng: 5.8718 },
+  { key: "Utrecht", code: "nl-ut", name: "Utrecht (NL)", transferTaxPct: 10.4, lat: 52.0907, lng: 5.1214 },
+  { key: "Overijssel", code: "nl-ov", name: "Overijssel (NL)", transferTaxPct: 10.4, lat: 52.4388, lng: 6.5016 },
+  { key: "Limburg", code: "nl-li", name: "Limburg (NL)", transferTaxPct: 10.4, lat: 51.2093, lng: 5.9536 },
+  { key: "Friesland", code: "nl-fr", name: "Friesland (NL)", transferTaxPct: 10.4, lat: 53.1642, lng: 5.7818 },
+  { key: "Groningen", code: "nl-gr", name: "Groningen (NL)", transferTaxPct: 10.4, lat: 53.2194, lng: 6.5665 },
+  { key: "Drenthe", code: "nl-dr", name: "Drenthe (NL)", transferTaxPct: 10.4, lat: 52.9476, lng: 6.6231 },
+  { key: "Flevoland", code: "nl-fl", name: "Flevoland (NL)", transferTaxPct: 10.4, lat: 52.5279, lng: 5.5953 },
+  { key: "Zeeland", code: "nl-ze", name: "Zeeland (NL)", transferTaxPct: 10.4, lat: 51.494, lng: 3.8497 },
+];
+const REGION_BY_KEY_NL = new Map(REGIONEN_NL.map((r) => [r.key, r]));
+
+const REGIONEN_PL = [
+  { key: "Mazowieckie", code: "pl-mz", name: "Mazowieckie (PL)", transferTaxPct: 2.0, lat: 52.2297, lng: 21.0122 },
+  { key: "Śląskie", code: "pl-sl", name: "Śląskie (PL)", transferTaxPct: 2.0, lat: 50.2649, lng: 19.0238 },
+  { key: "Małopolskie", code: "pl-ma", name: "Małopolskie (PL)", transferTaxPct: 2.0, lat: 50.0647, lng: 19.945 },
+  { key: "Wielkopolskie", code: "pl-wp", name: "Wielkopolskie (PL)", transferTaxPct: 2.0, lat: 52.4064, lng: 16.9252 },
+  { key: "Dolnośląskie", code: "pl-ds", name: "Dolnośląskie (PL)", transferTaxPct: 2.0, lat: 51.1079, lng: 17.0385 },
+  { key: "Pomorskie", code: "pl-pm", name: "Pomorskie (PL)", transferTaxPct: 2.0, lat: 54.352, lng: 18.6466 },
+  { key: "Łódzkie", code: "pl-ld", name: "Łódzkie (PL)", transferTaxPct: 2.0, lat: 51.7592, lng: 19.456 },
+  { key: "Kujawsko-Pomorskie", code: "pl-kp", name: "Kujawsko-Pomorskie (PL)", transferTaxPct: 2.0, lat: 53.1235, lng: 18.0084 },
+  { key: "Zachodniopomorskie", code: "pl-zp", name: "Zachodniopomorskie (PL)", transferTaxPct: 2.0, lat: 53.4285, lng: 14.5528 },
+  { key: "Lubelskie", code: "pl-lu", name: "Lubelskie (PL)", transferTaxPct: 2.0, lat: 51.2465, lng: 22.5684 },
+  { key: "Podkarpackie", code: "pl-pk", name: "Podkarpackie (PL)", transferTaxPct: 2.0, lat: 50.0412, lng: 21.9991 },
+  { key: "Warmińsko-Mazurskie", code: "pl-wn", name: "Warmińsko-Mazurskie (PL)", transferTaxPct: 2.0, lat: 53.7784, lng: 20.4801 },
+  { key: "Lubuskie", code: "pl-lb", name: "Lubuskie (PL)", transferTaxPct: 2.0, lat: 51.9356, lng: 15.5062 },
+  { key: "Podlaskie", code: "pl-pd", name: "Podlaskie (PL)", transferTaxPct: 2.0, lat: 53.1325, lng: 23.1688 },
+  { key: "Świętokrzyskie", code: "pl-sk", name: "Świętokrzyskie (PL)", transferTaxPct: 2.0, lat: 50.8661, lng: 20.6286 },
+  { key: "Opolskie", code: "pl-op", name: "Opolskie (PL)", transferTaxPct: 2.0, lat: 50.6751, lng: 17.9213 },
+];
+const REGION_BY_KEY_PL = new Map(REGIONEN_PL.map((r) => [r.key, r]));
 
 const DE_SEGMENT_RULES = [
   ["apartment", /Eigentumswohnung|Wohnungseigentum|Zimmer-Wohnung|Teileigentum/i],
@@ -1226,6 +1264,14 @@ async function buildDeLive() {
   const gbListings = await fetchGbAuctionsAll(prevByKey, portalCacheDir, nowIso);
   listings.push(...gbListings);
 
+  // 10. Fetch Netherlands (vastgoedveiling.nl / veilingnotaris — Executieveilingen Art. 3:268 BW)
+  const nlListings = await fetchNlAuctionsAll(prevByKey, portalCacheDir, nowIso);
+  listings.push(...nlListings);
+
+  // 11. Fetch Poland (licytacje.komornik.pl — Krajowa Rada Komornicza Real Estate Auctions)
+  const plListings = await fetchPlKomornikAll(prevByKey, portalCacheDir, nowIso);
+  listings.push(...plListings);
+
   const allStates = [
     ...BUNDESLAENDER_DE,
     ...BUNDESLAENDER_AT,
@@ -1234,6 +1280,8 @@ async function buildDeLive() {
     ...REGIONEN_ES,
     ...REGIONEN_FR,
     ...REGIONEN_GB,
+    ...REGIONEN_NL,
+    ...REGIONEN_PL,
   ];
   for (const s of allStates) {
     stateCounts.set(s.code, 0);
@@ -1249,16 +1297,18 @@ async function buildDeLive() {
     itListings.length -
     esListings.length -
     frListings.length -
-    gbListings.length;
+    gbListings.length -
+    nlListings.length -
+    plListings.length;
   console.log(
-    `  → Europa Gesamt: ${listings.length} Verfahren (DE: ${deOnlyCount}, AT: ${atListings.length}, CH: ${chListings.length}, IT: ${itListings.length}, ES: ${esListings.length}, FR: ${frListings.length}, GB: ${gbListings.length})`,
+    `  → Europa Gesamt: ${listings.length} Verfahren (DE: ${deOnlyCount}, AT: ${atListings.length}, CH: ${chListings.length}, IT: ${itListings.length}, ES: ${esListings.length}, FR: ${frListings.length}, GB: ${gbListings.length}, NL: ${nlListings.length}, PL: ${plListings.length})`,
   );
 
   return {
     meta: {
       market: "DE",
       generatedAt: nowIso,
-      source: "zvg-portal.de · zvg.com · edikte.justiz.gv.at · shab.ch · astegiudiziarie.it · subastas.boe.es · licitor.com · btgeddisonspropertyauctions.com",
+      source: "zvg-portal.de · zvg.com · edikte.justiz.gv.at · shab.ch · astegiudiziarie.it · subastas.boe.es · licitor.com · immobilier.notaires.fr · vastgoedveiling.nl · licytacje.komornik.pl",
       sourceUrl: "https://www.zvg-portal.de/",
       states: allStates.map((s) => ({
         code: s.code,
@@ -2784,6 +2834,317 @@ async function fetchGbAuctionsAll(prevByKey, portalCacheDir, nowIso) {
 }
 
 // ---------------------------------------------------------------------------
+// 1h. Fetch Netherlands Live (vastgoedveiling.nl / veilingnotaris — Executieveilingen)
+// ---------------------------------------------------------------------------
+async function fetchNlAuctionsAll(prevByKey, portalCacheDir, nowIso) {
+  console.log("  ▸ Starte Live-Abruf Niederlande (vastgoedveiling.nl · Executieveilingen Art. 3:268 BW) ...");
+  const out = [];
+  const ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
+
+  try {
+    const rList = await fetch("https://vastgoedveiling.nl/veilingen", { headers: { "User-Agent": ua } });
+    if (!rList.ok) return out;
+    const htmlList = await rList.text();
+    const nextRaw = /<script id="__NEXT_DATA__" type="application\/json">([\s\S]*?)<\/script>/i.exec(htmlList)?.[1];
+    if (!nextRaw) return out;
+    const pageProps = JSON.parse(nextRaw)?.props?.pageProps || {};
+    const auctions = (Array.isArray(pageProps.auctions) ? pageProps.auctions : []).filter((a) => {
+      if (String(a.land || "").toLowerCase() !== "nl") return false;
+      const vs = String(a.veilingstatus || "").toLowerCase();
+      if (vs === "ingetrokken" || vs === "onderhand_verkocht") return false;
+      return true;
+    });
+
+    console.log(`    vastgoedveiling.nl · ${auctions.length} niederländische Immobilienauktionen gefunden, lade Details ...`);
+    await mapLimit(auctions, 10, async (summary) => {
+      const key = `nl-vv-${summary.id}`;
+      const cacheFile = join(portalCacheDir, `${key}.json`);
+      let parsed = null;
+
+      if (existsSync(cacheFile)) {
+        try {
+          const cached = JSON.parse(readFileSync(cacheFile, "utf8"));
+          if (cached && cached.fileNo && cached.appraisedValue) parsed = cached;
+        } catch {
+          parsed = null;
+        }
+      }
+
+      if (!parsed) {
+        try {
+          const slugPart = String(summary.name || summary.id)
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .replace(/[^a-z0-9]+/g, "-")
+            .replace(/^-|-$/g, "");
+          const rDet = await fetch(`https://vastgoedveiling.nl/veiling/${summary.id}/${slugPart}`, {
+            headers: { "User-Agent": ua },
+          });
+          let detObj = {};
+          if (rDet.ok) {
+            const hDet = await rDet.text();
+            const detRaw = /<script id="__NEXT_DATA__" type="application\/json">([\s\S]*?)<\/script>/i.exec(hDet)?.[1];
+            if (detRaw) detObj = JSON.parse(detRaw)?.props?.pageProps?.auction || {};
+          }
+          parsed = parseNlVastgoedItem(summary, detObj);
+          if (parsed) {
+            try {
+              writeFileSync(cacheFile, JSON.stringify({ key, source: "vastgoedveiling.nl", fetchedAt: nowIso, ...parsed }));
+            } catch {
+              // Ignore
+            }
+          }
+        } catch {
+          parsed = parseNlVastgoedItem(summary, {});
+        }
+      }
+
+      if (!parsed || !parsed.minimumBid) return;
+      const reg = REGION_BY_KEY_NL.get(parsed.state) ?? REGIONEN_NL[0];
+      const prev = prevByKey.get(key);
+      const hearingAt = parsed.hearingAt;
+      const endIso = parsed.endAt || (hearingAt ? new Date(Date.parse(hearingAt) + 60 * 60000).toISOString() : null);
+      const livingAreaM2 = parsed.livingAreaM2 ?? null;
+      const landAreaM2 = parsed.landAreaM2 ?? null;
+      const areaM2 = livingAreaM2 ?? landAreaM2 ?? null;
+      const areaKind = livingAreaM2 ? "Wohn-/Nutzfläche" : landAreaM2 ? "Grundstücksfläche" : null;
+      const title =
+        [parsed.segmentLabel, parsed.place, parsed.street].filter(Boolean).join(", ") ||
+        `${parsed.authority} · ${parsed.fileNo}`;
+      const lat = parsed.lat ?? reg.lat;
+      const lng = parsed.lng ?? reg.lng;
+
+      out.push({
+        key,
+        market: "DE",
+        country: "NL",
+        currency: "EUR",
+        sourcePortal: "vastgoedveiling.nl",
+        title,
+        segment: parsed.segment ?? "house",
+        segmentLabel: parsed.segmentLabel,
+        region: reg.name,
+        regionCode: reg.code,
+        place: parsed.place,
+        postcode: parsed.postcode,
+        street: parsed.street,
+        authority: parsed.authority,
+        fileNo: parsed.fileNo,
+        fileYear: 2026,
+        rounds: hearingAt ? [{ round: 1, start: hearingAt, end: endIso }] : [],
+        hearingAt,
+        cancelled: false,
+        limitsWaived: false,
+        appraisedValue: parsed.appraisedValue,
+        minimumBid: parsed.minimumBid,
+        depositAmount: parsed.depositAmount,
+        transferTaxPct: reg.transferTaxPct,
+        livingAreaM2,
+        usableAreaM2: null,
+        landAreaM2,
+        areaM2,
+        areaKind,
+        rooms: parsed.rooms,
+        yearBuilt: parsed.yearBuilt,
+        grundbuch: parsed.grundbuch,
+        proceedingKind: parsed.proceedingKind,
+        description: parsed.description,
+        hearingPlace: "Online Vastgoedveiling (Inzet & Afslag · Notaris)",
+        creditor: null,
+        officialUrl: parsed.detailUrl,
+        imageUrl: parsed.photoUrl ?? null,
+        mapUrl: lat && lng ? `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=16/${lat}/${lng}` : null,
+        documentUrl: parsed.documentUrl ?? parsed.detailUrl,
+        exposeUrl: null,
+        reportUrl: null,
+        biddingNotesUrl: null,
+        courtUrl: "https://vastgoedveiling.nl/veilingen",
+        geoServerUrl: "https://app.pdok.nl/viewer/",
+        geo: lat && lng ? { lat, lng, precision: parsed.lat ? "exact" : "province" } : null,
+        history: prev?.history ?? [],
+        geoportalUrl: "https://app.pdok.nl/viewer/",
+        geoportalName: "Kadaster & PDOK Kadastrale Kaart (NL)",
+        caveats: [],
+        firstSeenAt: parsed.firstSeenAt ?? prev?.firstSeenAt ?? nowIso,
+      });
+    });
+  } catch (err) {
+    console.warn(`    ! vastgoedveiling.nl Fehler: ${err.message}`);
+  }
+
+  console.log(`  → NL Gesamt: ${out.length} Verfahren geladen (vastgoedveiling.nl)`);
+  return out;
+}
+
+// ---------------------------------------------------------------------------
+// 1i. Fetch Poland Live (licytacje.komornik.pl — Krajowa Rada Komornicza)
+// ---------------------------------------------------------------------------
+async function fetchPlKomornikAll(prevByKey, portalCacheDir, nowIso) {
+  console.log("  ▸ Starte Live-Abruf Polen (licytacje.komornik.pl · Krajowa Rada Komornicza alle 16 Woiwodschaften) ...");
+  const out = [];
+  const ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
+
+  try {
+    const summaries = [];
+    const seenIds = new Set();
+    const pageSize = 150;
+    let totalCount = pageSize;
+
+    for (let offset = 0; offset < Math.min(totalCount, 3600); offset += pageSize) {
+      const rPage = await fetch("https://licytacje.komornik.pl/services/item-back/rest/item/search", {
+        method: "POST",
+        headers: {
+          "User-Agent": ua,
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          Referer: "https://licytacje.komornik.pl/",
+        },
+        body: JSON.stringify({
+          limit: pageSize,
+          offset,
+          termFilters: [
+            { field: "mainCategory", value: ["REAL_ESTATE"] },
+            { field: "joinable", value: ["true"] },
+          ],
+        }),
+      });
+      if (!rPage.ok) break;
+      const data = await rPage.json();
+      if (offset === 0 && Number(data.count) > 0) {
+        totalCount = Number(data.count);
+      }
+      const items = Array.isArray(data.items) ? data.items : [];
+      if (items.length === 0) break;
+      for (const it of items) {
+        if (!it.id || seenIds.has(it.id)) continue;
+        seenIds.add(it.id);
+        // Strip inline base64 mainPhoto immediately to keep memory & snapshots lean
+        const { mainPhoto: _mp, ...leanSummary } = it;
+        summaries.push(leanSummary);
+      }
+    }
+
+    console.log(`    licytacje.komornik.pl · ${summaries.length} aktive polnische E-Licytacje gefunden, reiche Details an ...`);
+
+    // Progressively enrich up to 450 uncached detail records per run so sync stays fast (<15s)
+    let detailBudget = 450;
+    await mapLimit(summaries, 18, async (summary) => {
+      const key = `pl-komornik-${summary.id}`;
+      const cacheFile = join(portalCacheDir, `${key}.json`);
+      let detailObj = null;
+
+      if (existsSync(cacheFile)) {
+        try {
+          detailObj = JSON.parse(readFileSync(cacheFile, "utf8"));
+        } catch {
+          detailObj = null;
+        }
+      } else if (detailBudget > 0) {
+        detailBudget--;
+        try {
+          const rDet = await fetch(`https://licytacje.komornik.pl/services/item-back/rest/item/${summary.id}`, {
+            headers: { "User-Agent": ua, Accept: "application/json" },
+          });
+          if (rDet.ok) {
+            const detJson = await rDet.json();
+            if (detJson?.object) {
+              const { mainPhoto: _m, photos: _p, userContent: _u, ...leanDet } = detJson.object;
+              detailObj = leanDet;
+              try {
+                writeFileSync(cacheFile, JSON.stringify(leanDet));
+              } catch {
+                // Ignore
+              }
+            }
+          }
+        } catch {
+          detailObj = null;
+        }
+      }
+
+      const parsed = parsePlKomornikItem(summary, detailObj);
+      if (!parsed || !parsed.appraisedValue) return;
+
+      const reg = REGION_BY_KEY_PL.get(parsed.state) ?? REGIONEN_PL[0];
+      const prev = prevByKey.get(key);
+      const hearingAt = parsed.hearingAt;
+      const endIso = parsed.endAt || (hearingAt ? new Date(Date.parse(hearingAt) + 7 * 86_400_000).toISOString() : null);
+      const livingAreaM2 = parsed.livingAreaM2 ?? null;
+      const landAreaM2 = parsed.landAreaM2 ?? null;
+      const areaM2 = livingAreaM2 ?? landAreaM2 ?? null;
+      const areaKind = livingAreaM2 ? "Wohn-/Nutzfläche" : landAreaM2 ? "Grundstücksfläche" : null;
+      const title =
+        [parsed.segmentLabel, parsed.place, parsed.street].filter(Boolean).join(", ") ||
+        `${parsed.authority} · ${parsed.fileNo}`;
+
+      const hashSeed = key.split("").reduce((acc, ch) => (acc * 31 + ch.charCodeAt(0)) % 10000, 17);
+      const lat = parsed.lat ?? Number(((reg.lat ?? 52.2297) + ((hashSeed % 100) - 50) * 0.0028).toFixed(5));
+      const lng = parsed.lng ?? Number(((reg.lng ?? 21.0122) + ((Math.floor(hashSeed / 100) % 100) - 50) * 0.0038).toFixed(5));
+
+      out.push({
+        key,
+        market: "DE",
+        country: "PL",
+        currency: "PLN",
+        sourcePortal: "licytacje.komornik.pl",
+        title,
+        segment: parsed.segment ?? "other",
+        segmentLabel: parsed.segmentLabel,
+        region: reg.name,
+        regionCode: reg.code,
+        place: parsed.place,
+        postcode: parsed.postcode,
+        street: parsed.street,
+        authority: parsed.authority,
+        fileNo: parsed.fileNo,
+        fileYear: 2026,
+        rounds: hearingAt ? [{ round: parsed.isSecondRound ? 2 : 1, start: hearingAt, end: endIso }] : [],
+        hearingAt,
+        cancelled: false,
+        limitsWaived: Boolean(parsed.isSecondRound),
+        appraisedValue: parsed.appraisedValue,
+        minimumBid: parsed.minimumBid,
+        depositAmount: parsed.depositAmount,
+        transferTaxPct: reg.transferTaxPct,
+        livingAreaM2,
+        usableAreaM2: null,
+        landAreaM2,
+        areaM2,
+        areaKind,
+        rooms: parsed.rooms,
+        yearBuilt: parsed.yearBuilt,
+        grundbuch: parsed.grundbuch,
+        proceedingKind: parsed.proceedingKind,
+        description: parsed.description,
+        hearingPlace: "Portal e-Licytacji Komorniczych (elicytacje.komornik.pl)",
+        creditor: null,
+        officialUrl: parsed.detailUrl,
+        imageUrl: null,
+        mapUrl: `https://www.openstreetmap.org/search?query=${encodeURIComponent([parsed.street, parsed.postcode, parsed.place, "Polska"].filter(Boolean).join(", "))}`,
+        documentUrl: parsed.detailUrl,
+        exposeUrl: null,
+        reportUrl: null,
+        biddingNotesUrl: null,
+        courtUrl: "https://licytacje.komornik.pl/",
+        geoServerUrl: "https://mapy.geoportal.gov.pl/",
+        geo: { lat, lng, precision: parsed.lat ? "exact" : "province" },
+        history: prev?.history ?? [],
+        geoportalUrl: "https://mapy.geoportal.gov.pl/",
+        geoportalName: "Geoportal Krajowy (GUGiK · Działki & KW)",
+        caveats: [],
+        firstSeenAt: parsed.firstSeenAt ?? prev?.firstSeenAt ?? nowIso,
+      });
+    });
+  } catch (err) {
+    console.warn(`    ! licytacje.komornik.pl Fehler: ${err.message}`);
+  }
+
+  console.log(`  → PL Gesamt: ${out.length} Verfahren geladen (licytacje.komornik.pl)`);
+  return out;
+}
+
+// ---------------------------------------------------------------------------
 // 2. Fetch Turkey Live (GİB, VakıfBank, ilan.gov.tr top cities + dataset.json)
 // ---------------------------------------------------------------------------
 const TR_PROVINCE_ALIASES = {
@@ -3280,15 +3641,38 @@ async function run() {
           (!l.country || l.country === "DE") &&
           (!l.hearingAt || Date.parse(l.hearingAt) >= cutoffMs),
       );
-      const [atListings, chListings, itListings, esListings, frListings, gbListings] = await Promise.all([
+      const [atListings, chListings, itListings, esListings, frListings, gbListings, nlListings, plListings] = await Promise.all([
         fetchAtEdikteAll(postcodes, prevByKey, portalCacheDir, nowIso),
         fetchChShabAll(postcodes, prevByKey, portalCacheDir, nowIso),
         fetchItAsteAll(prevByKey, portalCacheDir, nowIso),
         fetchEsBoeAll(prevByKey, portalCacheDir, nowIso),
         fetchFrLicitorAll(prevByKey, portalCacheDir, nowIso),
         fetchGbAuctionsAll(prevByKey, portalCacheDir, nowIso),
+        fetchNlAuctionsAll(prevByKey, portalCacheDir, nowIso),
+        fetchPlKomornikAll(prevByKey, portalCacheDir, nowIso),
       ]);
-      const listings = [...keptDe, ...atListings, ...chListings, ...itListings, ...esListings, ...frListings, ...gbListings];
+      const listings = [
+        ...keptDe,
+        ...atListings,
+        ...chListings,
+        ...itListings,
+        ...esListings,
+        ...frListings,
+        ...gbListings,
+        ...nlListings,
+        ...plListings,
+      ];
+      const allCanonicalStates = [
+        ...BUNDESLAENDER_DE,
+        ...BUNDESLAENDER_AT,
+        ...KANTONE_CH,
+        ...REGIONEN_IT,
+        ...REGIONEN_ES,
+        ...REGIONEN_FR,
+        ...REGIONEN_GB,
+        ...REGIONEN_NL,
+        ...REGIONEN_PL,
+      ];
       const stateCounts = new Map();
       for (const l of listings) {
         if (l.regionCode) stateCounts.set(l.regionCode, (stateCounts.get(l.regionCode) ?? 0) + 1);
@@ -3297,13 +3681,18 @@ async function run() {
         meta: {
           ...existing.meta,
           generatedAt: nowIso,
-          states: existing.meta.states.map((s) => ({ ...s, included: stateCounts.get(s.code) ?? 0 })),
+          states: allCanonicalStates.map((s) => ({
+            code: s.code,
+            name: s.name,
+            transferTaxPct: s.transferTaxPct,
+            included: stateCounts.get(s.code) ?? 0,
+          })),
         },
         listings,
       };
       atomicWriteJson(dePath, updated);
       console.log(
-        `✓ data/snapshots/de.json aktualisiert (${listings.length} Objekte: DE=${keptDe.length}, AT=${atListings.length}, CH=${chListings.length}, IT=${itListings.length}, ES=${esListings.length}, FR=${frListings.length}, GB=${gbListings.length})`,
+        `✓ data/snapshots/de.json aktualisiert (${listings.length} Objekte: DE=${keptDe.length}, AT=${atListings.length}, CH=${chListings.length}, IT=${itListings.length}, ES=${esListings.length}, FR=${frListings.length}, GB=${gbListings.length}, NL=${nlListings.length}, PL=${plListings.length})`,
       );
       if (!deOnly) {
         const tr = await buildTrLive();

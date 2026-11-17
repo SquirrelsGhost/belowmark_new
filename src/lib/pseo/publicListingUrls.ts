@@ -26,6 +26,8 @@ export function slugifyPublicSegment(input: string, country?: PricingCountryCode
     s = s.replace(/ö/g, "o").replace(/ü/g, "u");
   }
   return s
+    .replace(/Ł/gi, "l")
+    .replace(/ł/gi, "l")
     .replace(/ß/g, "ss")
     .replace(/ç/g, "c")
     .replace(/ğ/g, "g")
@@ -157,6 +159,38 @@ export function localizePublicSegmentLabel(
         return raw || "Grundstücksteigerung";
     }
   }
+  if (country === "NL") {
+    switch (segment) {
+      case "apartment":
+        return raw || "Appartement";
+      case "house":
+        return raw || "Woonhuis";
+      case "commercial":
+      case "multiFamily":
+        return raw || "Bedrijfspand / Beleggingspand";
+      case "land":
+      case "farmland":
+        return raw || "Bouwkavel / Perceel";
+      default:
+        return raw || "Vastgoed op Veiling";
+    }
+  }
+  if (country === "PL") {
+    switch (segment) {
+      case "apartment":
+        return "Mieszkanie / Lokal Mieszkalny";
+      case "house":
+        return "Dom Jednorodzinny";
+      case "commercial":
+      case "multiFamily":
+        return "Lokal Użytkowy / Kamienica";
+      case "land":
+      case "farmland":
+        return "Działka / Nieruchomość Gruntowa";
+      default:
+        return raw || "Nieruchomość z Licytacji";
+    }
+  }
   return raw || "Immobilie";
 }
 
@@ -167,6 +201,8 @@ export function inferPreviewListingCountry(item: Pick<PseoPreviewListing, "key" 
   if (item.key.startsWith("es-boe-")) return "ES";
   if (item.key.startsWith("fr-")) return "FR";
   if (item.key.startsWith("gb-") || item.currency === "GBP") return "GB";
+  if (item.key.startsWith("nl-")) return "NL";
+  if (item.key.startsWith("pl-") || item.currency === "PLN") return "PL";
   if (fallbackLocale === "tr" || item.currency === "TRY" || /^\d+#\d+$/.test(item.key)) return "TR";
   return "DE";
 }
@@ -182,6 +218,8 @@ export function countryToPseoLocale(country: PricingCountryCode): PseoLocale {
     case "FR":
       return "fr";
     case "GB":
+    case "NL":
+    case "PL":
       return "en";
     default:
       return "de";
@@ -190,7 +228,7 @@ export function countryToPseoLocale(country: PricingCountryCode): PseoLocale {
 
 export function publicListingRoutePrefix(country: PricingCountryCode): "/objekt" | "/tr/ilan" | "/lot" {
   if (country === "TR") return "/tr/ilan";
-  if (country === "IT" || country === "ES" || country === "FR" || country === "GB") return "/lot";
+  if (country === "IT" || country === "ES" || country === "FR" || country === "GB" || country === "NL" || country === "PL") return "/lot";
   return "/objekt";
 }
 
@@ -241,6 +279,16 @@ export function sanitizePublicListingHeadline(params: {
   if (country === "GB") {
     const seg = segmentLabel || "Property for Auction";
     return locPart ? `${seg} in ${locPart}` : seg;
+  }
+
+  if (country === "NL") {
+    const seg = segmentLabel || "Vastgoed op Executieveiling";
+    return locPart ? `${seg} in ${locPart}` : seg;
+  }
+
+  if (country === "PL") {
+    const seg = segmentLabel || "Nieruchomość z Licytacji Komorniczej";
+    return locPart ? `${seg} · ${locPart}` : seg;
   }
 
   // Strip raw file numbers like `0002 K 0005/2023`

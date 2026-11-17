@@ -82,6 +82,26 @@ const NUTS = {
       UKL: ["gb-wls", "Wales"], UKM: ["gb-sct", "Schottland"], UKN: ["gb-nir", "Nordirland"],
     },
   },
+  NL: {
+    level: 2,
+    regions: {
+      NL11: ["nl-gr", "Groningen"], NL12: ["nl-fr", "Friesland"], NL13: ["nl-dr", "Drenthe"],
+      NL21: ["nl-ov", "Overijssel"], NL22: ["nl-ge", "Gelderland"], NL23: ["nl-fl", "Flevoland"],
+      NL31: ["nl-ut", "Utrecht"], NL32: ["nl-nh", "Noord-Holland"], NL33: ["nl-zh", "Zuid-Holland"],
+      NL34: ["nl-ze", "Zeeland"], NL41: ["nl-nb", "Noord-Brabant"], NL42: ["nl-li", "Limburg"],
+    },
+  },
+  PL: {
+    level: 2,
+    regions: {
+      PL21: ["pl-ma", "Małopolskie"], PL22: ["pl-sl", "Śląskie"], PL41: ["pl-wp", "Wielkopolskie"],
+      PL42: ["pl-zp", "Zachodniopomorskie"], PL43: ["pl-lb", "Lubuskie"], PL51: ["pl-ds", "Dolnośląskie"],
+      PL52: ["pl-op", "Opolskie"], PL61: ["pl-kp", "Kujawsko-Pomorskie"], PL62: ["pl-wn", "Warmińsko-Mazurskie"],
+      PL63: ["pl-pm", "Pomorskie"], PL71: ["pl-ld", "Łódzkie"], PL72: ["pl-sk", "Świętokrzyskie"],
+      PL81: ["pl-lu", "Lubelskie"], PL82: ["pl-pk", "Podkarpackie"], PL84: ["pl-pd", "Podlaskie"],
+      PL91: ["pl-mz", "Mazowieckie"], PL92: ["pl-mz", "Mazowieckie"],
+    },
+  },
 };
 
 const readJson = (path) => JSON.parse(readFileSync(path, "utf8"));
@@ -238,4 +258,4 @@ function buildFromNuts(country) {
 
 mkdirSync(OUT_DIR, { recursive: true });
 for (const country of ["DE", "AT", "CH"]) buildFromDach(country);
-for (const country of ["IT", "ES", "FR", "GB"]) buildFromNuts(country);
+for (const country of ["IT", "ES", "FR", "GB", "NL", "PL"]) buildFromNuts(country);

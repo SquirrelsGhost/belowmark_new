@@ -1,3 +1,4 @@
+import { EXTRA_PRICING_MARKETS } from "../extraPricingMarkets";
 import { ITranslation } from "../ITranslation";
 import { APP_DE } from "./appDe";
 
@@ -573,6 +574,7 @@ export const DE: ITranslation = {
             Note: "Monatlich kündbar.",
           },
         },
+        ...EXTRA_PRICING_MARKETS.de,
         TR: {
           Label: "Türkei",
           Scope: "İcra & İhale · 81 Provinzen",

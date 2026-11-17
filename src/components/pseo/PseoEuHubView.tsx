@@ -21,6 +21,8 @@ const ALL_MARKETS: ReadonlyArray<{ code: EuPseoMarketCode; href: string }> = [
   { code: "ES", href: "/es/subastas-boe" },
   { code: "FR", href: "/fr/encheres-immobilieres" },
   { code: "GB", href: "/en/uk-property-auctions" },
+  { code: "NL", href: "/nl/executieveiling" },
+  { code: "PL", href: "/pl/licytacje-komornicze" },
 ];
 
 const HUB_STAT_LABELS: Record<
@@ -33,6 +35,8 @@ const HUB_STAT_LABELS: Record<
   ES: { lots: "Subastas BOE Activas", regions: "Comunidades", cities: "Municipios", currency: "Moneda", homeLabel: "Belowmark" },
   FR: { lots: "Enchères Actives", regions: "Régions", cities: "Villes", currency: "Devise", homeLabel: "Belowmark" },
   GB: { lots: "Live Auction Lots", regions: "UK Regions", cities: "Cities & Towns", currency: "Currency", homeLabel: "Belowmark" },
+  NL: { lots: "Actieve Kavels", regions: "Provincies", cities: "Steden & Plaatsen", currency: "Valuta", homeLabel: "Belowmark" },
+  PL: { lots: "Aktywne Licytacje", regions: "Województwa", cities: "Miasta i Gminy", currency: "Waluta", homeLabel: "Belowmark" },
 };
 
 export default function PseoEuHubView({ catalog }: PseoEuHubViewProps) {

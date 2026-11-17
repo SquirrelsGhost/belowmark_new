@@ -69,6 +69,8 @@ function buildHaystack(listing: Listing): string {
     ES: "spanien spain espana boe subastas",
     FR: "frankreich france licitor notaires avoventes immo-interactif",
     GB: "england uk united kingdom grossbritannien",
+    NL: "niederlande netherlands nederland executieveiling vastgoedveiling",
+    PL: "polen poland polska licytacje komornicze komornik",
   };
   const countryTag = listing.market === "DE" ? cMap[getListingDachCountry(listing)] : null;
   const parts = [

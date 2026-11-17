@@ -12,7 +12,7 @@ export const EU_MARKET_META: Record<
   EuPseoMarketCode,
   {
     locale: PseoLocale;
-    currency: "EUR" | "CHF" | "GBP";
+    currency: "EUR" | "CHF" | "GBP" | "PLN";
     hubPath: string;
     calcPath: string;
     flag: string;
@@ -66,6 +66,22 @@ export const EU_MARKET_META: Record<
     calcPath: "/en/calculator/uk-property-auction-stamp-duty-deposit",
     flag: "🇬🇧",
     shortLabel: "UK · Property Auctions (12 Regions)",
+  },
+  NL: {
+    locale: "en",
+    currency: "EUR",
+    hubPath: "/nl/executieveiling",
+    calcPath: "/nl/calculator/executieveiling-kosten-overdrachtsbelasting",
+    flag: "🇳🇱",
+    shortLabel: "Nederland · Executieveilingen (12 Provincies)",
+  },
+  PL: {
+    locale: "en",
+    currency: "PLN",
+    hubPath: "/pl/licytacje-komornicze",
+    calcPath: "/pl/kalkulator/licytacja-komornicza-wadium",
+    flag: "🇵🇱",
+    shortLabel: "Polska · Licytacje Komornicze (16 Województw)",
   },
 };
 
@@ -178,5 +194,37 @@ export const EU_REGION_SEEDS: Record<EuPseoMarketCode, EuRegionSeed[]> = {
     { code: "gb-wls", snapshotRegion: "Wales (UK)", nativeName: "Wales (Cardiff / Swansea)", slug: "wales", taxPct: 4.5 },
     { code: "gb-sct", snapshotRegion: "Schottland (UK)", nativeName: "Scotland (Edinburgh / Glasgow)", slug: "scotland", taxPct: 4.5 },
     { code: "gb-nir", snapshotRegion: "Nordirland (UK)", nativeName: "Northern Ireland (Belfast)", slug: "northern-ireland", taxPct: 5.0 },
+  ],
+  NL: [
+    { code: "nl-nh", snapshotRegion: "Noord-Holland (NL)", nativeName: "Noord-Holland (Amsterdam / Haarlem)", slug: "noord-holland", taxPct: 10.4 },
+    { code: "nl-zh", snapshotRegion: "Zuid-Holland (NL)", nativeName: "Zuid-Holland (Rotterdam / Den Haag)", slug: "zuid-holland", taxPct: 10.4 },
+    { code: "nl-nb", snapshotRegion: "Noord-Brabant (NL)", nativeName: "Noord-Brabant (Eindhoven / Tilburg)", slug: "noord-brabant", taxPct: 10.4 },
+    { code: "nl-ge", snapshotRegion: "Gelderland (NL)", nativeName: "Gelderland (Arnhem / Nijmegen)", slug: "gelderland", taxPct: 10.4 },
+    { code: "nl-ut", snapshotRegion: "Utrecht (NL)", nativeName: "Provincie Utrecht", slug: "utrecht", taxPct: 10.4 },
+    { code: "nl-ov", snapshotRegion: "Overijssel (NL)", nativeName: "Overijssel (Zwolle / Enschede)", slug: "overijssel", taxPct: 10.4 },
+    { code: "nl-li", snapshotRegion: "Limburg (NL)", nativeName: "Limburg (Maastricht / Venlo)", slug: "limburg", taxPct: 10.4 },
+    { code: "nl-fr", snapshotRegion: "Friesland (NL)", nativeName: "Friesland (Leeuwarden)", slug: "friesland", taxPct: 10.4 },
+    { code: "nl-gr", snapshotRegion: "Groningen (NL)", nativeName: "Provincie Groningen", slug: "groningen", taxPct: 10.4 },
+    { code: "nl-dr", snapshotRegion: "Drenthe (NL)", nativeName: "Drenthe (Assen / Emmen)", slug: "drenthe", taxPct: 10.4 },
+    { code: "nl-fl", snapshotRegion: "Flevoland (NL)", nativeName: "Flevoland (Almere / Lelystad)", slug: "flevoland", taxPct: 10.4 },
+    { code: "nl-ze", snapshotRegion: "Zeeland (NL)", nativeName: "Zeeland (Middelburg / Vlissingen)", slug: "zeeland", taxPct: 10.4 },
+  ],
+  PL: [
+    { code: "pl-mz", snapshotRegion: "Mazowieckie (PL)", nativeName: "Woj. Mazowieckie (Warszawa)", slug: "mazowieckie", taxPct: 2.0 },
+    { code: "pl-sl", snapshotRegion: "Śląskie (PL)", nativeName: "Woj. Śląskie (Katowice / Częstochowa)", slug: "slaskie", taxPct: 2.0 },
+    { code: "pl-ma", snapshotRegion: "Małopolskie (PL)", nativeName: "Woj. Małopolskie (Kraków)", slug: "malopolskie", taxPct: 2.0 },
+    { code: "pl-wp", snapshotRegion: "Wielkopolskie (PL)", nativeName: "Woj. Wielkopolskie (Poznań)", slug: "wielkopolskie", taxPct: 2.0 },
+    { code: "pl-ds", snapshotRegion: "Dolnośląskie (PL)", nativeName: "Woj. Dolnośląskie (Wrocław)", slug: "dolnoslaskie", taxPct: 2.0 },
+    { code: "pl-pm", snapshotRegion: "Pomorskie (PL)", nativeName: "Woj. Pomorskie (Gdańsk / Gdynia)", slug: "pomorskie", taxPct: 2.0 },
+    { code: "pl-ld", snapshotRegion: "Łódzkie (PL)", nativeName: "Woj. Łódzkie (Łódź)", slug: "lodzkie", taxPct: 2.0 },
+    { code: "pl-kp", snapshotRegion: "Kujawsko-Pomorskie (PL)", nativeName: "Woj. Kujawsko-Pomorskie (Bydgoszcz / Toruń)", slug: "kujawsko-pomorskie", taxPct: 2.0 },
+    { code: "pl-zp", snapshotRegion: "Zachodniopomorskie (PL)", nativeName: "Woj. Zachodniopomorskie (Szczecin)", slug: "zachodniopomorskie", taxPct: 2.0 },
+    { code: "pl-lu", snapshotRegion: "Lubelskie (PL)", nativeName: "Woj. Lubelskie (Lublin)", slug: "lubelskie", taxPct: 2.0 },
+    { code: "pl-pk", snapshotRegion: "Podkarpackie (PL)", nativeName: "Woj. Podkarpackie (Rzeszów)", slug: "podkarpackie", taxPct: 2.0 },
+    { code: "pl-wn", snapshotRegion: "Warmińsko-Mazurskie (PL)", nativeName: "Woj. Warmińsko-Mazurskie (Olsztyn)", slug: "warminsko-mazurskie", taxPct: 2.0 },
+    { code: "pl-lb", snapshotRegion: "Lubuskie (PL)", nativeName: "Woj. Lubuskie (Zielona Góra / Gorzów)", slug: "lubuskie", taxPct: 2.0 },
+    { code: "pl-pd", snapshotRegion: "Podlaskie (PL)", nativeName: "Woj. Podlaskie (Białystok)", slug: "podlaskie", taxPct: 2.0 },
+    { code: "pl-sk", snapshotRegion: "Świętokrzyskie (PL)", nativeName: "Woj. Świętokrzyskie (Kielce)", slug: "swietokrzyskie", taxPct: 2.0 },
+    { code: "pl-op", snapshotRegion: "Opolskie (PL)", nativeName: "Woj. Opolskie (Opole)", slug: "opolskie", taxPct: 2.0 },
   ],
 };

@@ -47,6 +47,15 @@ export type GbRegionCode =
   | "gb-lon" | "gb-see" | "gb-swe" | "gb-wmd" | "gb-emd" | "gb-nwe"
   | "gb-yrk" | "gb-ee" | "gb-nee" | "gb-sct" | "gb-wls" | "gb-nir";
 
+export type NlRegionCode =
+  | "nl-nh" | "nl-zh" | "nl-nb" | "nl-ge" | "nl-ut" | "nl-ov"
+  | "nl-li" | "nl-fr" | "nl-gr" | "nl-dr" | "nl-fl" | "nl-ze";
+
+export type PlRegionCode =
+  | "pl-mz" | "pl-sl" | "pl-ma" | "pl-wp" | "pl-ds" | "pl-pm"
+  | "pl-ld" | "pl-kp" | "pl-zp" | "pl-lu" | "pl-pk" | "pl-wn"
+  | "pl-lb" | "pl-pd" | "pl-sk" | "pl-op";
+
 export type StateCode =
   | DeStateCode
   | AtStateCode
@@ -55,17 +64,21 @@ export type StateCode =
   | EsRegionCode
   | FrRegionCode
   | GbRegionCode
+  | NlRegionCode
+  | PlRegionCode
   | "at"
   | "ch"
   | "it"
   | "es"
   | "fr"
-  | "gb";
+  | "gb"
+  | "nl"
+  | "pl";
 
 export interface StateSnapshot {
   code: StateCode;
   name: string;
-  country?: "DE" | "AT" | "CH" | "IT" | "ES" | "FR" | "GB";
+  country?: "DE" | "AT" | "CH" | "IT" | "ES" | "FR" | "GB" | "NL" | "PL";
   /** Grunderwerbsteuer / Handänderungssteuer in percent */
   transferTaxPct: number;
   /** Open hearings in the snapshot; null = state does not publish via the joint portal */
@@ -96,6 +109,8 @@ export const STATES: StateSnapshot[] = [
   { code: "es", name: "Spanien (17 Comunidades · Portal BOE)", country: "ES", transferTaxPct: 8.0, hearings: 999 },
   { code: "fr", name: "Frankreich (13 Regionen · Licitor TJ)", country: "FR", transferTaxPct: 5.8, hearings: 577 },
   { code: "gb", name: "England / UK (12 Regionen · RICS Auctions)", country: "GB", transferTaxPct: 5.0, hearings: 785 },
+  { code: "nl", name: "Niederlande (12 Provinzen · Executieveilingen)", country: "NL", transferTaxPct: 10.4, hearings: 84 },
+  { code: "pl", name: "Polen (16 Woiwodschaften · Licytacje Komornicze)", country: "PL", transferTaxPct: 2.0, hearings: 3085 },
 ];
 
 /** All 9 Austrian Bundesländer (3.5% GrESt + 1.1% Grundbuchseintragungsgebühr = 4.6%). */
@@ -215,6 +230,40 @@ export const GB_REGIONS: StateSnapshot[] = [
   { code: "gb-nir", name: "Nordirland (UK)", country: "GB", transferTaxPct: 5.0, hearings: 1 },
 ];
 
+export const NL_REGIONS: StateSnapshot[] = [
+  { code: "nl-nh", name: "Noord-Holland (NL)", country: "NL", transferTaxPct: 10.4, hearings: 0 },
+  { code: "nl-zh", name: "Zuid-Holland (NL)", country: "NL", transferTaxPct: 10.4, hearings: 0 },
+  { code: "nl-nb", name: "Noord-Brabant (NL)", country: "NL", transferTaxPct: 10.4, hearings: 0 },
+  { code: "nl-ge", name: "Gelderland (NL)", country: "NL", transferTaxPct: 10.4, hearings: 0 },
+  { code: "nl-ut", name: "Utrecht (NL)", country: "NL", transferTaxPct: 10.4, hearings: 0 },
+  { code: "nl-ov", name: "Overijssel (NL)", country: "NL", transferTaxPct: 10.4, hearings: 0 },
+  { code: "nl-li", name: "Limburg (NL)", country: "NL", transferTaxPct: 10.4, hearings: 0 },
+  { code: "nl-fr", name: "Friesland (NL)", country: "NL", transferTaxPct: 10.4, hearings: 0 },
+  { code: "nl-gr", name: "Groningen (NL)", country: "NL", transferTaxPct: 10.4, hearings: 0 },
+  { code: "nl-dr", name: "Drenthe (NL)", country: "NL", transferTaxPct: 10.4, hearings: 0 },
+  { code: "nl-fl", name: "Flevoland (NL)", country: "NL", transferTaxPct: 10.4, hearings: 0 },
+  { code: "nl-ze", name: "Zeeland (NL)", country: "NL", transferTaxPct: 10.4, hearings: 0 },
+];
+
+export const PL_REGIONS: StateSnapshot[] = [
+  { code: "pl-mz", name: "Mazowieckie (PL)", country: "PL", transferTaxPct: 2.0, hearings: 0 },
+  { code: "pl-sl", name: "Śląskie (PL)", country: "PL", transferTaxPct: 2.0, hearings: 0 },
+  { code: "pl-ma", name: "Małopolskie (PL)", country: "PL", transferTaxPct: 2.0, hearings: 0 },
+  { code: "pl-wp", name: "Wielkopolskie (PL)", country: "PL", transferTaxPct: 2.0, hearings: 0 },
+  { code: "pl-ds", name: "Dolnośląskie (PL)", country: "PL", transferTaxPct: 2.0, hearings: 0 },
+  { code: "pl-pm", name: "Pomorskie (PL)", country: "PL", transferTaxPct: 2.0, hearings: 0 },
+  { code: "pl-ld", name: "Łódzkie (PL)", country: "PL", transferTaxPct: 2.0, hearings: 0 },
+  { code: "pl-kp", name: "Kujawsko-Pomorskie (PL)", country: "PL", transferTaxPct: 2.0, hearings: 0 },
+  { code: "pl-zp", name: "Zachodniopomorskie (PL)", country: "PL", transferTaxPct: 2.0, hearings: 0 },
+  { code: "pl-lu", name: "Lubelskie (PL)", country: "PL", transferTaxPct: 2.0, hearings: 0 },
+  { code: "pl-pk", name: "Podkarpackie (PL)", country: "PL", transferTaxPct: 2.0, hearings: 0 },
+  { code: "pl-wn", name: "Warmińsko-Mazurskie (PL)", country: "PL", transferTaxPct: 2.0, hearings: 0 },
+  { code: "pl-lb", name: "Lubuskie (PL)", country: "PL", transferTaxPct: 2.0, hearings: 0 },
+  { code: "pl-pd", name: "Podlaskie (PL)", country: "PL", transferTaxPct: 2.0, hearings: 0 },
+  { code: "pl-sk", name: "Świętokrzyskie (PL)", country: "PL", transferTaxPct: 2.0, hearings: 0 },
+  { code: "pl-op", name: "Opolskie (PL)", country: "PL", transferTaxPct: 2.0, hearings: 0 },
+];
+
 export const DACH_STATES: StateSnapshot[] = [
   ...STATES.filter((s) => s.country === "DE"),
   ...AT_STATES,
@@ -223,6 +272,8 @@ export const DACH_STATES: StateSnapshot[] = [
   ...ES_REGIONS,
   ...FR_REGIONS,
   ...GB_REGIONS,
+  ...NL_REGIONS,
+  ...PL_REGIONS,
 ];
 
 export type SegmentKey = "house" | "apartment" | "land" | "commercial" | "multiFamily" | "farmland" | "other";

@@ -40,6 +40,8 @@ export const AUTH_ES: IAuthTranslation = {
       ES: { Label: "España", Hint: "Subastas Judiciales en el Portal BOE · 17 comunidades" },
       FR: { Label: "Francia", Hint: "Ventes aux enchères / Licitor · 13 regiones" },
       GB: { Label: "Reino Unido", Hint: "Property & Receivership Auctions · 12 regiones" },
+      NL: { Label: "Países Bajos", Hint: "Executieveilingen (Art. 3:268 BW) · 12 provincias" },
+      PL: { Label: "Polonia", Hint: "Licytacje Komornicze (KRK) · 16 voivodatos" },
       TR: { Label: "Turquía", Hint: "Subastas judiciales y públicas (UYAP) · 81 provincias" },
     },
     MarketNote: "Elige tu mercado principal (DE, AT, CH, IT, ES, FR, UK o TR). Puedes cambiarlo en cualquier momento desde tu cuenta.",

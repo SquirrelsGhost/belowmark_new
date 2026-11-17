@@ -71,8 +71,12 @@ export class RegionService {
           ? "ES"
           : acceptLang.startsWith("fr")
             ? "FR"
-            : acceptLang.startsWith("en")
-              ? "GB"
+            : acceptLang.startsWith("nl")
+              ? "NL"
+              : acceptLang.startsWith("pl")
+                ? "PL"
+                : acceptLang.startsWith("en")
+                  ? "GB"
               : acceptLang.startsWith("de-at")
                 ? "AT"
                 : acceptLang.startsWith("de-ch")

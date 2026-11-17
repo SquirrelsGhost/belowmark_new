@@ -1,6 +1,6 @@
 import { EuMarketLocationEntry, EuPseoMarketCode } from "@/types/pseo.types";
 
-function fmtMinEntry(e: EuMarketLocationEntry, ratio: number, locale: string, currency: "EUR" | "CHF" | "GBP"): string {
+function fmtMinEntry(e: EuMarketLocationEntry, ratio: number, locale: string, currency: "EUR" | "CHF" | "GBP" | "PLN"): string {
   if (!e.minAppraisedValue || e.minAppraisedValue < 15000) return "";
   const val = Math.round(e.minAppraisedValue * ratio);
   return new Intl.NumberFormat(locale, {
@@ -463,6 +463,139 @@ export const EU_MARKET_COPY: Record<EuPseoMarketCode, EuMarketCopyConfig> = {
     entryMetaDesc: (e) => {
       const low = fmtMinEntry(e, 0.7, "en-GB", "GBP");
       return `${e.totalCount} live houses, flats & commercial property auction lots in ${e.name}${low ? ` from ${low}` : ""}: Guide Prices in GBP, 10% deposit, Legal Pack & Land Registry comps.`;
+    },
+  },
+  NL: {
+    hubEyebrow: "NEDERLAND · EXECUTIEVEILINGEN (ART. 3:268 BW) & VASTGOEDVEILING · 12 PROVINCIES",
+    hubTitle: (total, rCount, cCount) =>
+      `Executieveilingen & Vastgoedveilingen Nederland: Alle ${rCount} Provincies, ${cCount} Veilingnotarissen en ${total} Actieve Kavels`,
+    hubLead:
+      "Actueel overzicht van openbare executieveilingen (art. 3:268 BW) en notariële online vastgoedveilingen in alle 12 Nederlandse provincies — inclusief inzet- en afslagfase, kadastrale gegevens, bijzondere veilingvoorwaarden, 10% waarborgsom en overdrachtsbelasting (2% eigen woning / 10,4% belegging).",
+    hubMetaTitle: (total) =>
+      `Executieveilingen Nederland (${total} Kavels Actief): Woningen & Vastgoed`,
+    hubMetaDesc: (total, rCount) =>
+      `Bekijk alle ${total} actieve executieveilingen en notariële vastgoedveilingen in ${rCount} provincies: woningen, appartementen, bedrijfspanden & 1 gratis dossier.`,
+    calcButtonLabel: "🧮 Gratis Executieveiling Calculator: Inzet & Afslag, 10% Waarborgsom & Overdrachtsbelasting →",
+    ctaButtonLabel: "🎁 1 Gratis Dossier: Adres, Veilingvoorwaarden PDF & Kadaster Ontgrendelen →",
+    regionsHeading: (c) => `Alle ${c} Provincies van Nederland (Executieveilingen)`,
+    citiesHeading: (c) => `Steden en Gemeenten met Vastgoedveilingen (${c} Plaatsen)`,
+    courtsHeading: (c) => `Veilende Notarissen & Kantoren (${c} Notariskantoren)`,
+    listingsHeading: "Actieve Executieveilingen & Online Vastgoedkavels (EUR)",
+    faqHeading: "Veelgestelde Vragen over Executieveilingen in Nederland (Art. 3:268 BW)",
+    valueLabel: "Geschatte Marktwaarde / Referentiewaarde (EUR)",
+    minBidLabel: "Verwachte Openings-/Inzetprijs (ca. 70% van marktwaarde)",
+    depositLabel: "Notariële Waarborgsom (10% binnen 3–5 werkdagen na gunning)",
+    thresholdLabel: "Doelbod bij Inzet & Afslag (80% van marktwaarde)",
+    taxLabel: "Overdrachtsbelasting Belegger (10,4%) / Eigen Woning (2%)",
+    repairLabel: "Renovatie- & Ontruimingsbudget (Art. 3:264 BW Huurbeding, EUR)",
+    totalCostLabel: "Totale Investering incl. Overdrachtsbelasting & Renovatie",
+    discountLabel: "Bruto Korting t.o.v. Marktwaarde",
+    defaultValue: 425000,
+    defaultTaxPct: 10.4,
+    defaultRepair: 25000,
+    minBidRatio: 0.7,
+    thresholdRatio: 0.8,
+    depositRatio: 0.1,
+    courtFeeRatio: 0.018,
+    calcPageTitle: "Executieveiling Calculator Nederland: Inzet & Afslag, 10% Waarborgsom & Overdrachtsbelasting (2% / 10,4%)",
+    calcPageLead:
+      "Bereken direct uw maximale bod op een Nederlandse executieveiling (art. 3:268 BW): simuleer de verplichte 10% waarborgsom bij de notaris, inzetpremie (1%), veilingkosten en overdrachtsbelasting (2% voor eigen bewoning of 10,4% voor beleggers).",
+    calcMetaTitle: "Executieveiling Calculator: Kosten, 10% Waarborgsom & Overdrachtsbelasting",
+    calcMetaDesc:
+      "Gratis executieveiling calculator (NL): bereken waarborgsom (10%), overdrachtsbelasting (2% / 10,4%), notariskosten en netto korting bij vastgoedveilingen.",
+    faqs: [
+      {
+        q: "Hoe werkt bieden bij inzet en afslag op een Nederlandse executieveiling?",
+        a: "Een Nederlandse vastgoedveiling bestaat uit twee fasen: eerst wordt bij opbod geboden (inzetfase), waarbij de hoogste bieder vaak recht heeft op 1% inzetpremie. Daarna volgt direct de afslagfase waarbij de prijs daalt tot iemand 'Mijn' roept of klikt.",
+      },
+      {
+        q: "Kan ik vóór de executieveiling een onderhands bod uitbrengen?",
+        a: "Ja. Tot uiterlijk 14 dagen vóór de geplande executieveiling (art. 3:268 lid 2 BW) kan een onvoorwaardelijk schriftelijk onderhands bod bij de veilende notaris worden ingediend. Als de hypotheekhouder of voorzieningenrechter dit accepteert, vervalt de openbare veiling.",
+      },
+      {
+        q: "Hoeveel overdrachtsbelasting betaal ik bij aankoop op een veiling?",
+        a: "Voor een woning die u zelf als hoofdverblijf gaat bewonen geldt 2% overdrachtsbelasting (of 0% startersvrijstelling onder de wettelijke grens). Voor beleggingspanden, verhuurde woningen en commercieel vastgoed bedraagt het tarief 10,4%.",
+      },
+    ],
+    entryTitle: (e) =>
+      `Executieveiling & Vastgoedveiling ${e.name}: ${e.totalCount} Actieve Woningen en Kavels`,
+    entryLead: (e) =>
+      `Actuele notariële executieveilingen (art. 3:268 BW) en online vastgoedveilingen voor ${e.name} (${e.nativeRegionName}) — met inzet/afslag, Kadaster-referentie, bijzondere veilingvoorwaarden en ${e.transferTaxPct}% overdrachtsbelasting.`,
+    entryMetaTitle: (e) => {
+      const low = fmtMinEntry(e, 0.7, "nl-NL", "EUR");
+      const full = `Executieveiling ${e.name} (${e.totalCount} Kavels Actief)${low ? ` vanaf ${low}` : ""}`;
+      return full.length <= 65 ? full : `Executieveiling ${e.name}: ${e.totalCount} Woningen & Kavels`;
+    },
+    entryMetaDesc: (e) => {
+      const low = fmtMinEntry(e, 0.7, "nl-NL", "EUR");
+      return `Bekijk alle ${e.totalCount} actieve executieveilingen en vastgoedkavels in ${e.name}${low ? ` vanaf ${low}` : ""}: bijzondere veilingvoorwaarden, Kadaster & 1 gratis dossier.`;
+    },
+  },
+  PL: {
+    hubEyebrow: "POLSKA · LICYTACJE KOMORNICZE NIERUCHOMOŚCI (KRK) · WSZYSTKIE 16 WOJEWÓDZTW",
+    hubTitle: (total, rCount, cCount) =>
+      `Licytacje Komornicze Nieruchomości w Polsce: ${rCount} Województw, ${cCount} Kancelarii i ${total} Aktywnych Obwieszczeń`,
+    hubLead:
+      "Aktualny rejestr oficjalnych licytacji i e-licytacji komorniczych nieruchomości (Krajowa Rada Komornicza) we wszystkich 16 województwach — z sumą oszacowania biegłego, ceną wywołania 3/4 (I termin, art. 965 KPC) i 2/3 (II termin, art. 983 KPC), rękojmią 10% (art. 962 KPC) oraz podatkiem PCC 2%.",
+    hubMetaTitle: (total) =>
+      `Licytacje Komornicze Nieruchomości (${total} Aktywnych Dziś): Mieszkania, Domy i Działki`,
+    hubMetaDesc: (total, rCount) =>
+      `Wyszukiwarka ${total} aktywnych licytacji i e-licytacji komorniczych nieruchomości w ${rCount} województwach: mieszkania, domy i działki od 2/3 i 3/4 oszacowania + 1 darmowe dossier.`,
+    calcButtonLabel: "🧮 Darmowy Kalkulator Licytacji Komorniczej: Cena Wywołania 3/4 i 2/3, Rękojmia 10% i PCC 2% →",
+    ctaButtonLabel: "🎁 1 Darmowe Dossier: Odblokuj Dokładny Adres, Sygnaturę Km i Operat →",
+    regionsHeading: (c) => `Wszystkie ${c} Województw (Licytacje Komornicze Nieruchomości)`,
+    citiesHeading: (c) => `Miasta i Gminy z Aktywnymi Licytacjami (${c} Miejscowości)`,
+    courtsHeading: (c) => `Sądy Rejonowe i Kancelarie Komornicze (${c} Organów)`,
+    listingsHeading: "Aktywne Licytacje i e-Licytacje Komornicze Nieruchomości (PLN)",
+    faqHeading: "Najczęstsze Pytania o Licytacje Komornicze Nieruchomości (KPC)",
+    valueLabel: "Suma Oszacowania Biegłego Sądowego (PLN)",
+    minBidLabel: "Cena Wywołania: II Termin 2/3 (66,7%) lub I Termin 3/4 (75%)",
+    depositLabel: "Obowiązkowa Rękojmia / Wadium 10% Sumy Oszacowania (Art. 962 KPC)",
+    thresholdLabel: "Cena Wywołania w I Licytacji (3/4 = 75% ex Art. 965 KPC)",
+    taxLabel: "Podatek od Czynności Cywilnoprawnych - PCC (2%) + Opłata Sądowa KW",
+    repairLabel: "Budżet Remontowy i Opróżnienie Lokalu (PLN)",
+    totalCostLabel: "Całkowity Kapitał przy Zakupie w I Terminie (75% + PCC + Remont)",
+    discountLabel: "Dyskonto Względem Sumy Oszacowania (przy 2/3 w II Terminie)",
+    defaultValue: 450000,
+    defaultTaxPct: 2.0,
+    defaultRepair: 35000,
+    minBidRatio: 0.6667,
+    thresholdRatio: 0.75,
+    depositRatio: 0.1,
+    courtFeeRatio: 0.005,
+    calcPageTitle: "Kalkulator Licytacji Komorniczej Nieruchomości: Cena Wywołania 3/4 i 2/3 (KPC), Rękojmia 10% i Podatek PCC 2%",
+    calcPageLead:
+      "Wpisz sumę oszacowania z obwieszczenia komorniczego: oblicz natychmiast wadium / rękojmię 10% (art. 962 KPC), cenę wywołania w pierwszej licytacji (3/4 = 75%, art. 965 KPC) oraz drugiej licytacji (2/3 = 66,7%, art. 983 KPC), podatek PCC 2% i łączny koszt zakupu w PLN.",
+    calcMetaTitle: "Kalkulator Licytacji Komorniczej: Wadium 10%, 3/4 i 2/3 KPC oraz PCC 2%",
+    calcMetaDesc:
+      "Darmowy kalkulator licytacji komorniczej nieruchomości (PLN): oblicz rękojmię 10%, cenę wywołania 75% (I termin) i 66,7% (II termin) oraz podatek PCC 2%.",
+    faqs: [
+      {
+        q: "Ile wynosi cena wywołania na pierwszej i drugiej licytacji komorniczej nieruchomości?",
+        a: "Zgodnie z art. 965 Kodeksu postępowania cywilnego (KPC) na pierwszej licytacji cena wywołania wynosi trzy czwarte (3/4, czyli 75%) sumy oszacowania. Jeżeli pierwsza licytacja będzie bezskuteczna, na drugiej licytacji cena wywołania spada do dwóch trzecich (2/3, czyli 66,67%) sumy oszacowania (art. 983 KPC).",
+      },
+      {
+        q: "Kiedy należy wpłacić rękojmię (wadium 10%) na e-licytacji komorniczej?",
+        a: "Przystępujący do przetargu obowiązany jest złożyć rękojmię w wysokości jednej dziesiątej (10%) sumy oszacowania najpóźniej na 2 dni robocze przed rozpoczęciem przetargu w systemie e-licytacji (art. 986⁵ § 1 KPC). W przypadku niewygrania licytacji rękojmia jest zwracana niezwłocznie.",
+      },
+      {
+        q: "Czy zakup mieszkania na licytacji komorniczej zwalnia hipotekę z księgi wieczystej?",
+        a: "Tak. Z chwilą uprawomocnienia się postanowienia sądu o przysądzeniu własności (art. 1000 § 1 KPC) wygasają wszelkie prawa oraz skutki ujawnienia praw i roszczeń osobistych ciążące na nieruchomości, w tym hipoteki przymusowe i umowne wpisane w dziale IV księgi wieczystej.",
+      },
+    ],
+    entryTitle: (e) =>
+      `Licytacje Komornicze Nieruchomości ${e.name}: ${e.totalCount} Mieszkań, Domów i Działek`,
+    entryLead: (e) =>
+      `Oficjalne obwieszczenia i e-licytacje komornicze nieruchomości dla lokalizacji ${e.name} (${e.nativeRegionName}) — z sumą oszacowania, ceną wywołania 3/4 i 2/3 KPC, rękojmią 10% i podatkiem PCC ${e.transferTaxPct}%.`,
+    entryMetaTitle: (e) => {
+      const low = fmtMinEntry(e, 0.6667, "pl-PL", "PLN");
+      const full = `Licytacje Komornicze ${e.name} (${e.totalCount} Aktywnych)${low ? ` od ${low}` : ""}`;
+      if (full.length <= 65) return full;
+      return `Licytacje Komornicze ${e.name}: ${e.totalCount} Nieruchomości -33%`;
+    },
+    entryMetaDesc: (e) => {
+      const low = fmtMinEntry(e, 0.6667, "pl-PL", "PLN");
+      return `Sprawdź ${e.totalCount} aktywnych licytacji i e-licytacji komorniczych nieruchomości w lokalizacji ${e.name}${low ? ` już od ${low}` : ""}: mieszkania, domy i działki + 1 darmowe dossier.`;
     },
   },
 };

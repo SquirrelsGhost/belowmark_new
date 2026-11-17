@@ -16,7 +16,7 @@ import { TranslationService } from "@/services/TranslationService";
 import { BlogLang } from "@/types/blog.types";
 
 interface BlogShellProps {
-  lang: BlogLang;
+  lang: BlogLang | "nl" | "pl";
   children: ReactNode;
 }
 
@@ -29,6 +29,8 @@ const SEARCH_NAV_LABEL: Record<string, string> = {
   it: "Ricerca Live",
   es: "Buscador",
   fr: "Recherche",
+  nl: "Live Zoeken",
+  pl: "Wyszukiwarka",
 };
 
 export default async function BlogShell({ lang, children }: BlogShellProps) {
@@ -36,7 +38,12 @@ export default async function BlogShell({ lang, children }: BlogShellProps) {
   const t = TranslationService.GetTranslations(locale);
   const nav = t.Navigation;
   const homePrefix = "/";
-  const blogHref = lang === "de" ? ROUTES.blog : `/${lang}/blog`;
+  const blogHref =
+    lang === "de"
+      ? ROUTES.blog
+      : lang === "nl" || lang === "pl"
+        ? "/en/blog"
+        : `/${lang}/blog`;
   const atlasHref = lang === "en" || lang === "fr" || lang === "it" || lang === "es" || lang === "tr" ? `/${lang}/atlas` : "/atlas";
   const searchLabel = SEARCH_NAV_LABEL[lang] ?? "Live Search";
 

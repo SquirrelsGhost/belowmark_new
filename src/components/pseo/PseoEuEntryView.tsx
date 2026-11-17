@@ -92,6 +92,16 @@ function buildEntityFaq(entry: EuMarketLocationEntry, fmtAvg: string): { q: stri
         q: `How many live UK property auction lots are available in ${entry.name}?`,
         a: `There are currently ${entry.totalCount} active residential and commercial property auction lots tracked in ${entry.name} (${entry.nativeRegionName}), with an average market benchmark of ${fmtAvg} and standard 10% exchange deposit terms.`,
       };
+    case "NL":
+      return {
+        q: `Hoeveel executieveilingen en vastgoedkavels zijn er actief in ${entry.name}?`,
+        a: `Er zijn momenteel ${entry.totalCount} openbare executieveilingen en notariële vastgoedkavels actief in ${entry.name} (${entry.nativeRegionName}), met een gemiddelde referentiewaarde van ${fmtAvg} en ${entry.transferTaxPct}% overdrachtsbelasting.`,
+      };
+    case "PL":
+      return {
+        q: `Ile aktywnych licytacji komorniczych nieruchomości prowadzonych jest dla lokalizacji ${entry.name}?`,
+        a: `Obecnie dla lokalizacji ${entry.name} (${entry.nativeRegionName}) zarejestrowanych jest ${entry.totalCount} aktywnych licytacji i e-licytacji komorniczych nieruchomości ze średnią sumą oszacowania ${fmtAvg} oraz rękojmią 10% (art. 962 KPC).`,
+      };
   }
 }
 

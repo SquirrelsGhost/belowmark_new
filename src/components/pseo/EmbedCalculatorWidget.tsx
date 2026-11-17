@@ -12,7 +12,7 @@ interface EmbedCalculatorWidgetProps {
 interface CountryCalcSpec {
   flag: string;
   label: string;
-  currency: "EUR" | "CHF" | "GBP" | "TRY";
+  currency: "EUR" | "CHF" | "GBP" | "TRY" | "PLN";
   locale: string;
   defaultVal: number;
   minRatio: number;
@@ -34,6 +34,8 @@ const SPECS: Record<PricingCountryCode, CountryCalcSpec> = {
   ES: { flag: "🇪🇸", label: "ES · Subastas BOE", currency: "EUR", locale: "es-ES", defaultVal: 240000, minRatio: 0.5, safeRatio: 0.7, depRatio: 0.05, taxPct: 8.0, minLabel: "50 % Mínimo (Art. 670 LEC)", safeLabel: "70 % Firme Directo", depLabel: "5 % Depósito BOE", hubPath: "/es/subastas-boe" },
   FR: { flag: "🇫🇷", label: "FR · Enchères TJ / Licitor", currency: "EUR", locale: "fr-FR", defaultVal: 260000, minRatio: 0.45, safeRatio: 0.7, depRatio: 0.1, taxPct: 7.5, minLabel: "Mise à prix indicative", safeLabel: "Budget enchère cible", depLabel: "10 % Chèque CARPA", hubPath: "/fr/encheres-immobilieres" },
   GB: { flag: "🇬🇧", label: "GB · UK Property Auctions", currency: "GBP", locale: "en-GB", defaultVal: 250000, minRatio: 0.85, safeRatio: 0.95, depRatio: 0.1, taxPct: 5.0, minLabel: "Guide Price (85 %)", safeLabel: "Est. Reserve Target", depLabel: "10 % Exchange Deposit", hubPath: "/en/uk-property-auctions" },
+  NL: { flag: "🇳🇱", label: "NL · Executieveiling", currency: "EUR", locale: "nl-NL", defaultVal: 425000, minRatio: 0.7, safeRatio: 0.8, depRatio: 0.1, taxPct: 10.4, minLabel: "Inzetprijs (70 %)", safeLabel: "Doelbod (80 %)", depLabel: "10 % Waarborgsom", hubPath: "/nl/executieveiling" },
+  PL: { flag: "🇵🇱", label: "PL · Licytacje Komornicze", currency: "PLN", locale: "pl-PL", defaultVal: 450000, minRatio: 0.6667, safeRatio: 0.75, depRatio: 0.1, taxPct: 2.0, minLabel: "II Termin 2/3 (66,7 %)", safeLabel: "I Termin 3/4 (75 %)", depLabel: "10 % Rękojmia", hubPath: "/pl/licytacje-komornicze" },
 };
 
 export default function EmbedCalculatorWidget({ initialCountry }: EmbedCalculatorWidgetProps) {

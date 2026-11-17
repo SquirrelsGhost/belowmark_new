@@ -943,7 +943,9 @@ function mergeListingFallback(details: OfficialPortalDetails, listing: Listing):
   const isEs = listing.country === "ES" || listing.key.startsWith("es-boe-");
   const isFr = listing.country === "FR" || listing.key.startsWith("fr-");
   const isGb = listing.country === "GB" || listing.key.startsWith("gb-");
-  const isNonZvgPortal = isAt || isCh || isIt || isEs || isFr || isGb || listing.key.startsWith("zvgcom-");
+  const isNl = listing.country === "NL" || listing.key.startsWith("nl-");
+  const isPl = listing.country === "PL" || listing.key.startsWith("pl-");
+  const isNonZvgPortal = isAt || isCh || isIt || isEs || isFr || isGb || isNl || isPl || listing.key.startsWith("zvgcom-");
   const sourcePortal =
     details.sourcePortal ||
     listing.sourcePortal ||
@@ -969,9 +971,13 @@ function mergeListingFallback(details: OfficialPortalDetails, listing: Listing):
                     : listing.key.startsWith("gb-ce-")
                       ? "cliveemson.co.uk"
                       : "btgeddisonspropertyauctions.com"
-                  : listing.key.startsWith("zvgcom-")
-                    ? "zvg.com"
-                    : "zvg-portal.de");
+                  : isNl
+                    ? "vastgoedveiling.nl"
+                    : isPl
+                      ? "licytacje.komornik.pl"
+                      : listing.key.startsWith("zvgcom-")
+                        ? "zvg.com"
+                        : "zvg-portal.de");
   const rawCourtUrl = details.courtUrl ?? listing.courtUrl ?? null;
   const photoAttachments = Array.isArray(details.attachments)
     ? details.attachments.filter((a) => a.kind === "photos" && a.directUrl).map((a) => a.directUrl)
@@ -1060,10 +1066,14 @@ export class OfficialPortalService {
       listing.country === "ES" ||
       listing.country === "FR" ||
       listing.country === "GB" ||
+      listing.country === "NL" ||
+      listing.country === "PL" ||
       listing.key.startsWith("it-aste-") ||
       listing.key.startsWith("es-boe-") ||
       listing.key.startsWith("fr-") ||
-      listing.key.startsWith("gb-");
+      listing.key.startsWith("gb-") ||
+      listing.key.startsWith("nl-") ||
+      listing.key.startsWith("pl-");
 
     const cached = await readCache(listing.key);
     const isCacheComplete =

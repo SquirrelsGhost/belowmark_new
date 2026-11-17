@@ -16,24 +16,26 @@ export const MARKETS = ["DE", "TR"] as const;
 export type MarketCode = (typeof MARKETS)[number];
 export const DEFAULT_MARKET: MarketCode = "DE";
 
-/** All 8 countries selectable in the Pricing & Checkout sections (Option B localized pricing). */
-export const PRICING_COUNTRIES = ["DE", "AT", "CH", "IT", "ES", "FR", "GB", "TR"] as const;
+/** All 10 countries selectable in the Pricing & Checkout sections (Option B localized pricing). */
+export const PRICING_COUNTRIES = ["DE", "AT", "CH", "IT", "ES", "FR", "GB", "NL", "PL", "TR"] as const;
 export type PricingCountryCode = (typeof PRICING_COUNTRIES)[number];
 export const DEFAULT_PRICING_COUNTRY: PricingCountryCode = "DE";
 
 export const isPricingCountry = (value: unknown): value is PricingCountryCode =>
   typeof value === "string" && (PRICING_COUNTRIES as readonly string[]).includes(value);
 
-/** Maps any of the 8 pricing countries to its platform snapshot market (7 European countries → DE, Turkey → TR). */
+/** Maps any of the 10 pricing countries to its platform snapshot market (9 European countries → DE, Turkey → TR). */
 export const pricingCountryToMarket = (country: PricingCountryCode): MarketCode =>
   country === "TR" ? "TR" : "DE";
 
-/** Maps any of the 8 pricing countries to its native UI language. */
+/** Maps any of the 10 pricing countries to its UI language. */
 export const pricingCountryToLocale = (country: PricingCountryCode): LocaleOption => {
   switch (country) {
     case "TR":
       return "tr";
     case "GB":
+    case "NL":
+    case "PL":
       return "en";
     case "IT":
       return "it";

@@ -224,6 +224,8 @@ export default async function HomePage() {
                 ES: { label: Pricing.Markets.ES.Label, scope: Pricing.Markets.ES.Scope },
                 FR: { label: Pricing.Markets.FR.Label, scope: Pricing.Markets.FR.Scope },
                 GB: { label: Pricing.Markets.GB.Label, scope: Pricing.Markets.GB.Scope },
+                NL: { label: Pricing.Markets.NL.Label, scope: Pricing.Markets.NL.Scope },
+                PL: { label: Pricing.Markets.PL.Label, scope: Pricing.Markets.PL.Scope },
                 TR: { label: Pricing.Markets.TR.Label, scope: Pricing.Markets.TR.Scope },
               }}
             />
@@ -275,8 +277,10 @@ export default async function HomePage() {
           <FooterLink href="/schweiz/shab-versteigerungen" label="🇨🇭 CH · SHAB Steigerungen (26 Kantone)" />
           <FooterLink href="/it/aste-giudiziarie" label="🇮🇹 IT · Aste Giudiziarie PVP (20 Regioni)" />
           <FooterLink href="/es/subastas-boe" label="🇪🇸 ES · Subastas BOE (17 CCAA)" />
-          <FooterLink href="/fr/encheres-immobilieres" label="🇫🇷 FR · Enchères Licitor (13 Régions)" />
+          <FooterLink href="/fr/encheres-immobilieres" label="🇫🇷 FR · Enchères TJ & Notaires (13 Régions)" />
           <FooterLink href="/en/uk-property-auctions" label="🇬🇧 UK · Property Auctions (12 Regions)" />
+          <FooterLink href="/nl/executieveiling" label="🇳🇱 NL · Executieveilingen (12 Provincies)" />
+          <FooterLink href="/pl/licytacje-komornicze" label="🇵🇱 PL · Licytacje Komornicze (16 Woj.)" />
           <FooterLink href="/tr/icra-ihale" label="🇹🇷 TR · İcra & İhale (81 İl)" />
         </FooterColumn>
         <FooterColumn title={t.Footer.SourcesTitle}>
@@ -287,6 +291,8 @@ export default async function HomePage() {
           <FooterLink href="/es/calculadora/subasta-judicial-boe-70-por-ciento" label="🧮 ES · Calculadora BOE 70% LEC" />
           <FooterLink href="/fr/calculateur/encheres-judiciaires-licitor-frais" label="🧮 FR · Calculateur Frais Licitor" />
           <FooterLink href="/en/calculator/uk-property-auction-stamp-duty-deposit" label="🧮 UK · Auction & SDLT Calculator" />
+          <FooterLink href="/nl/calculator/executieveiling-kosten-overdrachtsbelasting" label="🧮 NL · Executieveiling Calculator" />
+          <FooterLink href="/pl/kalkulator/licytacja-komornicza-wadium" label="🧮 PL · Kalkulator Licytacji KPC" />
           <FooterLink href="/tr/hesaplama/icra-ihale-teminat" label="🧮 TR · İcra Teminat Hesaplama" />
         </FooterColumn>
         <FooterColumn title={t.Footer.LegalTitle}>

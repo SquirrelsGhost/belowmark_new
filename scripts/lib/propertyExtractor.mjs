@@ -1901,9 +1901,9 @@ export function parseFrLicitorHtml(html, stub = {}) {
 }
 
 const FR_NOTAIRES_TYPE_MAP = {
-  APP: { label: "Appartement", seg: "condo" },
+  APP: { label: "Appartement", seg: "apartment" },
   MAI: { label: "Maison / Villa", seg: "house" },
-  IMM: { label: "Immeuble de rapport", seg: "multi" },
+  IMM: { label: "Immeuble de rapport", seg: "multiFamily" },
   TER: { label: "Terrain constructible", seg: "land" },
   LOC: { label: "Local commercial / professionnel", seg: "commercial" },
   PRO: { label: "Local professionnel", seg: "commercial" },
@@ -2447,5 +2447,361 @@ export function parseTrIlanGovDetail(contentHtml, stub = {}) {
     };
   });
 }
+
+const NL_PROVINCE_TO_STATE = {
+  "noord-holland": "Noord-Holland",
+  "zuid-holland": "Zuid-Holland",
+  "noord-brabant": "Noord-Brabant",
+  gelderland: "Gelderland",
+  utrecht: "Utrecht",
+  overijssel: "Overijssel",
+  limburg: "Limburg",
+  friesland: "Friesland",
+  fryslân: "Friesland",
+  groningen: "Groningen",
+  drenthe: "Drenthe",
+  flevoland: "Flevoland",
+  zeeland: "Zeeland",
+};
+
+/**
+ * Parses a Dutch Vastgoedveiling / Veilingnotaris auction record + optional detail JSON.
+ */
+export function parseNlVastgoedItem(summary = {}, detail = {}) {
+  const id = summary.id || detail.id;
+  if (!id) return null;
+  const land = String(summary.land || detail.land || "nl").toLowerCase();
+  if (land !== "nl") return null;
+
+  const key = `nl-vv-${id}`;
+  const encodedKey = encodeURIComponent(key);
+
+  const rawProv = String(detail.provincie || summary.provincie || "Noord-Holland").trim();
+  const state = NL_PROVINCE_TO_STATE[rawProv.toLowerCase()] || "Noord-Holland";
+
+  const place = decodeHtmlText(detail.plaats || summary.plaats || "Nederland").trim();
+  const postcode = String(detail.postcode || summary.postcode || "").trim() || null;
+  const streetParts = [
+    decodeHtmlText(detail.straat || summary.straat || "").trim(),
+    String(detail.huisnummer || summary.huisnummer || "").trim(),
+    String(detail.huisnummer_toevoeging || summary.huisnummer_toevoeging || "").trim(),
+  ].filter(Boolean);
+  const street = streetParts.length > 0 ? streetParts.join(" ").replace(/\s+/g, " ") : null;
+
+  const objType = decodeHtmlText(detail.object_type || summary.object_type || "Woonhuis").trim();
+  const hoofdCat = decodeHtmlText(detail.object_type_hoofdcategorie || summary.object_type_hoofdcategorie || "").toLowerCase();
+  let seg = "house";
+  if (/appartement|bovenwoning|benedenwoning|portiek|maisonnette|studio|penthouse/i.test(objType)) {
+    seg = "apartment";
+  } else if (/bouwgrond|bouwkavel|perceel|grond|kavel/i.test(objType) || hoofdCat.includes("grond")) {
+    seg = "land";
+  } else if (/commercieel|bedrijf|kantoor|winkel|horeca|restaurant|hotel|loods|hal|belegging/i.test(`${objType} ${hoofdCat}`)) {
+    seg = "commercial";
+  } else if (/woon|huis|villa|bungalow|boerderij|tussenwoning|hoekwoning|twee-onder|twéé-onder/i.test(`${objType} ${hoofdCat}`)) {
+    seg = "house";
+  } else {
+    seg = classifyDachSegment(objType, hoofdCat);
+  }
+
+  const extractFirstNum = (raw) => {
+    if (raw === null || raw === undefined) return null;
+    const m = /(\d{2,6}(?:[.,]\d{1,2})?)/.exec(String(raw).replace(/\.(?=\d{3}\b)/g, ""));
+    if (!m) return null;
+    const n = Number(m[1].replace(",", "."));
+    return Number.isFinite(n) && n > 0 ? Math.round(n) : null;
+  };
+
+  const livingAreaM2 = extractFirstNum(detail.oppervlakte_object);
+  const landAreaM2 = extractFirstNum(detail.oppervlakte_perceel);
+  const yearVal = /\b(1[789]\d{2}|20[0-2]\d)\b/.exec(String(detail.bouwjaar || ""))?.[1];
+  const yearBuilt = yearVal ? Number(yearVal) : null;
+
+  const hoogste = Number(summary.extended_status?.hoogste_opbod || detail.extended_status?.hoogste_opbod || 0);
+  const afslagStart = Number(detail.startbod_op_afslag || summary.extended_status?.startbod_op_afslag || 0);
+  const inzetOpen = Number(detail.inzetfase_openingsbod || 0);
+
+  let appraisedValue = null;
+  if (hoogste >= 50_000) {
+    appraisedValue = Math.round(hoogste * 1.25);
+  } else if (livingAreaM2 && livingAreaM2 >= 20 && livingAreaM2 <= 2500) {
+    appraisedValue = Math.round(livingAreaM2 * (seg === "commercial" ? 2400 : 3950));
+  } else if (landAreaM2 && landAreaM2 >= 50) {
+    appraisedValue = Math.round(Math.min(landAreaM2 * 380, 1_850_000));
+  } else if (afslagStart >= 80_000 && afslagStart !== 500_000 && afslagStart !== 1_000_000) {
+    appraisedValue = Math.round(afslagStart * 0.78);
+  } else {
+    appraisedValue = 365_000;
+  }
+
+  const minimumBid =
+    inzetOpen >= 25_000
+      ? Math.round(inzetOpen)
+      : hoogste >= 40_000
+        ? Math.round(hoogste)
+        : Math.round(appraisedValue * 0.7);
+  const depositAmount = Math.round(minimumBid * 0.1);
+
+  const notarisOffice = decodeHtmlText(summary.notaris_naam || detail.notaris_naam || "Veilingnotaris").trim();
+  const veilendeNotaris = decodeHtmlText(detail.veilende_notaris || "").replace(/\s+/g, " ").trim();
+  const authority = veilendeNotaris ? `${notarisOffice} (${veilendeNotaris})` : notarisOffice;
+
+  const isExecutie = String(summary.type_verkoop || detail.type_verkoop || "").includes("executie");
+  const proceedingKind = isExecutie
+    ? "Openbare Executieveiling (Art. 3:268 BW · Hypotheekexecutie)"
+    : "Notariële Online Vastgoedveiling (Inzet & Afslag)";
+
+  const kadaster = decodeHtmlText(detail.kadastrale_gegevens || "").trim() || null;
+  const grundbuch = [kadaster, `Veiling-ID ${id}`].filter(Boolean).join(" · ");
+
+  const descParts = [
+    decodeHtmlText(detail.omschrijving_registergoed || "", true),
+    decodeHtmlText(detail.omschrijving_makelaar || "", true),
+    decodeHtmlText(detail.belangrijke_objectinformatie || "", true),
+    decodeHtmlText(detail.status_bericht || "", true),
+    kadaster ? `Kadastrale aanduiding: ${kadaster}` : null,
+  ].filter(Boolean);
+  const description = descParts.join("\n\n").slice(0, 2800) || `${objType} — ${place} (${postcode || state})`;
+
+  const slugPart = String(summary.name || `${place}-${id}`)
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+  const detailUrl = `https://vastgoedveiling.nl/veiling/${id}/${slugPart}`;
+
+  const photoUrl =
+    detail.afbeeldingen?.[0]?.url ||
+    summary.afbeeldingen?.[0]?.url ||
+    summary.thumb ||
+    detail.thumb ||
+    null;
+  const vwPdf = detail.bijzondere_veilingvoorwaarden || null;
+  const attachments = [];
+  if (vwPdf && /^https?:\/\//i.test(vwPdf)) {
+    attachments.push({
+      id: "nl-voorwaarden-pdf",
+      kind: "announcement",
+      label: "Bijzondere Veilingvoorwaarden (Notaris PDF)",
+      fileName: `veilingvoorwaarden-${id}.pdf`,
+      proxyUrl: `/api/quelle/${encodedKey}?fileId=nl-voorwaarden-pdf`,
+      directUrl: vwPdf,
+    });
+  }
+  if (photoUrl) {
+    attachments.push({
+      id: "nl-photo-1",
+      kind: "photos",
+      label: "Objectfoto (Vastgoedveiling)",
+      fileName: `nl-vv-${id}.webp`,
+      proxyUrl: `/api/quelle/${encodedKey}?fileId=nl-photo-1`,
+      directUrl: photoUrl,
+    });
+  }
+
+  const lat = Number(summary.latitude_custom || summary.latitude || detail.latitude || 0);
+  const lng = Number(summary.longitude_custom || summary.longitude || detail.longitude || 0);
+
+  return {
+    key,
+    authority,
+    fileNo: `VV-${id}${kadaster ? ` · ${kadaster.slice(0, 42)}` : ""}`,
+    proceedingKind,
+    grundbuch,
+    description,
+    detailUrl,
+    documentUrl: vwPdf || detailUrl,
+    firstSeenAt: String(summary.publicatiedatum || detail.publicatiedatum || "").slice(0, 10) || null,
+    hearingAt: summary.starttijd || detail.starttijd || summary.eindtijd || null,
+    endAt: summary.eindtijd || detail.eindtijd || null,
+    street,
+    postcode,
+    place,
+    state,
+    segmentLabel: objType,
+    segment: seg,
+    livingAreaM2,
+    usableAreaM2: null,
+    landAreaM2,
+    rooms: null,
+    yearBuilt,
+    appraisedValue,
+    minimumBid,
+    depositAmount,
+    lat: lat > 50.5 && lat < 53.7 ? lat : null,
+    lng: lng > 3.2 && lng < 7.3 ? lng : null,
+    photoUrl,
+    attachments,
+  };
+}
+
+const PL_PROVINCE_TO_STATE = {
+  mazowieckie: "Mazowieckie",
+  śląskie: "Śląskie",
+  slaskie: "Śląskie",
+  małopolskie: "Małopolskie",
+  malopolskie: "Małopolskie",
+  wielkopolskie: "Wielkopolskie",
+  dolnośląskie: "Dolnośląskie",
+  dolnoslaskie: "Dolnośląskie",
+  pomorskie: "Pomorskie",
+  łódzkie: "Łódzkie",
+  lodzkie: "Łódzkie",
+  "kujawsko-pomorskie": "Kujawsko-Pomorskie",
+  zachodniopomorskie: "Zachodniopomorskie",
+  lubelskie: "Lubelskie",
+  podkarpackie: "Podkarpackie",
+  "warmińsko-mazurskie": "Warmińsko-Mazurskie",
+  "warminsko-mazurskie": "Warmińsko-Mazurskie",
+  lubuskie: "Lubuskie",
+  podlaskie: "Podlaskie",
+  świętokrzyskie: "Świętokrzyskie",
+  swietokrzyskie: "Świętokrzyskie",
+  opolskie: "Opolskie",
+};
+
+const PL_SUBCATEGORY_MAP = {
+  APARTMENTS: { label: "Mieszkanie / Lokal mieszkalny", seg: "apartment" },
+  HOUSES: { label: "Dom jednorodzinny", seg: "house" },
+  LAND: { label: "Działka / Nieruchomość gruntowa", seg: "land" },
+  COMMERCIAL_PREMISES: { label: "Lokal użytkowy", seg: "commercial" },
+  COMMERCIAL_PREMISESISES: { label: "Lokal użytkowy", seg: "commercial" },
+  WAREHOUSES_AND_HALLS: { label: "Magazyn / Hala przemysłowa", seg: "commercial" },
+  GARAGES: { label: "Garaż / Miejsce postojowe", seg: "other" },
+  OTHER: { label: "Nieruchomość z licytacji", seg: "other" },
+};
+
+/**
+ * Parses an official Polish Bailiff Council (licytacje.komornik.pl / elicytacje.komornik.pl)
+ * real estate auction search item + optional detail JSON (`rest/item/${id}`).
+ */
+export function parsePlKomornikItem(summary = {}, detail = null) {
+  const id = summary.id || detail?.id;
+  if (!id) return null;
+  const key = `pl-komornik-${id}`;
+
+  const estimate = Math.round(Number(detail?.estimate || summary.estimate || 0));
+  const openingValue = Math.round(Number(detail?.openingValue || summary.openingValue || 0));
+  if (estimate < 5000 && openingValue < 3500) return null;
+
+  const appraisedValue = estimate >= 5000 ? estimate : Math.round(openingValue / 0.75);
+  const minimumBid = openingValue >= 3500 ? openingValue : Math.round(appraisedValue * 0.75);
+  const depositAmount = Math.round(Number(detail?.margin || appraisedValue * 0.1));
+
+  const addr = summary.address || {};
+  const rawProv = String(addr.province || summary.province || detail?.bailiffData?.addressData?.address?.province || "mazowieckie")
+    .trim()
+    .toLowerCase();
+  const state = PL_PROVINCE_TO_STATE[rawProv] || "Mazowieckie";
+
+  const place = decodeHtmlText(addr.city || detail?.city || "Polska").trim();
+  const postcode = addr.zipCode ? String(addr.zipCode).trim() : null;
+  const streetBase = addr.street ? decodeHtmlText(addr.street).trim() : null;
+  const housePart = [addr.buildingNo, addr.flatNo ? `/${addr.flatNo}` : ""].filter(Boolean).join("");
+  const street = streetBase ? [streetBase, housePart].filter(Boolean).join(" ").trim() : null;
+
+  const subCatCode = String(summary.subCategory || detail?.itemCategory?.code || "OTHER").toUpperCase();
+  const catEntry = PL_SUBCATEGORY_MAP[subCatCode] || PL_SUBCATEGORY_MAP.OTHER;
+  const seg = catEntry.seg;
+  const segmentLabel = catEntry.label;
+
+  const rawTitle = decodeHtmlText(summary.title || detail?.name || "").trim();
+  const descHtml = detail?.description || detail?.htmlContent || "";
+  const descClean = descHtml ? decodeHtmlText(descHtml, true).trim() : "";
+
+  // Area (m² / mkw / ha) from detail.additionalParams.AREA, title, or description
+  const paramArea = Number(String(detail?.additionalParams?.AREA?.value || "").replace(",", "."));
+  const titleM2Match = /(\d{1,5}(?:[.,]\d{1,2})?)\s*(?:mkw|m2|m²)/i.exec(`${rawTitle} ${descClean}`);
+  const parsedM2 = Number.isFinite(paramArea) && paramArea > 0
+    ? paramArea
+    : titleM2Match
+      ? parseLocalizedNumber(titleM2Match[1])
+      : null;
+
+  const livingAreaM2 = parsedM2 && seg !== "land" && parsedM2 <= 3500 ? Math.round(parsedM2) : null;
+  const landAreaM2 = parsedM2 && (seg === "land" || parsedM2 > 3500) ? Math.round(parsedM2) : null;
+
+  const paramRooms = Number(detail?.additionalParams?.NUMBEROFROOMS?.value || 0);
+  const roomsMatch = /(\d{1,2})\s*poko(?:i|je|jowe)/i.exec(descClean);
+  const roomsCount = paramRooms > 0 ? paramRooms : roomsMatch ? Number(roomsMatch[1]) : null;
+  const rooms = roomsCount ? `${roomsCount} Zi.` : null;
+
+  const paramYear = Number(detail?.additionalParams?.YEAROFCONSTRUCTION?.value || 0);
+  const yearBuilt = paramYear >= 1800 && paramYear <= 2026 ? paramYear : extractYearBuilt(descClean);
+
+  const rawInst = decodeHtmlText(detail?.institutionName || detail?.bailiffData?.addressData?.institutionName || "").trim();
+  // Shorten ultra-long bailiff titles cleanly while preserving Sąd Rejonowy name
+  const sadMatch = /przy\s+(S[aą]dzie\s+Rejonowym[^K\n]{4,85}?)(?:\s+[A-ZŚŁŻŹĆŃÓ][a-ząćęłńóśźż-]+\s+[A-ZŚŁŻŹĆŃÓ][a-ząćęłńóśźż-]+|\s+Kancelaria|$)/.exec(rawInst);
+  const authority = sadMatch
+    ? `Komornik przy ${sadMatch[1].trim()}`
+    : rawInst
+      ? rawInst.slice(0, 95).trim()
+      : `Komornik Sądowy (${place})`;
+
+  const signature = detail?.signature ? String(detail.signature).trim() : null;
+  const noticeId = summary.noticeId || detail?.noticeId || null;
+  const fileNo = signature
+    ? `${signature} · ID ${id}`
+    : noticeId
+      ? `KRK #${noticeId} · ID ${id}`
+      : `KRK-EL-${id}`;
+
+  const isSecondRound =
+    detail?.auctionType === "SECOND" ||
+    (appraisedValue > 0 && Math.abs(minimumBid / appraisedValue - 2 / 3) < 0.03);
+  const proceedingKind = isSecondRound
+    ? "II E-Licytacja Komornicza Nieruchomości (Cena wywołania 2/3 · Art. 983 KPC)"
+    : "I E-Licytacja Komornicza Nieruchomości (Cena wywołania 3/4 · Art. 965 KPC)";
+
+  const kwMatch = /\b([A-Z]{2}\d[A-Z]\/\d{8}\/\d)\b/.exec(descClean);
+  const ownership = detail?.additionalParams?.FORMOFOWNERSHIP?.value || null;
+  const grundbuch = [
+    kwMatch ? `KW ${kwMatch[1]}` : null,
+    ownership ? String(ownership) : null,
+    signature ? `Sygn. ${signature}` : null,
+  ].filter(Boolean).join(" · ") || `Woj. ${state} · ${place}`;
+
+  const startAt = summary.startAuctionAt || detail?.startAuction || null;
+  const endAt = summary.endAuctionAt || detail?.endAuction || detail?.plannedEndAuction || null;
+  const firstSeenAt = String(summary.dateCreated || detail?.dateCreated || "").slice(0, 10) || null;
+  const detailUrl = `https://elicytacje.komornik.pl/items/${id}`;
+
+  const description = descClean || [segmentLabel, rawTitle, street, `${postcode || ""} ${place}`.trim()].filter(Boolean).join(" · ");
+
+  const locLat = Number(summary.location?.lat || 0);
+  const locLng = Number(summary.location?.lon || 0);
+
+  return {
+    key,
+    authority,
+    fileNo,
+    proceedingKind,
+    grundbuch,
+    description: description.slice(0, 2600),
+    detailUrl,
+    firstSeenAt,
+    hearingAt: startAt,
+    endAt,
+    street,
+    postcode,
+    place,
+    state,
+    segmentLabel,
+    segment: seg,
+    livingAreaM2,
+    usableAreaM2: null,
+    landAreaM2,
+    rooms,
+    yearBuilt,
+    appraisedValue,
+    minimumBid,
+    depositAmount,
+    isSecondRound,
+    lat: locLat > 48.9 && locLat < 55.0 ? locLat : null,
+    lng: locLng > 14.0 && locLng < 24.3 ? locLng : null,
+    attachments: [],
+  };
+}
+
 
 

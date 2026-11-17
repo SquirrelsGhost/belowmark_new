@@ -137,6 +137,18 @@ export function getBorisPortal(listing: Listing): { name: string; url: string } 
       url: listing.geoportalUrl ?? "https://landregistry.data.gov.uk/app/ppd/",
     };
   }
+  if (listing.country === "NL" || listing.key.startsWith("nl-")) {
+    return {
+      name: listing.geoportalName ?? "Kadaster & PDOK Kadastrale Kaart (NL)",
+      url: listing.geoportalUrl ?? "https://app.pdok.nl/viewer/",
+    };
+  }
+  if (listing.country === "PL" || listing.key.startsWith("pl-")) {
+    return {
+      name: listing.geoportalName ?? "Geoportal Krajowy (GUGiK · Działki & KW)",
+      url: listing.geoportalUrl ?? "https://mapy.geoportal.gov.pl/",
+    };
+  }
   const code = (listing.regionCode ?? "").toLowerCase();
   return BORIS_BY_STATE[code] ?? { name: "BORIS-D Bodenrichtwert-Portal", url: "https://www.bodenrichtwerte-boris.de/" };
 }
@@ -296,6 +308,46 @@ export function getMarketComparisonLinks(listing: Listing): ComparisonPortalLink
         name: "HM Land Registry PPD",
         sub: `${listing.place ?? listing.region ?? "UK Postcode"}`,
         href: "https://landregistry.data.gov.uk/app/ppd/",
+      },
+    ];
+  }
+
+  if (listing.country === "NL" || listing.key.startsWith("nl-")) {
+    return [
+      {
+        name: "Funda.nl Vergelijk",
+        sub: loc || "Woningaanbod (NL)",
+        href: `https://www.google.com/search?q=${encodeURIComponent(`site:funda.nl koop ${loc}`)}`,
+      },
+      {
+        name: "Huispedia Waarde",
+        sub: loc || "Marktwaarde & m²-prijs",
+        href: `https://www.google.com/search?q=${encodeURIComponent(`site:huispedia.nl ${loc}`)}`,
+      },
+      {
+        name: "Kadaster / WOZ-waardeloket",
+        sub: `${listing.place ?? listing.region ?? "Nederland"}`,
+        href: "https://www.wozwaardeloket.nl/",
+      },
+    ];
+  }
+
+  if (listing.country === "PL" || listing.key.startsWith("pl-")) {
+    return [
+      {
+        name: "Otodom.pl Porównanie",
+        sub: loc || "Ceny rynkowe (PL)",
+        href: `https://www.google.com/search?q=${encodeURIComponent(`site:otodom.pl sprzedaż ${loc}`)}`,
+      },
+      {
+        name: "Gratka / Morizon",
+        sub: loc || "Oferty lokalne",
+        href: `https://www.google.com/search?q=${encodeURIComponent(`site:morizon.pl OR site:gratka.pl nieruchomosci ${loc}`)}`,
+      },
+      {
+        name: "Geoportal Krajowy (GUGiK)",
+        sub: `${listing.place ?? listing.region ?? "Polska"}`,
+        href: "https://mapy.geoportal.gov.pl/",
       },
     ];
   }

@@ -1,3 +1,4 @@
+import { EXTRA_PRICING_MARKETS } from "../extraPricingMarkets";
 import { ITranslation } from "../ITranslation";
 import { APP_ES } from "./appEs";
 
@@ -573,6 +574,7 @@ export const ES: ITranslation = {
             Note: "Cancelable mes a mes.",
           },
         },
+        ...EXTRA_PRICING_MARKETS.es,
         TR: {
           Label: "Turquía",
           Scope: "İcra & İhale · 81 Provincias",

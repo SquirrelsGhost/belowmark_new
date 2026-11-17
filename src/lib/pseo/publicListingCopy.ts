@@ -10,7 +10,7 @@ const LOCALE_FMT: Record<PseoLocale, string> = {
   fr: "fr-FR",
 };
 
-export function fmtPublicMoney(amount: number | null, currency: "EUR" | "CHF" | "GBP" | "TRY", locale: PseoLocale, fallback: string): string {
+export function fmtPublicMoney(amount: number | null, currency: "EUR" | "CHF" | "GBP" | "TRY" | "PLN", locale: PseoLocale, fallback: string): string {
   if (!amount || amount <= 0) return fallback;
   return new Intl.NumberFormat(LOCALE_FMT[locale], {
     style: "currency",

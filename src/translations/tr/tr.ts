@@ -1,3 +1,4 @@
+import { EXTRA_PRICING_MARKETS } from "../extraPricingMarkets";
 import { ITranslation } from "../ITranslation";
 import { APP_TR } from "./appTr";
 
@@ -573,6 +574,7 @@ export const TR: ITranslation = {
             Note: "Aylık iptal edilebilir.",
           },
         },
+        ...EXTRA_PRICING_MARKETS.tr,
         TR: {
           Label: "Türkiye",
           Scope: "İcra & İhale · 81 il",

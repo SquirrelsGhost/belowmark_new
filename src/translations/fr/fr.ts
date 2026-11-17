@@ -1,3 +1,4 @@
+import { EXTRA_PRICING_MARKETS } from "../extraPricingMarkets";
 import { ITranslation } from "../ITranslation";
 import { APP_FR } from "./appFr";
 
@@ -573,6 +574,7 @@ export const FR: ITranslation = {
             Note: "Résiliable mensuellement.",
           },
         },
+        ...EXTRA_PRICING_MARKETS.fr,
         TR: {
           Label: "Turquie",
           Scope: "İcra & İhale · 81 Provinces",

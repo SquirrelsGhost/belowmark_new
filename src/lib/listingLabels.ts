@@ -51,6 +51,8 @@ export function getMapQuery(listing: Listing): string {
     ES: "España",
     FR: "France",
     GB: "United Kingdom",
+    NL: "Nederland",
+    PL: "Polska",
     DE: "Deutschland",
   };
   const countryName = countryMap[listing.country ?? "DE"] ?? "Deutschland";
@@ -70,6 +72,8 @@ export function getListingSourceTag(listing: Listing): string | null {
     return listing.key.startsWith("fr-avo-") ? "FR · Avoventes TJ" : "FR · Licitor TJ";
   }
   if (listing.country === "GB" || listing.key.startsWith("gb-")) return "UK · Property Auction";
+  if (listing.country === "NL" || listing.key.startsWith("nl-")) return "NL · Executieveiling";
+  if (listing.country === "PL" || listing.key.startsWith("pl-")) return "PL · Licytacje KRK";
   if (listing.sourcePortal === "zvg.com" || listing.key.startsWith("zvgcom-")) return "zvg.com";
   return null;
 }
@@ -141,9 +145,11 @@ export function getDachPurchaseLabels(
   const isEs = listing.country === "ES" || listing.key.startsWith("es-boe-");
   const isFr = listing.country === "FR" || listing.key.startsWith("fr-");
   const isGb = listing.country === "GB" || listing.key.startsWith("gb-");
+  const isNl = listing.country === "NL" || listing.key.startsWith("nl-");
+  const isPl = listing.country === "PL" || listing.key.startsWith("pl-");
   const isTr = locale === "tr";
   return {
-    isCh: isCh || isFr || isGb,
+    isCh: isCh || isFr || isGb || isNl,
     valueLabel: isAt
       ? isTr ? "Ekspertiz Değeri (§ 140 EO)" : "Schätzwert (§ 140 EO)"
       : isCh
@@ -156,7 +162,11 @@ export function getDachPurchaseLabels(
               ? isTr ? "Bölge Piyasa Referansı (DVF)" : "Lokaler Marktreferenzwert (DVF/m²)"
               : isGb
                 ? isTr ? "Piyasa Referans Değeri (RICS)" : "Marktreferenzwert (RICS Schätzung)"
-                : L.Value[listing.market],
+                : isNl
+                  ? isTr ? "Piyasa Referans Değeri (NL)" : "Marktreferenzwert (Kadaster / Veiling)"
+                  : isPl
+                    ? isTr ? "Ekspertiz Değeri (Suma oszacowania)" : "Suma oszacowania (Gerichtsschätzwert)"
+                    : L.Value[listing.market],
     halfLabel: isAt
       ? isTr ? "Asgari Teklif (§ 151 EO)" : "Geringstes Gebot (§ 151 EO)"
       : isCh
@@ -169,7 +179,11 @@ export function getDachPurchaseLabels(
               ? isTr ? "Açılış Fiyatı (Mise à prix)" : "Mise à prix (Ausrufpreis TJ)"
               : isGb
                 ? isTr ? "Katalog Başlangıç (Guide Price)" : "Guide Price (Auktions-Richtpreis)"
-                : L.Half,
+                : isNl
+                  ? isTr ? "Açılış Fiyatı (Inzet / Afslag)" : "Inzet- / Richtpreis (Art. 3:268 BW)"
+                  : isPl
+                    ? isTr ? "Açılış Fiyatı (Cena wywołania)" : "Cena wywołania (3/4 bzw. 2/3 KPC)"
+                    : L.Half,
     depositLabel: isAt
       ? isTr ? "Teminat / Vadium (§ 147 EO)" : "Vadium (§ 147 EO · 10 %)"
       : isCh
@@ -182,13 +196,19 @@ export function getDachPurchaseLabels(
               ? isTr ? "Avukat Teminatı (Consignation)" : "Consignation préalable (Chèque de banque)"
               : isGb
                 ? isTr ? "İhale Teminatı (10% Exchange Deposit)" : "Exchange Deposit (10 % bei Zuschlag)"
-                : L.Deposit,
+                : isNl
+                  ? isTr ? "Noter Teminatı (10% Waarborgsom)" : "Waarborgsom (10 % Notariskonto)"
+                  : isPl
+                    ? isTr ? "İhale Teminatı (Rękojmia 10%)" : "Rękojmia / Wadium (Art. 962 KPC · 10 %)"
+                    : L.Deposit,
     secondLimitLabel: isAt || isIt
       ? isTr ? "3/4 Sınırı (75%)" : isIt ? "Prezzo Base (100 %)" : "3/4-Überbotsgrenze (§ 195 EO)"
       : isEs
         ? isTr ? "%70 İhale Sınırı (Art. 670 LEC)" : "70-%-Zuschlagsschwelle (Art. 670 LEC)"
-        : L.SevenTenths,
+        : isPl
+          ? isTr ? "I. İhale Sınırı (3/4 = 75%)" : "I. Termin 3/4-Grenze (Art. 965 KPC · 75 %)"
+          : L.SevenTenths,
     secondLimitVal: (value, sevenTenths) =>
-      isAt ? Math.round(value * 0.75) : isIt ? value : isEs ? Math.round(value * 0.7) : sevenTenths,
+      isAt || isPl ? Math.round(value * 0.75) : isIt ? value : isEs ? Math.round(value * 0.7) : sevenTenths,
   };
 }

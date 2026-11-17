@@ -25,6 +25,8 @@ export function slugifyPseo(input: string): string {
     .replace(/İ/g, "i")
     .replace(/I/g, "i")
     .replace(/ı/g, "i")
+    .replace(/Ł/g, "l")
+    .replace(/ł/g, "l")
     .toLowerCase()
     .replace(/ä/g, "ae")
     .replace(/ö/g, "oe")
@@ -111,6 +113,8 @@ const EU_COURT_COLLISION_SUFFIX: Record<EuPseoMarketCode, string> = {
   ES: "juzgado",
   FR: "tribunal",
   GB: "court",
+  NL: "notaris",
+  PL: "komornik",
 };
 
 function detectEuMarket(l: Listing): EuPseoMarketCode | "DE" {
@@ -120,6 +124,8 @@ function detectEuMarket(l: Listing): EuPseoMarketCode | "DE" {
   if (l.country === "ES" || l.key.startsWith("es-boe-") || l.region?.endsWith("(ES)")) return "ES";
   if (l.country === "FR" || l.key.startsWith("fr-") || l.region?.endsWith("(FR)")) return "FR";
   if (l.country === "GB" || l.key.startsWith("gb-") || l.region?.endsWith("(UK)")) return "GB";
+  if (l.country === "NL" || l.key.startsWith("nl-") || l.region?.endsWith("(NL)")) return "NL";
+  if (l.country === "PL" || l.key.startsWith("pl-") || l.region?.endsWith("(PL)")) return "PL";
   return "DE";
 }
 
@@ -145,8 +151,17 @@ function toPreviewListing(l: Listing): PseoPreviewListing {
         ? "CHF"
         : euMarket === "GB"
           ? "GBP"
-          : "EUR";
-  const minRatio = euMarket === "IT" ? 0.75 : euMarket === "GB" ? 0.7 : 0.5;
+          : euMarket === "PL"
+            ? "PLN"
+            : "EUR";
+  const minRatio =
+    euMarket === "IT"
+      ? 0.75
+      : euMarket === "GB" || euMarket === "NL"
+        ? 0.7
+        : euMarket === "PL"
+          ? 0.6667
+          : 0.5;
   const depRatio = euMarket === "ES" ? 0.05 : 0.1;
 
   return {
@@ -526,6 +541,8 @@ async function buildCatalog(): Promise<PseoCatalog> {
     ES: [],
     FR: [],
     GB: [],
+    NL: [],
+    PL: [],
   };
 
   for (const l of allEuroListings) {
@@ -544,6 +561,8 @@ async function buildCatalog(): Promise<PseoCatalog> {
     ES: buildEuMarketCatalog("ES", euBuckets.ES),
     FR: buildEuMarketCatalog("FR", euBuckets.FR),
     GB: buildEuMarketCatalog("GB", euBuckets.GB),
+    NL: buildEuMarketCatalog("NL", euBuckets.NL),
+    PL: buildEuMarketCatalog("PL", euBuckets.PL),
   };
 
   // 1. Group strictly German (DE) ZVG proceedings by Court & City
@@ -785,7 +804,7 @@ async function buildCatalog(): Promise<PseoCatalog> {
     }
   }
 
-  const euMarketOrder: readonly EuPseoMarketCode[] = ["AT", "CH", "IT", "ES", "FR", "GB"];
+  const euMarketOrder: readonly EuPseoMarketCode[] = ["AT", "CH", "IT", "ES", "FR", "GB", "NL", "PL"];
 
   for (const m of euMarketOrder) {
     const euCat = euMarkets[m];

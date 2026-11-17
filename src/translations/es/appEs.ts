@@ -73,6 +73,8 @@ export const APP_ES: IAppTranslation = {
       ES: { Name: "España", Source: "Portal BOE", Region: "Comunidad autónoma" },
       FR: { Name: "Francia", Source: "Licitor TJ", Region: "Región" },
       GB: { Name: "Reino Unido", Source: "Property Auctions", Region: "Región" },
+      NL: { Name: "Países Bajos", Source: "Executieveiling", Region: "Provincia" },
+      PL: { Name: "Polonia", Source: "Licytacje Komornicze", Region: "Voivodato" },
       TR: { Name: "Turquía", Source: "İcra / ilan.gov.tr", Region: "Provincia" },
     },
     CountryEyebrow: "Tablón de edictos · {country} · {source}",
