@@ -958,9 +958,11 @@ function mergeListingFallback(details: OfficialPortalDetails, listing: Listing):
             : isEs
               ? "subastas.boe.es"
               : isFr
-                ? listing.key.startsWith("fr-avo-")
-                  ? "avoventes.fr"
-                  : "licitor.com"
+                ? listing.key.startsWith("fr-notaires-")
+                  ? "immobilier.notaires.fr"
+                  : listing.key.startsWith("fr-avo-")
+                    ? "avoventes.fr"
+                    : "licitor.com"
                 : isGb
                   ? listing.key.startsWith("gb-ah-")
                     ? "auctionhouse.co.uk"

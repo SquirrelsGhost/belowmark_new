@@ -67,7 +67,7 @@ function buildHaystack(listing: Listing): string {
     CH: "schweiz switzerland shab",
     IT: "italien italy italia aste giudiziarie",
     ES: "spanien spain espana boe subastas",
-    FR: "frankreich france licitor",
+    FR: "frankreich france licitor notaires avoventes immo-interactif",
     GB: "england uk united kingdom grossbritannien",
   };
   const countryTag = listing.market === "DE" ? cMap[getListingDachCountry(listing)] : null;

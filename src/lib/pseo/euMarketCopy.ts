@@ -323,26 +323,27 @@ export const EU_MARKET_COPY: Record<EuPseoMarketCode, EuMarketCopyConfig> = {
       `Listado actualizado de subastas judiciales del BOE (viviendas, locales y solares) en ${e.name} (${e.nativeRegionName}) — con Valor de Subasta BOE, umbral del 70% (Art. 670 LEC), depósito del 5% e ITP autonómico del ${e.transferTaxPct}%.`,
     entryMetaTitle: (e) => {
       const low = fmtMinEntry(e, 0.5, "es-ES", "EUR");
-      const full = `Subastas BOE ${e.name} Hoy (${e.totalCount} Activas)${low ? ` desde ${low}` : " en Directo"}`;
+      const full = `Subastas BOE ${e.name} (${e.totalCount} Hoy sin Cl@ve)${low ? ` desde ${low}` : " -50%"}`;
       if (full.length <= 65) return full;
-      const mid = `Subastas BOE ${e.name}: ${e.totalCount} Activas${low ? ` desde ${low}` : " Hoy"}`;
-      return mid.length <= 65 ? mid : `Subastas BOE ${e.name} (${e.totalCount} Activas Hoy)`;
+      const mid = `Subastas BOE ${e.name} (${e.totalCount} sin Cl@ve)${low ? ` · ${low}` : " -50%"}`;
+      if (mid.length <= 65) return mid;
+      return `Subastas BOE ${e.name}: ${e.totalCount} Activas sin Cl@ve -50%`;
     },
     entryMetaDesc: (e) => {
       const low = fmtMinEntry(e, 0.5, "es-ES", "EUR");
-      return `Consulta hoy en directo las ${e.totalCount} Subastas BOE activas en ${e.name}${low ? ` desde ${low} (-50% LEC)` : ""}: pisos, casas, locales y solares judiciales sin Cl@ve + 1 expediente gratis.`;
+      return `Buscador sin Cl@ve de las ${e.totalCount} Subastas BOE activas hoy en ${e.name}${low ? ` desde ${low} (-50% LEC)` : ""}: pisos, casas, garajes y locales judiciales + 1 expediente gratis.`;
     },
   },
   FR: {
-    hubEyebrow: "FRANCE · VENTES AUX ENCHÈRES LICITOR & TRIBUNAUX JUDICIAIRES · 13 RÉGIONS",
+    hubEyebrow: "FRANCE · TRIBUNAUX JUDICIAIRES, LICITOR & NOTAIRES · 13 RÉGIONS",
     hubTitle: (total, rCount, cCount) =>
-      `Ventes aux Enchères Immobilières France (Licitor & TJ) : Les ${rCount} Régions, ${cCount} Tribunaux et ${total} Lots`,
+      `Ventes aux Enchères Immobilières France (TJ, Licitor & Notaires) : ${rCount} Régions, ${cCount} Juridictions et ${total} Biens`,
     hubLead:
-      "Répertoire complet des ventes aux enchères immobilières judiciaires (adjudications à la barre du Tribunal Judiciaire, publications Licitor) dans les 13 régions françaises — avec Mise à prix, Cahier des conditions de vente, chèque de banque CARPA (10 %), délai de surenchère du dixième et droits d'enregistrement.",
+      "Répertoire complet des ventes aux enchères immobilières judiciaires (Tribunal Judiciaire, Licitor, Avoventes) et notariales (Chambres des Notaires, Immo-Interactif®) dans les 13 régions françaises — avec Mise à prix, consignation CARPA, surenchère du dixième et prix DVF/m².",
     hubMetaTitle: (total) =>
-      `Enchères Immobilières Judiciaires (${total} Biens Licitor & TJ)`,
+      `Enchères Immobilières France (${total} Biens TJ, Licitor & Notaires)`,
     hubMetaDesc: (total, rCount) =>
-      `Répertoire ouvert des ${total} ventes aux enchères immobilières judiciaires (Licitor & TJ, ${rCount} régions) : Mise à prix, décote DVF/m² et CARPA 10 %.`,
+      `Répertoire ouvert des ${total} ventes aux enchères immobilières judiciaires et notariales (${rCount} régions) : Mise à prix, décote DVF/m², CARPA 10 % et 1 dossier gratuit.`,
     calcButtonLabel: "🧮 Calculateur Gratuit Enchères Judiciaires : Mise à prix, Consignation CARPA 10 % & Frais →",
     ctaButtonLabel: "🎁 1 Dossier Gratuit : Cahier des Ventes, Rôle TJ & Comparatif DVF →",
     regionsHeading: (c) => `Les ${c} Régions de France (Ventes aux Enchères Licitor & TJ)`,

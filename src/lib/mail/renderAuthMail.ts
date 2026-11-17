@@ -182,17 +182,27 @@ export function renderAuthMail({
       </td>
     </tr>`;
 
+  const formattedOtp = verificationCode ? formatOtpDisplay(verificationCode) : null;
+  const effectiveSubject =
+    formattedOtp && !template.Subject.includes(formattedOtp)
+      ? `${formattedOtp} — ${template.Subject}`
+      : template.Subject;
+  const effectivePreheader =
+    formattedOtp && !template.Preheader.includes(formattedOtp)
+      ? `Code: ${formattedOtp} · ${template.Preheader}`
+      : template.Preheader;
+
   const html = renderMailFrame({
     lang,
     docCode: docCode ?? chrome.defaultDocCode,
     eyebrow: eyebrow ?? chrome.defaultEyebrow,
-    subject: template.Subject,
-    preheader: template.Preheader,
+    subject: effectiveSubject,
+    preheader: effectivePreheader,
     bodyHtml,
     signature,
     footer,
     baseUrl,
   });
 
-  return { subject: template.Subject, text: lines.join("\n"), html };
+  return { subject: effectiveSubject, text: lines.join("\n"), html };
 }

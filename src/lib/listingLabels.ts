@@ -66,6 +66,7 @@ export function getListingSourceTag(listing: Listing): string | null {
   if (listing.country === "IT" || listing.key.startsWith("it-aste-")) return "IT · Aste Giudiziarie";
   if (listing.country === "ES" || listing.key.startsWith("es-boe-")) return "ES · Portal BOE";
   if (listing.country === "FR" || listing.key.startsWith("fr-")) {
+    if (listing.key.startsWith("fr-notaires-")) return "FR · Notaires Enchères";
     return listing.key.startsWith("fr-avo-") ? "FR · Avoventes TJ" : "FR · Licitor TJ";
   }
   if (listing.country === "GB" || listing.key.startsWith("gb-")) return "UK · Property Auction";

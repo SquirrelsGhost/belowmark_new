@@ -1455,11 +1455,37 @@ export function parseEsBoeHtml(htmlVer1, htmlVer3 = "", stub = {}) {
   const firstSeenAt = (extractIso(get1("fecha de inicio")) || "").slice(0, 10) || null;
   const hearingAt = extractIso(get1("fecha de conclusión")) || extractIso(stub.conclusionText) || null;
 
-  const valorSubasta = parseLocalizedNumber(get1("valor subasta"));
-  const tasacion = parseLocalizedNumber(get1("tasación"));
-  const appraisedValue = valorSubasta || tasacion || null;
-  const pujaMinima = parseLocalizedNumber(get1("puja mínima"));
-  const cantidadReclamada = parseLocalizedNumber(get1("cantidad reclamada"));
+  const sumRowsByHeader = (src, headerRe) => {
+    let sum = 0;
+    const re = /<tr[^>]*>\s*<th[^>]*>([\s\S]*?)<\/th>\s*<td[^>]*>([\s\S]*?)<\/td>\s*<\/tr>/gi;
+    for (const m of (src || "").matchAll(re)) {
+      const k = decodeHtmlText(m[1]).toLowerCase().trim();
+      if (!headerRe.test(k)) continue;
+      const num = parseLocalizedNumber(decodeHtmlText(m[2]));
+      if (num && num > 0) sum += num;
+    }
+    return sum > 0 ? Math.round(sum) : null;
+  };
+
+  const valorSubasta =
+    parseLocalizedNumber(get1("valor subasta")) ||
+    sumRowsByHeader(htmlVer3, /^valor\s+subasta$/i) ||
+    parseLocalizedNumber(get3("valor subasta"));
+  const tasacion =
+    parseLocalizedNumber(get1("tasación")) ||
+    parseLocalizedNumber(get1("valor de tasación")) ||
+    sumRowsByHeader(htmlVer3, /^(?:valor\s+de\s+)?tasaci[óo]n$/i) ||
+    parseLocalizedNumber(get3("valor de tasación")) ||
+    parseLocalizedNumber(get3("tasación"));
+  const rawDeposit =
+    parseLocalizedNumber(get1("importe del depósito")) ||
+    sumRowsByHeader(htmlVer3, /^importe\s+del\s+dep[óo]sito$/i) ||
+    parseLocalizedNumber(get3("importe del depósito"));
+  const appraisedValue =
+    valorSubasta || tasacion || (rawDeposit && rawDeposit >= 100 ? Math.round(rawDeposit * 20) : null);
+  const pujaMinima = parseLocalizedNumber(get1("puja mínima")) || parseLocalizedNumber(get3("puja mínima"));
+  const cantidadReclamada =
+    parseLocalizedNumber(get1("cantidad reclamada")) || parseLocalizedNumber(get3("cantidad reclamada"));
   const minimumBid =
     pujaMinima && pujaMinima >= 1000
       ? pujaMinima
@@ -1468,7 +1494,7 @@ export function parseEsBoeHtml(htmlVer1, htmlVer3 = "", stub = {}) {
         : appraisedValue
           ? Math.round(appraisedValue * 0.7)
           : null;
-  const depositAmount = parseLocalizedNumber(get1("importe del depósito")) || (appraisedValue ? Math.round(appraisedValue * 0.05) : null);
+  const depositAmount = rawDeposit || (appraisedValue ? Math.round(appraisedValue * 0.05) : null);
 
   const rawDesc = get3("descripción") || stub.summary || null;
   const street = get3("dirección") || null;
@@ -1480,7 +1506,18 @@ export function parseEsBoeHtml(htmlVer1, htmlVer3 = "", stub = {}) {
 
   const rawLocality = get3("localidad") || "";
   const rawProv = (get3("provincia") || "").split("/")[0].trim();
-  const place = rawLocality ? rawLocality.charAt(0).toUpperCase() + rawLocality.slice(1).toLowerCase() : provInfo?.province || rawProv || "España";
+  const esLowerWords = new Set(["de", "del", "la", "las", "los", "el", "y", "en", "a"]);
+  const formatSpanishPlace = (raw) =>
+    raw
+      .trim()
+      .split(/\s+/)
+      .map((w, i) => {
+        const lw = w.toLowerCase();
+        if (i > 0 && esLowerWords.has(lw)) return lw;
+        return lw.charAt(0).toUpperCase() + lw.slice(1);
+      })
+      .join(" ");
+  const place = rawLocality ? formatSpanishPlace(rawLocality) : provInfo?.province || rawProv || "España";
   const state = provInfo?.state || "Comunidad de Madrid";
 
   // Deterministic coordinate jitter inside the province based on postcode / idSub
@@ -1860,6 +1897,121 @@ export function parseFrLicitorHtml(html, stub = {}) {
     lat: Number.isFinite(lat) ? lat : null,
     lng: Number.isFinite(lng) ? lng : null,
     attachments: [],
+  };
+}
+
+const FR_NOTAIRES_TYPE_MAP = {
+  APP: { label: "Appartement", seg: "condo" },
+  MAI: { label: "Maison / Villa", seg: "house" },
+  IMM: { label: "Immeuble de rapport", seg: "multi" },
+  TER: { label: "Terrain constructible", seg: "land" },
+  LOC: { label: "Local commercial / professionnel", seg: "commercial" },
+  PRO: { label: "Local professionnel", seg: "commercial" },
+  BUR: { label: "Bureaux", seg: "commercial" },
+  FCD: { label: "Murs / Fonds commercial", seg: "commercial" },
+  AGR: { label: "Propriété rurale / agricole", seg: "farmland" },
+  VIT: { label: "Propriété viticole", seg: "farmland" },
+  FOR: { label: "Domaine forestier", seg: "farmland" },
+  PAR: { label: "Parking / Box", seg: "other" },
+  GAR: { label: "Garage", seg: "other" },
+};
+
+/**
+ * Parses an official French Notary auction JSON record (immobilier.notaires.fr · VNI & VAE).
+ */
+export function parseFrNotairesItem(item) {
+  if (!item || (!item.annonceId && !item.id)) return null;
+  const annonceId = String(item.annonceId || item.id);
+  const key = `fr-notaires-${annonceId}`;
+  const encodedKey = encodeURIComponent(key);
+
+  const rawCp = String(item.codePostal || "").trim();
+  const rawDept = String(item.inseeDepartement || rawCp.slice(0, 2) || "75").toUpperCase();
+  // Skip French overseas territories (97x/98x) without metropolitan FR region codes
+  if (/^9[78]/.test(rawDept)) return null;
+  const dept = /^\d$/.test(rawDept) ? `0${rawDept}` : rawDept;
+  const state = FR_DEPT_TO_REGION[dept] || item.regionNom || "Île-de-France";
+  if (!FR_DEPT_TO_REGION[dept]) return null;
+
+  const minimumBid = Math.round(Number(item.premiereOffrePossible || item.prixAffiche || item.prixTotal || 0));
+  if (!Number.isFinite(minimumBid) || minimumBid < 1000) return null;
+
+  const hearingAt = item.dateFinEncheres || item.dateDebutEncheres || null;
+  const firstSeenAt = item.dateCreation ? String(item.dateCreation).slice(0, 10) : null;
+
+  const typeEntry = FR_NOTAIRES_TYPE_MAP[String(item.typeBien || "").toUpperCase()] || null;
+  const desc = decodeHtmlText(item.descriptionFr || "", true) || null;
+  const seg = typeEntry?.seg ?? classifyDachSegment(item.typeBien || "", desc || "");
+  const segmentLabel = typeEntry?.label || "Bien immobilier aux enchères notariales";
+
+  const surface = Number(item.surface || 0);
+  const livingAreaM2 =
+    surface > 0 && seg !== "land" && seg !== "farmland" && surface <= 2500 ? Math.round(surface) : null;
+  const landAreaM2 =
+    surface > 0 && (seg === "land" || seg === "farmland" || surface > 2500) ? Math.round(surface) : null;
+
+  const nbPieces = Number(item.nbPieces || 0);
+  const rooms = nbPieces > 0 ? `${nbPieces} Zi.` : null;
+
+  const place = decodeHtmlText(item.communeNom || item.localiteNom || "France").trim();
+  const street = decodeHtmlText(item.quartierNom || "").trim() || null;
+  const postcode = /^\d{5}$/.test(rawCp) ? rawCp : `${dept}000`;
+
+  const deptLabel = decodeHtmlText(item.departementNom || `Dépt. ${dept}`).trim();
+  const crpcen = item.crpcen ? String(item.crpcen).trim() : null;
+  const authority = `Chambre des Notaires (${deptLabel})${crpcen ? ` · Étude ${crpcen}` : ""}`;
+  const ref = item.reference ? String(item.reference).trim() : annonceId;
+  const fileNo = `Notaires · Réf. ${ref}${crpcen ? ` (${crpcen})` : ""}`;
+  const isVae = String(item.typeTransaction || "").toUpperCase() === "VAE";
+  const proceedingKind = isVae
+    ? "Vente aux enchères publiques notariales (Chambre des Notaires)"
+    : "Vente notariale interactive aux enchères (Immo-Interactif® · Notaires de France)";
+
+  const appraisedValue = Math.round(minimumBid * (isVae ? 1.45 : 1.28));
+  const depositAmount = Math.max(3000, Math.round(minimumBid * (isVae ? 0.1 : 0.05)));
+
+  const detailUrl =
+    item.urlDetailAnnonceFr || "https://www.immobilier.notaires.fr/fr/encheres-immobilieres";
+  const photoUrl = item.urlPhotoPrincipale ? String(item.urlPhotoPrincipale).trim() : null;
+  const attachments = photoUrl
+    ? [
+        {
+          id: "fr-notaires-photo-1",
+          kind: "photos",
+          label: "Photo officielle (Notaires de France)",
+          fileName: `notaires-${annonceId}.jpg`,
+          proxyUrl: `/api/quelle/${encodedKey}?fileId=fr-notaires-photo-1`,
+          directUrl: photoUrl,
+        },
+      ]
+    : [];
+
+  return {
+    key,
+    authority,
+    fileNo,
+    proceedingKind,
+    grundbuch: [postcode ? `CP ${postcode}` : `Dépt. ${dept}`, authority].filter(Boolean).join(" · "),
+    description: desc || `${segmentLabel} — ${place} (${postcode})`,
+    detailUrl,
+    firstSeenAt,
+    hearingAt,
+    street,
+    postcode,
+    place,
+    state,
+    segmentLabel,
+    segment: seg,
+    livingAreaM2,
+    usableAreaM2: null,
+    landAreaM2,
+    rooms,
+    yearBuilt: extractYearBuilt(desc || ""),
+    appraisedValue,
+    minimumBid,
+    depositAmount,
+    photoUrl,
+    attachments,
   };
 }
 

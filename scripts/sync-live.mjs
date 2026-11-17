@@ -41,6 +41,7 @@ import {
   parseEsBoeHtml,
   parseFrLicitorHtml,
   parseFrAvoventesHtml,
+  parseFrNotairesItem,
   parseGbAuctionHtml,
   parseGbAuctionHouseCard,
   parseGbCliveEmsonLot,
@@ -1845,19 +1846,33 @@ async function fetchEsBoeAll(prevByKey, portalCacheDir, nowIso) {
   const ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
 
   try {
-    const topProvinces = ["28", "08", "46", "03", "29", "41", "30", "07", "35", "38", "11", "17", "43", "18", "04", "12", "50", "45", "14", "48"];
+    const allProvinces = Array.from({ length: 52 }, (_, i) => String(i + 1).padStart(2, "0"));
     const queries = [
       ["EJ", "SUBASTA.FECHA_FIN", "asc", ""],
       ["EJ", "SUBASTA.FECHA_FIN", "desc", ""],
       ["EJ", "SUBASTA.ID_SUBASTA_ORDENAR", "desc", ""],
-      ["EJ", "SUBASTA.ID_SUBASTA_ORDENAR", "asc", ""],
       ["EJ", "SUBASTA.VALOR_SUBASTA", "desc", ""],
-      ["EJ", "SUBASTA.VALOR_SUBASTA", "asc", ""],
-      ...topProvinces.map((prov) => ["EJ", "SUBASTA.FECHA_FIN", "asc", prov]),
+      ["PU", "SUBASTA.FECHA_FIN", "asc", ""],
+      ["PU", "SUBASTA.ID_SUBASTA_ORDENAR", "desc", ""],
+      ...allProvinces.map((prov) => ["EJ", "SUBASTA.FECHA_FIN", "asc", prov]),
+      ...allProvinces.map((prov) => ["PU", "SUBASTA.FECHA_FIN", "asc", prov]),
     ];
     const byId = new Map();
+    const parseBoeCards = (html) => {
+      for (const m of html.matchAll(/<li class="resultado-busqueda">([\s\S]*?)<\/li>/gi)) {
+        const card = m[1];
+        const idSub = /SUBASTA\s+(SUB-[A-Z0-9-]+)/i.exec(card)?.[1];
+        if (!idSub || byId.has(idSub)) continue;
+        const authority = decodeHtmlText(/<h4>([\s\S]*?)<\/h4>/i.exec(card)?.[1] ?? "");
+        const exp = decodeHtmlText(/Expediente:\s*([^<]+)/i.exec(card)?.[1] ?? "");
+        const conclusionText = decodeHtmlText(/Conclusión prevista:\s*([^\]]+)/i.exec(card)?.[1] ?? "");
+        const pTags = [...card.matchAll(/<p[^>]*>([\s\S]*?)<\/p>/gi)].map((x) => decodeHtmlText(x[1]));
+        const summary = pTags[pTags.length - 1] || "";
+        byId.set(idSub, { idSub, authority, expediente: exp, conclusionText, summary });
+      }
+    };
 
-    await mapLimit(queries, 4, async ([estado, sortField, sortOrder, provCode]) => {
+    await mapLimit(queries, 6, async ([estado, sortField, sortOrder, provCode]) => {
       try {
         const rForm = await fetch("https://subastas.boe.es/subastas_ava.php", { headers: { "User-Agent": ua } });
         const setCookies = rForm.headers.getSetCookie ? rForm.headers.getSetCookie() : [];
@@ -1886,17 +1901,29 @@ async function fetchEsBoeAll(prevByKey, portalCacheDir, nowIso) {
           },
           body: params.toString(),
         });
-        const htmlSearch = await rSearch.text();
-        for (const m of htmlSearch.matchAll(/<li class="resultado-busqueda">([\s\S]*?)<\/li>/gi)) {
-          const card = m[1];
-          const idSub = /SUBASTA\s+(SUB-[A-Z0-9-]+)/i.exec(card)?.[1];
-          if (!idSub || byId.has(idSub)) continue;
-          const authority = decodeHtmlText(/<h4>([\s\S]*?)<\/h4>/i.exec(card)?.[1] ?? "");
-          const exp = decodeHtmlText(/Expediente:\s*([^<]+)/i.exec(card)?.[1] ?? "");
-          const conclusionText = decodeHtmlText(/Conclusión prevista:\s*([^\]]+)/i.exec(card)?.[1] ?? "");
-          const pTags = [...card.matchAll(/<p[^>]*>([\s\S]*?)<\/p>/gi)].map((x) => decodeHtmlText(x[1]));
-          const summary = pTags[pTags.length - 1] || "";
-          byId.set(idSub, { idSub, authority, expediente: exp, conclusionText, summary });
+        let htmlPage = await rSearch.text();
+        parseBoeCards(htmlPage);
+
+        // Follow up to 3 pagination pages ("accion=Mas") on nationwide queries
+        if (!provCode) {
+          const seenNext = new Set();
+          for (let p = 0; p < 3; p++) {
+            const nextRel = /href="(subastas_ava\.php\?accion=Mas[^"]+)"/i
+              .exec(htmlPage)?.[1]
+              ?.replace(/&amp;/g, "&");
+            if (!nextRel || seenNext.has(nextRel)) break;
+            seenNext.add(nextRel);
+            const rNext = await fetch(`https://subastas.boe.es/${nextRel}`, {
+              headers: {
+                "User-Agent": ua,
+                Cookie: cookieHeader,
+                Referer: "https://subastas.boe.es/subastas_ava.php",
+              },
+            });
+            if (!rNext.ok) break;
+            htmlPage = await rNext.text();
+            parseBoeCards(htmlPage);
+          }
         }
       } catch {
         // Ignore single province query timeout
@@ -1910,7 +1937,7 @@ async function fetchEsBoeAll(prevByKey, portalCacheDir, nowIso) {
       byBucket.get(bucketKey).push(stub);
     }
     const stubs = [];
-    const maxTotal = 2400;
+    const maxTotal = 3600;
     let round = 0;
     while (stubs.length < maxTotal) {
       let added = false;
@@ -1933,7 +1960,7 @@ async function fetchEsBoeAll(prevByKey, portalCacheDir, nowIso) {
       if (existsSync(cacheFile)) {
         try {
           const cached = JSON.parse(readFileSync(cacheFile, "utf8"));
-          if (cached && cached.fileNo) parsed = cached;
+          if (cached && cached.fileNo && cached.appraisedValue) parsed = cached;
         } catch {
           parsed = null;
         }
@@ -2332,7 +2359,131 @@ async function fetchFrLicitorAll(prevByKey, portalCacheDir, nowIso) {
     console.warn(`    ! avoventes.fr Fehler: ${err.message}`);
   }
 
-  console.log(`  → FR Gesamt: ${out.length} Verfahren geladen (licitor.com + avoventes.fr)`);
+  // 1f-3. immobilier.notaires.fr (Enchères Immobilières des Notaires de France · VNI & VAE)
+  try {
+    const existingFrSignatures = new Set(
+      out.map((l) => `${(l.postcode || "").slice(0, 2)}|${(l.place || "").toLowerCase()}|${l.minimumBid || 0}`),
+    );
+    const notaireItems = [];
+    let totalPages = 1;
+    for (let page = 1; page <= Math.min(totalPages, 15); page++) {
+      const rNot = await fetch(
+        `https://www.immobilier.notaires.fr/pub-services/inotr-www-annonces/v1/annonces?typeTransactions=VNI,VAE&page=${page}&parPage=100`,
+        {
+          headers: {
+            "User-Agent": ua,
+            Accept: "application/json",
+            Referer: "https://www.immobilier.notaires.fr/fr/encheres-immobilieres",
+          },
+        },
+      );
+      if (!rNot.ok) break;
+      const data = await rNot.json();
+      if (page === 1 && Number(data.nbPages) > 1) {
+        totalPages = Number(data.nbPages);
+      }
+      const batch = Array.isArray(data.annonceResumeDto) ? data.annonceResumeDto : [];
+      if (batch.length === 0) break;
+      notaireItems.push(...batch);
+    }
+
+    let notairesAdded = 0;
+    const cutoffMs = Date.now() - 2 * 86_400_000;
+    for (const item of notaireItems) {
+      if (item.isVniClose === true) continue;
+      const parsed = parseFrNotairesItem(item);
+      if (!parsed || !parsed.minimumBid) continue;
+      if (parsed.hearingAt && Date.parse(parsed.hearingAt) < cutoffMs) continue;
+
+      const sig = `${(parsed.postcode || "").slice(0, 2)}|${(parsed.place || "").toLowerCase()}|${parsed.minimumBid || 0}`;
+      if (existingFrSignatures.has(sig)) continue;
+      existingFrSignatures.add(sig);
+
+      const key = parsed.key;
+      const cacheFile = join(portalCacheDir, `${key}.json`);
+      try {
+        writeFileSync(cacheFile, JSON.stringify({ key, source: "immobilier.notaires.fr", fetchedAt: nowIso, ...parsed }));
+      } catch {
+        // Ignore cache write error
+      }
+
+      const reg = REGION_BY_KEY_FR.get(parsed.state) ?? REGIONEN_FR[0];
+      const prev = prevByKey.get(key);
+      const hearingAt = parsed.hearingAt;
+      const endIso = hearingAt ? new Date(Date.parse(hearingAt) + 60 * 60000).toISOString() : null;
+      const livingAreaM2 = parsed.livingAreaM2 ?? null;
+      const landAreaM2 = parsed.landAreaM2 ?? null;
+      const areaM2 = livingAreaM2 ?? landAreaM2 ?? null;
+      const areaKind = livingAreaM2 ? "Wohn-/Nutzfläche" : landAreaM2 ? "Grundstücksfläche" : null;
+      const title =
+        [parsed.segmentLabel, parsed.place, parsed.street].filter(Boolean).join(", ") ||
+        `${parsed.authority} · ${parsed.fileNo}`;
+
+      const hashSeed = key.split("").reduce((acc, ch) => (acc * 31 + ch.charCodeAt(0)) % 10000, 11);
+      const lat = Number(((reg.lat ?? 46.6033) + ((hashSeed % 100) - 50) * 0.0025).toFixed(5));
+      const lng = Number(((reg.lng ?? 1.8883) + ((Math.floor(hashSeed / 100) % 100) - 50) * 0.0032).toFixed(5));
+
+      out.push({
+        key,
+        market: "DE",
+        country: "FR",
+        currency: "EUR",
+        sourcePortal: "immobilier.notaires.fr",
+        title,
+        segment: parsed.segment ?? "other",
+        segmentLabel: parsed.segmentLabel,
+        region: reg.name,
+        regionCode: reg.code,
+        place: parsed.place,
+        postcode: parsed.postcode,
+        street: parsed.street,
+        authority: parsed.authority,
+        fileNo: parsed.fileNo,
+        fileYear: 2026,
+        rounds: hearingAt ? [{ round: 1, start: hearingAt, end: endIso }] : [],
+        hearingAt,
+        cancelled: false,
+        limitsWaived: false,
+        appraisedValue: parsed.appraisedValue,
+        minimumBid: parsed.minimumBid,
+        depositAmount: parsed.depositAmount,
+        transferTaxPct: reg.transferTaxPct,
+        livingAreaM2,
+        usableAreaM2: null,
+        landAreaM2,
+        areaM2,
+        areaKind,
+        rooms: parsed.rooms,
+        yearBuilt: parsed.yearBuilt,
+        grundbuch: parsed.grundbuch,
+        proceedingKind: parsed.proceedingKind,
+        description: parsed.description,
+        hearingPlace: "Chambre des Notaires / Immo-Interactif®",
+        creditor: null,
+        officialUrl: parsed.detailUrl,
+        imageUrl: parsed.photoUrl ?? null,
+        mapUrl: `https://www.openstreetmap.org/search?query=${encodeURIComponent([parsed.street, parsed.postcode, parsed.place, "France"].filter(Boolean).join(", "))}`,
+        documentUrl: parsed.detailUrl,
+        exposeUrl: null,
+        reportUrl: null,
+        biddingNotesUrl: null,
+        courtUrl: "https://www.immobilier.notaires.fr/fr/encheres-immobilieres",
+        geoServerUrl: "https://cadastre.gouv.fr/",
+        geo: { lat, lng, precision: "province" },
+        history: prev?.history ?? [],
+        geoportalUrl: "https://app.dvf.etalab.gouv.fr/",
+        geoportalName: "Demandes de Valeurs Foncières (DVF · Etalab)",
+        caveats: [],
+        firstSeenAt: parsed.firstSeenAt ?? prev?.firstSeenAt ?? nowIso,
+      });
+      notairesAdded++;
+    }
+    console.log(`    immobilier.notaires.fr · ${notairesAdded} aktive Notar-Immobilienauktionen übernommen`);
+  } catch (err) {
+    console.warn(`    ! immobilier.notaires.fr Fehler: ${err.message}`);
+  }
+
+  console.log(`  → FR Gesamt: ${out.length} Verfahren geladen (licitor.com + avoventes.fr + immobilier.notaires.fr)`);
   return out;
 }
 

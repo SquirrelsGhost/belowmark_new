@@ -172,19 +172,28 @@ function renderReminderMessage({
       </td>
     </tr>`;
 
+  const effectiveSubject =
+    formattedCode && !template.Subject.includes(formattedCode)
+      ? `${formattedCode} — ${template.Subject}`
+      : template.Subject;
+  const effectivePreheader =
+    formattedCode && !template.Preheader.includes(formattedCode)
+      ? `Code: ${formattedCode} · ${template.Preheader}`
+      : template.Preheader;
+
   const html = renderMailFrame({
     lang,
     docCode,
     eyebrow,
-    subject: template.Subject,
-    preheader: template.Preheader,
+    subject: effectiveSubject,
+    preheader: effectivePreheader,
     bodyHtml,
     signature,
     footer,
     baseUrl,
   });
 
-  return { subject: template.Subject, text: lines.join("\n"), html };
+  return { subject: effectiveSubject, text: lines.join("\n"), html };
 }
 
 /**
