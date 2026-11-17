@@ -8,11 +8,11 @@
 export const SNAPSHOT_DATE = "2026-11-17";
 
 export const SNAPSHOT_STATS = {
-  proceedings: 10353,
-  withAppraisal: 10045,
-  statesWithHearings: 115,
-  totalAppraisedEuro: 2248841091,
-  medianAppraisedEuro: 65000,
+  proceedings: 11352,
+  withAppraisal: 11037,
+  statesWithHearings: 132,
+  totalAppraisedEuro: 2528653248,
+  medianAppraisedEuro: 70380,
 } as const;
 
 export type DeStateCode =
@@ -106,7 +106,7 @@ export const STATES: StateSnapshot[] = [
   { code: "at", name: "Österreich (9 Bundesländer · Ediktsdatei)", country: "AT", transferTaxPct: 4.6, hearings: 330 },
   { code: "ch", name: "Schweiz (26 Kantone · SHAB)", country: "CH", transferTaxPct: 1.5, hearings: 155 },
   { code: "it", name: "Italien (20 Regionen · Aste Giudiziarie / PVP)", country: "IT", transferTaxPct: 9.0, hearings: 2237 },
-  { code: "es", name: "Spanien (17 Comunidades · Portal BOE)", country: "ES", transferTaxPct: 8.0, hearings: 0 },
+  { code: "es", name: "Spanien (17 Comunidades · Portal BOE)", country: "ES", transferTaxPct: 8.0, hearings: 999 },
   { code: "fr", name: "Frankreich (13 Regionen · Licitor TJ)", country: "FR", transferTaxPct: 5.8, hearings: 575 },
   { code: "gb", name: "England / UK (12 Regionen · RICS Auctions)", country: "GB", transferTaxPct: 5.0, hearings: 789 },
   { code: "nl", name: "Niederlande (12 Provinzen · Executieveilingen)", country: "NL", transferTaxPct: 10.4, hearings: 71 },

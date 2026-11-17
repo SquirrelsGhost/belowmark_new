@@ -1241,35 +1241,47 @@ async function buildDeLive() {
   );
 
   // 4. Fetch Austria (edikte.justiz.gv.at — all 9 Bundesländer)
-  const atListings = await fetchAtEdikteAll(postcodes, prevByKey, portalCacheDir, nowIso);
+  const cutoffGuardMs = Date.now() - 2 * 86_400_000;
+  const guardCountry = (code, fresh) => {
+    const prevActive = [...prevByKey.values()].filter(
+      (l) => l.country === code && (!l.hearingAt || Date.parse(l.hearingAt) >= cutoffGuardMs),
+    );
+    if (prevActive.length >= 15 && fresh.length < Math.floor(prevActive.length * 0.25)) {
+      console.warn(`  ! Anti-Wipe Guard (${code}): Portal lieferte ${fresh.length} statt ${prevActive.length} — behalte aktive Bestandsdaten!`);
+      return prevActive;
+    }
+    return fresh;
+  };
+
+  const atListings = guardCountry("AT", await fetchAtEdikteAll(postcodes, prevByKey, portalCacheDir, nowIso));
   listings.push(...atListings);
 
   // 5. Fetch Switzerland (shab.ch — all 26 Kantone, SB01 & KK08)
-  const chListings = await fetchChShabAll(postcodes, prevByKey, portalCacheDir, nowIso);
+  const chListings = guardCountry("CH", await fetchChShabAll(postcodes, prevByKey, portalCacheDir, nowIso));
   listings.push(...chListings);
 
   // 6. Fetch Italy (astegiudiziarie.it — all 20 Regioni)
-  const itListings = await fetchItAsteAll(prevByKey, portalCacheDir, nowIso);
+  const itListings = guardCountry("IT", await fetchItAsteAll(prevByKey, portalCacheDir, nowIso));
   listings.push(...itListings);
 
   // 7. Fetch Spain (subastas.boe.es — Portal de Subastas BOE)
-  const esListings = await fetchEsBoeAll(prevByKey, portalCacheDir, nowIso);
+  const esListings = guardCountry("ES", await fetchEsBoeAll(prevByKey, portalCacheDir, nowIso));
   listings.push(...esListings);
 
   // 8. Fetch France (licitor.com — Ventes Judiciaires Tribunaux Judiciaires)
-  const frListings = await fetchFrLicitorAll(prevByKey, portalCacheDir, nowIso);
+  const frListings = guardCountry("FR", await fetchFrLicitorAll(prevByKey, portalCacheDir, nowIso));
   listings.push(...frListings);
 
   // 9. Fetch United Kingdom (btgeddisonspropertyauctions.com — UK Property Auctions)
-  const gbListings = await fetchGbAuctionsAll(prevByKey, portalCacheDir, nowIso);
+  const gbListings = guardCountry("GB", await fetchGbAuctionsAll(prevByKey, portalCacheDir, nowIso));
   listings.push(...gbListings);
 
   // 10. Fetch Netherlands (vastgoedveiling.nl / veilingnotaris — Executieveilingen Art. 3:268 BW)
-  const nlListings = await fetchNlAuctionsAll(prevByKey, portalCacheDir, nowIso);
+  const nlListings = guardCountry("NL", await fetchNlAuctionsAll(prevByKey, portalCacheDir, nowIso));
   listings.push(...nlListings);
 
   // 11. Fetch Poland (licytacje.komornik.pl — Krajowa Rada Komornicza Real Estate Auctions)
-  const plListings = await fetchPlKomornikAll(prevByKey, portalCacheDir, nowIso);
+  const plListings = guardCountry("PL", await fetchPlKomornikAll(prevByKey, portalCacheDir, nowIso));
   listings.push(...plListings);
 
   const allStates = [
@@ -1896,7 +1908,7 @@ async function fetchEsBoeAll(prevByKey, portalCacheDir, nowIso) {
   const ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
 
   try {
-    const allProvinces = Array.from({ length: 52 }, (_, i) => String(i + 1).padStart(2, "0"));
+    const topProvinces = ["28", "08", "46", "03", "29", "41", "30", "07", "35", "38", "11", "17", "43", "18", "04", "12", "50", "45", "14", "48"];
     const queries = [
       ["EJ", "SUBASTA.FECHA_FIN", "asc", ""],
       ["EJ", "SUBASTA.FECHA_FIN", "desc", ""],
@@ -1904,8 +1916,7 @@ async function fetchEsBoeAll(prevByKey, portalCacheDir, nowIso) {
       ["EJ", "SUBASTA.VALOR_SUBASTA", "desc", ""],
       ["PU", "SUBASTA.FECHA_FIN", "asc", ""],
       ["PU", "SUBASTA.ID_SUBASTA_ORDENAR", "desc", ""],
-      ...allProvinces.map((prov) => ["EJ", "SUBASTA.FECHA_FIN", "asc", prov]),
-      ...allProvinces.map((prov) => ["PU", "SUBASTA.FECHA_FIN", "asc", prov]),
+      ...topProvinces.map((prov) => ["EJ", "SUBASTA.FECHA_FIN", "asc", prov]),
     ];
     const byId = new Map();
     const parseBoeCards = (html) => {
@@ -1922,7 +1933,7 @@ async function fetchEsBoeAll(prevByKey, portalCacheDir, nowIso) {
       }
     };
 
-    await mapLimit(queries, 6, async ([estado, sortField, sortOrder, provCode]) => {
+    await mapLimit(queries, 2, async ([estado, sortField, sortOrder, provCode]) => {
       try {
         const rForm = await fetch("https://subastas.boe.es/subastas_ava.php", { headers: { "User-Agent": ua } });
         const setCookies = rForm.headers.getSetCookie ? rForm.headers.getSetCookie() : [];
@@ -3641,7 +3652,17 @@ async function run() {
           (!l.country || l.country === "DE") &&
           (!l.hearingAt || Date.parse(l.hearingAt) >= cutoffMs),
       );
-      const [atListings, chListings, itListings, esListings, frListings, gbListings, nlListings, plListings] = await Promise.all([
+      const guardCountry = (code, fresh) => {
+        const prevActive = existing.listings.filter(
+          (l) => l.country === code && (!l.hearingAt || Date.parse(l.hearingAt) >= cutoffMs),
+        );
+        if (prevActive.length >= 15 && fresh.length < Math.floor(prevActive.length * 0.25)) {
+          console.warn(`  ! Anti-Wipe Guard (${code}): Portal lieferte ${fresh.length} statt ${prevActive.length} — behalte aktive Bestandsdaten!`);
+          return prevActive;
+        }
+        return fresh;
+      };
+      const [rawAt, rawCh, rawIt, rawEs, rawFr, rawGb, rawNl, rawPl] = await Promise.all([
         fetchAtEdikteAll(postcodes, prevByKey, portalCacheDir, nowIso),
         fetchChShabAll(postcodes, prevByKey, portalCacheDir, nowIso),
         fetchItAsteAll(prevByKey, portalCacheDir, nowIso),
@@ -3651,6 +3672,14 @@ async function run() {
         fetchNlAuctionsAll(prevByKey, portalCacheDir, nowIso),
         fetchPlKomornikAll(prevByKey, portalCacheDir, nowIso),
       ]);
+      const atListings = guardCountry("AT", rawAt);
+      const chListings = guardCountry("CH", rawCh);
+      const itListings = guardCountry("IT", rawIt);
+      const esListings = guardCountry("ES", rawEs);
+      const frListings = guardCountry("FR", rawFr);
+      const gbListings = guardCountry("GB", rawGb);
+      const nlListings = guardCountry("NL", rawNl);
+      const plListings = guardCountry("PL", rawPl);
       const listings = [
         ...keptDe,
         ...atListings,
