@@ -1,7 +1,18 @@
 import { err } from "@/lib/api";
 import { GeoService } from "@/services/GeoService";
 
-const FILES = { "de.svg": "DE", "at.svg": "AT", "ch.svg": "CH", "it.svg": "IT", "es.svg": "ES", "fr.svg": "FR", "gb.svg": "GB", "tr.svg": "TR" } as const;
+const FILES = {
+  "de.svg": "DE",
+  "at.svg": "AT",
+  "ch.svg": "CH",
+  "it.svg": "IT",
+  "es.svg": "ES",
+  "fr.svg": "FR",
+  "gb.svg": "GB",
+  "nl.svg": "NL",
+  "pl.svg": "PL",
+  "tr.svg": "TR",
+} as const;
 
 /**
  * GET /karten/<land>.svg (de, at, ch, it, es, fr, gb, tr)
