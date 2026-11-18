@@ -5,7 +5,7 @@
  */
 
 export const APP_NAME = "Belowmark";
-export const DEFAULT_LOCALE = "de";
+export const DEFAULT_LOCALE: LocaleOption = "en";
 
 /** Locales the page is written in; used for Intl formatting and the lang attribute. */
 export const LOCALE_OPTIONS = ["de", "tr", "en", "it", "es", "fr"] as const;
@@ -57,8 +57,14 @@ export const MARKET_COOKIE_NAME = "BELOWMARK_MARKET";
 /** One year — how long detected country and chosen market are remembered. */
 export const REGION_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
 
-/** Geo headers set by common hosts (Vercel, Cloudflare, CloudFront), checked in order. */
-export const GEO_COUNTRY_HEADERS = ["x-vercel-ip-country", "cf-ipcountry", "cloudfront-viewer-country"] as const;
+/** Geo headers set by common hosts & reverse proxies (Vercel, Cloudflare, CloudFront, Nginx), checked in order. */
+export const GEO_COUNTRY_HEADERS = [
+  "x-vercel-ip-country",
+  "cf-ipcountry",
+  "cloudfront-viewer-country",
+  "x-country-code",
+  "x-geo-country",
+] as const;
 /** Location beats system language: the time zone travels with the device, the language setting does not. */
 export const TURKEY_TIME_ZONE = /Istanbul|Turkey/i;
 

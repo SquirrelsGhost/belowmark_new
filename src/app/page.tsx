@@ -40,7 +40,7 @@ import PageMain from "@/components/ui/PageMain";
 import PaperTexture from "@/components/ui/PaperTexture";
 import { BILLING_ROUTES, MARKET_PARAM, OFFER_PARAM } from "@/lib/billing/billingConfig";
 import { TRIAL_COPY } from "@/lib/billing/trialCopy";
-import { ROUTES } from "@/lib/constants";
+import { LocaleOption, ROUTES } from "@/lib/constants";
 import { formatCompactEuro, formatDate, formatEuro, formatNumber, formatPercent, formatShortDate } from "@/lib/format";
 import { SNAPSHOT_DATE, SNAPSHOT_STATS, STATES, TICKER_ENTRIES } from "@/lib/snapshot";
 import { MetaTagService } from "@/services/MetaTagService";
@@ -63,6 +63,14 @@ export const instant = false;
 const MAIN_ID = "inhalt";
 const STAGGER_MS = 100;
 const MAX_STATE_HEARINGS = Math.max(...STATES.map((state) => state.hearings ?? 0));
+const LIVE_SEARCH_LABELS: Record<LocaleOption, string> = {
+  en: "Live Search",
+  de: "Live-Suche",
+  tr: "Canlı Arama",
+  it: "Ricerca Live",
+  es: "Buscador",
+  fr: "Recherche",
+};
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await TranslationService.GetUserTranslations();
@@ -88,7 +96,7 @@ export default async function HomePage() {
       <Navigation label={nav.MainNavLabel}>
         <BrandMark />
         <NavigationSpacer />
-        <NavigationItem href={`/suche?markt=${region.pricingCountry}`} label={locale === "tr" ? "Canlı Arama" : locale === "en" ? "Live Search" : locale === "es" ? "Buscador" : locale === "it" ? "Ricerca Live" : locale === "fr" ? "Recherche" : "Live-Suche"} />
+        <NavigationItem href={`/suche?markt=${region.pricingCountry}`} label={LIVE_SEARCH_LABELS[locale]} />
         <NavigationItem href={ROUTES.calculator} label={nav.CalculatorLabel} />
         <NavigationItem href={ROUTES.notice} label={nav.NoticeLabel} />
         <NavigationItem href={ROUTES.method} label={nav.MethodLabel} />
@@ -214,7 +222,7 @@ export default async function HomePage() {
             <PricingMarketSwitch
               current={region.pricingCountry}
               label={Pricing.MarketLabel}
-              detectedLabel={region.isMarketChosen ? undefined : Pricing.MarketDetected}
+              detectedLabel={!region.isMarketChosen && region.isCountryMatched ? Pricing.MarketDetected : undefined}
               hint={Pricing.MarketHint}
               options={{
                 DE: { label: Pricing.Markets.DE.Label, scope: Pricing.Markets.DE.Scope },
@@ -236,13 +244,13 @@ export default async function HomePage() {
           <PricingPlan
             {...planProps(plans.Free)}
             href={ROUTES.signup}
-            trialBadge={(TRIAL_COPY[locale] ?? TRIAL_COPY.de).homeFreeBadge}
+            trialBadge={(TRIAL_COPY[locale] ?? TRIAL_COPY.en).homeFreeBadge}
           />
           <PricingPlan
             {...planProps(plans.Investor)}
             href={`${BILLING_ROUTES.order}?${OFFER_PARAM}=investor-monat&${MARKET_PARAM}=${region.pricingCountry}`}
             altPrice={`${Pricing.AltPricePrefix} ${plans.Investor.AltPrice} ${plans.Investor.AltPeriod}`}
-            trialBadge={(TRIAL_COPY[locale] ?? TRIAL_COPY.de).homeTrialBadge}
+            trialBadge={(TRIAL_COPY[locale] ?? TRIAL_COPY.en).homeTrialBadge}
             recommendedLabel={Pricing.Recommended}
             delay={STAGGER_MS}
           />
@@ -250,7 +258,7 @@ export default async function HomePage() {
             {...planProps(plans.Pro)}
             href={`${BILLING_ROUTES.order}?${OFFER_PARAM}=pro-monat&${MARKET_PARAM}=${region.pricingCountry}`}
             altPrice={`${Pricing.AltPricePrefix} ${plans.Pro.AltPrice} ${plans.Pro.AltPeriod}`}
-            trialBadge={(TRIAL_COPY[locale] ?? TRIAL_COPY.de).homeTrialBadge}
+            trialBadge={(TRIAL_COPY[locale] ?? TRIAL_COPY.en).homeTrialBadge}
             delay={STAGGER_MS * 2}
           />
         </PricingSection>
@@ -269,7 +277,7 @@ export default async function HomePage() {
           secondaryCta={Closing.SecondaryCta}
         />
 
-        <HomeSeoDirectorySection />
+        <HomeSeoDirectorySection locale={locale} />
       </PageMain>
 
       <Footer tagline={t.Footer.Tagline} disclaimer={t.Footer.Disclaimer} rights={t.Footer.Rights}>

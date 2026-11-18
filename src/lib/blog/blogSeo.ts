@@ -78,10 +78,17 @@ export function resolveHtmlLang(pathname: string, fallbackLocale: string): HtmlL
   if (/^\/(de\/blog|blog|zwangsversteigerungen|zwangsversteigerung|bundesland|amtsgericht|rechner|oesterreich|schweiz)(\/|$)/.test(pathname)) {
     return "de";
   }
-  if (fallbackLocale === "tr" || fallbackLocale === "en" || fallbackLocale === "it" || fallbackLocale === "es" || fallbackLocale === "fr") {
+  if (
+    fallbackLocale === "de" ||
+    fallbackLocale === "tr" ||
+    fallbackLocale === "en" ||
+    fallbackLocale === "it" ||
+    fallbackLocale === "es" ||
+    fallbackLocale === "fr"
+  ) {
     return fallbackLocale;
   }
-  return "de";
+  return "en";
 }
 
 const MARKET_HUB_LANGUAGES: Readonly<Record<string, string>> = {

@@ -1,4 +1,10 @@
 import Link from "next/link";
+import { DEFAULT_LOCALE, LocaleOption } from "@/lib/constants";
+import { HOME_DIRECTORY_COPY } from "@/lib/homeDirectoryCopy";
+
+interface HomeSeoDirectorySectionProps {
+  locale?: LocaleOption;
+}
 
 const COUNTRY_HUBS = [
   { href: "/zwangsversteigerungen", label: "🇩🇪 Deutschland · ZVG (16 Länder · 530 AG)" },
@@ -60,17 +66,17 @@ const BLOG_HUBS = [
   { href: "/ru/blog", label: "🇷🇺 Гид инвестора на русском (RU)" },
 ] as const;
 
-export default function HomeSeoDirectorySection() {
+export default function HomeSeoDirectorySection({ locale = DEFAULT_LOCALE }: HomeSeoDirectorySectionProps) {
+  const copy = HOME_DIRECTORY_COPY[locale] ?? HOME_DIRECTORY_COPY.en;
+
   return (
-    <section aria-label="Offizielle Länderverzeichnisse & Gebotsrechner" className="border-t-2 border-ink bg-paper-bright">
+    <section aria-label={copy.ariaLabel} className="border-t-2 border-ink bg-paper-bright">
       <div className="mx-auto max-w-7xl px-5 py-14 sm:px-8">
         <div className="border-b border-rule-strong pb-5">
           <span className="font-mono text-[11px] font-semibold uppercase tracking-widest text-signal">
-            08 · DIREKTZUGANG · ALLE 8 MÄRKTE, GEBOTSRECHNER &amp; RECHTS-GUIDES
+            {copy.eyebrow}
           </span>
-          <h2 className="mt-2 font-display text-2xl text-ink sm:text-3xl">
-            Amtliche Versteigerungsverzeichnisse &amp; Kostenlose Gebotsrechner (DE · AT · CH · IT · ES · FR · UK · TR)
-          </h2>
+          <h2 className="mt-2 font-display text-2xl text-ink sm:text-3xl">{copy.title}</h2>
         </div>
 
         <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -99,7 +105,7 @@ export default function HomeSeoDirectorySection() {
 
         <div className="mt-8">
           <h3 className="font-mono text-xs font-semibold uppercase tracking-wider text-ink-soft">
-            Meistgesuchte Bundesländer, Kantone, Regionen &amp; Metropolen
+            {copy.topRegionsHeading}
           </h3>
           <div className="mt-3 flex flex-wrap gap-2">
             {TOP_REGIONS_AND_CITIES.map((item) => (

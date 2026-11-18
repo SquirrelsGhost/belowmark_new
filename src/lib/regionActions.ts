@@ -13,15 +13,17 @@ import {
   REGION_COOKIE_MAX_AGE,
 } from "@/lib/constants";
 import { hasPermission } from "@/lib/permissions";
+import { normalizeGeoCountryCode } from "@/lib/regionLocale";
 import { SessionService } from "@/services/SessionService";
 
 const COOKIE_OPTIONS = { path: "/", maxAge: REGION_COOKIE_MAX_AGE, sameSite: "lax" } as const;
 
-/** Server Action: stores the country <RegionDetector /> derived from the browser time zone. */
-export async function setDetectedCountryAction(country: PricingCountryCode): Promise<void> {
-  if (!isPricingCountry(country)) return;
+/** Server Action: stores the 2-letter ISO country <RegionDetector /> derived from the browser time zone. */
+export async function setDetectedCountryAction(country: string): Promise<void> {
+  const normalized = normalizeGeoCountryCode(country);
+  if (!normalized) return;
   const cookieStore = await cookies();
-  cookieStore.set(COUNTRY_COOKIE_NAME, country, COOKIE_OPTIONS);
+  cookieStore.set(COUNTRY_COOKIE_NAME, normalized, COOKIE_OPTIONS);
 }
 
 /**
