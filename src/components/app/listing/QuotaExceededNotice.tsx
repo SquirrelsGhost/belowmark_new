@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { APP_ROUTES } from "@/lib/appConstants";
 import { LocaleOption } from "@/lib/constants";
+import { QUOTA_EXCEEDED_COPY } from "@/lib/sicherheit/quotaExceededCopy";
 
 interface QuotaExceededNoticeProps {
   locale: LocaleOption;
@@ -8,39 +9,8 @@ interface QuotaExceededNoticeProps {
   isLocked: boolean;
 }
 
-const COPY = {
-  de: {
-    kicker: "Sicherheitsschutz · Abruflimit erreicht",
-    title: "Ungewöhnlich hohe Abruffrequenz erkannt",
-    bodyFree:
-      "Im kostenlosen Konto ist das Kontingent für Einzelabrufe zum Schutz vor automatisiertem Datenabzug begrenzt. Mit dem Investor-Tarif schalten Sie das volle Arbeitskontingent, alle Verkehrswerte und Gutachten frei.",
-    bodyPaid:
-      "Zum Schutz vor automatisiertem Massen-Scraping ist die Anzahl gleichzeitiger Abrufe begrenzt. Bitte warten Sie einen kurzen Moment, bevor Sie weitere Verfahren öffnen.",
-    warning:
-      "Wichtiger Hinweis (§ 9 AGB): Automatisiertes Auslesen (Scraping/Bots) oder das Umgehen von Schutzmechanismen führt zur sofortigen, dauerhaften Kontosperrung ohne Anspruch auf Rückerstattung bereits gezahlter Entgelte.",
-    retryPrefix: "Erneuter Abruf möglich in ca.",
-    minutes: "Min.",
-    ctaFree: "Investor-Tarif freischalten",
-    ctaBack: "Zurück zur Übersicht",
-  },
-  tr: {
-    kicker: "Güvenlik Koruması · Sorgu Sınırı",
-    title: "Olağandışı sorgu sıklığı algılandı",
-    bodyFree:
-      "Otomatik veri çekimini önlemek amacıyla ücretsiz hesaplarda günlük detay görüntüleme sayısı sınırlandırılmıştır. Tam erişim, muhammen bedeller ve şartnameler için Yatırımcı paketine geçebilirsiniz.",
-    bodyPaid:
-      "Otomatik toplu veri çekimini (scraping) engellemek için anlık sorgu sınırı uygulanmaktadır. Lütfen kısa bir süre bekleyip tekrar deneyin.",
-    warning:
-      "Önemli Uyarı (§ 9 AGB): Otomatik veri çekimi (scraping/bot) veya güvenlik sınırlarını aşma girişimleri, ödenmiş ücretlerin iadesi olmaksızın hesabın derhal ve kalıcı olarak kapatılmasına yol açar.",
-    retryPrefix: "Tekrar deneme süresi:",
-    minutes: "dk.",
-    ctaFree: "Yatırımcı Paketine Geç",
-    ctaBack: "Listeye Dön",
-  },
-} as const;
-
 export default function QuotaExceededNotice({ locale, retryAfterMinutes, isLocked }: QuotaExceededNoticeProps) {
-  const text = locale === "tr" ? COPY.tr : COPY.de;
+  const text = QUOTA_EXCEEDED_COPY[locale] ?? QUOTA_EXCEEDED_COPY.de;
   return (
     <section className="my-8 border-2 border-ink bg-paper-bright p-6 sm:p-8">
       <p className="font-mono text-[11px] tracking-[0.16em] text-signal uppercase">{text.kicker}</p>
@@ -57,7 +27,7 @@ export default function QuotaExceededNotice({ locale, retryAfterMinutes, isLocke
       <div className="mt-5 flex flex-wrap gap-3">
         {isLocked && (
           <Link
-            href="/buchen"
+            href={APP_ROUTES.order}
             className="bg-signal px-4 py-2 font-narrow text-xs font-bold tracking-[0.14em] text-paper-bright uppercase hover:bg-ink"
           >
             {text.ctaFree}

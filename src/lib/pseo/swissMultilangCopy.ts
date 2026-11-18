@@ -11,14 +11,25 @@ export const SWISS_HUB_PATHS = {
   it: "/it/svizzera/aste-ufficio-esecuzione-fosc",
 } as const;
 
-export function buildSwissAlternates(subSlug?: string) {
+const ROMANDIE_REGION_SLUGS = new Set(["genf", "waadt", "neuenburg", "jura", "freiburg", "wallis", "bern"]);
+const ITALIAN_CH_REGION_SLUGS = new Set(["tessin", "graubuenden"]);
+
+export function isSwissMultilangEligible(entry: EuMarketLocationEntry, lang: SwissAltLang): boolean {
+  if (entry.kind === "region") return entry.totalCount > 0;
+  if (entry.totalCount === 0) return false;
+  return lang === "fr" ? ROMANDIE_REGION_SLUGS.has(entry.regionSlug) : ITALIAN_CH_REGION_SLUGS.has(entry.regionSlug);
+}
+
+export function buildSwissAlternates(subSlug?: string, entry?: EuMarketLocationEntry) {
   const suffix = subSlug ? `/${subSlug}` : "";
+  const includeFr = !entry || isSwissMultilangEligible(entry, "fr");
+  const includeIt = !entry || isSwissMultilangEligible(entry, "it");
   return {
     canonical: `${BELOWMARK_ORIGIN}${SWISS_HUB_PATHS.de}${suffix}`,
     languages: {
       "de-CH": `${BELOWMARK_ORIGIN}${SWISS_HUB_PATHS.de}${suffix}`,
-      "fr-CH": `${BELOWMARK_ORIGIN}${SWISS_HUB_PATHS.fr}${suffix}`,
-      "it-CH": `${BELOWMARK_ORIGIN}${SWISS_HUB_PATHS.it}${suffix}`,
+      ...(includeFr ? { "fr-CH": `${BELOWMARK_ORIGIN}${SWISS_HUB_PATHS.fr}${suffix}` } : {}),
+      ...(includeIt ? { "it-CH": `${BELOWMARK_ORIGIN}${SWISS_HUB_PATHS.it}${suffix}` } : {}),
       "x-default": `${BELOWMARK_ORIGIN}${SWISS_HUB_PATHS.de}${suffix}`,
     },
   };
@@ -163,7 +174,8 @@ export function buildSwissMultilangMetadata(params: {
   const { lang, totalCount, entry } = params;
   const copy = SWISS_MULTILANG_COPY[lang];
   const canonicalPath = entry ? `${copy.hubPath}/${entry.slug}` : copy.hubPath;
-  const alts = buildSwissAlternates(entry?.slug);
+  const alts = buildSwissAlternates(entry?.slug, entry);
+  const shouldIndex = !entry || isSwissMultilangEligible(entry, lang);
   const locName = entry ? localizeSwissEntryName(entry.slug, entry.name, lang) : "Suisse / Svizzera";
 
   const title = entry ? copy.entryMetaTitle(locName, entry.totalCount) : copy.hubMetaTitle(totalCount);
@@ -180,8 +192,9 @@ export function buildSwissMultilangMetadata(params: {
       url: `${BELOWMARK_ORIGIN}${canonicalPath}`,
     }),
     alternates: {
-      canonical: `${BELOWMARK_ORIGIN}${canonicalPath}`,
+      canonical: shouldIndex ? `${BELOWMARK_ORIGIN}${canonicalPath}` : alts.canonical,
       languages: alts.languages,
     },
+    ...(shouldIndex ? {} : { robots: { index: false, follow: true } }),
   };
 }

@@ -235,8 +235,7 @@ function buildEuMarketCatalog(market: EuPseoMarketCode, marketListings: Listing[
 
   for (const seed of seeds) {
     const items = bySnapRegion.get(seed.snapshotRegion) ?? [];
-    const effectiveItems = items.length > 0 ? items : marketListings.slice(0, 6);
-    const stats = computeStats(effectiveItems);
+    const stats = computeStats(items);
 
     const cityMap = new Map<string, { name: string; slug: string; count: number }>();
     const courtMap = new Map<string, { name: string; slug: string; count: number }>();
@@ -276,13 +275,13 @@ function buildEuMarketCatalog(market: EuPseoMarketCode, marketListings: Listing[
       regionSlug: seed.slug,
       transferTaxPct: seed.taxPct,
       currency: meta.currency,
-      totalCount: items.length || effectiveItems.length,
-      limitsWaivedCount: effectiveItems.filter((i) => i.limitsWaived).length,
-      withDocsCount: effectiveItems.filter((i) => i.documentUrl || i.exposeUrl || i.reportUrl).length,
+      totalCount: items.length,
+      limitsWaivedCount: items.filter((i) => i.limitsWaived).length,
+      withDocsCount: items.filter((i) => i.documentUrl || i.exposeUrl || i.reportUrl).length,
       ...stats,
       subLinks: [...cityMap.values()].sort((a, b) => b.count - a.count).slice(0, 16),
       courtLinks: [...courtMap.values()].sort((a, b) => b.count - a.count).slice(0, 16),
-      listings: effectiveItems.slice(0, 12).map(toPreviewListing),
+      listings: items.slice(0, 12).map(toPreviewListing),
     };
 
     regions.push(entry);

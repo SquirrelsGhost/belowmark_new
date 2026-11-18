@@ -42,7 +42,8 @@ export async function buildEuEntryMetadata(market: EuPseoMarketCode, slug: strin
       tags: [entry.name, entry.nativeRegionName, copy.hubEyebrow, "Belowmark"],
       url: `${BELOWMARK_ORIGIN}${catalog.hubPath}/${entry.slug}`,
     }),
-    ...(market === "CH" ? { alternates: buildSwissAlternates(entry.slug) } : {}),
+    ...(market === "CH" ? { alternates: buildSwissAlternates(entry.slug, entry) } : {}),
+    ...(entry.totalCount === 0 ? { robots: { index: false, follow: true } } : {}),
   };
 }
 

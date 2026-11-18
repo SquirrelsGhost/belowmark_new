@@ -27,7 +27,7 @@ export default async function ListingVerdictSection({ listing, userId, locale, i
         <h2 className="font-display text-4xl sm:text-5xl">{Section.Title}</h2>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-soft">{Section.Lead}</p>
       </div>
-      {isLocked ? <LockedPanel title={labels.Locked.Title} body={labels.Locked.Body} cta={lockedCta} /> : <ListingVerdictBody listing={listing} userId={userId} locale={locale} now={now} />}
+      {isLocked ? <LockedPanel title={labels.Locked.Title} body={labels.Locked.Body} cta={lockedCta} href="#free-unlock" /> : <ListingVerdictBody listing={listing} userId={userId} locale={locale} now={now} />}
     </section>
   );
 }

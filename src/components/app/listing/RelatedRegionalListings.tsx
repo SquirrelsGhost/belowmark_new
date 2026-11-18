@@ -90,6 +90,7 @@ export default function RelatedRegionalListings({
             <Link
               key={item.key}
               href={listingHref(item.key)}
+              prefetch={false}
               className="group flex flex-col justify-between border-2 border-ink bg-paper-bright p-4 transition-colors hover:bg-paper-deep"
             >
               <div>

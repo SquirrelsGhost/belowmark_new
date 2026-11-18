@@ -35,6 +35,8 @@ export interface IRegion {
   isCountryMatched: boolean;
   /** true once the visitor picked the market/country in the pricing section during this location session */
   isMarketChosen: boolean;
+  /** true once the visitor explicitly switched language in the navbar */
+  isLocaleChosen?: boolean;
   /** true when the host's geo header decided — then no browser check is needed */
   isFromGeoHeader: boolean;
   /** Normalized 2-letter ISO country code detected on the server (or null if none yet) */
@@ -117,6 +119,7 @@ export class RegionService {
       locale,
       isCountryMatched,
       isMarketChosen,
+      isLocaleChosen: Boolean(chosenLocale),
       isFromGeoHeader: Boolean(geoCountry),
       country: detectedCountryCode,
     };

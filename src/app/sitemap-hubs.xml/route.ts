@@ -1,5 +1,6 @@
 import { connection } from "next/server";
 import { BELOWMARK_ORIGIN } from "@/lib/blog/blogSeo";
+import { isSwissMultilangEligible, SWISS_HUB_PATHS } from "@/lib/pseo/swissMultilangCopy";
 import { PseoService } from "@/services/PseoService";
 
 const escapeXml = (str: string) =>
@@ -11,6 +12,8 @@ interface SitemapEntry {
   changefreq: "daily" | "weekly" | "monthly";
   priority: string;
 }
+
+const COMPACT_EU_MARKETS = new Set(["AT", "CH", "NL", "SE"]);
 
 export async function GET(): Promise<Response> {
   await connection();
@@ -42,59 +45,83 @@ export async function GET(): Promise<Response> {
     addUrl(`${BELOWMARK_ORIGIN}/datenschutz`, "0.30", "monthly");
     addUrl(`${BELOWMARK_ORIGIN}/widerruf`, "0.30", "monthly");
 
-    // 2. All 16 German Bundesländer Hub Pages
+    // 2. German Bundesländer Hub Pages (active inventory only)
     for (const st of catalog.deStates) {
-      addUrl(`${BELOWMARK_ORIGIN}/bundesland/${st.slug}`, "0.90", "daily");
+      if (st.totalCount >= 1) {
+        addUrl(`${BELOWMARK_ORIGIN}/bundesland/${st.slug}`, "0.90", "daily");
+      }
     }
 
     // 3. Strictly German (DE) Amtsgerichte pSEO Pages (§ 39 ZVG)
     for (const court of catalog.courts) {
-      addUrl(`${BELOWMARK_ORIGIN}/amtsgericht/${court.slug}`, "0.85", "daily");
+      if (court.totalCount >= 1) {
+        addUrl(`${BELOWMARK_ORIGIN}/amtsgericht/${court.slug}`, "0.85", "daily");
+      }
     }
 
-    // 4. Strictly German (DE) Cities & Categories pSEO Pages
+    // 4. German (DE) Cities & Categories — require >= 2 listings & skip "-ot-" suburb noise to protect crawl budget
     for (const city of catalog.cities) {
-      addUrl(`${BELOWMARK_ORIGIN}/zwangsversteigerung/${city.slug}`, "0.80", "daily");
+      if (city.totalCount >= 2 && !city.slug.includes("-ot-")) {
+        addUrl(`${BELOWMARK_ORIGIN}/zwangsversteigerung/${city.slug}`, "0.80", "daily");
+      }
     }
 
-    // 5. All 81 Turkish Provinces + Districts + 1,061 İcra Dairesi + Categories pSEO Pages
+    // 5. Turkish Provinces, High-Volume Districts, Major İcra Daireleri & Categories (dense hubs only)
     for (const loc of catalog.trLocations) {
-      const prio =
-        loc.kind === "province" || loc.kind === "category"
-          ? "0.88"
-          : loc.kind === "court"
-            ? "0.82"
-            : "0.75";
-      addUrl(`${BELOWMARK_ORIGIN}/tr/icra-ihale/${loc.slug}`, prio, "daily", today);
+      if (loc.kind === "province" && loc.totalCount >= 1) {
+        addUrl(`${BELOWMARK_ORIGIN}/tr/icra-ihale/${loc.slug}`, "0.88", "daily", today);
+      } else if (loc.kind === "category" && loc.totalCount >= 8) {
+        addUrl(`${BELOWMARK_ORIGIN}/tr/icra-ihale/${loc.slug}`, "0.85", "daily", today);
+      } else if (loc.kind === "court" && loc.totalCount >= 5) {
+        addUrl(`${BELOWMARK_ORIGIN}/tr/icra-ihale/${loc.slug}`, "0.82", "daily", today);
+      } else if (loc.kind === "district" && loc.totalCount >= 5) {
+        addUrl(`${BELOWMARK_ORIGIN}/tr/icra-ihale/${loc.slug}`, "0.78", "daily", today);
+      }
     }
 
-    // 6. All 6 European Partner Markets (AT, CH, IT, ES, FR, GB): Hubs, Calculators, Regions, Cities & Courts
+    // 6. All 10 European Partner Markets (AT, CH, IT, ES, FR, GB, NL, PL, CZ, SE)
     for (const euCat of Object.values(catalog.euMarkets)) {
       addUrl(`${BELOWMARK_ORIGIN}${euCat.hubPath}`, "0.95", "daily");
       addUrl(`${BELOWMARK_ORIGIN}${euCat.calcPath}`, "0.90", "weekly");
+      const minCityLots = COMPACT_EU_MARKETS.has(euCat.market) ? 1 : 3;
+      const minCourtLots = COMPACT_EU_MARKETS.has(euCat.market) ? 1 : 3;
+
       for (const reg of euCat.regions) {
-        addUrl(`${BELOWMARK_ORIGIN}${euCat.hubPath}/${reg.slug}`, "0.88", "daily");
+        if (reg.totalCount >= 1) {
+          addUrl(`${BELOWMARK_ORIGIN}${euCat.hubPath}/${reg.slug}`, "0.88", "daily");
+        }
       }
       for (const city of euCat.cities) {
-        addUrl(`${BELOWMARK_ORIGIN}${euCat.hubPath}/${city.slug}`, "0.80", "daily");
+        if (city.totalCount >= minCityLots) {
+          addUrl(`${BELOWMARK_ORIGIN}${euCat.hubPath}/${city.slug}`, "0.80", "daily");
+        }
       }
       for (const court of euCat.courts) {
-        addUrl(`${BELOWMARK_ORIGIN}${euCat.hubPath}/${court.slug}`, "0.80", "daily");
+        if (court.totalCount >= minCourtLots) {
+          addUrl(`${BELOWMARK_ORIGIN}${euCat.hubPath}/${court.slug}`, "0.80", "daily");
+        }
       }
     }
 
-    // 7. Trilingual Switzerland (FR-CH Romandie / FOSC & IT-CH Ticino / FUSC) Hubs, Cantons, Cities & Offices
+    // 7. Trilingual Switzerland (FR-CH Romandie / FOSC & IT-CH Ticino / FUSC) — only native language cantons/communes
     const chCat = catalog.euMarkets.CH;
-    for (const chPrefix of ["/fr/suisse/ventes-aux-encheres-shab", "/it/svizzera/aste-ufficio-esecuzione-fosc"]) {
+    for (const lang of ["fr", "it"] as const) {
+      const chPrefix = SWISS_HUB_PATHS[lang];
       addUrl(`${BELOWMARK_ORIGIN}${chPrefix}`, "0.93", "daily");
       for (const reg of chCat.regions) {
-        addUrl(`${BELOWMARK_ORIGIN}${chPrefix}/${reg.slug}`, "0.86", "daily");
+        if (isSwissMultilangEligible(reg, lang)) {
+          addUrl(`${BELOWMARK_ORIGIN}${chPrefix}/${reg.slug}`, "0.86", "daily");
+        }
       }
       for (const city of chCat.cities) {
-        addUrl(`${BELOWMARK_ORIGIN}${chPrefix}/${city.slug}`, "0.78", "daily");
+        if (isSwissMultilangEligible(city, lang)) {
+          addUrl(`${BELOWMARK_ORIGIN}${chPrefix}/${city.slug}`, "0.78", "daily");
+        }
       }
       for (const court of chCat.courts) {
-        addUrl(`${BELOWMARK_ORIGIN}${chPrefix}/${court.slug}`, "0.78", "daily");
+        if (isSwissMultilangEligible(court, lang)) {
+          addUrl(`${BELOWMARK_ORIGIN}${chPrefix}/${court.slug}`, "0.78", "daily");
+        }
       }
     }
 

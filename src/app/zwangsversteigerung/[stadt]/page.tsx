@@ -26,20 +26,24 @@ export async function generateMetadata({ params }: StadtPageProps): Promise<Meta
   const minBidStr = minBidVal ? ` ab ${formatEuro(minBidVal, "de")}` : "";
   const fullCityTitle = `Zwangsversteigerung ${entity.name}: ${entity.totalCount} Immobilien & Termine${minBidStr}`;
   const compactCityTitle = `Zwangsversteigerung ${entity.name}: ${entity.totalCount} Termine${minBidStr}`;
-  return MetaTagService.CreateMetaTags({
-    title: fullCityTitle.length <= 65 ? fullCityTitle : compactCityTitle,
-    description: `Alle ${entity.totalCount} aktuellen Zwangsversteigerungen in ${entity.name} (${entity.region})${minBidStr} (50 %-Grenze ZVG): Häuser, Wohnungen, Verkehrswert & Termine.`,
-    imgUrl: DEFAULT_BLOG_OG,
-    tags: [
-      `Zwangsversteigerung ${entity.name}`,
-      `Zwangsversteigerungen ${entity.name} Termine`,
-      `Immobilien Zwangsversteigerung ${entity.name}`,
-      `Zwangsversteigerung Haus ${entity.name}`,
-      `Zwangsversteigerung Wohnung ${entity.name}`,
-      entity.region,
-    ],
-    url: `${BELOWMARK_ORIGIN}/zwangsversteigerung/${entity.slug}`,
-  });
+  const isThinSuburb = entity.totalCount === 0 || entity.slug.includes("-ot-");
+  return {
+    ...MetaTagService.CreateMetaTags({
+      title: fullCityTitle.length <= 65 ? fullCityTitle : compactCityTitle,
+      description: `Alle ${entity.totalCount} aktuellen Zwangsversteigerungen in ${entity.name} (${entity.region})${minBidStr} (50 %-Grenze ZVG): Häuser, Wohnungen, Verkehrswert & Termine.`,
+      imgUrl: DEFAULT_BLOG_OG,
+      tags: [
+        `Zwangsversteigerung ${entity.name}`,
+        `Zwangsversteigerungen ${entity.name} Termine`,
+        `Immobilien Zwangsversteigerung ${entity.name}`,
+        `Zwangsversteigerung Haus ${entity.name}`,
+        `Zwangsversteigerung Wohnung ${entity.name}`,
+        entity.region,
+      ],
+      url: `${BELOWMARK_ORIGIN}/zwangsversteigerung/${entity.slug}`,
+    }),
+    ...(isThinSuburb ? { robots: { index: false, follow: true } } : {}),
+  };
 }
 
 export default async function ZwangsversteigerungStadtPage({ params }: StadtPageProps) {

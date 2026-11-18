@@ -1,6 +1,6 @@
 import "server-only";
 import { Metadata } from "next";
-import { LocaleOption } from "@/lib/constants";
+import { isPricingCountry, LocaleOption, PricingCountryCode } from "@/lib/constants";
 import { env } from "@/lib/env";
 import { IMetaTags, MetaTagService } from "@/services/MetaTagService";
 import { TranslationService } from "@/services/TranslationService";
@@ -19,9 +19,31 @@ export interface LegalPageContext {
   isApproved: boolean;
 }
 
+export function resolveOrderPageLocale(params: {
+  isLocaleChosen?: boolean;
+  regionLocale: LocaleOption;
+  userLocale?: string | null;
+  rawMarket?: string;
+}): string {
+  if (params.isLocaleChosen) return params.regionLocale;
+  if (params.userLocale) return params.userLocale;
+  if (isPricingCountry(params.rawMarket)) {
+    const m: PricingCountryCode = params.rawMarket;
+    if (m === "TR") return "tr";
+    if (m === "FR") return "fr";
+    if (m === "ES") return "es";
+    if (m === "IT") return "it";
+    if (m === "DE" || m === "AT" || m === "CH") return "de";
+    return "en";
+  }
+  return params.regionLocale;
+}
+
 /** Translations, language and release state for the legal and consumer pages. */
-export async function getLegalPageContext(): Promise<LegalPageContext> {
-  const locale = await TranslationService.GetUserLocale();
+export async function getLegalPageContext(preferredLocale?: string | null): Promise<LegalPageContext> {
+  const locale = preferredLocale
+    ? TranslationService.NormalizeLocale(preferredLocale)
+    : await TranslationService.GetUserLocale();
   return {
     t: BillingTranslations[locale],
     layout: AuthTranslations[locale].Layout,

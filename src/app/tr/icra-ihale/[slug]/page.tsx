@@ -44,22 +44,26 @@ export async function generateMetadata({ params }: TrIcraEntityPageProps): Promi
   const compactTitle = isCategory
     ? `${entity.name}: ${entity.totalCount} Aktif İhale`
     : `${entity.name} İcradan Satılık: ${entity.totalCount} İhale${minBidStr}`;
-  return MetaTagService.CreateMetaTags({
-    title: fullTitle.length <= 68 ? fullTitle : compactTitle,
-    description: isCourt
-      ? `${entity.name} (${entity.provinceName}) tarafından yürütülen ${entity.totalCount} güncel gayrimenkul icra satış ihalesi${minBidStr}: Esas No, muhammen bedel, %50 açılış ve %10 teminat.`
-      : `${entity.name} genelinde icradan satılık daire, müstakil ev, arsa ve tarla (${entity.totalCount} aktif UYAP E-Satış ihalesi${minBidStr}). Muhammen bedel, %50 açılış ve şartname PDF.`,
-    imgUrl: DEFAULT_BLOG_OG,
-    tags: [
-      `${entity.name} icradan satılık`,
-      `${entity.name} icradan satılık daireler`,
-      `${entity.name} icradan satılık evler`,
-      `${entity.name} icradan satılık arsa tarla`,
-      `${entity.name} icra ihale`,
-      `${entity.name} uyap e-satış`,
-    ],
-    url: `${BELOWMARK_ORIGIN}/tr/icra-ihale/${entity.slug}`,
-  });
+  const isThinEntry = entity.totalCount <= 1 && entity.kind !== "province";
+  return {
+    ...MetaTagService.CreateMetaTags({
+      title: fullTitle.length <= 68 ? fullTitle : compactTitle,
+      description: isCourt
+        ? `${entity.name} (${entity.provinceName}) tarafından yürütülen ${entity.totalCount} güncel gayrimenkul icra satış ihalesi${minBidStr}: Esas No, muhammen bedel, %50 açılış ve %10 teminat.`
+        : `${entity.name} genelinde icradan satılık daire, müstakil ev, arsa ve tarla (${entity.totalCount} aktif UYAP E-Satış ihalesi${minBidStr}). Muhammen bedel, %50 açılış ve şartname PDF.`,
+      imgUrl: DEFAULT_BLOG_OG,
+      tags: [
+        `${entity.name} icradan satılık`,
+        `${entity.name} icradan satılık daireler`,
+        `${entity.name} icradan satılık evler`,
+        `${entity.name} icradan satılık arsa tarla`,
+        `${entity.name} icra ihale`,
+        `${entity.name} uyap e-satış`,
+      ],
+      url: `${BELOWMARK_ORIGIN}/tr/icra-ihale/${entity.slug}`,
+    }),
+    ...(isThinEntry ? { robots: { index: false, follow: true } } : {}),
+  };
 }
 
 export default async function TrIcraEntityPage({ params }: TrIcraEntityPageProps) {

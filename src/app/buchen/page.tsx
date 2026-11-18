@@ -12,7 +12,7 @@ import { OrderMarketView } from "@/lib/billing/billingForm.types";
 import { buildOrderOffersByMarket, pickInitialOffer, vatNote } from "@/lib/billing/orderView";
 import { isPricingCountry, PRICING_COUNTRIES, PricingCountryCode, ROUTES } from "@/lib/constants";
 import { env } from "@/lib/env";
-import { getLegalPageContext, legalMetadata } from "@/lib/legal/legalPage";
+import { getLegalPageContext, legalMetadata, resolveOrderPageLocale } from "@/lib/legal/legalPage";
 import { BillingService } from "@/services/billing/BillingService";
 import { CountryAccessService } from "@/services/CountryAccessService";
 import { RegionService } from "@/services/RegionService";
@@ -47,22 +47,22 @@ export default async function OrderPage({ searchParams }: PageProps<"/buchen">) 
   const rawMarket = typeof params[MARKET_PARAM] === "string" ? params[MARKET_PARAM].toUpperCase() : undefined;
   const initialGuestEmail = typeof params.email === "string" ? params.email.trim().slice(0, 254) : undefined;
 
-  const [currentUser, { t, layout, lang }, userLocale, homeTranslations, region] = await Promise.all([
-    SessionService.getCurrentUser(),
-    getLegalPageContext(),
-    TranslationService.GetUserLocale(),
-    TranslationService.GetUserTranslations(),
-    RegionService.GetRegion(),
-  ]);
-  const viewerCountry: PricingCountryCode = currentUser
-    ? (await CountryAccessService.forUser(currentUser)).country
-    : region.pricingCountry;
+  const [currentUser, region] = await Promise.all([SessionService.getCurrentUser(), RegionService.GetRegion()]);
+  const viewerCountry: PricingCountryCode = currentUser ? (await CountryAccessService.forUser(currentUser)).country : region.pricingCountry;
+  const initialMarket: PricingCountryCode = isPricingCountry(rawMarket) ? rawMarket : viewerCountry;
+  const preferredLocale = resolveOrderPageLocale({
+    isLocaleChosen: region.isLocaleChosen,
+    regionLocale: region.locale,
+    userLocale: currentUser?.locale,
+    rawMarket,
+  });
+  const effectiveLocale = TranslationService.NormalizeLocale(preferredLocale);
+  const { t, layout, lang } = await getLegalPageContext(preferredLocale);
+  const homeTranslations = TranslationService.GetTranslations(effectiveLocale);
 
-  const { Fields } = AuthTranslations[userLocale];
+  const { Fields } = AuthTranslations[effectiveLocale];
   const { Order } = t;
   const pricingMarkets = homeTranslations.HomePage.Pricing.Markets;
-
-  const initialMarket: PricingCountryCode = isPricingCountry(rawMarket) ? rawMarket : viewerCountry;
   const availabilityDe = BillingService.availability("DE");
   const availabilityTr = BillingService.availability("TR");
   const availability = initialMarket === "TR" ? availabilityTr : availabilityDe;

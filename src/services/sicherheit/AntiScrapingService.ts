@@ -10,6 +10,17 @@ import { BillingService } from "@/services/billing/BillingService";
 import { RateLimitResult, RateLimitService } from "@/services/RateLimitService";
 import { Sitzungswachdienst } from "@/services/sicherheit/Sitzungswachdienst";
 
+function isNextPrefetchHeader(hdrs: Headers): boolean {
+  return (
+    hdrs.has("next-router-prefetch") ||
+    hdrs.has("next-router-segment-prefetch") ||
+    hdrs.has("x-middleware-prefetch") ||
+    (hdrs.get("purpose") ?? "").toLowerCase().includes("prefetch") ||
+    (hdrs.get("sec-purpose") ?? "").toLowerCase().includes("prefetch") ||
+    (hdrs.get("moz") ?? "").toLowerCase().includes("prefetch")
+  );
+}
+
 export interface ScrapingQuotaStatus {
   allowed: boolean;
   retryAfterMinutes: number;
@@ -74,7 +85,7 @@ export class AntiScrapingService {
   static enforceSearchQuota = async (userId: string, isLocked: boolean): Promise<ScrapingQuotaStatus> => {
     try {
       const hdrs = await headers();
-      if (hdrs.get("next-router-prefetch") === "1" || hdrs.get("purpose") === "prefetch") {
+      if (isNextPrefetchHeader(hdrs)) {
         return { allowed: true, retryAfterMinutes: 0 };
       }
     } catch {
@@ -117,7 +128,7 @@ export class AntiScrapingService {
 
     try {
       const hdrs = await headers();
-      if (hdrs.get("next-router-prefetch") === "1" || hdrs.get("purpose") === "prefetch") {
+      if (isNextPrefetchHeader(hdrs)) {
         return { allowed: true, retryAfterMinutes: 0 };
       }
     } catch {

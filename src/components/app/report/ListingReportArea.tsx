@@ -46,7 +46,7 @@ export default async function ListingReportArea({
       <RiskCheckPanel check={buildRiskCheck(listing, report)} labels={labels.Risk} />
       <ReportSection title={R.Title} lead={R.Lead} policy={R.Policy}>
         {isLocked ? (
-          <LockedPanel title={R.Locked.Title} body={R.Locked.Body} cta={R.Locked.Cta} />
+          <LockedPanel title={R.Locked.Title} body={R.Locked.Body} cta={R.Locked.Cta} href="#free-unlock" />
         ) : (
           <>
             {report && <ReportResults report={report} labels={R} locale={locale} />}

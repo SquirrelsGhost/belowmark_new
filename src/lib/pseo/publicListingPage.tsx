@@ -16,13 +16,17 @@ export async function generatePublicListingMetadata(slug: string): Promise<Metad
     return { title: "Belowmark", robots: { index: false, follow: false } };
   }
   const { title, description } = buildPublicListingMeta(item);
-  return MetaTagService.CreateMetaTags({
-    title,
-    description,
-    imgUrl: DEFAULT_BLOG_OG,
-    tags: [item.segmentLabel, item.cleanCity, item.authority, item.regionName].filter(Boolean),
-    url: item.canonicalUrl,
-  });
+  return {
+    ...MetaTagService.CreateMetaTags({
+      title,
+      description,
+      imgUrl: DEFAULT_BLOG_OG,
+      tags: [item.segmentLabel, item.cleanCity, item.authority, item.regionName].filter(Boolean),
+      url: item.canonicalUrl,
+    }),
+    // Ephemeral redacted single-lot pages funnel PageRank to evergreen City/Court hubs without diluting Google index quality
+    robots: { index: false, follow: true },
+  };
 }
 
 export async function renderPublicListingPage(slug: string, currentPrefix: "/objekt" | "/tr/ilan" | "/lot") {

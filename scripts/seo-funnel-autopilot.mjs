@@ -82,16 +82,21 @@ async function collectGscMetrics() {
   }));
 
   const qUrl = `https://www.googleapis.com/webmasters/v3/sites/${encodeURIComponent(GSC_SITE)}/searchAnalytics/query`;
-  const [last7, prev7, topQueries, topPages] = await Promise.all([
+  const [last7, prev7, byDate, topQueries, topPages] = await Promise.all([
     fetch(qUrl, {
       method: "POST",
       headers,
-      body: JSON.stringify({ startDate: isoDateDaysAgo(9), endDate: isoDateDaysAgo(2) }),
+      body: JSON.stringify({ startDate: isoDateDaysAgo(8), endDate: isoDateDaysAgo(2) }),
     }).then((r) => r.json()),
     fetch(qUrl, {
       method: "POST",
       headers,
-      body: JSON.stringify({ startDate: isoDateDaysAgo(16), endDate: isoDateDaysAgo(10) }),
+      body: JSON.stringify({ startDate: isoDateDaysAgo(15), endDate: isoDateDaysAgo(9) }),
+    }).then((r) => r.json()),
+    fetch(qUrl, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ startDate: isoDateDaysAgo(16), endDate: isoDateDaysAgo(1), dimensions: ["date"], rowLimit: 25 }),
     }).then((r) => r.json()),
     fetch(qUrl, {
       method: "POST",
@@ -105,11 +110,28 @@ async function collectGscMetrics() {
     }).then((r) => r.json()),
   ]);
 
+  const dailySeries = (byDate.rows ?? []).map((r) => ({
+    date: r.keys[0],
+    clicks: r.clicks,
+    impressions: r.impressions,
+    position: Number(r.position.toFixed(1)),
+  }));
+  const recent3 = dailySeries.slice(-3);
+  const prevWindow = dailySeries.slice(-10, -3);
+  const avgRecentClicks = recent3.length > 0 ? recent3.reduce((s, d) => s + d.clicks, 0) / recent3.length : 0;
+  const avgPrevClicks = prevWindow.length > 0 ? prevWindow.reduce((s, d) => s + d.clicks, 0) / prevWindow.length : 0;
+  const seoDropAlert =
+    avgPrevClicks >= 15 && avgRecentClicks < avgPrevClicks * 0.35
+      ? `WARNUNG: Tägliche Google-Klicks sind in den letzten 3 gemessenen Tagen auf Ø ${avgRecentClicks.toFixed(1)}/Tag gefallen (zuvor Ø ${avgPrevClicks.toFixed(1)}/Tag).`
+      : null;
+
   return {
     available: true,
     sitemaps,
     last7d: last7.rows?.[0] ?? { clicks: 0, impressions: 0, ctr: 0, position: 0 },
     prev7d: prev7.rows?.[0] ?? { clicks: 0, impressions: 0, ctr: 0, position: 0 },
+    dailyLast7d: dailySeries.slice(-7),
+    seoDropAlert,
     topQueries: (topQueries.rows ?? []).map((r) => ({
       query: r.keys[0],
       clicks: r.clicks,
@@ -684,14 +706,17 @@ async function sendAbandonedCheckoutFollowUps() {
 }
 
 async function pushAllUrlsToIndexNow() {
-  const urlSitemaps = [
+  // Only indexable Hub & Editorial Guide sitemaps belong in Google Search Console (never 29k ephemeral single-lot URLs)
+  const gscCanonicalSitemaps = [
     `${ORIGIN}/sitemap-hubs.xml`,
-    `${ORIGIN}/sitemap-listings-eu.xml`,
-    `${ORIGIN}/sitemap-listings-tr.xml`,
     `${ORIGIN}/sitemap-blog.xml`,
   ];
+  const deprecatedGscSitemaps = [
+    `${ORIGIN}/sitemap-listings-eu.xml`,
+    `${ORIGIN}/sitemap-listings-tr.xml`,
+  ];
   const allUrls = [];
-  for (const sm of urlSitemaps) {
+  for (const sm of gscCanonicalSitemaps) {
     const xml = await (await fetch(sm)).text();
     for (const m of xml.matchAll(/<loc>([^<]+)<\/loc>/g)) {
       allUrls.push(m[1]);
@@ -717,12 +742,19 @@ async function pushAllUrlsToIndexNow() {
   const gscToken = await getGscToken();
   const gscSitemaps = [];
   if (gscToken) {
-    for (const sm of [`${ORIGIN}/sitemap.xml`, ...urlSitemaps]) {
+    for (const oldSm of deprecatedGscSitemaps) {
+      const r = await fetch(
+        `https://www.googleapis.com/webmasters/v3/sites/${encodeURIComponent(GSC_SITE)}/sitemaps/${encodeURIComponent(oldSm)}`,
+        { method: "DELETE", headers: { Authorization: `Bearer ${gscToken}` } },
+      );
+      gscSitemaps.push({ sitemap: oldSm, action: "DELETE", httpStatus: r.status });
+    }
+    for (const sm of [`${ORIGIN}/sitemap.xml`, ...gscCanonicalSitemaps]) {
       const r = await fetch(
         `https://www.googleapis.com/webmasters/v3/sites/${encodeURIComponent(GSC_SITE)}/sitemaps/${encodeURIComponent(sm)}`,
         { method: "PUT", headers: { Authorization: `Bearer ${gscToken}` } },
       );
-      gscSitemaps.push({ sitemap: sm, httpStatus: r.status });
+      gscSitemaps.push({ sitemap: sm, action: "PUT", httpStatus: r.status });
     }
   }
   return { totalUniqueUrls: unique.length, batches, gscSitemaps };
@@ -876,6 +908,14 @@ if (report.gsc.available) {
   console.log(
     `GSC (7d vs prev 7d): Clicks ${l.clicks} (prev ${p.clicks}) · Impressions ${l.impressions} (prev ${p.impressions}) · Pos ${Number(l.position || 0).toFixed(1)}`,
   );
+  if (report.gsc.seoDropAlert) {
+    console.log(`  ⚠️ ${report.gsc.seoDropAlert}`);
+  }
+  if (report.gsc.dailyLast7d?.length) {
+    console.log(
+      `  Daily (last ${report.gsc.dailyLast7d.length}d): ${report.gsc.dailyLast7d.map((d) => `${d.date.slice(5)}=${d.clicks}c/${d.impressions}i`).join(" · ")}`,
+    );
+  }
   for (const sm of report.gsc.sitemaps) {
     console.log(`  Sitemap ${sm.path} -> submitted=${sm.submitted} indexed=${sm.indexed} errors=${sm.errors}`);
   }

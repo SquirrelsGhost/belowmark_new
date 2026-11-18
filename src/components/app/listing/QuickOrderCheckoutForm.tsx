@@ -31,9 +31,9 @@ export default function QuickOrderCheckoutForm({
   noteLabel,
 }: QuickOrderCheckoutFormProps) {
   const [state, action] = useActionState(placeOrderAction, INITIAL_ORDER_STATE);
-  // Default to the 14-day one-time pass in TR (where debit cards often reject 0.00 recurring mandates) or when trial was already used
+  // Match banner headline: default to 0.00 7-day trial whenever eligible, with 1-click toggle to the non-renewing 14-day pass
   const [selectedOffer, setSelectedOffer] = useState<BillingOfferId>(
-    country === "TR" || !stripeTrialEligible ? "investor-pass" : "investor-monat",
+    stripeTrialEligible ? "investor-monat" : "investor-pass",
   );
 
   const L = QUICK_CHECKOUT_COPY[locale] ?? QUICK_CHECKOUT_COPY.de;
@@ -53,20 +53,20 @@ export default function QuickOrderCheckoutForm({
         <button
           type="button"
           role="tab"
-          aria-selected={isPass}
-          onClick={() => setSelectedOffer("investor-pass")}
-          className={isPass ? TAB_ACTIVE : TAB_IDLE}
-        >
-          {L.tabPass(passPrice)}
-        </button>
-        <button
-          type="button"
-          role="tab"
           aria-selected={!isPass}
           onClick={() => setSelectedOffer("investor-monat")}
           className={!isPass ? TAB_ACTIVE : TAB_IDLE}
         >
           {stripeTrialEligible ? L.tabSubscription : `${monthPrice}/m`}
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={isPass}
+          onClick={() => setSelectedOffer("investor-pass")}
+          className={isPass ? TAB_ACTIVE : TAB_IDLE}
+        >
+          {L.tabPass(passPrice)}
         </button>
       </div>
 

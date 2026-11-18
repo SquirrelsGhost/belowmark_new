@@ -3,8 +3,6 @@ import { BELOWMARK_ORIGIN } from "@/lib/blog/blogSeo";
 
 const SUB_SITEMAPS = [
   `${BELOWMARK_ORIGIN}/sitemap-hubs.xml`,
-  `${BELOWMARK_ORIGIN}/sitemap-listings-eu.xml`,
-  `${BELOWMARK_ORIGIN}/sitemap-listings-tr.xml`,
   `${BELOWMARK_ORIGIN}/sitemap-blog.xml`,
 ] as const;
 

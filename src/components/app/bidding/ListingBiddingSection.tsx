@@ -48,7 +48,7 @@ export default async function ListingBiddingSection({ listing, labels, locked, l
         {!isLocked && <BidderFileButton href={bidderFileHref(listing.key, true)} label={labels.File.Button} hint={labels.File.ButtonHint} />}
       </div>
       {isLocked || !context ? (
-        isLocked && <LockedPanel title={locked.Title} body={locked.Body} cta={locked.Cta} />
+        isLocked && <LockedPanel title={locked.Title} body={locked.Body} cta={locked.Cta} href="#free-unlock" />
       ) : (
         <BidLimitCalculator listingId={listing.key} context={context} labels={labels.Limit} locale={locale} noticeAreaM2={noticeArea === null ? null : formatArea(noticeArea, locale)} />
       )}

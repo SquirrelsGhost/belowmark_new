@@ -5,11 +5,9 @@ import LockedPanel from "@/components/app/listing/LockedPanel";
 import MarketComparison from "@/components/app/listing/MarketComparison";
 import ValueLine from "@/components/app/listing/ValueLine";
 import ValueLineFigure from "@/components/app/listing/ValueLineFigure";
-import { APP_ROUTES } from "@/lib/appConstants";
 import { fill, formatMoney } from "@/lib/appFormat";
 import { LocaleOption } from "@/lib/constants";
 import { formatPercent } from "@/lib/format";
-import { getListingCountry } from "@/lib/listingCountry";
 import { getDachPurchaseLabels } from "@/lib/listingLabels";
 import { getIcraFigures, getZvgFigures } from "@/lib/listingMath";
 import { ITranslation } from "@/translations/ITranslation";
@@ -33,7 +31,7 @@ export default function ListingPurchase({ listing, t, locale, isLocked }: Listin
   const money = (amount: number) => formatMoney(amount, market, locale, listing.currency);
   const lockedLabel = t.App.Row.Locked;
   const dach = getDachPurchaseLabels(listing, L, locale);
-  const orderHref = `${APP_ROUTES.order}?markt=${encodeURIComponent(getListingCountry(listing))}&angebot=investor-monat`;
+  const unlockAnchor = "#free-unlock";
 
   const valueLine = (children?: ReactNode) => (
     <ValueLine
@@ -66,7 +64,7 @@ export default function ListingPurchase({ listing, t, locale, isLocked }: Listin
         )}
         <div className="mt-10">
           {isLocked ? (
-            <LockedPanel title={L.Locked.Title} body={L.Locked.Body} cta={L.Locked.Cta} href={orderHref} />
+            <LockedPanel title={L.Locked.Title} body={L.Locked.Body} cta={L.Locked.Cta} href={unlockAnchor} />
           ) : (
             <IcraCalculator labels={t.App.Calculator.Tr} costLabels={L.Tr} locale={locale} value={value} vatRate={listing.tr?.vatRate ?? null} isFixed />
           )}
@@ -110,7 +108,7 @@ export default function ListingPurchase({ listing, t, locale, isLocked }: Listin
       )}
       <div className="mt-10">
         {isLocked ? (
-          <LockedPanel title={L.Locked.Title} body={L.Locked.Body} cta={L.Locked.Cta} href={orderHref} />
+          <LockedPanel title={L.Locked.Title} body={L.Locked.Body} cta={L.Locked.Cta} href={unlockAnchor} />
         ) : (
           <ObjectBidCalculator
             t={t.HomePage.Calculator}
