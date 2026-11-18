@@ -149,14 +149,14 @@ export const FR: ITranslation = {
     },
 
     States: {
-      Eyebrow: "Couverture territoriale",
-      Title: "Les 16 Länder interrogés. 14 publient des audiences.",
-      Description: "Audiences ZVG ouvertes par Land et taux des droits de mutation exigibles lors de l'adjudication.",
-      ColState: "Land / Région",
+      Eyebrow: "Couverture nationale en France",
+      Title: "Les 13 régions métropolitaines suivies auprès des Tribunaux Judiciaires.",
+      Description: "Ventes aux enchères immobilières ouvertes par région et taux indicatif des droits d'enregistrement.",
+      ColState: "Région",
       ColHearings: "Audiences ouvertes",
       ColTax: "Droits",
-      NotPublished: "absent du portail commun",
-      Footnote: "Hambourg et le Mecklembourg-Poméranie-Occidentale ne publient pas via le portail fédéral commun ; au Schleswig-Holstein, seuls certains tribunaux y figurent.",
+      NotPublished: "aucune audience active",
+      Footnote: "Sources : annonces légales des Tribunaux Judiciaires et Licitor (licitor.com). Enchères portées par avocat inscrit au barreau du ressort.",
     },
 
     Limits: {
@@ -164,8 +164,8 @@ export const FR: ITranslation = {
       Title: "Ce que nous ne savons pas est écrit tout aussi clairement.",
       Description: "Toute plateforme aime mettre en avant ce qui l'arrange. Ces quatre points montrent nos limites — et expliquent pourquoi vous pouvez vous fier au reste.",
       ItemOne: {
-        Title: "Deux Länder ne publient pas de façon centralisée",
-        Body: "Hambourg et le Mecklembourg-Poméranie-Occidentale n'alimentent pas le portail commun. Nous y affichons zéro audience plutôt que des annonces fictives.",
+        Title: "Délai de surenchère de 10 jours",
+        Body: "Toute adjudication devant le Tribunal Judiciaire peut faire l'objet d'une surenchère du dixième (+10 %) sous 10 jours. Nous l'indiquons systématiquement.",
       },
       ItemTwo: {
         Title: "Pas de valeur d'expertise, pas de calcul",

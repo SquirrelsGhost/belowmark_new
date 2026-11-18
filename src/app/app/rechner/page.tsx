@@ -7,6 +7,7 @@ import BidCalculator from "@/components/hero/BidCalculator";
 import PageStack from "@/components/ui/PageStack";
 import { APP_MAIN_ID, APP_ROUTES } from "@/lib/appConstants";
 import { appMetadata, getAppPageContext } from "@/lib/appPage";
+import { getHomeMarketBundle } from "@/lib/homeMarketData";
 
 // Reads the session cookie on every request.
 // instant = false opts it out of prerender validation — rendering is still server-side.
@@ -34,7 +35,7 @@ export default async function CalculatorPage() {
             <TrCalculatorExtras locale={locale} now={viewer.now} initialLira={TR_DEFAULTS.value} />
           </>
         ) : (
-          <BidCalculator t={t.HomePage.Calculator} locale={locale} />
+          <BidCalculator key={viewer.country} t={t.HomePage.Calculator} locale={locale} config={getHomeMarketBundle(viewer.country, locale).calculator} />
         )}
       </PageStack>
     </AppMain>

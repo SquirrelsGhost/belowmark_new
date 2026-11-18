@@ -164,8 +164,8 @@ export const EN: ITranslation = {
       Title: "What we do not know is stated just as clearly.",
       Description: "Every platform likes to show what flatters it. These four points show our boundaries — and are the reason you can trust the remaining numbers.",
       ItemOne: {
-        Title: "Two states do not publish centrally",
-        Body: "Hamburg and Mecklenburg-Vorpommern do not feed the joint justice portal. We show zero hearings there rather than invented listings.",
+        Title: "No fabricated floor-area comps",
+        Body: "When an official notice omits living or plot area in m², we never invent price-per-m² comparisons — we explicitly flag the missing metric.",
       },
       ItemTwo: {
         Title: "No appraisal, no calculation",

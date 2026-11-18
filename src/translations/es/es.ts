@@ -149,14 +149,14 @@ export const ES: ITranslation = {
     },
 
     States: {
-      Eyebrow: "Cobertura territorial",
-      Title: "Los 16 estados alemanes consultados. 14 publican convocatorias.",
-      Description: "Subastas ZVG abiertas por estado federado y el impuesto de transmisiones exigible tras la adjudicación.",
-      ColState: "Estado federado",
-      ColHearings: "Subastas abiertas",
-      ColTax: "Impuesto",
-      NotPublished: "fuera del portal conjunto",
-      Footnote: "Hamburgo y Mecklemburgo-Pomerania Occidental no publican en el portal judicial conjunto; en Schleswig-Holstein solo participan determinados juzgados.",
+      Eyebrow: "Cobertura en toda España",
+      Title: "Las 17 Comunidades Autónomas monitorizadas en el BOE.",
+      Description: "Subastas judiciales activas por Comunidad Autónoma y tipo general del Impuesto de Transmisiones Patrimoniales (ITP).",
+      ColState: "Comunidad Autónoma",
+      ColHearings: "Subastas activas",
+      ColTax: "ITP",
+      NotPublished: "sin subastas activas",
+      Footnote: "Fuente: Portal de Subastas Electrónicas del Boletín Oficial del Estado (subastas.boe.es) y AEAT.",
     },
 
     Limits: {
@@ -164,8 +164,8 @@ export const ES: ITranslation = {
       Title: "Lo que no sabemos también se indica.",
       Description: "Cualquier plataforma presume de lo que le favorece. Estos cuatro puntos muestran nuestros límites — y son la razón para confiar en el resto de las cifras.",
       ItemOne: {
-        Title: "Dos estados no publican de forma centralizada",
-        Body: "Hamburgo y Mecklemburgo-Pomerania Occidental no vuelcan datos en el portal conjunto. Allí mostramos cero subastas en lugar de anuncios inventados.",
+        Title: "Cargas anteriores verificables",
+        Body: "En subastas BOE las cargas anteriores subsisten (Art. 670 LEC). Si el edicto no detalla el importe actualizado de cargas previas, lo advertimos en lugar de ocultarlo.",
       },
       ItemTwo: {
         Title: "Sin tasación no hay cálculo",

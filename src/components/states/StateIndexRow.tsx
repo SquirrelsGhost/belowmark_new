@@ -3,30 +3,20 @@ import Link from "next/link";
 interface StateIndexRowProps {
   name: string;
   code: string;
+  href: string;
   hearingsLabel: string;
-  /** Bar length relative to the largest state, 0–100; null = no data */
+  /** Bar length relative to the largest region, 0–100; null = no data */
   share: number | null;
   taxLabel: string;
 }
 
-const COUNTRY_HUB_BY_CODE: Record<string, string> = {
-  at: "/oesterreich/ediktsdatei",
-  ch: "/schweiz/shab-versteigerungen",
-  it: "/it/aste-giudiziarie",
-  es: "/es/subastas-boe",
-  fr: "/fr/encheres-immobilieres",
-  gb: "/en/uk-property-auctions",
-};
-
-/** One state: name, proportional bar (or hatched "no data") and transfer tax. */
-export default function StateIndexRow({ name, code, hearingsLabel, share, taxLabel }: StateIndexRowProps) {
-  const href = COUNTRY_HUB_BY_CODE[code] ?? `/bundesland/${code}`;
-
+/** One province/region/state: name, proportional bar (or hatched "no data") and transfer tax. */
+export default function StateIndexRow({ name, code, href, hearingsLabel, share, taxLabel }: StateIndexRowProps) {
   return (
     <tr className="group border-b border-rule transition-colors hover:bg-paper-deep/60">
       <th scope="row" className="w-[38%] py-3 pr-4 font-normal">
         <Link href={href} className="inline-flex items-baseline hover:text-signal">
-          <span className="mr-3 hidden w-7 font-mono text-[11px] uppercase text-muted sm:inline-block">{code}</span>
+          <span className="mr-3 hidden w-12 font-mono text-[11px] uppercase text-muted sm:inline-block">{code}</span>
           <span className="font-narrow text-base font-semibold underline-offset-4 group-hover:underline sm:text-lg">
             {name}
           </span>

@@ -14,6 +14,7 @@ import {
   LocaleOption,
   MARKET_COOKIE_NAME,
   PricingCountryCode,
+  pricingCountryToLocale,
   pricingCountryToMarket,
   REGION_COOKIE_MAX_AGE,
 } from "@/lib/constants";
@@ -41,12 +42,26 @@ export async function setDetectedCountryAction(country: string): Promise<void> {
   cookieStore.delete(LEGACY_MARKET_COOKIE_NAME);
 }
 
-/** Server Action: stores the UI language picked in the top navigation bar (session-scoped to current country). */
+const LOCALE_TO_DEFAULT_MARKET: Record<LocaleOption, PricingCountryCode> = {
+  tr: "TR",
+  de: "DE",
+  en: "GB",
+  it: "IT",
+  es: "ES",
+  fr: "FR",
+};
+
+/** Server Action: stores the UI language + matching flagship market picked in the top navigation bar. */
 export async function setLocaleAction(locale: LocaleOption): Promise<void> {
   if (!isLocaleOption(locale)) return;
   const scope = await currentLocationScope();
   const cookieStore = await cookies();
   cookieStore.set(LOCALE_COOKIE_NAME, formatGeoScopedCookie(scope, locale), SESSION_SCOPED_COOKIE);
+  cookieStore.set(
+    MARKET_COOKIE_NAME,
+    formatGeoScopedCookie(scope, LOCALE_TO_DEFAULT_MARKET[locale]),
+    SESSION_SCOPED_COOKIE,
+  );
   cookieStore.delete(LEGACY_MARKET_COOKIE_NAME);
 }
 
@@ -59,6 +74,11 @@ export async function setMarketAction(country: PricingCountryCode): Promise<void
   const scope = await currentLocationScope();
   const cookieStore = await cookies();
   cookieStore.set(MARKET_COOKIE_NAME, formatGeoScopedCookie(scope, country), SESSION_SCOPED_COOKIE);
+  cookieStore.set(
+    LOCALE_COOKIE_NAME,
+    formatGeoScopedCookie(scope, pricingCountryToLocale(country)),
+    SESSION_SCOPED_COOKIE,
+  );
   cookieStore.delete(LEGACY_MARKET_COOKIE_NAME);
 
   const market = pricingCountryToMarket(country);

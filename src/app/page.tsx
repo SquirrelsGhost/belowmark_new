@@ -27,23 +27,31 @@ import NoticeShowcase from "@/components/notice/NoticeShowcase";
 import PricingMarketSwitch from "@/components/pricing/PricingMarketSwitch";
 import PricingPlan from "@/components/pricing/PricingPlan";
 import PricingSection from "@/components/pricing/PricingSection";
+import RegionDetector from "@/components/region/RegionDetector";
+import HomeJsonLd from "@/components/seo/HomeJsonLd";
+import HomeSeoDirectorySection from "@/components/seo/HomeSeoDirectorySection";
 import StateIndex from "@/components/states/StateIndex";
 import StateIndexRow from "@/components/states/StateIndexRow";
 import StatsLedger from "@/components/stats/StatsLedger";
 import StatsLedgerItem from "@/components/stats/StatsLedgerItem";
 import NoticeTicker from "@/components/ticker/NoticeTicker";
 import NoticeTickerItem from "@/components/ticker/NoticeTickerItem";
-import RegionDetector from "@/components/region/RegionDetector";
-import HomeJsonLd from "@/components/seo/HomeJsonLd";
-import HomeSeoDirectorySection from "@/components/seo/HomeSeoDirectorySection";
 import LandingShell from "@/components/ui/LandingShell";
 import PageMain from "@/components/ui/PageMain";
 import PaperTexture from "@/components/ui/PaperTexture";
 import { BILLING_ROUTES, MARKET_PARAM, OFFER_PARAM } from "@/lib/billing/billingConfig";
 import { TRIAL_COPY } from "@/lib/billing/trialCopy";
 import { LocaleOption, ROUTES } from "@/lib/constants";
-import { formatCompactEuro, formatDate, formatEuro, formatNumber, formatPercent, formatShortDate } from "@/lib/format";
-import { SNAPSHOT_DATE, SNAPSHOT_STATS, STATES, TICKER_ENTRIES } from "@/lib/snapshot";
+import {
+  formatCompactMoney,
+  formatDate,
+  formatMoney,
+  formatNumber,
+  formatPercent,
+  formatShortDate,
+} from "@/lib/format";
+import { getHomeMarketBundle } from "@/lib/homeMarketData";
+import { SNAPSHOT_DATE } from "@/lib/snapshot";
 import { MetaTagService } from "@/services/MetaTagService";
 import { RegionService } from "@/services/RegionService";
 import { TranslationService } from "@/services/TranslationService";
@@ -51,19 +59,15 @@ import { IPricingPlan } from "@/translations/ITranslation";
 
 /**
  * This page reads cookies() and headers() via TranslationService for locale
- * detection. That is request-time data, so this route must be dynamic.
- *
- * `instant = false` is the Next.js 16 way to opt a route out of instant-navigation
- * prerender validation. It does not change the rendering model — the page still
- * renders on the server per request, exactly as intended.
- *
- * See: https://nextjs.org/docs/messages/blocking-prerender-runtime
+ * and country detection. That is request-time data, so this route must be dynamic.
  */
 export const instant = false;
 
 const MAIN_ID = "inhalt";
 const STAGGER_MS = 100;
-const MAX_STATE_HEARINGS = Math.max(...STATES.map((state) => state.hearings ?? 0));
+const AUTHORITY_HAS_TITLE_RE =
+  /^(?:AG|BG|TJ|Trib|Juzg|U\.R\.|Secci|Komornik|Exekutor|Kronofogd|SDL|BTG|Betreibungs|Konkurs|Office|De Randamie|Westvaer|Quadrant|Vastgoed|RoX)|Mahkeme|İcra|Memurluğu/i;
+
 const LIVE_SEARCH_LABELS: Record<LocaleOption, string> = {
   en: "Live Search",
   de: "Live-Suche",
@@ -86,6 +90,9 @@ export default async function HomePage() {
   const { Hero, Calculator, Ticker, Stats, Notice, Method, States, Limits, Compare, Pricing, Faq, Closing } = t.HomePage;
   const nav = t.Navigation;
   const plans = Pricing.Markets[region.pricingCountry];
+  const bundle = getHomeMarketBundle(region.pricingCountry, locale);
+  const { snapshot, calculator, noticeCard, statesOverride, heroNoteOverride } = bundle;
+  const maxRegionHearings = Math.max(1, ...snapshot.regions.map((item) => item.hearings ?? 0));
 
   // lang on the wrapper so uppercase display type follows locale rules (İ/I in Turkish)
   return (
@@ -121,34 +128,47 @@ export default async function HomePage() {
           principle={Hero.Principle}
           primaryCta={Hero.PrimaryCta}
           secondaryCta={Hero.SecondaryCta}
-          note={Hero.Note}
+          note={heroNoteOverride ?? Hero.Note}
         >
-          <BidCalculator t={Calculator} locale={locale} />
+          <BidCalculator key={bundle.country} t={Calculator} locale={locale} config={calculator} />
         </HeroSection>
 
         <NoticeTicker label={Ticker.Label}>
-          {TICKER_ENTRIES.map((entry) => (
+          {snapshot.ticker.map((entry) => (
             <NoticeTickerItem
-              key={`${entry.court}-${entry.date}`}
-              court={`${Ticker.CourtPrefix} ${entry.court}`}
+              key={`${entry.authority}-${entry.regionBadge}-${entry.date}`}
+              court={formatTickerCourt(Ticker.CourtPrefix, entry.authority)}
               segment={Ticker.Segments[entry.segment]}
-              state={entry.state}
+              state={entry.regionBadge}
               date={`${Ticker.HearingPrefix} ${formatShortDate(entry.date, locale)}`}
               valueLabel={Ticker.ValueHidden}
             />
           ))}
         </NoticeTicker>
 
-        <StatsLedger asOfLabel={Stats.AsOf} asOfDate={formatDate(SNAPSHOT_DATE, locale)} sourceLabel={t.Footer.SourceZvg}>
-          <StatsLedgerItem value={formatNumber(SNAPSHOT_STATS.proceedings, locale)} label={Stats.Proceedings} />
-          <StatsLedgerItem value={formatNumber(SNAPSHOT_STATS.withAppraisal, locale)} label={Stats.WithAppraisal} delay={STAGGER_MS} />
-          <StatsLedgerItem value={formatNumber(SNAPSHOT_STATS.statesWithHearings, locale)} label={Stats.States} delay={STAGGER_MS * 2} />
-          <StatsLedgerItem value={formatCompactEuro(SNAPSHOT_STATS.totalAppraisedEuro, locale)} label={Stats.TotalValue} delay={STAGGER_MS * 3} isAccent />
-          <StatsLedgerItem value={formatEuro(SNAPSHOT_STATS.medianAppraisedEuro, locale)} label={Stats.Median} delay={STAGGER_MS * 4} />
+        <StatsLedger
+          asOfLabel={Stats.AsOf}
+          asOfDate={formatDate(SNAPSHOT_DATE, locale)}
+          sourceLabel={snapshot.sourcePortal}
+        >
+          <StatsLedgerItem value={formatNumber(snapshot.stats.proceedings, locale)} label={Stats.Proceedings} />
+          <StatsLedgerItem value={formatNumber(snapshot.stats.withAppraisal, locale)} label={Stats.WithAppraisal} delay={STAGGER_MS} />
+          <StatsLedgerItem value={formatNumber(snapshot.stats.statesWithHearings, locale)} label={Stats.States} delay={STAGGER_MS * 2} />
+          <StatsLedgerItem
+            value={formatCompactMoney(snapshot.stats.totalAppraised, snapshot.currency, locale)}
+            label={Stats.TotalValue}
+            delay={STAGGER_MS * 3}
+            isAccent
+          />
+          <StatsLedgerItem
+            value={formatMoney(snapshot.stats.medianAppraised, snapshot.currency, locale)}
+            label={Stats.Median}
+            delay={STAGGER_MS * 4}
+          />
         </StatsLedger>
 
         <NoticeShowcase number="01" eyebrow={Notice.Eyebrow} title={Notice.Title} description={Notice.Description} paragraphs={Notice.Paragraphs}>
-          <NoticeCard t={Notice.Card} redaction={Notice.Redaction} />
+          <NoticeCard t={Notice.Card} redaction={Notice.Redaction} config={noticeCard} />
         </NoticeShowcase>
 
         <MethodSection
@@ -167,21 +187,22 @@ export default async function HomePage() {
         <StateIndex
           number="03"
           eyebrow={States.Eyebrow}
-          title={States.Title}
-          description={States.Description}
-          colState={States.ColState}
+          title={statesOverride?.title ?? States.Title}
+          description={statesOverride?.description ?? States.Description}
+          colState={statesOverride?.colState ?? States.ColState}
           colHearings={States.ColHearings}
           colTax={States.ColTax}
-          footnote={States.Footnote}
+          footnote={statesOverride?.footnote ?? States.Footnote}
         >
-          {STATES.map((state) => (
+          {snapshot.regions.map((item) => (
             <StateIndexRow
-              key={state.code}
-              name={state.name}
-              code={state.code}
-              share={state.hearings === null ? null : (state.hearings / MAX_STATE_HEARINGS) * 100}
-              hearingsLabel={state.hearings === null ? States.NotPublished : formatNumber(state.hearings, locale)}
-              taxLabel={formatPercent(state.transferTaxPct, locale)}
+              key={item.code}
+              name={item.name}
+              code={item.code}
+              href={item.href}
+              share={item.hearings === null ? null : (item.hearings / maxRegionHearings) * 100}
+              hearingsLabel={item.hearings === null ? States.NotPublished : formatNumber(item.hearings, locale)}
+              taxLabel={formatPercent(item.transferTaxPct, locale)}
             />
           ))}
         </StateIndex>
@@ -301,7 +322,7 @@ export default async function HomePage() {
           <FooterLink href="/rechner/5-10-und-7-10-grenze" label="🧮 DE · 5/10- & 7/10-Rechner" />
           <FooterLink href="/oesterreich/rechner/geringstes-gebot-vadium" label="🧮 AT · § 151 EO & Vadium Rechner" />
           <FooterLink href="/schweiz/rechner/betreibungsamtliche-steigerung-schkg" label="🧮 CH · SchKG Steigerungsrechner" />
-          <FooterLink href="/it/calcolatore/offerta-minima-75-asta-giudiziaria" label="🧮 IT · Calcolatore Offerta 75%" />
+          <FooterLink href="/it/calcolatore/offerta-minima-75-asta-giudiziaria" label="🧮 IT · Calcolatore Offerta Minima 75%" />
           <FooterLink href="/es/calculadora/subasta-judicial-boe-70-por-ciento" label="🧮 ES · Calculadora BOE 70% LEC" />
           <FooterLink href="/fr/calculateur/encheres-judiciaires-licitor-frais" label="🧮 FR · Calculateur Frais Licitor" />
           <FooterLink href="/en/calculator/uk-property-auction-stamp-duty-deposit" label="🧮 UK · Auction & SDLT Calculator" />
@@ -321,6 +342,11 @@ export default async function HomePage() {
       </Footer>
     </LandingShell>
   );
+}
+
+function formatTickerCourt(prefix: string, authority: string): string {
+  if (!prefix || AUTHORITY_HAS_TITLE_RE.test(authority)) return authority;
+  return `${prefix} ${authority}`;
 }
 
 /** Maps a translated plan to the shared PricingPlan props. */

@@ -1,5 +1,7 @@
 import { LocaleOption } from "@/lib/constants";
 
+export type HomeCurrencyCode = "EUR" | "TRY" | "GBP" | "CHF" | "PLN" | "CZK" | "SEK";
+
 const INTL_LOCALES: Record<LocaleOption, string> = {
   de: "de-DE",
   tr: "tr-TR",
@@ -9,13 +11,28 @@ const INTL_LOCALES: Record<LocaleOption, string> = {
   fr: "fr-FR",
 };
 
-/** Whole-euro amount, e.g. "240.000 €". */
-export function formatEuro(value: number, locale: LocaleOption): string {
+/** Whole-unit currency amount in any supported market currency (EUR, TRY, GBP, CHF, PLN, CZK, SEK). */
+export function formatMoney(value: number, currency: HomeCurrencyCode, locale: LocaleOption): string {
   return new Intl.NumberFormat(INTL_LOCALES[locale], {
     style: "currency",
-    currency: "EUR",
+    currency,
     maximumFractionDigits: 0,
   }).format(value);
+}
+
+/** Compact large currency amounts, e.g. "140,0 Mrd. ₺" or "£159.1M". */
+export function formatCompactMoney(value: number, currency: HomeCurrencyCode, locale: LocaleOption): string {
+  return new Intl.NumberFormat(INTL_LOCALES[locale], {
+    style: "currency",
+    currency,
+    notation: "compact",
+    maximumFractionDigits: 1,
+  }).format(value);
+}
+
+/** Whole-euro amount, e.g. "240.000 €". */
+export function formatEuro(value: number, locale: LocaleOption): string {
+  return formatMoney(value, "EUR", locale);
 }
 
 /** Plain grouped number, e.g. "3.519". */
@@ -38,12 +55,7 @@ export function formatDate(iso: string, locale: LocaleOption): string {
   return new Intl.DateTimeFormat(INTL_LOCALES[locale], { day: "2-digit", month: "2-digit", year: "numeric", timeZone: "UTC" }).format(new Date(iso));
 }
 
-/** Compact large amounts, e.g. "1,1 Mrd. €". */
+/** Compact large amounts in EUR, e.g. "1,1 Mrd. €". */
 export function formatCompactEuro(value: number, locale: LocaleOption): string {
-  return new Intl.NumberFormat(INTL_LOCALES[locale], {
-    style: "currency",
-    currency: "EUR",
-    notation: "compact",
-    maximumFractionDigits: 1,
-  }).format(value);
+  return formatCompactMoney(value, "EUR", locale);
 }

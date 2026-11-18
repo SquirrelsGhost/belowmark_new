@@ -149,14 +149,14 @@ export const IT: ITranslation = {
     },
 
     States: {
-      Eyebrow: "Copertura territoriale",
-      Title: "Tutti i 16 Länder interrogati. 14 pubblicano udienze attive.",
-      Description: "Udienze esecutive aperte per ciascun Land e l'aliquota dell'imposta di trasferimento dovuta all'aggiudicazione.",
-      ColState: "Land / Regione",
-      ColHearings: "Udienze aperte",
+      Eyebrow: "Copertura territoriale in Italia",
+      Title: "Tutte le 20 Regioni italiane monitorate dai Tribunali.",
+      Description: "Aste giudiziarie attive per Regione (PVP Giustizia) e imposta di registro ordinaria sul trasferimento.",
+      ColState: "Regione",
+      ColHearings: "Aste attive",
       ColTax: "Imposta",
-      NotPublished: "non nel portale congiunto",
-      Footnote: "Amburgo e Meclemburgo-Pomerania Anteriore non pubblicano tramite il portale federale congiunto; nello Schleswig-Holstein partecipano solo singoli tribunali.",
+      NotPublished: "nessuna asta attiva",
+      Footnote: "Fonte: Portale delle Vendite Pubbliche (pvp.giustizia.it) e portali autorizzati dei 140 Tribunali italiani. Prima casa: imposta di registro ridotta al 2%.",
     },
 
     Limits: {
@@ -164,8 +164,8 @@ export const IT: ITranslation = {
       Title: "Ciò che non sappiamo è indicato altrettanto chiaramente.",
       Description: "Ogni portale ama mostrare solo i propri punti di forza. Questi quattro punti mostrano i nostri limiti — e spiegano perché puoi fidarti di tutti gli altri dati.",
       ItemOne: {
-        Title: "Due Länder non pubblicano centralmente",
-        Body: "Amburgo e Meclemburgo-Pomerania Anteriore non alimentano il portale congiunto. Lì mostriamo zero udienze anziché annunci inventati.",
+        Title: "Nessuna metratura inventata",
+        Body: "Se nell'avviso di vendita non è indicata la superficie commerciale in m², non inventiamo confronti al metro quadro ma segnaliamo il dato mancante.",
       },
       ItemTwo: {
         Title: "Nessuna perizia, nessun calcolo",
