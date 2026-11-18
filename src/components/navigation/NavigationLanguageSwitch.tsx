@@ -46,7 +46,7 @@ export default function NavigationLanguageSwitch({ current }: NavigationLanguage
       value={current}
       disabled={isPending}
       onChange={handleChange}
-      className="max-w-[7.25rem] cursor-pointer border border-ink/30 bg-paper px-1.5 py-1 font-mono text-[11px] font-semibold tracking-tight text-ink transition-colors hover:border-ink focus:border-ink focus:outline-none disabled:opacity-50 sm:max-w-[8.75rem]"
+      className="h-9 shrink-0 cursor-pointer border border-ink/30 bg-paper px-2 font-mono text-[11px] font-semibold tracking-tight text-ink transition-colors hover:border-ink focus:border-ink focus:outline-none disabled:opacity-50"
     >
       {SELECTOR_OPTIONS.map((item) => (
         <option key={item.code} value={item.code}>
