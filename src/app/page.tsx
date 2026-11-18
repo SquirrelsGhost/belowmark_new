@@ -294,32 +294,32 @@ export default async function HomePage() {
 
       <Footer tagline={footer.Tagline} disclaimer={footer.Disclaimer} rights={footer.Rights}>
         <FooterColumn title={footer.ProductTitle}>
-          <FooterLink href="/zwangsversteigerungen" label="🇩🇪 DE · ZVG Verzeichnis (530 AG)" />
-          <FooterLink href="/oesterreich/ediktsdatei" label="🇦🇹 AT · Ediktsdatei (9 Länder)" />
-          <FooterLink href="/schweiz/shab-versteigerungen" label="🇨🇭 CH · SHAB Steigerungen (26 Kantone)" />
-          <FooterLink href="/it/aste-giudiziarie" label="🇮🇹 IT · Aste Giudiziarie PVP (20 Regioni)" />
-          <FooterLink href="/es/subastas-boe" label="🇪🇸 ES · Subastas BOE (17 CCAA)" />
-          <FooterLink href="/fr/encheres-immobilieres" label="🇫🇷 FR · Enchères TJ & Notaires (13 Régions)" />
-          <FooterLink href="/en/uk-property-auctions" label="🇬🇧 UK · Property Auctions (12 Regions)" />
-          <FooterLink href="/nl/executieveiling" label="🇳🇱 NL · Executieveilingen (12 Provincies)" />
-          <FooterLink href="/pl/licytacje-komornicze" label="🇵🇱 PL · Licytacje Komornicze (16 Woj.)" />
-          <FooterLink href="/cz/drazby-nemovitosti" label="🇨🇿 CZ · Dražby Nemovitostí (14 Krajů)" />
-          <FooterLink href="/se/exekutiv-auktion" label="🇸🇪 SE · Kronofogden Auktioner (21 Län)" />
-          <FooterLink href="/tr/icra-ihale" label="🇹🇷 TR · İcra & İhale (81 İl)" />
+          <FooterLink href="/zwangsversteigerungen" label="DE · ZVG Verzeichnis (530 AG)" />
+          <FooterLink href="/oesterreich/ediktsdatei" label="AT · Ediktsdatei (9 Länder)" />
+          <FooterLink href="/schweiz/shab-versteigerungen" label="CH · SHAB Steigerungen (26 Kantone)" />
+          <FooterLink href="/it/aste-giudiziarie" label="IT · Aste Giudiziarie PVP (20 Regioni)" />
+          <FooterLink href="/es/subastas-boe" label="ES · Subastas BOE (17 CCAA)" />
+          <FooterLink href="/fr/encheres-immobilieres" label="FR · Enchères TJ & Notaires (13 Régions)" />
+          <FooterLink href="/en/uk-property-auctions" label="UK · Property Auctions (12 Regions)" />
+          <FooterLink href="/nl/executieveiling" label="NL · Executieveilingen (12 Provincies)" />
+          <FooterLink href="/pl/licytacje-komornicze" label="PL · Licytacje Komornicze (16 Woj.)" />
+          <FooterLink href="/cz/drazby-nemovitosti" label="CZ · Dražby Nemovitostí (14 Krajů)" />
+          <FooterLink href="/se/exekutiv-auktion" label="SE · Kronofogden Auktioner (21 Län)" />
+          <FooterLink href="/tr/icra-ihale" label="TR · İcra & İhale (81 İl)" />
         </FooterColumn>
         <FooterColumn title={footer.SourcesTitle}>
-          <FooterLink href="/rechner/5-10-und-7-10-grenze" label="🧮 DE · 5/10- & 7/10-Rechner" />
-          <FooterLink href="/oesterreich/rechner/geringstes-gebot-vadium" label="🧮 AT · § 151 EO & Vadium Rechner" />
-          <FooterLink href="/schweiz/rechner/betreibungsamtliche-steigerung-schkg" label="🧮 CH · SchKG Steigerungsrechner" />
-          <FooterLink href="/it/calcolatore/offerta-minima-75-asta-giudiziaria" label="🧮 IT · Calcolatore Offerta Minima 75%" />
-          <FooterLink href="/es/calculadora/subasta-judicial-boe-70-por-ciento" label="🧮 ES · Calculadora BOE 70% LEC" />
-          <FooterLink href="/fr/calculateur/encheres-judiciaires-licitor-frais" label="🧮 FR · Calculateur Frais Licitor" />
-          <FooterLink href="/en/calculator/uk-property-auction-stamp-duty-deposit" label="🧮 UK · Auction & SDLT Calculator" />
-          <FooterLink href="/nl/calculator/executieveiling-kosten-overdrachtsbelasting" label="🧮 NL · Executieveiling Calculator" />
-          <FooterLink href="/pl/kalkulator/licytacja-komornicza-wadium" label="🧮 PL · Kalkulator Licytacji KPC" />
-          <FooterLink href="/cz/kalkulacka/exekucni-drazba-nejnizsi-podani-jistota" label="🧮 CZ · Kalkulačka Exekuční Dražby" />
-          <FooterLink href="/se/kalkylator/kronofogden-exekutiv-auktion-handpenning" label="🧮 SE · Kronofogden Kalkylator" />
-          <FooterLink href="/tr/hesaplama/icra-ihale-teminat" label="🧮 TR · İcra Teminat Hesaplama" />
+          <FooterLink href="/rechner/5-10-und-7-10-grenze" label="DE · 5/10- & 7/10-Rechner" />
+          <FooterLink href="/oesterreich/rechner/geringstes-gebot-vadium" label="AT · § 151 EO & Vadium Rechner" />
+          <FooterLink href="/schweiz/rechner/betreibungsamtliche-steigerung-schkg" label="CH · SchKG Steigerungsrechner" />
+          <FooterLink href="/it/calcolatore/offerta-minima-75-asta-giudiziaria" label="IT · Calcolatore Offerta Minima 75%" />
+          <FooterLink href="/es/calculadora/subasta-judicial-boe-70-por-ciento" label="ES · Calculadora BOE 70% LEC" />
+          <FooterLink href="/fr/calculateur/encheres-judiciaires-licitor-frais" label="FR · Calculateur Frais Licitor" />
+          <FooterLink href="/en/calculator/uk-property-auction-stamp-duty-deposit" label="UK · Auction & SDLT Calculator" />
+          <FooterLink href="/nl/calculator/executieveiling-kosten-overdrachtsbelasting" label="NL · Executieveiling Calculator" />
+          <FooterLink href="/pl/kalkulator/licytacja-komornicza-wadium" label="PL · Kalkulator Licytacji KPC" />
+          <FooterLink href="/cz/kalkulacka/exekucni-drazba-nejnizsi-podani-jistota" label="CZ · Kalkulačka Exekuční Dražby" />
+          <FooterLink href="/se/kalkylator/kronofogden-exekutiv-auktion-handpenning" label="SE · Kronofogden Kalkylator" />
+          <FooterLink href="/tr/hesaplama/icra-ihale-teminat" label="TR · İcra Teminat Hesaplama" />
         </FooterColumn>
         <FooterColumn title={footer.LegalTitle}>
           <FooterLink href={ROUTES.imprint} label={footer.Imprint} />

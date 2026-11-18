@@ -22,9 +22,19 @@ export default function Footer({ tagline, disclaimer, rights, children }: Footer
         </div>
         {children}
       </Container>
-      <Container className="flex flex-col gap-3 border-t border-paper/20 py-6 font-mono text-[11px] text-paper/50 sm:flex-row sm:justify-between">
+      <Container className="flex flex-col gap-3 border-t border-paper/20 py-6 font-mono text-[11px] text-paper/50 sm:flex-row sm:items-center sm:justify-between">
         <span>{disclaimer}</span>
-        <span>© {CURRENT_YEAR} {APP_NAME}. {rights}</span>
+        <span className="flex flex-wrap items-center gap-x-4 gap-y-1 sm:shrink-0">
+          <span>© {CURRENT_YEAR} {APP_NAME}. {rights}</span>
+          <a
+            href="https://pycie.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-paper/75 underline-offset-4 transition-colors hover:text-paper-bright hover:underline"
+          >
+            Designed by pycie.com
+          </a>
+        </span>
       </Container>
       <div aria-hidden="true" className="relative select-none">
         <span className="absolute inset-x-0 top-[0.18em] h-1.5 bg-signal" />
