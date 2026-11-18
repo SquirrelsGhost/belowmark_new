@@ -21,6 +21,7 @@ import { resolveUserHardwareFingerprint } from "@/services/FreeUnlockService";
 import { BillingAccess, BillingAvailability, OrderBlocker, OrderResult } from "@/types/billing.types";
 
 export type StripeSupportedLocale = "de" | "tr" | "en" | "fr" | "es" | "it";
+export type StripeCheckoutUiLocale = StripeSupportedLocale | "nl" | "pl" | "cs" | "sv";
 
 export function toStripeLocale(locale: string | null | undefined): StripeSupportedLocale {
   const clean = (locale || "de").trim().toLowerCase().slice(0, 2);
@@ -28,6 +29,14 @@ export function toStripeLocale(locale: string | null | undefined): StripeSupport
     return clean;
   }
   return "de";
+}
+
+function toStripeCheckoutUiLocale(market: PricingCountryCode, locale: string | null | undefined): StripeCheckoutUiLocale {
+  if (market === "NL") return "nl";
+  if (market === "PL") return "pl";
+  if (market === "CZ") return "cs";
+  if (market === "SE") return "sv";
+  return toStripeLocale(locale);
 }
 
 const OFFER_NAMES: Record<StripeSupportedLocale, Record<BillingOfferId, string>> = {
@@ -289,6 +298,7 @@ export class BillingService {
     }
 
     const stripeLocale = toStripeLocale(user.locale);
+    const checkoutUiLocale = toStripeCheckoutUiLocale(user.market, user.locale);
     const productName = localizedOfferProductName(offerId, stripeLocale);
 
     const lineItem: Stripe.Checkout.SessionCreateParams.LineItem = priceId
@@ -318,7 +328,7 @@ export class BillingService {
         customer,
         client_reference_id: order.id,
         line_items: [lineItem],
-        locale: stripeLocale,
+        locale: checkoutUiLocale,
         success_url: absolute(`${BILLING_ROUTES.confirm}?session_id={CHECKOUT_SESSION_ID}`),
         cancel_url: absolute(`${BILLING_ROUTES.order}?${OFFER_PARAM}=${offerId}&status=${BILLING_STATUS.cancelled}`),
         metadata,

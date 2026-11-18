@@ -2,7 +2,8 @@ import fs from "node:fs";
 import Stripe from "stripe";
 
 const envPath = ".env.local";
-const envText = fs.readFileSync(envPath, "utf8");
+const envTsPath = "src/lib/env.ts";
+const envText = fs.existsSync(envPath) ? fs.readFileSync(envPath, "utf8") : "";
 const envMap = Object.fromEntries(
   envText
     .split(/\r?\n/)
@@ -34,7 +35,31 @@ const OFFERS = [
       ES: { amount: 2_900, currency: "eur" },
       CH: { amount: 4_900, currency: "chf" },
       GB: { amount: 3_500, currency: "gbp" },
+      NL: { amount: 3_900, currency: "eur" },
+      PL: { amount: 12_900, currency: "pln" },
+      CZ: { amount: 79_000, currency: "czk" },
+      SE: { amount: 42_900, currency: "sek" },
       TR: { amount: 59_900, currency: "try" },
+    },
+  },
+  {
+    id: "investor-pass",
+    envSuffix: "INVESTOR_PASS",
+    productName: "Belowmark Investor · 14-Tage-Einmalpass",
+    recurring: null,
+    prices: {
+      DE: { amount: 1_490, currency: "eur" },
+      AT: { amount: 1_490, currency: "eur" },
+      FR: { amount: 1_490, currency: "eur" },
+      IT: { amount: 1_290, currency: "eur" },
+      ES: { amount: 1_290, currency: "eur" },
+      CH: { amount: 1_900, currency: "chf" },
+      GB: { amount: 1_290, currency: "gbp" },
+      NL: { amount: 1_490, currency: "eur" },
+      PL: { amount: 5_900, currency: "pln" },
+      CZ: { amount: 34_900, currency: "czk" },
+      SE: { amount: 16_900, currency: "sek" },
+      TR: { amount: 24_900, currency: "try" },
     },
   },
   {
@@ -50,6 +75,10 @@ const OFFERS = [
       ES: { amount: 7_900, currency: "eur" },
       CH: { amount: 12_900, currency: "chf" },
       GB: { amount: 8_900, currency: "gbp" },
+      NL: { amount: 9_900, currency: "eur" },
+      PL: { amount: 32_900, currency: "pln" },
+      CZ: { amount: 199_000, currency: "czk" },
+      SE: { amount: 109_000, currency: "sek" },
       TR: { amount: 149_000, currency: "try" },
     },
   },
@@ -66,6 +95,10 @@ const OFFERS = [
       ES: { amount: 9_900, currency: "eur" },
       CH: { amount: 15_900, currency: "chf" },
       GB: { amount: 11_900, currency: "gbp" },
+      NL: { amount: 12_900, currency: "eur" },
+      PL: { amount: 39_900, currency: "pln" },
+      CZ: { amount: 249_000, currency: "czk" },
+      SE: { amount: 139_000, currency: "sek" },
       TR: { amount: 199_000, currency: "try" },
     },
   },
@@ -82,13 +115,17 @@ const OFFERS = [
       ES: { amount: 24_900, currency: "eur" },
       CH: { amount: 39_900, currency: "chf" },
       GB: { amount: 29_900, currency: "gbp" },
+      NL: { amount: 32_900, currency: "eur" },
+      PL: { amount: 99_000, currency: "pln" },
+      CZ: { amount: 649_000, currency: "czk" },
+      SE: { amount: 359_000, currency: "sek" },
       TR: { amount: 499_000, currency: "try" },
     },
   },
 ];
 
 async function ensureProduct(offer) {
-  const productId = `belowmark_${offer.id.replace("-", "_")}`;
+  const productId = `belowmark_${offer.id.replace(/-/g, "_")}`;
   try {
     const existing = await stripe.products.retrieve(productId);
     return existing.id;
@@ -103,18 +140,20 @@ async function ensureProduct(offer) {
 }
 
 async function run() {
-  const allPrices = await stripe.prices.list({ limit: 100, active: true });
+  const activePrices = [];
+  for await (const p of stripe.prices.list({ limit: 100, active: true })) {
+    activePrices.push(p);
+  }
   const resolvedEnv = {};
 
   for (const offer of OFFERS) {
     const productId = await ensureProduct(offer);
     for (const [country, spec] of Object.entries(offer.prices)) {
       const envKey = `STRIPE_PRICE_${country}_${offer.envSuffix}`;
-      // 1. Check if existing env var already points to a matching active Stripe price
       const configuredId = envMap[envKey];
       let matched = null;
       if (configuredId) {
-        const found = allPrices.data.find((p) => p.id === configuredId);
+        const found = activePrices.find((p) => p.id === configuredId);
         if (
           found &&
           found.active &&
@@ -126,9 +165,8 @@ async function run() {
         }
       }
 
-      // 2. Otherwise search all active Stripe prices for a matching price (same currency, unit_amount, cadence, and offer metadata or product)
       if (!matched) {
-        matched = allPrices.data.find((p) => {
+        matched = activePrices.find((p) => {
           const sameCadence = offer.recurring
             ? p.recurring?.interval === "month" && (p.recurring?.interval_count ?? 1) === 1
             : !p.recurring;
@@ -137,12 +175,14 @@ async function run() {
             sameCadence &&
             p.currency === spec.currency &&
             p.unit_amount === spec.amount &&
-            (p.product === productId || p.metadata?.belowmark_offer === offer.id || envMap[`STRIPE_PRICE_DE_${offer.envSuffix}`] === p.id || envMap[`STRIPE_PRICE_TR_${offer.envSuffix}`] === p.id)
+            (p.product === productId ||
+              p.metadata?.belowmark_offer === offer.id ||
+              envMap[`STRIPE_PRICE_DE_${offer.envSuffix}`] === p.id ||
+              envMap[`STRIPE_PRICE_TR_${offer.envSuffix}`] === p.id)
           );
         });
       }
 
-      // 3. Create the price in Stripe if it doesn't exist yet
       if (!matched) {
         matched = await stripe.prices.create({
           product: productId,
@@ -155,7 +195,7 @@ async function run() {
             belowmark_country: country,
           },
         });
-        allPrices.data.push(matched);
+        activePrices.push(matched);
         console.log(`[CREATED] ${envKey}=${matched.id} (${spec.amount / 100} ${spec.currency.toUpperCase()})`);
       } else {
         console.log(`[VERIFIED] ${envKey}=${matched.id} (${spec.amount / 100} ${spec.currency.toUpperCase()})`);
@@ -165,15 +205,31 @@ async function run() {
     }
   }
 
-  // Update .env.local with all 32 STRIPE_PRICE_* keys cleanly
-  const lines = envText.split(/\r?\n/).filter((line) => !line.trim().startsWith("STRIPE_PRICE_"));
-  while (lines.length && lines[lines.length - 1].trim() === "") lines.pop();
-  for (const [k, v] of Object.entries(resolvedEnv)) {
-    lines.push(`${k}=${v}`);
+  // 1. Update .env.local with all 60 STRIPE_PRICE_* keys cleanly
+  if (fs.existsSync(envPath)) {
+    const lines = envText.split(/\r?\n/).filter((line) => !line.trim().startsWith("STRIPE_PRICE_"));
+    while (lines.length && lines[lines.length - 1].trim() === "") lines.pop();
+    for (const [k, v] of Object.entries(resolvedEnv)) {
+      lines.push(`${k}=${v}`);
+    }
+    lines.push("");
+    fs.writeFileSync(envPath, lines.join("\n"), "utf8");
   }
-  lines.push("");
-  fs.writeFileSync(envPath, lines.join("\n"), "utf8");
-  console.log(`\nSuccessfully wrote all ${Object.keys(resolvedEnv).length} verified Stripe Price IDs to .env.local!`);
+
+  // 2. Update DEFAULT_STRIPE_PRICES in src/lib/env.ts so Vercel production has all 60 Price IDs built-in
+  if (fs.existsSync(envTsPath)) {
+    const envTs = fs.readFileSync(envTsPath, "utf8");
+    const dictBody = Object.entries(resolvedEnv)
+      .map(([k, v]) => `  ${k}: "${v}",`)
+      .join("\n");
+    const updatedEnvTs = envTs.replace(
+      /const DEFAULT_STRIPE_PRICES: Readonly<Record<string, string>> = \{[\s\S]*?\};/,
+      `const DEFAULT_STRIPE_PRICES: Readonly<Record<string, string>> = {\n${dictBody}\n};`,
+    );
+    fs.writeFileSync(envTsPath, updatedEnvTs, "utf8");
+  }
+
+  console.log(`\nSuccessfully synced all ${Object.keys(resolvedEnv).length} verified Stripe Price IDs to .env.local & src/lib/env.ts!`);
 }
 
 run().catch((err) => {
