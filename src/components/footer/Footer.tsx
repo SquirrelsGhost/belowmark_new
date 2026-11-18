@@ -26,14 +26,17 @@ export default function Footer({ tagline, disclaimer, rights, children }: Footer
         <span>{disclaimer}</span>
         <span className="flex flex-wrap items-center gap-x-4 gap-y-1 sm:shrink-0">
           <span>© {CURRENT_YEAR} {APP_NAME}. {rights}</span>
-          <a
-            href="https://pycie.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-paper/75 underline-offset-4 transition-colors hover:text-paper-bright hover:underline"
-          >
-            Designed by pycie.com
-          </a>
+          <span>
+            Designed by{" "}
+            <a
+              href="https://pycie.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="cursor-pointer font-semibold text-paper-bright underline decoration-paper/50 underline-offset-4 transition-colors hover:text-signal hover:decoration-signal"
+            >
+              pycie.com
+            </a>
+          </span>
         </span>
       </Container>
       <div aria-hidden="true" className="relative select-none">
