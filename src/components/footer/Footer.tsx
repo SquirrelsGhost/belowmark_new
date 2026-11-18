@@ -15,14 +15,14 @@ interface FooterProps {
 export default function Footer({ tagline, disclaimer, rights, children }: FooterProps) {
   return (
     <footer className="relative overflow-hidden bg-ink text-paper-bright">
-      <Container className="grid gap-12 pt-16 pb-12 md:grid-cols-[1.4fr_repeat(3,1fr)]">
+      <Container className="relative z-10 grid gap-12 pt-16 pb-12 md:grid-cols-[1.4fr_repeat(3,1fr)]">
         <div className="flex flex-col items-start gap-5">
           <BrandMark inverted alwaysWordmark />
           <p className="max-w-xs font-serif text-2xl leading-tight italic text-paper/80">{tagline}</p>
         </div>
         {children}
       </Container>
-      <Container className="flex flex-col gap-3 border-t border-paper/20 py-6 font-mono text-[11px] text-paper/50 sm:flex-row sm:items-center sm:justify-between">
+      <Container className="relative z-10 flex flex-col gap-3 border-t border-paper/20 py-6 font-mono text-[11px] text-paper/50 sm:flex-row sm:items-center sm:justify-between">
         <span>{disclaimer}</span>
         <span className="flex flex-wrap items-center gap-x-4 gap-y-1 sm:shrink-0">
           <span>© {CURRENT_YEAR} {APP_NAME}. {rights}</span>
@@ -39,7 +39,7 @@ export default function Footer({ tagline, disclaimer, rights, children }: Footer
           </span>
         </span>
       </Container>
-      <div aria-hidden="true" className="relative select-none">
+      <div aria-hidden="true" className="pointer-events-none relative select-none">
         <span className="absolute inset-x-0 top-[0.18em] h-1.5 bg-signal" />
         <p className="-mb-[0.12em] text-center font-display text-[19vw] leading-[0.8] tracking-tight text-paper/[0.07]">{APP_NAME}</p>
       </div>
