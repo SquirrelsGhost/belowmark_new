@@ -47,6 +47,10 @@ import {
   parseGbCliveEmsonLot,
   parseNlVastgoedItem,
   parsePlKomornikItem,
+  parseCzPortalDrazebItem,
+  parseCzOkDrazbyCard,
+  parseSeKronofogdenItem,
+  SE_LAN_CODE_TO_STATE,
   extractTrEnrichedDetails,
   parseTrIlanGovDetail,
 } from "./lib/propertyExtractor.mjs";
@@ -508,6 +512,49 @@ const REGIONEN_PL = [
   { key: "Opolskie", code: "pl-op", name: "Opolskie (PL)", transferTaxPct: 2.0, lat: 50.6751, lng: 17.9213 },
 ];
 const REGION_BY_KEY_PL = new Map(REGIONEN_PL.map((r) => [r.key, r]));
+
+const REGIONEN_CZ = [
+  { key: "Hlavní město Praha", code: "cz-pha", name: "Praha (CZ)", transferTaxPct: 0.2, lat: 50.0755, lng: 14.4378 },
+  { key: "Středočeský kraj", code: "cz-stc", name: "Středočeský kraj (CZ)", transferTaxPct: 0.2, lat: 50.1417, lng: 14.1028 },
+  { key: "Jihočeský kraj", code: "cz-jhc", name: "Jihočeský kraj (CZ)", transferTaxPct: 0.2, lat: 48.9745, lng: 14.4743 },
+  { key: "Plzeňský kraj", code: "cz-plk", name: "Plzeňský kraj (CZ)", transferTaxPct: 0.2, lat: 49.7384, lng: 13.3736 },
+  { key: "Karlovarský kraj", code: "cz-kvk", name: "Karlovarský kraj (CZ)", transferTaxPct: 0.2, lat: 50.2325, lng: 12.8712 },
+  { key: "Ústecký kraj", code: "cz-ulk", name: "Ústecký kraj (CZ)", transferTaxPct: 0.2, lat: 50.6607, lng: 14.0323 },
+  { key: "Liberecký kraj", code: "cz-lbk", name: "Liberecký kraj (CZ)", transferTaxPct: 0.2, lat: 50.7663, lng: 15.0543 },
+  { key: "Královéhradecký kraj", code: "cz-khk", name: "Královéhradecký kraj (CZ)", transferTaxPct: 0.2, lat: 50.2092, lng: 15.8328 },
+  { key: "Pardubický kraj", code: "cz-pak", name: "Pardubický kraj (CZ)", transferTaxPct: 0.2, lat: 50.0343, lng: 15.7812 },
+  { key: "Kraj Vysočina", code: "cz-vys", name: "Kraj Vysočina (CZ)", transferTaxPct: 0.2, lat: 49.3961, lng: 15.5912 },
+  { key: "Jihomoravský kraj", code: "cz-jmk", name: "Jihomoravský kraj (CZ)", transferTaxPct: 0.2, lat: 49.1951, lng: 16.6068 },
+  { key: "Olomoucký kraj", code: "cz-olk", name: "Olomoucký kraj (CZ)", transferTaxPct: 0.2, lat: 49.5938, lng: 17.2509 },
+  { key: "Zlínský kraj", code: "cz-zlk", name: "Zlínský kraj (CZ)", transferTaxPct: 0.2, lat: 49.2265, lng: 17.667 },
+  { key: "Moravskoslezský kraj", code: "cz-msk", name: "Moravskoslezský kraj (CZ)", transferTaxPct: 0.2, lat: 49.8209, lng: 18.2625 },
+];
+const REGION_BY_KEY_CZ = new Map(REGIONEN_CZ.map((r) => [r.key, r]));
+
+const REGIONEN_SE = [
+  { key: "Stockholms län", code: "se-ab", name: "Stockholms län (SE)", transferTaxPct: 1.5, lat: 59.3293, lng: 18.0686 },
+  { key: "Västra Götalands län", code: "se-o", name: "Västra Götalands län (SE)", transferTaxPct: 1.5, lat: 57.7089, lng: 11.9746 },
+  { key: "Skåne län", code: "se-m", name: "Skåne län (SE)", transferTaxPct: 1.5, lat: 55.605, lng: 13.0038 },
+  { key: "Uppsala län", code: "se-c", name: "Uppsala län (SE)", transferTaxPct: 1.5, lat: 59.8586, lng: 17.6389 },
+  { key: "Södermanlands län", code: "se-d", name: "Södermanlands län (SE)", transferTaxPct: 1.5, lat: 59.0336, lng: 16.5522 },
+  { key: "Östergötlands län", code: "se-e", name: "Östergötlands län (SE)", transferTaxPct: 1.5, lat: 58.4108, lng: 15.6214 },
+  { key: "Jönköpings län", code: "se-f", name: "Jönköpings län (SE)", transferTaxPct: 1.5, lat: 57.7826, lng: 14.1618 },
+  { key: "Kronobergs län", code: "se-g", name: "Kronobergs län (SE)", transferTaxPct: 1.5, lat: 56.879, lng: 14.8059 },
+  { key: "Kalmar län", code: "se-h", name: "Kalmar län (SE)", transferTaxPct: 1.5, lat: 56.6634, lng: 16.3568 },
+  { key: "Gotlands län", code: "se-i", name: "Gotlands län (SE)", transferTaxPct: 1.5, lat: 57.6348, lng: 18.2948 },
+  { key: "Blekinge län", code: "se-k", name: "Blekinge län (SE)", transferTaxPct: 1.5, lat: 56.1612, lng: 15.5869 },
+  { key: "Hallands län", code: "se-n", name: "Hallands län (SE)", transferTaxPct: 1.5, lat: 56.6745, lng: 12.8578 },
+  { key: "Värmlands län", code: "se-s", name: "Värmlands län (SE)", transferTaxPct: 1.5, lat: 59.3793, lng: 13.5036 },
+  { key: "Örebro län", code: "se-t", name: "Örebro län (SE)", transferTaxPct: 1.5, lat: 59.2753, lng: 15.2134 },
+  { key: "Västmanlands län", code: "se-u", name: "Västmanlands län (SE)", transferTaxPct: 1.5, lat: 59.6099, lng: 16.5448 },
+  { key: "Dalarnas län", code: "se-w", name: "Dalarnas län (SE)", transferTaxPct: 1.5, lat: 60.6065, lng: 15.6355 },
+  { key: "Gävleborgs län", code: "se-x", name: "Gävleborgs län (SE)", transferTaxPct: 1.5, lat: 60.6749, lng: 17.1413 },
+  { key: "Västernorrlands län", code: "se-y", name: "Västernorrlands län (SE)", transferTaxPct: 1.5, lat: 62.3908, lng: 17.3069 },
+  { key: "Jämtlands län", code: "se-z", name: "Jämtlands län (SE)", transferTaxPct: 1.5, lat: 63.1792, lng: 14.6357 },
+  { key: "Västerbottens län", code: "se-ac", name: "Västerbottens län (SE)", transferTaxPct: 1.5, lat: 63.8258, lng: 20.263 },
+  { key: "Norrbottens län", code: "se-bd", name: "Norrbottens län (SE)", transferTaxPct: 1.5, lat: 65.5848, lng: 22.1567 },
+];
+const REGION_BY_KEY_SE = new Map(REGIONEN_SE.map((r) => [r.key, r]));
 
 const DE_SEGMENT_RULES = [
   ["apartment", /Eigentumswohnung|Wohnungseigentum|Zimmer-Wohnung|Teileigentum/i],
@@ -1284,6 +1331,14 @@ async function buildDeLive() {
   const plListings = guardCountry("PL", await fetchPlKomornikAll(prevByKey, portalCacheDir, nowIso));
   listings.push(...plListings);
 
+  // 12. Fetch Czechia (portaldrazeb.cz EKČR + okdrazby.cz Real Estate Auctions)
+  const czListings = guardCountry("CZ", await fetchCzAuctionsAll(prevByKey, portalCacheDir, nowIso));
+  listings.push(...czListings);
+
+  // 13. Fetch Sweden (auktionstorget.kronofogden.se — Kronofogden Foreclosure Auctions)
+  const seListings = guardCountry("SE", await fetchSeKronofogdenAll(prevByKey, portalCacheDir, nowIso));
+  listings.push(...seListings);
+
   const allStates = [
     ...BUNDESLAENDER_DE,
     ...BUNDESLAENDER_AT,
@@ -1294,6 +1349,8 @@ async function buildDeLive() {
     ...REGIONEN_GB,
     ...REGIONEN_NL,
     ...REGIONEN_PL,
+    ...REGIONEN_CZ,
+    ...REGIONEN_SE,
   ];
   for (const s of allStates) {
     stateCounts.set(s.code, 0);
@@ -1311,16 +1368,18 @@ async function buildDeLive() {
     frListings.length -
     gbListings.length -
     nlListings.length -
-    plListings.length;
+    plListings.length -
+    czListings.length -
+    seListings.length;
   console.log(
-    `  → Europa Gesamt: ${listings.length} Verfahren (DE: ${deOnlyCount}, AT: ${atListings.length}, CH: ${chListings.length}, IT: ${itListings.length}, ES: ${esListings.length}, FR: ${frListings.length}, GB: ${gbListings.length}, NL: ${nlListings.length}, PL: ${plListings.length})`,
+    `  → Europa Gesamt: ${listings.length} Verfahren (DE: ${deOnlyCount}, AT: ${atListings.length}, CH: ${chListings.length}, IT: ${itListings.length}, ES: ${esListings.length}, FR: ${frListings.length}, GB: ${gbListings.length}, NL: ${nlListings.length}, PL: ${plListings.length}, CZ: ${czListings.length}, SE: ${seListings.length})`,
   );
 
   return {
     meta: {
       market: "DE",
       generatedAt: nowIso,
-      source: "zvg-portal.de · zvg.com · edikte.justiz.gv.at · shab.ch · astegiudiziarie.it · subastas.boe.es · licitor.com · immobilier.notaires.fr · vastgoedveiling.nl · licytacje.komornik.pl",
+      source: "zvg-portal.de · zvg.com · edikte.justiz.gv.at · shab.ch · astegiudiziarie.it · subastas.boe.es · licitor.com · immobilier.notaires.fr · vastgoedveiling.nl · licytacje.komornik.pl · portaldrazeb.cz · auktionstorget.kronofogden.se",
       sourceUrl: "https://www.zvg-portal.de/",
       states: allStates.map((s) => ({
         code: s.code,
@@ -3156,6 +3215,338 @@ async function fetchPlKomornikAll(prevByKey, portalCacheDir, nowIso) {
 }
 
 // ---------------------------------------------------------------------------
+// 1H. Czechia (CZ) — Exekutorská komora ČR (portaldrazeb.cz) & okdrazby.cz
+// ---------------------------------------------------------------------------
+async function fetchCzAuctionsAll(prevByKey, _portalCacheDir, nowIso) {
+  console.log("▸ Starte Live-Abruf Tschechien (portaldrazeb.cz EKČR & okdrazby.cz · alle 14 Kraje) ...");
+  const ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
+  const out = [];
+  const seenKeys = new Set();
+
+  const pushCz = (parsed, sourcePortal) => {
+    if (!parsed || !parsed.appraisedValue || seenKeys.has(parsed.key)) return;
+    seenKeys.add(parsed.key);
+
+    const reg = REGION_BY_KEY_CZ.get(parsed.state) ?? REGIONEN_CZ[1];
+    const prev = prevByKey.get(parsed.key);
+    const hearingAt = parsed.hearingAt;
+    const endIso = parsed.endAt || (hearingAt ? new Date(Date.parse(hearingAt) + 2 * 3600_000).toISOString() : null);
+    const livingAreaM2 = parsed.livingAreaM2 ?? null;
+    const landAreaM2 = parsed.landAreaM2 ?? null;
+    const areaM2 = livingAreaM2 ?? landAreaM2 ?? null;
+    const areaKind = livingAreaM2 ? "Wohn-/Nutzfläche" : landAreaM2 ? "Grundstücksfläche" : null;
+    const title =
+      [parsed.segmentLabel, parsed.place, parsed.street].filter(Boolean).join(", ") ||
+      `${parsed.authority} · ${parsed.fileNo}`;
+
+    const hashSeed = parsed.key.split("").reduce((acc, ch) => (acc * 31 + ch.charCodeAt(0)) % 10000, 23);
+    const lat = parsed.lat ?? Number(((reg.lat ?? 50.0755) + ((hashSeed % 100) - 50) * 0.0025).toFixed(5));
+    const lng = parsed.lng ?? Number(((reg.lng ?? 14.4378) + ((Math.floor(hashSeed / 100) % 100) - 50) * 0.0035).toFixed(5));
+
+    out.push({
+      key: parsed.key,
+      market: "DE",
+      country: "CZ",
+      currency: "CZK",
+      sourcePortal,
+      title,
+      segment: parsed.segment ?? "other",
+      segmentLabel: parsed.segmentLabel,
+      region: reg.name,
+      regionCode: reg.code,
+      place: parsed.place,
+      postcode: parsed.postcode,
+      street: parsed.street,
+      authority: parsed.authority,
+      fileNo: parsed.fileNo,
+      fileYear: 2026,
+      rounds: hearingAt ? [{ round: parsed.isSecondRound ? 2 : 1, start: hearingAt, end: endIso }] : [],
+      hearingAt,
+      cancelled: false,
+      limitsWaived: Boolean(parsed.isSecondRound),
+      appraisedValue: parsed.appraisedValue,
+      minimumBid: parsed.minimumBid,
+      depositAmount: parsed.depositAmount,
+      transferTaxPct: reg.transferTaxPct,
+      livingAreaM2,
+      usableAreaM2: null,
+      landAreaM2,
+      areaM2,
+      areaKind,
+      rooms: parsed.rooms,
+      yearBuilt: parsed.yearBuilt,
+      grundbuch: parsed.grundbuch,
+      proceedingKind: parsed.proceedingKind,
+      description: parsed.description,
+      hearingPlace: sourcePortal === "portaldrazeb.cz" ? "Portál dražeb EKČR (portaldrazeb.cz)" : "OKdražby.cz (okdrazby.cz)",
+      creditor: null,
+      officialUrl: parsed.detailUrl,
+      imageUrl: parsed.photoUrl ?? null,
+      mapUrl: `https://mapy.cz/zakladni?x=${lng}&y=${lat}&z=15`,
+      documentUrl: parsed.documentUrl ?? parsed.detailUrl,
+      exposeUrl: null,
+      reportUrl: null,
+      biddingNotesUrl: null,
+      courtUrl: `https://www.${sourcePortal}/`,
+      geoServerUrl: "https://nahlizenidokn.cuzk.gov.cz/",
+      geo: { lat, lng, precision: parsed.lat ? "exact" : "province" },
+      history: prev?.history ?? [],
+      geoportalUrl: "https://nahlizenidokn.cuzk.gov.cz/",
+      geoportalName: "ČÚZK · Nahlížení do katastru nemovitostí",
+      caveats: [],
+      firstSeenAt: parsed.firstSeenAt ?? prev?.firstSeenAt ?? nowIso,
+    });
+  };
+
+  // 1) Official Exekutorská komora ČR (portaldrazeb.cz — upcoming + ongoing real estate auctions)
+  for (const endpoint of ["pripravovane", "probihajici"]) {
+    try {
+      const initRes = await fetch(`https://www.portaldrazeb.cz/drazby/${endpoint}`, {
+        headers: { "User-Agent": ua, Accept: "text/html" },
+      });
+      if (!initRes.ok) continue;
+      const cookie = initRes.headers.getSetCookie
+        ? initRes.headers.getSetCookie().map((c) => c.split(";")[0]).join("; ")
+        : initRes.headers.get("set-cookie") || "";
+      const html = await initRes.text();
+      const csrf = html.match(/name="csrf-token"\s+content="([^"]+)"/i)?.[1] || "";
+
+      const pageSize = 100;
+      let total = pageSize;
+      for (let offset = 0; offset < Math.min(total, 1200); offset += pageSize) {
+        const rPage = await fetch(`https://www.portaldrazeb.cz/drazby/${endpoint}.json`, {
+          method: "PUT",
+          headers: {
+            "User-Agent": ua,
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            "X-Requested-With": "XMLHttpRequest",
+            "X-CSRF-Token": csrf,
+            Cookie: cookie,
+          },
+          body: JSON.stringify({
+            filter: {
+              category: [1],
+              limit: pageSize,
+              offset,
+              sort: "asc",
+              sort_by: "start",
+            },
+          }),
+        });
+        if (!rPage.ok) break;
+        const j = await rPage.json();
+        if (offset === 0 && Number(j["@count"]) >= 0) total = Number(j["@count"]);
+        const itemKeys = Object.keys(j).filter((k) => k !== "@count");
+        if (itemKeys.length === 0) break;
+        for (const k of itemKeys) {
+          pushCz(parseCzPortalDrazebItem(j[k]), "portaldrazeb.cz");
+        }
+      }
+    } catch (err) {
+      console.warn(`    ! portaldrazeb.cz (${endpoint}) Fehler: ${err.message}`);
+    }
+  }
+
+  // 2) Secondary electronic real estate portal okdrazby.cz (/drazby/nemovity?page=1..12)
+  try {
+    await mapLimit([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], 4, async (page) => {
+      const rOk = await fetch(`https://okdrazby.cz/drazby/nemovity?page=${page}`, {
+        headers: { "User-Agent": ua, Accept: "text/html" },
+      });
+      if (!rOk.ok) return;
+      const html = await rOk.text();
+      const cards = html.split(/AuctionsList_colContainer/i).slice(1);
+      for (const card of cards) {
+        if (/Ukončen/i.test(card)) continue;
+        pushCz(parseCzOkDrazbyCard(card), "okdrazby.cz");
+      }
+    });
+  } catch (err) {
+    console.warn(`    ! okdrazby.cz Fehler: ${err.message}`);
+  }
+
+  console.log(`  → CZ Gesamt: ${out.length} Verfahren geladen (portaldrazeb.cz EKČR & okdrazby.cz)`);
+  return out;
+}
+
+// ---------------------------------------------------------------------------
+// 1I. Sweden (SE) — Kronofogden (auktionstorget.kronofogden.se)
+// ---------------------------------------------------------------------------
+async function fetchSeKronofogdenAll(prevByKey, portalCacheDir, nowIso) {
+  console.log("▸ Starte Live-Abruf Schweden (auktionstorget.kronofogden.se · alle 21 Län) ...");
+  const ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
+  const out = [];
+  const stubsById = new Map();
+
+  try {
+    const lanCodes = Object.keys(SE_LAN_CODE_TO_STATE);
+    await mapLimit(lanCodes, 5, async (lanCode) => {
+      for (let startAt = 0; startAt <= 60; startAt += 10) {
+        const url = `https://auktionstorget.kronofogden.se/Sokfastigheterbostadsratter.html?sv.url=12.6294450154af3d2b27d64&query=*&100.6294450154af3d2b27d91=${lanCode}&startAtHit=${startAt}`;
+        const r = await fetch(url, { headers: { "User-Agent": ua, Accept: "text/html" } });
+        if (!r.ok) break;
+        const html = await r.text();
+        const blocks = html.split(/<li class="[^"]*sv-search-hit/i).slice(1);
+        if (blocks.length === 0) break;
+        for (const blk of blocks) {
+          const endLi = blk.indexOf("</li>");
+          const hitHtml = endLi >= 0 ? blk.slice(0, endLi) : blk.slice(0, 3500);
+          const idMatch = /href="\/(\d{4,7})\.html"[^>]*>([\s\S]*?)<\/a>/i.exec(hitHtml);
+          if (!idMatch) continue;
+          const id = idMatch[1];
+          if (!stubsById.has(id)) {
+            stubsById.set(id, {
+              id,
+              lanCode,
+              title: decodeHtmlText(idMatch[2]).trim(),
+              hitHtml,
+              isCommercial: false,
+            });
+          }
+        }
+        if (!html.includes(`startAtHit=${startAt + 10}`)) break;
+      }
+    });
+
+    // Also include Kronofogden Kommersiella fastigheter (/22660.html?query=*)
+    try {
+      const rKom = await fetch("https://auktionstorget.kronofogden.se/22660.html?query=*", {
+        headers: { "User-Agent": ua, Accept: "text/html" },
+      });
+      if (rKom.ok) {
+        const komHtml = await rKom.text();
+        for (const blk of komHtml.split(/<li class="[^"]*sv-search-hit/i).slice(1)) {
+          const hitHtml = blk.slice(0, 3500);
+          const idMatch = /href="\/(\d{4,7})\.html"[^>]*>([\s\S]*?)<\/a>/i.exec(hitHtml);
+          if (idMatch && !stubsById.has(idMatch[1])) {
+            stubsById.set(idMatch[1], {
+              id: idMatch[1],
+              lanCode: "01",
+              title: decodeHtmlText(idMatch[2]).trim(),
+              hitHtml,
+              isCommercial: true,
+            });
+          }
+        }
+      }
+    } catch {
+      // Ignore commercial supplementary fetch errors
+    }
+
+    const stubs = [...stubsById.values()];
+    console.log(`    auktionstorget.kronofogden.se · ${stubs.length} aktive schwedische Zwangsversteigerungen gefunden, lade Details ...`);
+
+    await mapLimit(stubs, 8, async (stub) => {
+      const key = `se-kfm-${stub.id}`;
+      const cacheFile = join(portalCacheDir, `${key}.html`);
+      let detailHtml = "";
+      if (existsSync(cacheFile)) {
+        try {
+          detailHtml = readFileSync(cacheFile, "utf8");
+        } catch {
+          detailHtml = "";
+        }
+      } else {
+        try {
+          const rDet = await fetch(`https://auktionstorget.kronofogden.se/${stub.id}.html`, {
+            headers: { "User-Agent": ua, Accept: "text/html" },
+          });
+          if (rDet.ok) {
+            detailHtml = await rDet.text();
+            try {
+              writeFileSync(cacheFile, detailHtml);
+            } catch {
+              // Ignore
+            }
+          }
+        } catch {
+          detailHtml = "";
+        }
+      }
+
+      const parsed = parseSeKronofogdenItem(stub, detailHtml);
+      if (!parsed || !parsed.appraisedValue) return;
+
+      const reg = REGION_BY_KEY_SE.get(parsed.state) ?? REGIONEN_SE[0];
+      const prev = prevByKey.get(key);
+      const hearingAt = parsed.hearingAt;
+      const endIso = parsed.endAt || (hearingAt ? new Date(Date.parse(hearingAt) + 2 * 3600_000).toISOString() : null);
+      const livingAreaM2 = parsed.livingAreaM2 ?? null;
+      const landAreaM2 = parsed.landAreaM2 ?? null;
+      const areaM2 = livingAreaM2 ?? landAreaM2 ?? null;
+      const areaKind = livingAreaM2 ? "Wohn-/Nutzfläche" : landAreaM2 ? "Grundstücksfläche" : null;
+      const title =
+        [parsed.segmentLabel, parsed.place, parsed.street].filter(Boolean).join(", ") ||
+        `${parsed.authority} · ${parsed.fileNo}`;
+
+      const hashSeed = key.split("").reduce((acc, ch) => (acc * 31 + ch.charCodeAt(0)) % 10000, 31);
+      const lat = Number(((reg.lat ?? 59.3293) + ((hashSeed % 100) - 50) * 0.003).toFixed(5));
+      const lng = Number(((reg.lng ?? 18.0686) + ((Math.floor(hashSeed / 100) % 100) - 50) * 0.0045).toFixed(5));
+
+      out.push({
+        key,
+        market: "DE",
+        country: "SE",
+        currency: "SEK",
+        sourcePortal: "auktionstorget.kronofogden.se",
+        title,
+        segment: parsed.segment ?? "house",
+        segmentLabel: parsed.segmentLabel,
+        region: reg.name,
+        regionCode: reg.code,
+        place: parsed.place,
+        postcode: parsed.postcode,
+        street: parsed.street,
+        authority: parsed.authority,
+        fileNo: parsed.fileNo,
+        fileYear: 2026,
+        rounds: hearingAt ? [{ round: parsed.isSecondRound ? 2 : 1, start: hearingAt, end: endIso }] : [],
+        hearingAt,
+        cancelled: false,
+        limitsWaived: Boolean(parsed.isSecondRound),
+        appraisedValue: parsed.appraisedValue,
+        minimumBid: parsed.minimumBid,
+        depositAmount: parsed.depositAmount,
+        transferTaxPct: reg.transferTaxPct,
+        livingAreaM2,
+        usableAreaM2: null,
+        landAreaM2,
+        areaM2,
+        areaKind,
+        rooms: parsed.rooms,
+        yearBuilt: parsed.yearBuilt,
+        grundbuch: parsed.grundbuch,
+        proceedingKind: parsed.proceedingKind,
+        description: parsed.description,
+        hearingPlace: parsed.authority,
+        creditor: null,
+        officialUrl: parsed.detailUrl,
+        imageUrl: parsed.photoUrl ?? null,
+        mapUrl: `https://www.openstreetmap.org/search?query=${encodeURIComponent([parsed.street, parsed.postcode, parsed.place, "Sverige"].filter(Boolean).join(", "))}`,
+        documentUrl: parsed.documentUrl ?? parsed.detailUrl,
+        exposeUrl: null,
+        reportUrl: parsed.reportUrl ?? null,
+        biddingNotesUrl: null,
+        courtUrl: "https://auktionstorget.kronofogden.se/",
+        geoServerUrl: "https://minkarta.lantmateriet.se/",
+        geo: { lat, lng, precision: "province" },
+        history: prev?.history ?? [],
+        geoportalUrl: "https://minkarta.lantmateriet.se/",
+        geoportalName: "Lantmäteriet · Min Karta & Fastighetsgränser",
+        caveats: [],
+        firstSeenAt: prev?.firstSeenAt ?? nowIso,
+      });
+    });
+  } catch (err) {
+    console.warn(`    ! auktionstorget.kronofogden.se Fehler: ${err.message}`);
+  }
+
+  console.log(`  → SE Gesamt: ${out.length} Verfahren geladen (auktionstorget.kronofogden.se)`);
+  return out;
+}
+
+// ---------------------------------------------------------------------------
 // 2. Fetch Turkey Live (GİB, VakıfBank, ilan.gov.tr top cities + dataset.json)
 // ---------------------------------------------------------------------------
 const TR_PROVINCE_ALIASES = {
@@ -3662,7 +4053,7 @@ async function run() {
         }
         return fresh;
       };
-      const [rawAt, rawCh, rawIt, rawEs, rawFr, rawGb, rawNl, rawPl] = await Promise.all([
+      const [rawAt, rawCh, rawIt, rawEs, rawFr, rawGb, rawNl, rawPl, rawCz, rawSe] = await Promise.all([
         fetchAtEdikteAll(postcodes, prevByKey, portalCacheDir, nowIso),
         fetchChShabAll(postcodes, prevByKey, portalCacheDir, nowIso),
         fetchItAsteAll(prevByKey, portalCacheDir, nowIso),
@@ -3671,6 +4062,8 @@ async function run() {
         fetchGbAuctionsAll(prevByKey, portalCacheDir, nowIso),
         fetchNlAuctionsAll(prevByKey, portalCacheDir, nowIso),
         fetchPlKomornikAll(prevByKey, portalCacheDir, nowIso),
+        fetchCzAuctionsAll(prevByKey, portalCacheDir, nowIso),
+        fetchSeKronofogdenAll(prevByKey, portalCacheDir, nowIso),
       ]);
       const atListings = guardCountry("AT", rawAt);
       const chListings = guardCountry("CH", rawCh);
@@ -3680,6 +4073,8 @@ async function run() {
       const gbListings = guardCountry("GB", rawGb);
       const nlListings = guardCountry("NL", rawNl);
       const plListings = guardCountry("PL", rawPl);
+      const czListings = guardCountry("CZ", rawCz);
+      const seListings = guardCountry("SE", rawSe);
       const listings = [
         ...keptDe,
         ...atListings,
@@ -3690,6 +4085,8 @@ async function run() {
         ...gbListings,
         ...nlListings,
         ...plListings,
+        ...czListings,
+        ...seListings,
       ];
       const allCanonicalStates = [
         ...BUNDESLAENDER_DE,
@@ -3701,6 +4098,8 @@ async function run() {
         ...REGIONEN_GB,
         ...REGIONEN_NL,
         ...REGIONEN_PL,
+        ...REGIONEN_CZ,
+        ...REGIONEN_SE,
       ];
       const stateCounts = new Map();
       for (const l of listings) {
@@ -3721,7 +4120,7 @@ async function run() {
       };
       atomicWriteJson(dePath, updated);
       console.log(
-        `✓ data/snapshots/de.json aktualisiert (${listings.length} Objekte: DE=${keptDe.length}, AT=${atListings.length}, CH=${chListings.length}, IT=${itListings.length}, ES=${esListings.length}, FR=${frListings.length}, GB=${gbListings.length}, NL=${nlListings.length}, PL=${plListings.length})`,
+        `✓ data/snapshots/de.json aktualisiert (${listings.length} Objekte: DE=${keptDe.length}, AT=${atListings.length}, CH=${chListings.length}, IT=${itListings.length}, ES=${esListings.length}, FR=${frListings.length}, GB=${gbListings.length}, NL=${nlListings.length}, PL=${plListings.length}, CZ=${czListings.length}, SE=${seListings.length})`,
       );
       if (!deOnly) {
         const tr = await buildTrLive();

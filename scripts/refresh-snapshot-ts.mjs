@@ -13,7 +13,7 @@ const ROOT = path.resolve(__dirname, "..");
 const deSnap = JSON.parse(fs.readFileSync(path.join(ROOT, "data/snapshots/de.json"), "utf8"));
 const listings = (deSnap.listings ?? []).filter((l) => !l.cancelled);
 
-const fxToEur = { EUR: 1, CHF: 1.06, GBP: 1.18, PLN: 0.23 };
+const fxToEur = { EUR: 1, CHF: 1.06, GBP: 1.18, PLN: 0.23, CZK: 0.04, SEK: 0.087 };
 const appraisedEurValues = listings
   .map((l) => {
     if (typeof l.appraisedValue !== "number" || l.appraisedValue < 1000) return null;
@@ -53,7 +53,11 @@ for (const l of listings) {
                   ? "NL"
                   : l.key.startsWith("pl-")
                     ? "PL"
-                    : "DE");
+                    : l.key.startsWith("cz-")
+                      ? "CZ"
+                      : l.key.startsWith("se-")
+                        ? "SE"
+                        : "DE");
   byCountry.set(c, (byCountry.get(c) ?? 0) + 1);
 }
 
@@ -79,7 +83,7 @@ content = content.replace(
   /\{\s*code:\s*"([^"]+)",\s*name:\s*"([^"]+)",\s*country:\s*"([^"]+)",\s*transferTaxPct:\s*([0-9.]+),\s*hearings:\s*(\d+|null)\s*\}/g,
   (_m, code, name, country, tax, oldHearings) => {
     let nextHearings = oldHearings;
-    if (["at", "ch", "it", "es", "fr", "gb", "nl", "pl"].includes(code)) {
+    if (["at", "ch", "it", "es", "fr", "gb", "nl", "pl", "cz", "se"].includes(code)) {
       nextHearings = String(byCountry.get(code.toUpperCase()) ?? 0);
     } else if (byRegionCode.has(code)) {
       nextHearings = String(byRegionCode.get(code));

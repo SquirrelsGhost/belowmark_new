@@ -102,6 +102,16 @@ function buildEntityFaq(entry: EuMarketLocationEntry, fmtAvg: string): { q: stri
         q: `Ile aktywnych licytacji komorniczych nieruchomości prowadzonych jest dla lokalizacji ${entry.name}?`,
         a: `Obecnie dla lokalizacji ${entry.name} (${entry.nativeRegionName}) zarejestrowanych jest ${entry.totalCount} aktywnych licytacji i e-licytacji komorniczych nieruchomości ze średnią sumą oszacowania ${fmtAvg} oraz rękojmią 10% (art. 962 KPC).`,
       };
+    case "CZ":
+      return {
+        q: `Kolik aktivních exekučních dražeb nemovitostí probíhá pro lokalitu ${entry.name}?`,
+        a: `Pro lokalitu ${entry.name} (${entry.nativeRegionName}) evidujeme aktuálně ${entry.totalCount} exekučních a veřejných elektronických dražeb nemovitostí s průměrnou odhadní cenou ${fmtAvg}, nejnižším podáním od 2/3 odhadu (§ 336e OSŘ) a 0% daní z nabytí.`,
+      };
+    case "SE":
+      return {
+        q: `Hur många utmätta fastigheter och bostadsrätter finns på exekutiv auktion i ${entry.name}?`,
+        a: `Det finns just nu ${entry.totalCount} aktuella exekutiva auktioner hos Kronofogden i ${entry.name} (${entry.nativeRegionName}), med ett genomsnittligt bedömt marknadsvärde på ${fmtAvg}, 10 % handpenning och ${entry.transferTaxPct} % lagfart.`,
+      };
   }
 }
 

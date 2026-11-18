@@ -17,11 +17,11 @@ export type BillingOfferId = (typeof BILLING_OFFERS)[number];
 
 export type BillingKind = "subscription" | "one_time";
 
-export type BillingCurrency = "eur" | "chf" | "gbp" | "try" | "pln";
+export type BillingCurrency = "eur" | "chf" | "gbp" | "try" | "pln" | "czk" | "sek";
 
 export const toBillingCurrency = (value: string | null | undefined): BillingCurrency => {
   const lower = value?.toLowerCase();
-  if (lower === "try" || lower === "chf" || lower === "gbp" || lower === "pln") return lower;
+  if (lower === "try" || lower === "chf" || lower === "gbp" || lower === "pln" || lower === "czk" || lower === "sek") return lower;
   return "eur";
 };
 
@@ -61,6 +61,8 @@ export const OFFERS: Record<BillingOfferId, BillingOffer> = {
       GB: { amount: 3_500, currency: "gbp" },
       NL: { amount: 3_900, currency: "eur" },
       PL: { amount: 12_900, currency: "pln" },
+      CZ: { amount: 79_000, currency: "czk" },
+      SE: { amount: 42_900, currency: "sek" },
       TR: { amount: 59_900, currency: "try" },
     },
     priceEnv: {
@@ -73,6 +75,8 @@ export const OFFERS: Record<BillingOfferId, BillingOffer> = {
       GB: "STRIPE_PRICE_GB_INVESTOR_MONAT",
       NL: "STRIPE_PRICE_NL_INVESTOR_MONAT",
       PL: "STRIPE_PRICE_PL_INVESTOR_MONAT",
+      CZ: "STRIPE_PRICE_CZ_INVESTOR_MONAT",
+      SE: "STRIPE_PRICE_SE_INVESTOR_MONAT",
       TR: "STRIPE_PRICE_TR_INVESTOR_MONAT",
     },
   },
@@ -92,6 +96,8 @@ export const OFFERS: Record<BillingOfferId, BillingOffer> = {
       GB: { amount: 1_290, currency: "gbp" },
       NL: { amount: 1_490, currency: "eur" },
       PL: { amount: 5_900, currency: "pln" },
+      CZ: { amount: 34_900, currency: "czk" },
+      SE: { amount: 16_900, currency: "sek" },
       TR: { amount: 24_900, currency: "try" },
     },
     priceEnv: {
@@ -104,6 +110,8 @@ export const OFFERS: Record<BillingOfferId, BillingOffer> = {
       GB: "STRIPE_PRICE_GB_INVESTOR_PASS",
       NL: "STRIPE_PRICE_NL_INVESTOR_PASS",
       PL: "STRIPE_PRICE_PL_INVESTOR_PASS",
+      CZ: "STRIPE_PRICE_CZ_INVESTOR_PASS",
+      SE: "STRIPE_PRICE_SE_INVESTOR_PASS",
       TR: "STRIPE_PRICE_TR_INVESTOR_PASS",
     },
   },
@@ -122,6 +130,8 @@ export const OFFERS: Record<BillingOfferId, BillingOffer> = {
       GB: { amount: 8_900, currency: "gbp" },
       NL: { amount: 9_900, currency: "eur" },
       PL: { amount: 32_900, currency: "pln" },
+      CZ: { amount: 199_000, currency: "czk" },
+      SE: { amount: 109_000, currency: "sek" },
       TR: { amount: 149_000, currency: "try" },
     },
     priceEnv: {
@@ -134,6 +144,8 @@ export const OFFERS: Record<BillingOfferId, BillingOffer> = {
       GB: "STRIPE_PRICE_GB_INVESTOR_QUARTAL",
       NL: "STRIPE_PRICE_NL_INVESTOR_QUARTAL",
       PL: "STRIPE_PRICE_PL_INVESTOR_QUARTAL",
+      CZ: "STRIPE_PRICE_CZ_INVESTOR_QUARTAL",
+      SE: "STRIPE_PRICE_SE_INVESTOR_QUARTAL",
       TR: "STRIPE_PRICE_TR_INVESTOR_QUARTAL",
     },
   },
@@ -152,6 +164,8 @@ export const OFFERS: Record<BillingOfferId, BillingOffer> = {
       GB: { amount: 11_900, currency: "gbp" },
       NL: { amount: 12_900, currency: "eur" },
       PL: { amount: 39_900, currency: "pln" },
+      CZ: { amount: 249_000, currency: "czk" },
+      SE: { amount: 139_000, currency: "sek" },
       TR: { amount: 199_000, currency: "try" },
     },
     priceEnv: {
@@ -164,6 +178,8 @@ export const OFFERS: Record<BillingOfferId, BillingOffer> = {
       GB: "STRIPE_PRICE_GB_PRO_MONAT",
       NL: "STRIPE_PRICE_NL_PRO_MONAT",
       PL: "STRIPE_PRICE_PL_PRO_MONAT",
+      CZ: "STRIPE_PRICE_CZ_PRO_MONAT",
+      SE: "STRIPE_PRICE_SE_PRO_MONAT",
       TR: "STRIPE_PRICE_TR_PRO_MONAT",
     },
   },
@@ -182,6 +198,8 @@ export const OFFERS: Record<BillingOfferId, BillingOffer> = {
       GB: { amount: 29_900, currency: "gbp" },
       NL: { amount: 32_900, currency: "eur" },
       PL: { amount: 99_000, currency: "pln" },
+      CZ: { amount: 649_000, currency: "czk" },
+      SE: { amount: 359_000, currency: "sek" },
       TR: { amount: 499_000, currency: "try" },
     },
     priceEnv: {
@@ -194,6 +212,8 @@ export const OFFERS: Record<BillingOfferId, BillingOffer> = {
       GB: "STRIPE_PRICE_GB_PRO_QUARTAL",
       NL: "STRIPE_PRICE_NL_PRO_QUARTAL",
       PL: "STRIPE_PRICE_PL_PRO_QUARTAL",
+      CZ: "STRIPE_PRICE_CZ_PRO_QUARTAL",
+      SE: "STRIPE_PRICE_SE_PRO_QUARTAL",
       TR: "STRIPE_PRICE_TR_PRO_QUARTAL",
     },
   },
@@ -220,6 +240,8 @@ export const MIN_UPGRADE_CHARGE: Record<BillingCurrency, number> = {
   chf: 50,
   gbp: 50,
   pln: 250,
+  czk: 1_500,
+  sek: 600,
   try: 5_000,
 };
 

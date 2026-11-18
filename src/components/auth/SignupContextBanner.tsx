@@ -17,7 +17,7 @@ const LOCALE_FORMAT: Record<LocaleOption, string> = {
   fr: "fr-FR",
 };
 
-function formatCurrency(val: number | null, currency: "EUR" | "CHF" | "GBP" | "TRY" | "PLN", lang: LocaleOption): string {
+function formatCurrency(val: number | null, currency: "EUR" | "CHF" | "GBP" | "TRY" | "PLN" | "CZK" | "SEK", lang: LocaleOption): string {
   if (!val) return "—";
   return new Intl.NumberFormat(LOCALE_FORMAT[lang], {
     style: "currency",

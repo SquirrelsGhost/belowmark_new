@@ -102,6 +102,28 @@ const NUTS = {
       PL91: ["pl-mz", "Mazowieckie"], PL92: ["pl-mz", "Mazowieckie"],
     },
   },
+  CZ: {
+    level: 3,
+    regions: {
+      CZ010: ["cz-pha", "Praha"], CZ020: ["cz-stc", "Středočeský kraj"], CZ031: ["cz-jhc", "Jihočeský kraj"],
+      CZ032: ["cz-plk", "Plzeňský kraj"], CZ041: ["cz-kvk", "Karlovarský kraj"], CZ042: ["cz-ulk", "Ústecký kraj"],
+      CZ051: ["cz-lbk", "Liberecký kraj"], CZ052: ["cz-khk", "Královéhradecký kraj"], CZ053: ["cz-pak", "Pardubický kraj"],
+      CZ063: ["cz-vys", "Kraj Vysočina"], CZ064: ["cz-jmk", "Jihomoravský kraj"], CZ071: ["cz-olk", "Olomoucký kraj"],
+      CZ072: ["cz-zlk", "Zlínský kraj"], CZ080: ["cz-msk", "Moravskoslezský kraj"],
+    },
+  },
+  SE: {
+    level: 3,
+    regions: {
+      SE110: ["se-ab", "Stockholms län"], SE121: ["se-c", "Uppsala län"], SE122: ["se-d", "Södermanlands län"],
+      SE123: ["se-e", "Östergötlands län"], SE211: ["se-f", "Jönköpings län"], SE212: ["se-g", "Kronobergs län"],
+      SE213: ["se-h", "Kalmar län"], SE214: ["se-i", "Gotlands län"], SE221: ["se-k", "Blekinge län"],
+      SE224: ["se-m", "Skåne län"], SE231: ["se-n", "Hallands län"], SE232: ["se-o", "Västra Götalands län"],
+      SE311: ["se-s", "Värmlands län"], SE124: ["se-t", "Örebro län"], SE125: ["se-u", "Västmanlands län"],
+      SE312: ["se-w", "Dalarnas län"], SE313: ["se-x", "Gävleborgs län"], SE321: ["se-y", "Västernorrlands län"],
+      SE322: ["se-z", "Jämtlands län"], SE331: ["se-ac", "Västerbottens län"], SE332: ["se-bd", "Norrbottens län"],
+    },
+  },
 };
 
 const readJson = (path) => JSON.parse(readFileSync(path, "utf8"));
@@ -258,4 +280,4 @@ function buildFromNuts(country) {
 
 mkdirSync(OUT_DIR, { recursive: true });
 for (const country of ["DE", "AT", "CH"]) buildFromDach(country);
-for (const country of ["IT", "ES", "FR", "GB", "NL", "PL"]) buildFromNuts(country);
+for (const country of ["IT", "ES", "FR", "GB", "NL", "PL", "CZ", "SE"]) buildFromNuts(country);

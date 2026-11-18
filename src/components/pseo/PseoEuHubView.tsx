@@ -23,6 +23,8 @@ const ALL_MARKETS: ReadonlyArray<{ code: EuPseoMarketCode; href: string }> = [
   { code: "GB", href: "/en/uk-property-auctions" },
   { code: "NL", href: "/nl/executieveiling" },
   { code: "PL", href: "/pl/licytacje-komornicze" },
+  { code: "CZ", href: "/cz/drazby-nemovitosti" },
+  { code: "SE", href: "/se/exekutiv-auktion" },
 ];
 
 const HUB_STAT_LABELS: Record<
@@ -37,6 +39,8 @@ const HUB_STAT_LABELS: Record<
   GB: { lots: "Live Auction Lots", regions: "UK Regions", cities: "Cities & Towns", currency: "Currency", homeLabel: "Belowmark" },
   NL: { lots: "Actieve Kavels", regions: "Provincies", cities: "Steden & Plaatsen", currency: "Valuta", homeLabel: "Belowmark" },
   PL: { lots: "Aktywne Licytacje", regions: "Województwa", cities: "Miasta i Gminy", currency: "Waluta", homeLabel: "Belowmark" },
+  CZ: { lots: "Aktivní Dražby", regions: "Kraje ČR", cities: "Města a Obce", currency: "Měna", homeLabel: "Belowmark" },
+  SE: { lots: "Objekt till Salu", regions: "Svenska Län", cities: "Kommuner & Orter", currency: "Valuta", homeLabel: "Belowmark" },
 };
 
 export default function PseoEuHubView({ catalog }: PseoEuHubViewProps) {

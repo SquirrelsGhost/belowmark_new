@@ -99,7 +99,7 @@ const TABLE_COPY: Record<
   },
 };
 
-function fmt(amount: number | null, currency: "EUR" | "CHF" | "GBP" | "TRY" | "PLN", locale: PseoLocale, fallback: string) {
+function fmt(amount: number | null, currency: "EUR" | "CHF" | "GBP" | "TRY" | "PLN" | "CZK" | "SEK", locale: PseoLocale, fallback: string) {
   if (!amount) return fallback;
   return new Intl.NumberFormat(LOCALE_FORMAT[locale], {
     style: "currency",

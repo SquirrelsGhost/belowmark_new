@@ -11,7 +11,7 @@ import { DachCountry, Listing, ListingCountry } from "@/types/listing.types";
 
 /** Countries kept in each snapshot file, in display order. */
 export const MARKET_COUNTRIES: Record<MarketCode, readonly ListingCountry[]> = {
-  DE: ["DE", "AT", "CH", "IT", "ES", "FR", "GB", "NL", "PL"],
+  DE: ["DE", "AT", "CH", "IT", "ES", "FR", "GB", "NL", "PL", "CZ", "SE"],
   TR: ["TR"],
 };
 
@@ -33,6 +33,8 @@ export function getListingDachCountry(listing: Pick<Listing, "key" | "country" |
   if (listing.country === "GB" || listing.regionCode?.startsWith("gb-") || listing.key.startsWith("gb-")) return "GB";
   if (listing.country === "NL" || listing.regionCode?.startsWith("nl-") || listing.key.startsWith("nl-")) return "NL";
   if (listing.country === "PL" || listing.regionCode?.startsWith("pl-") || listing.key.startsWith("pl-")) return "PL";
+  if (listing.country === "CZ" || listing.regionCode?.startsWith("cz-") || listing.key.startsWith("cz-")) return "CZ";
+  if (listing.country === "SE" || listing.regionCode?.startsWith("se-") || listing.key.startsWith("se-")) return "SE";
   return "DE";
 }
 

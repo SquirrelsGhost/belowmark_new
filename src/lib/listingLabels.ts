@@ -53,6 +53,8 @@ export function getMapQuery(listing: Listing): string {
     GB: "United Kingdom",
     NL: "Nederland",
     PL: "Polska",
+    CZ: "Česko",
+    SE: "Sverige",
     DE: "Deutschland",
   };
   const countryName = countryMap[listing.country ?? "DE"] ?? "Deutschland";
@@ -74,6 +76,10 @@ export function getListingSourceTag(listing: Listing): string | null {
   if (listing.country === "GB" || listing.key.startsWith("gb-")) return "UK · Property Auction";
   if (listing.country === "NL" || listing.key.startsWith("nl-")) return "NL · Executieveiling";
   if (listing.country === "PL" || listing.key.startsWith("pl-")) return "PL · Licytacje KRK";
+  if (listing.country === "CZ" || listing.key.startsWith("cz-")) {
+    return listing.key.startsWith("cz-okd-") ? "CZ · OKdražby" : "CZ · Portál dražeb EKČR";
+  }
+  if (listing.country === "SE" || listing.key.startsWith("se-")) return "SE · Kronofogden";
   if (listing.sourcePortal === "zvg.com" || listing.key.startsWith("zvgcom-")) return "zvg.com";
   return null;
 }
@@ -147,9 +153,11 @@ export function getDachPurchaseLabels(
   const isGb = listing.country === "GB" || listing.key.startsWith("gb-");
   const isNl = listing.country === "NL" || listing.key.startsWith("nl-");
   const isPl = listing.country === "PL" || listing.key.startsWith("pl-");
+  const isCz = listing.country === "CZ" || listing.key.startsWith("cz-");
+  const isSe = listing.country === "SE" || listing.key.startsWith("se-");
   const isTr = locale === "tr";
   return {
-    isCh: isCh || isFr || isGb || isNl,
+    isCh: isCh || isFr || isGb || isNl || isSe,
     valueLabel: isAt
       ? isTr ? "Ekspertiz Değeri (§ 140 EO)" : "Schätzwert (§ 140 EO)"
       : isCh
@@ -166,7 +174,11 @@ export function getDachPurchaseLabels(
                   ? isTr ? "Piyasa Referans Değeri (NL)" : "Marktreferenzwert (Kadaster / Veiling)"
                   : isPl
                     ? isTr ? "Ekspertiz Değeri (Suma oszacowania)" : "Suma oszacowania (Gerichtsschätzwert)"
-                    : L.Value[listing.market],
+                    : isCz
+                      ? isTr ? "Ekspertiz Değeri (Odhadní cena)" : "Odhadní cena (Znalecký posudek)"
+                      : isSe
+                        ? isTr ? "Piyasa Değeri (Uppskattat värde)" : "Uppskattat marknadsvärde (Kronofogden)"
+                        : L.Value[listing.market],
     halfLabel: isAt
       ? isTr ? "Asgari Teklif (§ 151 EO)" : "Geringstes Gebot (§ 151 EO)"
       : isCh
@@ -183,7 +195,11 @@ export function getDachPurchaseLabels(
                   ? isTr ? "Açılış Fiyatı (Inzet / Afslag)" : "Inzet- / Richtpreis (Art. 3:268 BW)"
                   : isPl
                     ? isTr ? "Açılış Fiyatı (Cena wywołania)" : "Cena wywołania (3/4 bzw. 2/3 KPC)"
-                    : L.Half,
+                    : isCz
+                      ? isTr ? "Asgari Teklif (Nejnižší podání)" : "Nejnižší podání (2/3 odhadu · § 336e OSŘ)"
+                      : isSe
+                        ? isTr ? "Hedef Teklif (Skyddsbelopp)" : "Richtgebot (12 kap. UB · unter Marktwert)"
+                        : L.Half,
     depositLabel: isAt
       ? isTr ? "Teminat / Vadium (§ 147 EO)" : "Vadium (§ 147 EO · 10 %)"
       : isCh
@@ -200,15 +216,21 @@ export function getDachPurchaseLabels(
                   ? isTr ? "Noter Teminatı (10% Waarborgsom)" : "Waarborgsom (10 % Notariskonto)"
                   : isPl
                     ? isTr ? "İhale Teminatı (Rękojmia 10%)" : "Rękojmia / Wadium (Art. 962 KPC · 10 %)"
-                    : L.Deposit,
+                    : isCz
+                      ? isTr ? "İhale Teminatı (Dražební jistota)" : "Dražební jistota (§ 336e OSŘ)"
+                      : isSe
+                        ? isTr ? "İhale Teminatı (10% Handpenning)" : "Handpenning (10 % vid klubbslag)"
+                        : L.Deposit,
     secondLimitLabel: isAt || isIt
       ? isTr ? "3/4 Sınırı (75%)" : isIt ? "Prezzo Base (100 %)" : "3/4-Überbotsgrenze (§ 195 EO)"
       : isEs
         ? isTr ? "%70 İhale Sınırı (Art. 670 LEC)" : "70-%-Zuschlagsschwelle (Art. 670 LEC)"
         : isPl
           ? isTr ? "I. İhale Sınırı (3/4 = 75%)" : "I. Termin 3/4-Grenze (Art. 965 KPC · 75 %)"
-          : L.SevenTenths,
+          : isCz
+            ? isTr ? "I. İhale Sınırı (2/3 = 66,7%)" : "1. Dražební kolo 2/3-Grenze (§ 336e OSŘ)"
+            : L.SevenTenths,
     secondLimitVal: (value, sevenTenths) =>
-      isAt || isPl ? Math.round(value * 0.75) : isIt ? value : isEs ? Math.round(value * 0.7) : sevenTenths,
+      isAt || isPl ? Math.round(value * 0.75) : isCz ? Math.round((value * 2) / 3) : isIt ? value : isEs ? Math.round(value * 0.7) : sevenTenths,
   };
 }

@@ -26,6 +26,8 @@ const COUNTRY_BADGES: Record<PricingCountryCode, string> = {
   GB: "🇬🇧 UK",
   NL: "🇳🇱 NL",
   PL: "🇵🇱 PL",
+  CZ: "🇨🇿 CZ",
+  SE: "🇸🇪 SE",
 };
 
 const SEGMENT_ORDER: ReadonlyArray<keyof typeof PUBLIC_SEARCH_COPY.de.types> = [

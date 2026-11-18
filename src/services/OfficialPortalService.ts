@@ -945,7 +945,9 @@ function mergeListingFallback(details: OfficialPortalDetails, listing: Listing):
   const isGb = listing.country === "GB" || listing.key.startsWith("gb-");
   const isNl = listing.country === "NL" || listing.key.startsWith("nl-");
   const isPl = listing.country === "PL" || listing.key.startsWith("pl-");
-  const isNonZvgPortal = isAt || isCh || isIt || isEs || isFr || isGb || isNl || isPl || listing.key.startsWith("zvgcom-");
+  const isCz = listing.country === "CZ" || listing.key.startsWith("cz-");
+  const isSe = listing.country === "SE" || listing.key.startsWith("se-");
+  const isNonZvgPortal = isAt || isCh || isIt || isEs || isFr || isGb || isNl || isPl || isCz || isSe || listing.key.startsWith("zvgcom-");
   const sourcePortal =
     details.sourcePortal ||
     listing.sourcePortal ||
@@ -975,7 +977,13 @@ function mergeListingFallback(details: OfficialPortalDetails, listing: Listing):
                     ? "vastgoedveiling.nl"
                     : isPl
                       ? "licytacje.komornik.pl"
-                      : listing.key.startsWith("zvgcom-")
+                      : isCz
+                        ? listing.key.startsWith("cz-okd-")
+                          ? "okdrazby.cz"
+                          : "portaldrazeb.cz"
+                        : isSe
+                          ? "auktionstorget.kronofogden.se"
+                          : listing.key.startsWith("zvgcom-")
                         ? "zvg.com"
                         : "zvg-portal.de");
   const rawCourtUrl = details.courtUrl ?? listing.courtUrl ?? null;
@@ -1068,12 +1076,16 @@ export class OfficialPortalService {
       listing.country === "GB" ||
       listing.country === "NL" ||
       listing.country === "PL" ||
+      listing.country === "CZ" ||
+      listing.country === "SE" ||
       listing.key.startsWith("it-aste-") ||
       listing.key.startsWith("es-boe-") ||
       listing.key.startsWith("fr-") ||
       listing.key.startsWith("gb-") ||
       listing.key.startsWith("nl-") ||
-      listing.key.startsWith("pl-");
+      listing.key.startsWith("pl-") ||
+      listing.key.startsWith("cz-") ||
+      listing.key.startsWith("se-");
 
     const cached = await readCache(listing.key);
     const isCacheComplete =

@@ -149,6 +149,18 @@ export function getBorisPortal(listing: Listing): { name: string; url: string } 
       url: listing.geoportalUrl ?? "https://mapy.geoportal.gov.pl/",
     };
   }
+  if (listing.country === "CZ" || listing.key.startsWith("cz-")) {
+    return {
+      name: listing.geoportalName ?? "ČÚZK · Nahlížení do katastru nemovitostí",
+      url: listing.geoportalUrl ?? "https://nahlizenidokn.cuzk.gov.cz/",
+    };
+  }
+  if (listing.country === "SE" || listing.key.startsWith("se-")) {
+    return {
+      name: listing.geoportalName ?? "Lantmäteriet · Min Karta & Fastighetsgränser",
+      url: listing.geoportalUrl ?? "https://minkarta.lantmateriet.se/",
+    };
+  }
   const code = (listing.regionCode ?? "").toLowerCase();
   return BORIS_BY_STATE[code] ?? { name: "BORIS-D Bodenrichtwert-Portal", url: "https://www.bodenrichtwerte-boris.de/" };
 }
@@ -348,6 +360,46 @@ export function getMarketComparisonLinks(listing: Listing): ComparisonPortalLink
         name: "Geoportal Krajowy (GUGiK)",
         sub: `${listing.place ?? listing.region ?? "Polska"}`,
         href: "https://mapy.geoportal.gov.pl/",
+      },
+    ];
+  }
+
+  if (listing.country === "CZ" || listing.key.startsWith("cz-")) {
+    return [
+      {
+        name: "Sreality.cz Srovnání",
+        sub: loc || "Tržní ceny (CZ)",
+        href: `https://www.google.com/search?q=${encodeURIComponent(`site:sreality.cz prodej ${loc}`)}`,
+      },
+      {
+        name: "Bezrealitky / iDNES Reality",
+        sub: loc || "Nabídky v okolí",
+        href: `https://www.google.com/search?q=${encodeURIComponent(`site:reality.idnes.cz OR site:bezrealitky.cz ${loc}`)}`,
+      },
+      {
+        name: "Katastr nemovitostí (ČÚZK)",
+        sub: `${listing.place ?? listing.region ?? "Česko"}`,
+        href: "https://nahlizenidokn.cuzk.gov.cz/",
+      },
+    ];
+  }
+
+  if (listing.country === "SE" || listing.key.startsWith("se-")) {
+    return [
+      {
+        name: "Hemnet Slutpriser",
+        sub: loc || "Slutpriser & Utbud (SE)",
+        href: `https://www.google.com/search?q=${encodeURIComponent(`site:hemnet.se slutpriser ${loc}`)}`,
+      },
+      {
+        name: "Booli Värdering",
+        sub: loc || "Marknadsvärde & kr/m²",
+        href: `https://www.google.com/search?q=${encodeURIComponent(`site:booli.se ${loc}`)}`,
+      },
+      {
+        name: "Lantmäteriet Min Karta",
+        sub: `${listing.place ?? listing.region ?? "Sverige"}`,
+        href: "https://minkarta.lantmateriet.se/",
       },
     ];
   }

@@ -12,7 +12,7 @@ interface EmbedCalculatorWidgetProps {
 interface CountryCalcSpec {
   flag: string;
   label: string;
-  currency: "EUR" | "CHF" | "GBP" | "TRY" | "PLN";
+  currency: "EUR" | "CHF" | "GBP" | "TRY" | "PLN" | "CZK" | "SEK";
   locale: string;
   defaultVal: number;
   minRatio: number;
@@ -36,6 +36,8 @@ const SPECS: Record<PricingCountryCode, CountryCalcSpec> = {
   GB: { flag: "🇬🇧", label: "GB · UK Property Auctions", currency: "GBP", locale: "en-GB", defaultVal: 250000, minRatio: 0.85, safeRatio: 0.95, depRatio: 0.1, taxPct: 5.0, minLabel: "Guide Price (85 %)", safeLabel: "Est. Reserve Target", depLabel: "10 % Exchange Deposit", hubPath: "/en/uk-property-auctions" },
   NL: { flag: "🇳🇱", label: "NL · Executieveiling", currency: "EUR", locale: "nl-NL", defaultVal: 425000, minRatio: 0.7, safeRatio: 0.8, depRatio: 0.1, taxPct: 10.4, minLabel: "Inzetprijs (70 %)", safeLabel: "Doelbod (80 %)", depLabel: "10 % Waarborgsom", hubPath: "/nl/executieveiling" },
   PL: { flag: "🇵🇱", label: "PL · Licytacje Komornicze", currency: "PLN", locale: "pl-PL", defaultVal: 450000, minRatio: 0.6667, safeRatio: 0.75, depRatio: 0.1, taxPct: 2.0, minLabel: "II Termin 2/3 (66,7 %)", safeLabel: "I Termin 3/4 (75 %)", depLabel: "10 % Rękojmia", hubPath: "/pl/licytacje-komornicze" },
+  CZ: { flag: "🇨🇿", label: "CZ · Exekuční Dražby", currency: "CZK", locale: "cs-CZ", defaultVal: 3500000, minRatio: 0.5, safeRatio: 0.6667, depRatio: 0.15, taxPct: 0.2, minLabel: "Opakovaná 1/2 (50 %)", safeLabel: "1. Kolo 2/3 (66,7 %)", depLabel: "Dražební jistota", hubPath: "/cz/drazby-nemovitosti" },
+  SE: { flag: "🇸🇪", label: "SE · Kronofogden Auktion", currency: "SEK", locale: "sv-SE", defaultVal: 2200000, minRatio: 0.75, safeRatio: 0.85, depRatio: 0.1, taxPct: 1.5, minLabel: "Indikativt bud (75 %)", safeLabel: "Målbudget (85 %)", depLabel: "10 % Handpenning", hubPath: "/se/exekutiv-auktion" },
 };
 
 export default function EmbedCalculatorWidget({ initialCountry }: EmbedCalculatorWidgetProps) {

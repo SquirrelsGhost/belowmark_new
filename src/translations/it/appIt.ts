@@ -75,6 +75,8 @@ export const APP_IT: IAppTranslation = {
       GB: { Name: "Regno Unito", Source: "Property Auctions", Region: "Regione" },
       NL: { Name: "Paesi Bassi", Source: "Executieveiling", Region: "Provincia" },
       PL: { Name: "Polonia", Source: "Licytacje Komornicze", Region: "Voivodato" },
+      CZ: { Name: "Cechia", Source: "Portál dražeb EKČR", Region: "Regione" },
+      SE: { Name: "Svezia", Source: "Kronofogden", Region: "Contea" },
       TR: { Name: "Turchia", Source: "İcra / ilan.gov.tr", Region: "Provincia" },
     },
     CountryEyebrow: "Albo avvisi · {country} · {source}",

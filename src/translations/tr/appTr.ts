@@ -75,6 +75,8 @@ export const APP_TR: IAppTranslation = {
       GB: { Name: "Birleşik Krallık", Source: "Açık artırmalar", Region: "Bölge" },
       NL: { Name: "Hollanda", Source: "Executieveiling", Region: "Eyalet" },
       PL: { Name: "Polonya", Source: "Licytacje Komornicze", Region: "Voyvodalık" },
+      CZ: { Name: "Çekya", Source: "Portál dražeb EKČR", Region: "Bölge" },
+      SE: { Name: "İsveç", Source: "Kronofogden", Region: "İl" },
       TR: { Name: "Türkiye", Source: "İcra / ilan.gov.tr", Region: "İl" },
     },
     CountryEyebrow: "İlan panosu · {country} · {source}",

@@ -226,6 +226,8 @@ export default async function HomePage() {
                 GB: { label: Pricing.Markets.GB.Label, scope: Pricing.Markets.GB.Scope },
                 NL: { label: Pricing.Markets.NL.Label, scope: Pricing.Markets.NL.Scope },
                 PL: { label: Pricing.Markets.PL.Label, scope: Pricing.Markets.PL.Scope },
+                CZ: { label: Pricing.Markets.CZ.Label, scope: Pricing.Markets.CZ.Scope },
+                SE: { label: Pricing.Markets.SE.Label, scope: Pricing.Markets.SE.Scope },
                 TR: { label: Pricing.Markets.TR.Label, scope: Pricing.Markets.TR.Scope },
               }}
             />
@@ -281,6 +283,8 @@ export default async function HomePage() {
           <FooterLink href="/en/uk-property-auctions" label="🇬🇧 UK · Property Auctions (12 Regions)" />
           <FooterLink href="/nl/executieveiling" label="🇳🇱 NL · Executieveilingen (12 Provincies)" />
           <FooterLink href="/pl/licytacje-komornicze" label="🇵🇱 PL · Licytacje Komornicze (16 Woj.)" />
+          <FooterLink href="/cz/drazby-nemovitosti" label="🇨🇿 CZ · Dražby Nemovitostí (14 Krajů)" />
+          <FooterLink href="/se/exekutiv-auktion" label="🇸🇪 SE · Kronofogden Auktioner (21 Län)" />
           <FooterLink href="/tr/icra-ihale" label="🇹🇷 TR · İcra & İhale (81 İl)" />
         </FooterColumn>
         <FooterColumn title={t.Footer.SourcesTitle}>
@@ -293,6 +297,8 @@ export default async function HomePage() {
           <FooterLink href="/en/calculator/uk-property-auction-stamp-duty-deposit" label="🧮 UK · Auction & SDLT Calculator" />
           <FooterLink href="/nl/calculator/executieveiling-kosten-overdrachtsbelasting" label="🧮 NL · Executieveiling Calculator" />
           <FooterLink href="/pl/kalkulator/licytacja-komornicza-wadium" label="🧮 PL · Kalkulator Licytacji KPC" />
+          <FooterLink href="/cz/kalkulacka/exekucni-drazba-nejnizsi-podani-jistota" label="🧮 CZ · Kalkulačka Exekuční Dražby" />
+          <FooterLink href="/se/kalkylator/kronofogden-exekutiv-auktion-handpenning" label="🧮 SE · Kronofogden Kalkylator" />
           <FooterLink href="/tr/hesaplama/icra-ihale-teminat" label="🧮 TR · İcra Teminat Hesaplama" />
         </FooterColumn>
         <FooterColumn title={t.Footer.LegalTitle}>

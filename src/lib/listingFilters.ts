@@ -9,7 +9,7 @@ import { DachCountry, ListingFilters, ListingScope, ListingSort, SearchView } fr
 
 type RawParams = Record<string, string | string[] | undefined>;
 
-const DACH_COUNTRIES: DachCountry[] = ["DE", "AT", "CH", "IT", "ES", "FR", "GB", "NL", "PL"];
+const DACH_COUNTRIES: DachCountry[] = ["DE", "AT", "CH", "IT", "ES", "FR", "GB", "NL", "PL", "CZ", "SE"];
 const SEGMENTS: SegmentKey[] = ["house", "apartment", "multiFamily", "land", "farmland", "commercial", "other"];
 const SORTS: ListingSort[] = ["hearing", "discount", "valueAsc", "valueDesc", "newest"];
 const SCOPES: ListingScope[] = ["upcoming", "all", "past"];

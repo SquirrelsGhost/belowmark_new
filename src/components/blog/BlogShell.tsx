@@ -16,7 +16,7 @@ import { TranslationService } from "@/services/TranslationService";
 import { BlogLang } from "@/types/blog.types";
 
 interface BlogShellProps {
-  lang: BlogLang | "nl" | "pl";
+  lang: BlogLang | "nl" | "pl" | "cs" | "sv";
   children: ReactNode;
 }
 
@@ -31,6 +31,8 @@ const SEARCH_NAV_LABEL: Record<string, string> = {
   fr: "Recherche",
   nl: "Live Zoeken",
   pl: "Wyszukiwarka",
+  cs: "Vyhledávač",
+  sv: "Sök Auktioner",
 };
 
 export default async function BlogShell({ lang, children }: BlogShellProps) {
@@ -41,7 +43,7 @@ export default async function BlogShell({ lang, children }: BlogShellProps) {
   const blogHref =
     lang === "de"
       ? ROUTES.blog
-      : lang === "nl" || lang === "pl"
+      : lang === "nl" || lang === "pl" || lang === "cs" || lang === "sv"
         ? "/en/blog"
         : `/${lang}/blog`;
   const atlasHref = lang === "en" || lang === "fr" || lang === "it" || lang === "es" || lang === "tr" ? `/${lang}/atlas` : "/atlas";

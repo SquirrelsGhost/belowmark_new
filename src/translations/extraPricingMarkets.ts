@@ -6,6 +6,10 @@ interface ExtraCountryCopy {
   nlScope: string;
   plLabel: string;
   plScope: string;
+  czLabel: string;
+  czScope: string;
+  seLabel: string;
+  seScope: string;
   freeTag: string;
   forever: string;
   freeCta: string;
@@ -23,6 +27,10 @@ const COPY: Record<LocaleOption, ExtraCountryCopy> = {
     nlScope: "Executieveilingen · 12 Provinzen",
     plLabel: "Polen",
     plScope: "Licytacje Komornicze · 16 Woiwodschaften",
+    czLabel: "Tschechien",
+    czScope: "Portál dražeb EKČR · 14 Kraje",
+    seLabel: "Schweden",
+    seScope: "Kronofogden Auktionen · 21 Län",
     freeTag: "Für die erste Orientierung.",
     forever: "dauerhaft",
     freeCta: "Kostenlos starten",
@@ -38,6 +46,10 @@ const COPY: Record<LocaleOption, ExtraCountryCopy> = {
     nlScope: "Executieveilingen · 12 Provinces",
     plLabel: "Poland",
     plScope: "Licytacje Komornicze · 16 Voivodeships",
+    czLabel: "Czechia",
+    czScope: "Portál dražeb EKČR · 14 Regions",
+    seLabel: "Sweden",
+    seScope: "Kronofogden Auctions · 21 Counties",
     freeTag: "For initial orientation.",
     forever: "forever",
     freeCta: "Start for free",
@@ -53,6 +65,10 @@ const COPY: Record<LocaleOption, ExtraCountryCopy> = {
     nlScope: "Executieveilingen · 12 Provinces",
     plLabel: "Pologne",
     plScope: "Licytacje Komornicze · 16 Voïvodies",
+    czLabel: "Tchéquie",
+    czScope: "Portál dražeb EKČR · 14 Régions",
+    seLabel: "Suède",
+    seScope: "Kronofogden Enchères · 21 Comtés",
     freeTag: "Pour une première orientation.",
     forever: "permanent",
     freeCta: "Commencer gratuitement",
@@ -68,6 +84,10 @@ const COPY: Record<LocaleOption, ExtraCountryCopy> = {
     nlScope: "Executieveilingen · 12 Provincias",
     plLabel: "Polonia",
     plScope: "Licytacje Komornicze · 16 Voivodatos",
+    czLabel: "Chequia",
+    czScope: "Portál dražeb EKČR · 14 Regiones",
+    seLabel: "Suecia",
+    seScope: "Kronofogden Subastas · 21 Condados",
     freeTag: "Para una primera orientación.",
     forever: "para siempre",
     freeCta: "Empezar gratis",
@@ -83,6 +103,10 @@ const COPY: Record<LocaleOption, ExtraCountryCopy> = {
     nlScope: "Executieveilingen · 12 Province",
     plLabel: "Polonia",
     plScope: "Licytacje Komornicze · 16 Voivodati",
+    czLabel: "Cechia",
+    czScope: "Portál dražeb EKČR · 14 Regioni",
+    seLabel: "Svezia",
+    seScope: "Kronofogden Aste · 21 Contee",
     freeTag: "Per un primo orientamento.",
     forever: "per sempre",
     freeCta: "Inizia gratis",
@@ -98,6 +122,10 @@ const COPY: Record<LocaleOption, ExtraCountryCopy> = {
     nlScope: "Executieveilingen · 12 Eyalet",
     plLabel: "Polonya",
     plScope: "Licytacje Komornicze · 16 Voyvodalık",
+    czLabel: "Çekya",
+    czScope: "Portál dražeb EKČR · 14 Bölge",
+    seLabel: "İsveç",
+    seScope: "Kronofogden İhaleleri · 21 İl",
     freeTag: "İlk inceleme için.",
     forever: "süresiz",
     freeCta: "Ücretsiz başla",
@@ -110,7 +138,14 @@ const COPY: Record<LocaleOption, ExtraCountryCopy> = {
   },
 };
 
-function buildExtra(c: ExtraCountryCopy): { NL: IMarketPlans; PL: IMarketPlans } {
+type ExtraMarketsMap = {
+  NL: IMarketPlans;
+  PL: IMarketPlans;
+  CZ: IMarketPlans;
+  SE: IMarketPlans;
+};
+
+function buildExtra(c: ExtraCountryCopy): ExtraMarketsMap {
   return {
     NL: {
       Label: c.nlLabel,
@@ -206,10 +241,104 @@ function buildExtra(c: ExtraCountryCopy): { NL: IMarketPlans; PL: IMarketPlans }
         Note: c.cancelMonthly,
       },
     },
+    CZ: {
+      Label: c.czLabel,
+      Scope: c.czScope,
+      Free: {
+        Name: "Free Scout",
+        Tagline: c.freeTag,
+        Price: "0 Kč",
+        Period: c.forever,
+        Features: [
+          "Official Czech bailiff auctions (Portál dražeb EKČR) across all 14 Kraje",
+          "1 Free Dossier included · exact RÚIAN address & case file locked afterwards",
+          "No payment details required, no auto-renewal",
+        ],
+        Cta: c.freeCta,
+        Note: c.freeNote,
+      },
+      Investor: {
+        Name: "Investor",
+        Tagline: "Full access to Czech bailiff & electronic property auctions (2/3 & 1/2 OSŘ).",
+        Price: "790 Kč",
+        Period: c.perMonth,
+        AltPrice: "1 990 Kč",
+        AltPeriod: c.forThreeMonths,
+        Features: [
+          "Full access to all Czech bailiff auctions, Znalecký posudek & RÚIAN cadastre",
+          "2/3 (1st round) & 1/2 (repeated) OSŘ calculator, dražební jistota & 0% transfer tax",
+          "Daily email alerts, auction deadline reminders & calendar sync",
+        ],
+        Cta: c.invCta,
+        Note: c.cancelMonthly,
+      },
+      Pro: {
+        Name: "Pro",
+        Tagline: "For investment funds, real estate agencies & team underwriting.",
+        Price: "2 490 Kč",
+        Period: c.perMonth,
+        AltPrice: "6 490 Kč",
+        AltPeriod: c.forThreeMonths,
+        Features: [
+          "Everything in Investor included",
+          "White-label client links & branded PDF investment memos",
+          "Shared team watchlists (up to 3 teams of 5 seats) with deal workflow",
+        ],
+        Cta: c.proCta,
+        Note: c.cancelMonthly,
+      },
+    },
+    SE: {
+      Label: c.seLabel,
+      Scope: c.seScope,
+      Free: {
+        Name: "Free Scout",
+        Tagline: c.freeTag,
+        Price: "0 kr",
+        Period: c.forever,
+        Features: [
+          "Official Kronofogden foreclosure auctions across all 21 Swedish Län",
+          "1 Free Dossier included · exact Fastighetsbeteckning & PDF locked afterwards",
+          "No payment details required, no auto-renewal",
+        ],
+        Cta: c.freeCta,
+        Note: c.freeNote,
+      },
+      Investor: {
+        Name: "Investor",
+        Tagline: "Full access to Swedish Crown Enforcement (Kronofogden · 12 kap. UB) auctions.",
+        Price: "429 kr",
+        Period: c.perMonth,
+        AltPrice: "1 090 kr",
+        AltPeriod: c.forThreeMonths,
+        Features: [
+          "Full access to Kronofogden fastigheter & bostadsrätter + Beskrivning & värdering PDF",
+          "10% handpenning, 1.5% stämpelskatt / lagfart & total equity calculator in SEK",
+          "Search alerts, viewing & auction date reminders & calendar feed",
+        ],
+        Cta: c.invCta,
+        Note: c.cancelMonthly,
+      },
+      Pro: {
+        Name: "Pro",
+        Tagline: "For property investors, family offices & shared team underwriting.",
+        Price: "1 390 kr",
+        Period: c.perMonth,
+        AltPrice: "3 590 kr",
+        AltPeriod: c.forThreeMonths,
+        Features: [
+          "Everything in Investor included",
+          "White-label client dossiers & PDF reports with custom branding",
+          "Shared team watchlists (up to 3 teams of 5 seats) with workflow notes",
+        ],
+        Cta: c.proCta,
+        Note: c.cancelMonthly,
+      },
+    },
   };
 }
 
-export const EXTRA_PRICING_MARKETS: Record<LocaleOption, { NL: IMarketPlans; PL: IMarketPlans }> = {
+export const EXTRA_PRICING_MARKETS: Record<LocaleOption, ExtraMarketsMap> = {
   de: buildExtra(COPY.de),
   en: buildExtra(COPY.en),
   fr: buildExtra(COPY.fr),

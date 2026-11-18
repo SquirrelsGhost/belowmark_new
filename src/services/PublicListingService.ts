@@ -22,7 +22,7 @@ export interface PublicListingResolved {
   canonicalUrl: string;
   country: PricingCountryCode;
   locale: PseoLocale;
-  currency: "EUR" | "CHF" | "GBP" | "TRY" | "PLN";
+  currency: "EUR" | "CHF" | "GBP" | "TRY" | "PLN" | "CZK" | "SEK";
   headline: string;
   segmentLabel: string;
   cleanCity: string;
@@ -49,12 +49,14 @@ export interface PublicListingResolved {
   relatedListings: PseoPreviewListing[];
 }
 
-function currencyForCountry(country: PricingCountryCode, raw?: string | null): "EUR" | "CHF" | "GBP" | "TRY" | "PLN" {
+function currencyForCountry(country: PricingCountryCode, raw?: string | null): "EUR" | "CHF" | "GBP" | "TRY" | "PLN" | "CZK" | "SEK" {
   const up = (raw ?? "").toUpperCase();
-  if (up === "CHF" || up === "GBP" || up === "TRY" || up === "PLN" || up === "EUR") return up;
+  if (up === "CHF" || up === "GBP" || up === "TRY" || up === "PLN" || up === "CZK" || up === "SEK" || up === "EUR") return up;
   if (country === "CH") return "CHF";
   if (country === "GB") return "GBP";
   if (country === "PL") return "PLN";
+  if (country === "CZ") return "CZK";
+  if (country === "SE") return "SEK";
   if (country === "TR") return "TRY";
   return "EUR";
 }

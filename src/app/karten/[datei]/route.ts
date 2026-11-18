@@ -11,6 +11,8 @@ const FILES = {
   "gb.svg": "GB",
   "nl.svg": "NL",
   "pl.svg": "PL",
+  "cz.svg": "CZ",
+  "se.svg": "SE",
   "tr.svg": "TR",
 } as const;
 

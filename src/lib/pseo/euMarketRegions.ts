@@ -12,7 +12,7 @@ export const EU_MARKET_META: Record<
   EuPseoMarketCode,
   {
     locale: PseoLocale;
-    currency: "EUR" | "CHF" | "GBP" | "PLN";
+    currency: "EUR" | "CHF" | "GBP" | "PLN" | "CZK" | "SEK";
     hubPath: string;
     calcPath: string;
     flag: string;
@@ -82,6 +82,22 @@ export const EU_MARKET_META: Record<
     calcPath: "/pl/kalkulator/licytacja-komornicza-wadium",
     flag: "🇵🇱",
     shortLabel: "Polska · Licytacje Komornicze (16 Województw)",
+  },
+  CZ: {
+    locale: "en",
+    currency: "CZK",
+    hubPath: "/cz/drazby-nemovitosti",
+    calcPath: "/cz/kalkulacka/exekucni-drazba-nejnizsi-podani-jistota",
+    flag: "🇨🇿",
+    shortLabel: "Česko · Portál dražeb EKČR (14 Krajů)",
+  },
+  SE: {
+    locale: "en",
+    currency: "SEK",
+    hubPath: "/se/exekutiv-auktion",
+    calcPath: "/se/kalkylator/kronofogden-exekutiv-auktion-handpenning",
+    flag: "🇸🇪",
+    shortLabel: "Sverige · Kronofogden Auktioner (21 Län)",
   },
 };
 
@@ -226,5 +242,44 @@ export const EU_REGION_SEEDS: Record<EuPseoMarketCode, EuRegionSeed[]> = {
     { code: "pl-pd", snapshotRegion: "Podlaskie (PL)", nativeName: "Woj. Podlaskie (Białystok)", slug: "podlaskie", taxPct: 2.0 },
     { code: "pl-sk", snapshotRegion: "Świętokrzyskie (PL)", nativeName: "Woj. Świętokrzyskie (Kielce)", slug: "swietokrzyskie", taxPct: 2.0 },
     { code: "pl-op", snapshotRegion: "Opolskie (PL)", nativeName: "Woj. Opolskie (Opole)", slug: "opolskie", taxPct: 2.0 },
+  ],
+  CZ: [
+    { code: "cz-pha", snapshotRegion: "Praha (CZ)", nativeName: "Hlavní město Praha", slug: "praha", taxPct: 0.2 },
+    { code: "cz-stc", snapshotRegion: "Středočeský kraj (CZ)", nativeName: "Středočeský kraj (Kladno / Mladá Boleslav)", slug: "stredocesky-kraj", taxPct: 0.2 },
+    { code: "cz-jmk", snapshotRegion: "Jihomoravský kraj (CZ)", nativeName: "Jihomoravský kraj (Brno / Znojmo)", slug: "jihomoravsky-kraj", taxPct: 0.2 },
+    { code: "cz-msk", snapshotRegion: "Moravskoslezský kraj (CZ)", nativeName: "Moravskoslezský kraj (Ostrava / Karviná)", slug: "moravskoslezsky-kraj", taxPct: 0.2 },
+    { code: "cz-ulk", snapshotRegion: "Ústecký kraj (CZ)", nativeName: "Ústecký kraj (Ústí nad Labem / Most)", slug: "ustecky-kraj", taxPct: 0.2 },
+    { code: "cz-jhc", snapshotRegion: "Jihočeský kraj (CZ)", nativeName: "Jihočeský kraj (České Budějovice / Tábor)", slug: "jihocesky-kraj", taxPct: 0.2 },
+    { code: "cz-plk", snapshotRegion: "Plzeňský kraj (CZ)", nativeName: "Plzeňský kraj (Plzeň)", slug: "plzensky-kraj", taxPct: 0.2 },
+    { code: "cz-olk", snapshotRegion: "Olomoucký kraj (CZ)", nativeName: "Olomoucký kraj (Olomouc / Přerov)", slug: "olomoucky-kraj", taxPct: 0.2 },
+    { code: "cz-khk", snapshotRegion: "Královéhradecký kraj (CZ)", nativeName: "Královéhradecký kraj (Hradec Králové)", slug: "kralovehradecky-kraj", taxPct: 0.2 },
+    { code: "cz-zlk", snapshotRegion: "Zlínský kraj (CZ)", nativeName: "Zlínský kraj (Zlín / Kroměříž)", slug: "zlinsky-kraj", taxPct: 0.2 },
+    { code: "cz-pak", snapshotRegion: "Pardubický kraj (CZ)", nativeName: "Pardubický kraj (Pardubice / Chrudim)", slug: "pardubicky-kraj", taxPct: 0.2 },
+    { code: "cz-lbk", snapshotRegion: "Liberecký kraj (CZ)", nativeName: "Liberecký kraj (Liberec / Jablonec)", slug: "liberecky-kraj", taxPct: 0.2 },
+    { code: "cz-kvk", snapshotRegion: "Karlovarský kraj (CZ)", nativeName: "Karlovarský kraj (Karlovy Vary / Cheb)", slug: "karlovarsky-kraj", taxPct: 0.2 },
+    { code: "cz-vys", snapshotRegion: "Kraj Vysočina (CZ)", nativeName: "Kraj Vysočina (Jihlava / Třebíč)", slug: "kraj-vysocina", taxPct: 0.2 },
+  ],
+  SE: [
+    { code: "se-ab", snapshotRegion: "Stockholms län (SE)", nativeName: "Stockholms län (Stockholm / Södertälje)", slug: "stockholms-lan", taxPct: 1.5 },
+    { code: "se-o", snapshotRegion: "Västra Götalands län (SE)", nativeName: "Västra Götalands län (Göteborg / Borås)", slug: "vastra-gotalands-lan", taxPct: 1.5 },
+    { code: "se-m", snapshotRegion: "Skåne län (SE)", nativeName: "Skåne län (Malmö / Helsingborg)", slug: "skane-lan", taxPct: 1.5 },
+    { code: "se-y", snapshotRegion: "Västernorrlands län (SE)", nativeName: "Västernorrlands län (Sundsvall / Härnösand)", slug: "vasternorrlands-lan", taxPct: 1.5 },
+    { code: "se-bd", snapshotRegion: "Norrbottens län (SE)", nativeName: "Norrbottens län (Luleå / Boden)", slug: "norrbottens-lan", taxPct: 1.5 },
+    { code: "se-s", snapshotRegion: "Värmlands län (SE)", nativeName: "Värmlands län (Karlstad)", slug: "varmlands-lan", taxPct: 1.5 },
+    { code: "se-w", snapshotRegion: "Dalarnas län (SE)", nativeName: "Dalarnas län (Falun / Borlänge)", slug: "dalarnas-lan", taxPct: 1.5 },
+    { code: "se-h", snapshotRegion: "Kalmar län (SE)", nativeName: "Kalmar län (Kalmar / Västervik)", slug: "kalmar-lan", taxPct: 1.5 },
+    { code: "se-t", snapshotRegion: "Örebro län (SE)", nativeName: "Örebro län (Örebro)", slug: "orebro-lan", taxPct: 1.5 },
+    { code: "se-f", snapshotRegion: "Jönköpings län (SE)", nativeName: "Jönköpings län (Jönköping / Värnamo)", slug: "jonkopings-lan", taxPct: 1.5 },
+    { code: "se-g", snapshotRegion: "Kronobergs län (SE)", nativeName: "Kronobergs län (Växjö / Ljungby)", slug: "kronobergs-lan", taxPct: 1.5 },
+    { code: "se-ac", snapshotRegion: "Västerbottens län (SE)", nativeName: "Västerbottens län (Umeå / Skellefteå)", slug: "vasterbottens-lan", taxPct: 1.5 },
+    { code: "se-e", snapshotRegion: "Östergötlands län (SE)", nativeName: "Östergötlands län (Linköping / Norrköping)", slug: "ostergotlands-lan", taxPct: 1.5 },
+    { code: "se-n", snapshotRegion: "Hallands län (SE)", nativeName: "Hallands län (Halmstad / Varberg)", slug: "hallands-lan", taxPct: 1.5 },
+    { code: "se-x", snapshotRegion: "Gävleborgs län (SE)", nativeName: "Gävleborgs län (Gävle / Hudiksvall)", slug: "gavleborgs-lan", taxPct: 1.5 },
+    { code: "se-c", snapshotRegion: "Uppsala län (SE)", nativeName: "Uppsala län (Uppsala)", slug: "uppsala-lan", taxPct: 1.5 },
+    { code: "se-k", snapshotRegion: "Blekinge län (SE)", nativeName: "Blekinge län (Karlskrona / Karlshamn)", slug: "blekinge-lan", taxPct: 1.5 },
+    { code: "se-d", snapshotRegion: "Södermanlands län (SE)", nativeName: "Södermanlands län (Eskilstuna / Nyköping)", slug: "sodermanlands-lan", taxPct: 1.5 },
+    { code: "se-i", snapshotRegion: "Gotlands län (SE)", nativeName: "Gotlands län (Visby)", slug: "gotlands-lan", taxPct: 1.5 },
+    { code: "se-u", snapshotRegion: "Västmanlands län (SE)", nativeName: "Västmanlands län (Västerås)", slug: "vastmanlands-lan", taxPct: 1.5 },
+    { code: "se-z", snapshotRegion: "Jämtlands län (SE)", nativeName: "Jämtlands län (Östersund)", slug: "jamtlands-lan", taxPct: 1.5 },
   ],
 };

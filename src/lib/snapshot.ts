@@ -56,6 +56,15 @@ export type PlRegionCode =
   | "pl-ld" | "pl-kp" | "pl-zp" | "pl-lu" | "pl-pk" | "pl-wn"
   | "pl-lb" | "pl-pd" | "pl-sk" | "pl-op";
 
+export type CzRegionCode =
+  | "cz-pha" | "cz-stc" | "cz-jhc" | "cz-plk" | "cz-kvk" | "cz-ulk" | "cz-lbk"
+  | "cz-khk" | "cz-pak" | "cz-vys" | "cz-jmk" | "cz-olk" | "cz-zlk" | "cz-msk";
+
+export type SeRegionCode =
+  | "se-ab" | "se-c" | "se-d" | "se-e" | "se-f" | "se-g" | "se-h"
+  | "se-i" | "se-k" | "se-m" | "se-n" | "se-o" | "se-s" | "se-t"
+  | "se-u" | "se-w" | "se-x" | "se-y" | "se-z" | "se-ac" | "se-bd";
+
 export type StateCode =
   | DeStateCode
   | AtStateCode
@@ -66,6 +75,8 @@ export type StateCode =
   | GbRegionCode
   | NlRegionCode
   | PlRegionCode
+  | CzRegionCode
+  | SeRegionCode
   | "at"
   | "ch"
   | "it"
@@ -73,12 +84,14 @@ export type StateCode =
   | "fr"
   | "gb"
   | "nl"
-  | "pl";
+  | "pl"
+  | "cz"
+  | "se";
 
 export interface StateSnapshot {
   code: StateCode;
   name: string;
-  country?: "DE" | "AT" | "CH" | "IT" | "ES" | "FR" | "GB" | "NL" | "PL";
+  country?: "DE" | "AT" | "CH" | "IT" | "ES" | "FR" | "GB" | "NL" | "PL" | "CZ" | "SE";
   /** Grunderwerbsteuer / Handänderungssteuer in percent */
   transferTaxPct: number;
   /** Open hearings in the snapshot; null = state does not publish via the joint portal */
@@ -111,6 +124,8 @@ export const STATES: StateSnapshot[] = [
   { code: "gb", name: "England / UK (12 Regionen · RICS Auctions)", country: "GB", transferTaxPct: 5.0, hearings: 789 },
   { code: "nl", name: "Niederlande (12 Provinzen · Executieveilingen)", country: "NL", transferTaxPct: 10.4, hearings: 68 },
   { code: "pl", name: "Polen (16 Woiwodschaften · Licytacje Komornicze)", country: "PL", transferTaxPct: 2.0, hearings: 2752 },
+  { code: "cz", name: "Tschechien (14 Kraje · Portál dražeb EKČR)", country: "CZ", transferTaxPct: 0.2, hearings: 620 },
+  { code: "se", name: "Schweden (21 Län · Kronofogden Auktionstorget)", country: "SE", transferTaxPct: 1.5, hearings: 185 },
 ];
 
 /** All 9 Austrian Bundesländer (3.5% GrESt + 1.1% Grundbuchseintragungsgebühr = 4.6%). */
@@ -264,6 +279,49 @@ export const PL_REGIONS: StateSnapshot[] = [
   { code: "pl-op", name: "Opolskie (PL)", country: "PL", transferTaxPct: 2.0, hearings: 60 },
 ];
 
+/** All 14 Czech Kraje (0% Daň z nabytí nemovitých věcí since 2020; ~0.2% Katastr fee). */
+export const CZ_REGIONS: StateSnapshot[] = [
+  { code: "cz-pha", name: "Praha (CZ)", country: "CZ", transferTaxPct: 0.2, hearings: 42 },
+  { code: "cz-stc", name: "Středočeský kraj (CZ)", country: "CZ", transferTaxPct: 0.2, hearings: 95 },
+  { code: "cz-jhc", name: "Jihočeský kraj (CZ)", country: "CZ", transferTaxPct: 0.2, hearings: 38 },
+  { code: "cz-plk", name: "Plzeňský kraj (CZ)", country: "CZ", transferTaxPct: 0.2, hearings: 34 },
+  { code: "cz-kvk", name: "Karlovarský kraj (CZ)", country: "CZ", transferTaxPct: 0.2, hearings: 31 },
+  { code: "cz-ulk", name: "Ústecký kraj (CZ)", country: "CZ", transferTaxPct: 0.2, hearings: 88 },
+  { code: "cz-lbk", name: "Liberecký kraj (CZ)", country: "CZ", transferTaxPct: 0.2, hearings: 26 },
+  { code: "cz-khk", name: "Královéhradecký kraj (CZ)", country: "CZ", transferTaxPct: 0.2, hearings: 28 },
+  { code: "cz-pak", name: "Pardubický kraj (CZ)", country: "CZ", transferTaxPct: 0.2, hearings: 24 },
+  { code: "cz-vys", name: "Kraj Vysočina (CZ)", country: "CZ", transferTaxPct: 0.2, hearings: 22 },
+  { code: "cz-jmk", name: "Jihomoravský kraj (CZ)", country: "CZ", transferTaxPct: 0.2, hearings: 62 },
+  { code: "cz-olk", name: "Olomoucký kraj (CZ)", country: "CZ", transferTaxPct: 0.2, hearings: 39 },
+  { code: "cz-zlk", name: "Zlínský kraj (CZ)", country: "CZ", transferTaxPct: 0.2, hearings: 27 },
+  { code: "cz-msk", name: "Moravskoslezský kraj (CZ)", country: "CZ", transferTaxPct: 0.2, hearings: 74 },
+];
+
+/** All 21 Swedish Län (1.5% Stämpelskatt / Lagfart for private buyers). */
+export const SE_REGIONS: StateSnapshot[] = [
+  { code: "se-ab", name: "Stockholms län (SE)", country: "SE", transferTaxPct: 1.5, hearings: 37 },
+  { code: "se-o", name: "Västra Götalands län (SE)", country: "SE", transferTaxPct: 1.5, hearings: 29 },
+  { code: "se-m", name: "Skåne län (SE)", country: "SE", transferTaxPct: 1.5, hearings: 20 },
+  { code: "se-y", name: "Västernorrlands län (SE)", country: "SE", transferTaxPct: 1.5, hearings: 13 },
+  { code: "se-bd", name: "Norrbottens län (SE)", country: "SE", transferTaxPct: 1.5, hearings: 11 },
+  { code: "se-s", name: "Värmlands län (SE)", country: "SE", transferTaxPct: 1.5, hearings: 9 },
+  { code: "se-w", name: "Dalarnas län (SE)", country: "SE", transferTaxPct: 1.5, hearings: 9 },
+  { code: "se-h", name: "Kalmar län (SE)", country: "SE", transferTaxPct: 1.5, hearings: 8 },
+  { code: "se-t", name: "Örebro län (SE)", country: "SE", transferTaxPct: 1.5, hearings: 8 },
+  { code: "se-f", name: "Jönköpings län (SE)", country: "SE", transferTaxPct: 1.5, hearings: 7 },
+  { code: "se-g", name: "Kronobergs län (SE)", country: "SE", transferTaxPct: 1.5, hearings: 7 },
+  { code: "se-ac", name: "Västerbottens län (SE)", country: "SE", transferTaxPct: 1.5, hearings: 7 },
+  { code: "se-e", name: "Östergötlands län (SE)", country: "SE", transferTaxPct: 1.5, hearings: 6 },
+  { code: "se-n", name: "Hallands län (SE)", country: "SE", transferTaxPct: 1.5, hearings: 5 },
+  { code: "se-x", name: "Gävleborgs län (SE)", country: "SE", transferTaxPct: 1.5, hearings: 5 },
+  { code: "se-c", name: "Uppsala län (SE)", country: "SE", transferTaxPct: 1.5, hearings: 3 },
+  { code: "se-k", name: "Blekinge län (SE)", country: "SE", transferTaxPct: 1.5, hearings: 3 },
+  { code: "se-d", name: "Södermanlands län (SE)", country: "SE", transferTaxPct: 1.5, hearings: 2 },
+  { code: "se-i", name: "Gotlands län (SE)", country: "SE", transferTaxPct: 1.5, hearings: 2 },
+  { code: "se-u", name: "Västmanlands län (SE)", country: "SE", transferTaxPct: 1.5, hearings: 2 },
+  { code: "se-z", name: "Jämtlands län (SE)", country: "SE", transferTaxPct: 1.5, hearings: 2 },
+];
+
 export const DACH_STATES: StateSnapshot[] = [
   ...STATES.filter((s) => s.country === "DE"),
   ...AT_STATES,
@@ -274,6 +332,8 @@ export const DACH_STATES: StateSnapshot[] = [
   ...GB_REGIONS,
   ...NL_REGIONS,
   ...PL_REGIONS,
+  ...CZ_REGIONS,
+  ...SE_REGIONS,
 ];
 
 export type SegmentKey = "house" | "apartment" | "land" | "commercial" | "multiFamily" | "farmland" | "other";

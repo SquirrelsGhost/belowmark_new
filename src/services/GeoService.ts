@@ -32,6 +32,10 @@ function readCountryGeo(country: ListingCountry): Promise<string> {
       return readFile(join(geo, "countries", "nl.json"), "utf8");
     case "PL":
       return readFile(join(geo, "countries", "pl.json"), "utf8");
+    case "CZ":
+      return readFile(join(geo, "countries", "cz.json"), "utf8");
+    case "SE":
+      return readFile(join(geo, "countries", "se.json"), "utf8");
     default:
       return readFile(join(geo, "countries", "de.json"), "utf8");
   }

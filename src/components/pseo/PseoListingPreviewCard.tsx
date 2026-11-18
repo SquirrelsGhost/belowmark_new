@@ -84,7 +84,7 @@ const CARD_LABELS: Record<
   },
 };
 
-function formatMoney(amount: number | null, currency: "EUR" | "CHF" | "GBP" | "TRY" | "PLN", locale: PseoLocale): string {
+function formatMoney(amount: number | null, currency: "EUR" | "CHF" | "GBP" | "TRY" | "PLN" | "CZK" | "SEK", locale: PseoLocale): string {
   if (!amount) return CARD_LABELS[locale].onRequest;
   return new Intl.NumberFormat(LOCALE_FORMAT[locale], { style: "currency", currency, maximumFractionDigits: 0 }).format(amount);
 }

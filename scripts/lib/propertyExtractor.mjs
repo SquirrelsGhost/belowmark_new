@@ -260,7 +260,7 @@ export function extractYearBuilt(text) {
   if (!text) return null;
   const cleaned = decodeHtmlText(text);
   const m =
-    /(?:Baujahr|Bj\.?|urspr(?:ü|ue)ngliches\s+Baujahr|erbaut(?:\s+ca\.?|\s+um|\s+im\s+Jahr)?|yap[ıi]m\s*y[ıi]l[ıi]|inşa\s*y[ıi]l[ıi])[^0-9\n]{0,22}?(1[789]\d{2}|20[0-2]\d)\b/i.exec(
+    /(?:Baujahr|Bj\.?|urspr(?:ü|ue)ngliches\s+Baujahr|erbaut(?:\s+ca\.?|\s+um|\s+im\s+Jahr)?|yap[ıi]m\s*y[ıi]l[ıi]|inşa\s*y[ıi]l[ıi]|postaven[aoe]?|z\s+roku|rok\s+v[ýy]stavby|kolaudac[ei]|bygg[åa]r|uppf[öo]rd(?:es)?|byggt?(?:\s+[åa]r)?|rok\s+budowy|wybudowan[yaeo]|bouwjaar|a[ñn]o\s+de\s+construcci[óo]n|construit[e]?\s+en)[^0-9\n]{0,22}?(1[789]\d{2}|20[0-2]\d)\b/i.exec(
       cleaned,
     );
   if (!m) return null;
@@ -2800,6 +2800,531 @@ export function parsePlKomornikItem(summary = {}, detail = null) {
     lat: locLat > 48.9 && locLat < 55.0 ? locLat : null,
     lng: locLng > 14.0 && locLng < 24.3 ? locLng : null,
     attachments: [],
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Czechia (CZ) — Exekutorská komora ČR (portaldrazeb.cz) & okdrazby.cz
+// ---------------------------------------------------------------------------
+const CZ_OKRES_TO_KRAJ = {
+  praha: "Hlavní město Praha",
+  "hlavni mesto praha": "Hlavní město Praha",
+  benesov: "Středočeský kraj",
+  beroun: "Středočeský kraj",
+  kladno: "Středočeský kraj",
+  kolin: "Středočeský kraj",
+  "kutna hora": "Středočeský kraj",
+  melnik: "Středočeský kraj",
+  "mlada boleslav": "Středočeský kraj",
+  nymburk: "Středočeský kraj",
+  "praha-vychod": "Středočeský kraj",
+  "praha-zapad": "Středočeský kraj",
+  pribram: "Středočeský kraj",
+  rakovnik: "Středočeský kraj",
+  "ceske budejovice": "Jihočeský kraj",
+  "cesky krumlov": "Jihočeský kraj",
+  jindrichuv: "Jihočeský kraj",
+  "jindrichuv hradec": "Jihočeský kraj",
+  pisek: "Jihočeský kraj",
+  prachatice: "Jihočeský kraj",
+  strakonice: "Jihočeský kraj",
+  tabor: "Jihočeský kraj",
+  domazlice: "Plzeňský kraj",
+  klatovy: "Plzeňský kraj",
+  plzen: "Plzeňský kraj",
+  "plzen-mesto": "Plzeňský kraj",
+  "plzen-jih": "Plzeňský kraj",
+  "plzen-sever": "Plzeňský kraj",
+  rokycany: "Plzeňský kraj",
+  tachov: "Plzeňský kraj",
+  cheb: "Karlovarský kraj",
+  "karlovy vary": "Karlovarský kraj",
+  sokolov: "Karlovarský kraj",
+  decin: "Ústecký kraj",
+  chomutov: "Ústecký kraj",
+  litomerice: "Ústecký kraj",
+  louny: "Ústecký kraj",
+  most: "Ústecký kraj",
+  teplice: "Ústecký kraj",
+  "usti nad labem": "Ústecký kraj",
+  "ceska lipa": "Liberecký kraj",
+  "jablonec nad nisou": "Liberecký kraj",
+  liberec: "Liberecký kraj",
+  semily: "Liberecký kraj",
+  "hradec kralove": "Královéhradecký kraj",
+  jicin: "Královéhradecký kraj",
+  nachod: "Královéhradecký kraj",
+  "rychnov nad kneznou": "Královéhradecký kraj",
+  trutnov: "Královéhradecký kraj",
+  chrudim: "Pardubický kraj",
+  pardubice: "Pardubický kraj",
+  svitavy: "Pardubický kraj",
+  "usti nad orlici": "Pardubický kraj",
+  "havlickuv brod": "Kraj Vysočina",
+  jihlava: "Kraj Vysočina",
+  pelhrimov: "Kraj Vysočina",
+  trebic: "Kraj Vysočina",
+  "zdar nad sazavou": "Kraj Vysočina",
+  blansko: "Jihomoravský kraj",
+  brno: "Jihomoravský kraj",
+  "brno-mesto": "Jihomoravský kraj",
+  "brno-venkov": "Jihomoravský kraj",
+  breclav: "Jihomoravský kraj",
+  hodonin: "Jihomoravský kraj",
+  vyskov: "Jihomoravský kraj",
+  znojmo: "Jihomoravský kraj",
+  jesenik: "Olomoucký kraj",
+  olomouc: "Olomoucký kraj",
+  prostejov: "Olomoucký kraj",
+  prerov: "Olomoucký kraj",
+  sumperk: "Olomoucký kraj",
+  kromeriz: "Zlínský kraj",
+  "uherske hradiste": "Zlínský kraj",
+  vsetin: "Zlínský kraj",
+  zlin: "Zlínský kraj",
+  bruntal: "Moravskoslezský kraj",
+  "frydek-mistek": "Moravskoslezský kraj",
+  karvina: "Moravskoslezský kraj",
+  "novy jicin": "Moravskoslezský kraj",
+  opava: "Moravskoslezský kraj",
+  ostrava: "Moravskoslezský kraj",
+  "ostrava-mesto": "Moravskoslezský kraj",
+};
+
+function normalizeCzAscii(str) {
+  return String(str || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+export function resolveCzKraj(countyOrText = "") {
+  const norm = normalizeCzAscii(countyOrText).replace(/^okres\s+/, "");
+  if (!norm) return "Středočeský kraj";
+  if (CZ_OKRES_TO_KRAJ[norm]) return CZ_OKRES_TO_KRAJ[norm];
+  for (const [okres, kraj] of Object.entries(CZ_OKRES_TO_KRAJ)) {
+    if (norm.includes(okres)) return kraj;
+  }
+  return "Středočeský kraj";
+}
+
+function classifyCzSegment(catSlug = "", title = "") {
+  const s = `${catSlug} ${normalizeCzAscii(title)}`;
+  if (/bytov[y]\s*dum|vicegeneracni/.test(s)) return { seg: "multiFamily", label: "Bytový dům" };
+  if (/\bbyt\b|druzstevn/.test(s)) return { seg: "apartment", label: "Byt / Bytová jednotka" };
+  if (/rodinny\s*dum|rekreacni|chata|chalupa|vila/.test(s)) return { seg: "house", label: "Rodinný dům" };
+  if (/zemedelsk|lesni|orna\s*puda/.test(s)) return { seg: "farmland", label: "Zemědělský / Lesní pozemek" };
+  if (/pozemek|parcel/.test(s)) return { seg: "land", label: "Stavební pozemek / Parcela" };
+  if (/nebytov|kancelar|prumyslov|sklad|komercn|hal[ay]|garaz/.test(s)) return { seg: "commercial", label: "Komerční objekt / Nebytový prostor" };
+  return { seg: "other", label: "Nemovitost v dražbě" };
+}
+
+/**
+ * Parses an item from Exekutorská komora ČR (portaldrazeb.cz `/drazby/pripravovane.json` / `probihajici.json`).
+ */
+export function parseCzPortalDrazebItem(raw = {}) {
+  const hash = raw.hash;
+  if (!hash) return null;
+  const key = `cz-pd-${hash}`;
+
+  const item = raw.item || {};
+  const catPath = String(item.category?.full_path || item.category?.path || "");
+  if (catPath && !/nemovitost/i.test(catPath) && item.category?.type !== "real") return null;
+
+  const estimated = Math.round(Number(raw.estimated_price || 0));
+  const lowestBid = Math.round(Number(raw.item_price || raw.current_price || 0));
+  if (estimated < 15000 && lowestBid < 10000) return null;
+
+  const appraisedValue = estimated >= 15000 ? estimated : Math.round(lowestBid * 1.5);
+  const minimumBid = lowestBid >= 10000 ? lowestBid : Math.round((appraisedValue * 2) / 3);
+  const depositAmount = Math.round(Number(raw.caution_deposit || Math.min(appraisedValue * 0.15, minimumBid * 0.25)));
+
+  const ruian = item.ruian || raw.ruian || {};
+  const county =
+    item.location_district?.district_name ||
+    ruian.county_name ||
+    raw.location_district?.district_name ||
+    "";
+  const rawTitle = decodeHtmlText(item.title || "").trim();
+  const state = resolveCzKraj(county || rawTitle || raw.auctioneer_office?.district || "");
+
+  const cityFromTitle = /v\s+obci\s+([^,]+?)(?:,|\s+okres|$)/i.exec(rawTitle)?.[1]?.trim() || null;
+  const place = decodeHtmlText(ruian.city_name || cityFromTitle || county || raw.auctioneer_office?.district || "Česko").trim();
+  const postcode = ruian.postcode ? String(ruian.postcode).trim() : null;
+  const streetBase = ruian.street_name || (ruian.district_name && ruian.district_name !== place ? ruian.district_name : null);
+  const houseNo = [ruian.so, ruian.house_number, ruian.street_number ? `/${ruian.street_number}` : ""].filter(Boolean).join(" ").trim();
+  const street = [streetBase, houseNo].filter(Boolean).join(" ").trim() || null;
+
+  const { seg, label: fallbackLabel } = classifyCzSegment(item.category?.slug || "", rawTitle);
+  const segmentLabel = decodeHtmlText(item.category?.title || fallbackLabel).trim();
+
+  const descPlain = decodeHtmlText(item.description_plaintext || item.description || "", true).trim();
+
+  // Extract m² and Czech disposition (2+1, 3+kk, etc.)
+  let livingAreaM2 = null;
+  let landAreaM2 = null;
+  const m2All = [...`${rawTitle} ${descPlain}`.matchAll(/(\d{2,6}(?:[.,]\d{1,2})?)\s*(?:m2|m²)/gi)]
+    .map((m) => parseLocalizedNumber(m[1]))
+    .filter((v) => v && v >= 12 && v <= 500_000);
+  if (m2All.length > 0) {
+    if (seg === "land" || seg === "farmland") {
+      landAreaM2 = Math.round(Math.max(...m2All));
+    } else {
+      const smaller = m2All.find((v) => v <= 650);
+      livingAreaM2 = smaller ? Math.round(smaller) : null;
+      const larger = m2All.find((v) => v > (livingAreaM2 || 0) && v >= 150);
+      if (larger) landAreaM2 = Math.round(larger);
+    }
+  }
+
+  const dispMatch = /\b([1-7]\s*\+\s*(?:kk|1|2))\b/i.exec(`${rawTitle} ${descPlain}`);
+  const rooms = dispMatch ? dispMatch[1].replace(/\s+/g, "") : null;
+  const yearBuilt = extractYearBuilt(descPlain);
+
+  const office = raw.auctioneer_office || {};
+  const officeDistrict = office.district ? `Exekutorský úřad ${office.district}` : "Soudní exekutor";
+  const authority = office.title ? `${officeDistrict} (${office.title})` : officeDistrict;
+  const fileNo = raw.number ? String(raw.number).trim() : `PD-${hash}`;
+
+  const isSecondRound = Number(raw.repeated || 0) > 1 || Number(raw.repeated_order || 0) > 1;
+  const proceedingKind = raw.voluntary
+    ? "Dobrovolná elektronická dražba nemovitosti (Portál dražeb EKČR)"
+    : isSecondRound
+      ? "Opakovaná exekuční dražba nemovitosti (§ 336m OSŘ · EKČR)"
+      : "Exekuční elektronická dražba nemovitosti (2/3 odhadu · § 336e OSŘ)";
+
+  const parcMatch = /(parc\.\s*č\.\s*(?:St\.\s*)?\d+(?:\/\d+)?)/i.exec(descPlain);
+  const kuMatch = /k\.?\s*ú\.?\s+([A-ZÁČĎÉĚÍŇÓŘŠŤÚŮÝŽa-záčďéěíňóřšťúůýž\s-]{3,35}?)(?:[,.]|v\s+obci|\s+okres|$)/.exec(`${rawTitle} ${descPlain}`);
+  const grundbuch = [
+    parcMatch ? parcMatch[1].trim() : null,
+    kuMatch ? `k.ú. ${kuMatch[1].trim()}` : null,
+    county ? `okres ${county}` : null,
+  ].filter(Boolean).join(" · ") || `Katastr nemovitostí (${place})`;
+
+  const detailUrl = raw.link || (raw.slug ? `https://www.portaldrazeb.cz/drazba/${raw.slug}` : "https://www.portaldrazeb.cz/drazby/pripravovane");
+  const docs = Object.values(raw.documents || {});
+  const hasExpertPdf = docs.some((d) => d?.document_type === "expert_report");
+  const hasDecreePdf = docs.some((d) => d?.document_type === "auction_decree");
+  const docNote = [
+    hasExpertPdf ? "Znalecký posudek (PDF)" : null,
+    hasDecreePdf ? "Dražební vyhláška (PDF)" : null,
+  ].filter(Boolean).join(" + ");
+
+  const description = [rawTitle, descPlain, docNote ? `Dokumentace na portálu: ${docNote}` : null]
+    .filter(Boolean)
+    .join("\n\n")
+    .slice(0, 2800);
+
+  const coords = ruian.coords || item.location_coords || raw.location_coords || {};
+  const lat = Number(coords.latitude || 0);
+  const lng = Number(coords.longitude || 0);
+
+  return {
+    key,
+    authority,
+    fileNo,
+    proceedingKind,
+    grundbuch,
+    description,
+    detailUrl,
+    documentUrl: docs.length > 0 ? `${detailUrl}#documents` : null,
+    firstSeenAt: String(raw.published_at || raw.created_at || "").slice(0, 10) || null,
+    hearingAt: raw.start_at || null,
+    endAt: raw.end_at || raw.original_end_at || null,
+    street,
+    postcode,
+    place,
+    state,
+    segmentLabel,
+    segment: seg,
+    livingAreaM2,
+    usableAreaM2: null,
+    landAreaM2,
+    rooms,
+    yearBuilt,
+    appraisedValue,
+    minimumBid,
+    depositAmount,
+    isSecondRound,
+    lat: lat > 48.5 && lat < 51.1 ? lat : null,
+    lng: lng > 12.0 && lng < 18.9 ? lng : null,
+    photoUrl: null,
+    attachments: [],
+  };
+}
+
+/**
+ * Parses an HTML auction card from okdrazby.cz (`/drazby/nemovity`).
+ */
+export function parseCzOkDrazbyCard(cardHtml = "") {
+  const href = /href="(\/drazba\/(\d+)-[^"]+)"/i.exec(cardHtml);
+  if (!href) return null;
+  const id = href[2];
+  const key = `cz-okd-${id}`;
+  const detailUrl = `https://okdrazby.cz${href[1]}`;
+
+  const rawTitle = decodeHtmlText(/AuctionsList_auctionName[^>]*>([\s\S]*?)<\/a>/i.exec(cardHtml)?.[1] || "").trim();
+  if (!rawTitle) return null;
+
+  const locAfterName = decodeHtmlText(/<\/a>\s*<div>([\s\S]*?)<\/div>/i.exec(cardHtml)?.[1] || "").trim();
+  const dtRaw = decodeHtmlText(/AuctionsList_auctionExactDateTime[^>]*>([\s\S]*?)<\/span>/i.exec(cardHtml)?.[1] || "").trim();
+  const dtMatch = /(\d{1,2})\.\s*(\d{1,2})\.\s*(\d{4})\s+(\d{1,2}):(\d{2})/.exec(dtRaw);
+  const hearingAt = dtMatch
+    ? `${dtMatch[3]}-${dtMatch[2].padStart(2, "0")}-${dtMatch[1].padStart(2, "0")}T${dtMatch[4].padStart(2, "0")}:${dtMatch[5]}:00+01:00`
+    : null;
+
+  const prices = [...cardHtml.matchAll(/([\d\s\u00a0]{4,15})\s*Kč/gi)]
+    .map((m) => Number(m[1].replace(/[\s\u00a0]/g, "")))
+    .filter((n) => Number.isFinite(n) && n >= 10000);
+  if (prices.length === 0) return null;
+
+  const lowestBid = Math.min(...prices);
+  const maxPrice = Math.max(...prices);
+  const appraisedValue = maxPrice > lowestBid ? maxPrice : Math.round(lowestBid * 1.35);
+  const minimumBid = lowestBid;
+  const depositAmount = Math.round(Math.min(appraisedValue * 0.15, minimumBid * 0.25));
+
+  const state = resolveCzKraj(`${locAfterName} ${rawTitle}`);
+  const place = locAfterName || /v\s+(?:obci|k\.ú\.?)\s+([^,]+)/i.exec(rawTitle)?.[1]?.trim() || "Česko";
+  const { seg, label: segmentLabel } = classifyCzSegment("", rawTitle);
+
+  const m2Match = /(\d{2,6})\s*(?:m2|m²)/i.exec(rawTitle);
+  const m2Val = m2Match ? Number(m2Match[1]) : null;
+  const livingAreaM2 = m2Val && seg !== "land" && seg !== "farmland" && m2Val <= 650 ? m2Val : null;
+  const landAreaM2 = m2Val && (seg === "land" || seg === "farmland" || m2Val > 650) ? m2Val : null;
+  const dispMatch = /\b([1-7]\s*\+\s*(?:kk|1|2))\b/i.exec(rawTitle);
+  const rooms = dispMatch ? dispMatch[1].replace(/\s+/g, "") : null;
+
+  const isRepeated = /Opakovan/i.test(cardHtml);
+  const imgSrc = /src="(https:\/\/[^"]+\/auctions\/\d+\/images\/[^"]+)"/i.exec(cardHtml)?.[1] || null;
+
+  return {
+    key,
+    authority: "OKdražby.cz · Elektronický dražební portál",
+    fileNo: `OKD-${id}`,
+    proceedingKind: isRepeated
+      ? "Opakovaná elektronická dražba nemovitosti (OKdražby)"
+      : "Veřejná elektronická dražba nemovitosti (Zákon č. 26/2000 Sb.)",
+    grundbuch: `Katastr nemovitostí (${place})`,
+    description: `${rawTitle} — ${place} (${state})`,
+    detailUrl,
+    documentUrl: detailUrl,
+    firstSeenAt: null,
+    hearingAt,
+    endAt: hearingAt ? new Date(Date.parse(hearingAt) + 2 * 3600_000).toISOString() : null,
+    street: null,
+    postcode: null,
+    place,
+    state,
+    segmentLabel,
+    segment: seg,
+    livingAreaM2,
+    usableAreaM2: null,
+    landAreaM2,
+    rooms,
+    yearBuilt: null,
+    appraisedValue,
+    minimumBid,
+    depositAmount,
+    isSecondRound: isRepeated,
+    lat: null,
+    lng: null,
+    photoUrl: imgSrc,
+    attachments: [],
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Sweden (SE) — Kronofogden (auktionstorget.kronofogden.se)
+// ---------------------------------------------------------------------------
+export const SE_LAN_CODE_TO_STATE = {
+  "01": "Stockholms län",
+  "03": "Uppsala län",
+  "04": "Södermanlands län",
+  "05": "Östergötlands län",
+  "06": "Jönköpings län",
+  "07": "Kronobergs län",
+  "08": "Kalmar län",
+  "09": "Gotlands län",
+  "10": "Blekinge län",
+  "12": "Skåne län",
+  "13": "Hallands län",
+  "14": "Västra Götalands län",
+  "17": "Värmlands län",
+  "18": "Örebro län",
+  "19": "Västmanlands län",
+  "20": "Dalarnas län",
+  "21": "Gävleborgs län",
+  "22": "Västernorrlands län",
+  "23": "Jämtlands län",
+  "24": "Västerbottens län",
+  "25": "Norrbottens län",
+};
+
+/**
+ * Parses a Swedish Crown Enforcement Authority (Kronofogden · auktionstorget.kronofogden.se)
+ * foreclosure listing summary + optional cached detail HTML (`/<id>.html`).
+ */
+export function parseSeKronofogdenItem(summary = {}, detailHtml = "") {
+  const id = String(summary.id || "").trim();
+  if (!id) return null;
+  const key = `se-kfm-${id}`;
+  const encodedKey = encodeURIComponent(key);
+
+  const hitText = decodeHtmlText(summary.hitHtml || "", true);
+  const detClean = detailHtml ? decodeHtmlText(detailHtml, true) : "";
+  const combined = `${hitText}\n${detClean}`;
+
+  const valMatch =
+    /(?:Uppskattat\s+v[äa]rde|Bed[öo]mt\s+marknadsv[äa]rde|Marknadsv[äa]rde)\s*:?\s*([\d\s\u00a0]{4,15})\s*(?::-|kr|SEK)/i.exec(
+      combined,
+    );
+  const appraisedValue = valMatch ? Number(valMatch[1].replace(/[\s\u00a0]/g, "")) : null;
+  if (!appraisedValue || !Number.isFinite(appraisedValue) || appraisedValue < 20000) return null;
+
+  const minimumBid = Math.round(appraisedValue * 0.75);
+  const depositAmount = Math.round(appraisedValue * 0.1);
+
+  const state = SE_LAN_CODE_TO_STATE[summary.lanCode] || "Stockholms län";
+
+  const rawHeading = decodeHtmlText(
+    /<h1[^>]*>([\s\S]*?)<\/h1>/i.exec(detailHtml)?.[1] || summary.title || "",
+  ).trim();
+  const headingParts = rawHeading.split(",").map((s) => s.trim()).filter(Boolean);
+  const place = headingParts[0] || headingParts[headingParts.length - 1] || "Sverige";
+  const street = headingParts.length >= 2 ? headingParts.slice(1, headingParts.length > 2 ? -1 : undefined).join(", ").trim() || null : null;
+
+  const postMatch = /\b(\d{3}\s?\d{2})\s*,?\s*[A-ZÅÄÖa-zåäö]/.exec(detClean);
+  const postcode = postMatch ? postMatch[1].replace(/\s+/g, " ") : null;
+
+  const auctionMatch = /Auktion(?:\s+i\s+([^\n|0-9]+?))?\s+(\d{4}-\d{2}-\d{2})/i.exec(hitText) || /(\d{4}-\d{2}-\d{2})\s*(?:&nbsp;|\s)*kl\.?\s*(\d{1,2})[.:](\d{2})/i.exec(detailHtml);
+  const auctionVenueCity = auctionMatch && !/^\d{4}-/.test(auctionMatch[1] || "") ? auctionMatch[1]?.trim() : null;
+  const dateStr = /(\d{4}-\d{2}-\d{2})/.exec(combined)?.[1] || null;
+  const timeMatch = /Auktion[\s\S]{0,180}?(\d{4}-\d{2}-\d{2})[\s\S]{0,60}?kl\.?\s*(\d{1,2})[.:](\d{2})/i.exec(detailHtml);
+  const hearingAt = timeMatch
+    ? `${timeMatch[1]}T${timeMatch[2].padStart(2, "0")}:${timeMatch[3]}:00+01:00`
+    : dateStr
+      ? `${dateStr}T12:00:00+01:00`
+      : null;
+
+  const anummer = /var\s+anummer\s*=\s*['"]([^'"]+)['"]/i.exec(detailHtml)?.[1]?.trim() || null;
+  const fileNo = anummer ? `KFM ${anummer}` : `KFM-${id}`;
+  const authority = auctionVenueCity
+    ? `Kronofogden · Försäljningsort ${auctionVenueCity}`
+    : `Kronofogden (${state})`;
+
+  const isCommercial = Boolean(summary.isCommercial) || /kommersiell|industrifastighet|hyreshus|lokal/i.test(combined);
+  const isBostadsratt = /bostadsr[äa]tt/i.test(combined);
+  const isLand = /\btomt\b|obebyggd|lantbruk|skogsfastighet/i.test(combined) && !/villa|radhus|bostadsr[äa]tt/i.test(combined);
+  const isFritid = /fritidshus|stuga/i.test(combined);
+
+  const segment = isCommercial
+    ? "commercial"
+    : isBostadsratt
+      ? "apartment"
+      : isLand
+        ? "land"
+        : "house";
+  const segmentLabel = isCommercial
+    ? "Kommersiell fastighet"
+    : isBostadsratt
+      ? "Bostadsrätt (Lägenhet)"
+      : isLand
+        ? "Tomt / Lantbruksfastighet"
+        : isFritid
+          ? "Fritidshus"
+          : "Villa / Småhus (Äganderätt)";
+
+  const boareaMatch = /(?:Boarea|Lägenhetsyta|Area)\s*:?\s*(\d{1,4}(?:[.,]\d+)?)\s*(?:m²|m2|kvm)/i.exec(combined) || /(\d{2,4})\s*kvm/i.exec(combined);
+  const tomtMatch = /(\d{2,7})\s*(?:m²|m2|kvm)\s*(?:Trädgårdstomt|Tomt|mark)/i.exec(combined) || /Tomt(?:area|beskrivning)?\s*:?\s*(\d{2,7})\s*(?:m²|m2|kvm)/i.exec(combined);
+  const livingAreaM2 = boareaMatch ? Math.round(parseLocalizedNumber(boareaMatch[1]) || 0) || null : null;
+  const landAreaM2 = tomtMatch ? Math.round(parseLocalizedNumber(tomtMatch[1]) || 0) || null : null;
+
+  const rumMatch = /(\d{1,2}(?:[.,]5)?)\s*rum/i.exec(combined);
+  const rooms = rumMatch ? `${rumMatch[1].replace(".", ",")} rum` : null;
+  const yearBuilt = extractYearBuilt(detClean);
+
+  const fastBet = /Fastighetsbeteckning\s*:?\s*<\/h3>\s*<p[^>]*>([\s\S]*?)<\/p>/i.exec(detailHtml)?.[1];
+  const brfMatch = /Bostadsr[äa]ttsf[öo]rening\s*:?\s*<\/h3>\s*<p[^>]*>([\s\S]*?)<\/p>/i.exec(detailHtml)?.[1];
+  const regClean = decodeHtmlText(fastBet || brfMatch || "").trim();
+  const grundbuch = [regClean || null, fileNo].filter(Boolean).join(" · ");
+
+  const ingress = decodeHtmlText(/<p class="brodtextxingress">([\s\S]*?)<\/p>/i.exec(detailHtml)?.[1] || "").trim();
+  const isSecondRound = /2:a\s+auktionstillf[äa]lle/i.test(combined);
+  const proceedingKind = isBostadsratt
+    ? "Exekutiv försäljning av bostadsrätt (Kronofogden · 8–9 kap. UB)"
+    : "Exekutiv auktion av fastighet (Kronofogden · 12 kap. Utsökningsbalken)";
+
+  const detailUrl = `https://auktionstorget.kronofogden.se/${id}.html`;
+  const pdfMatches = [...(detailHtml || "").matchAll(/href="(\/download\/[^"]+\.pdf[^"]*)"/gi)].map((m) => m[1]);
+  const uniquePdfs = [...new Set(pdfMatches)];
+  const bovPdf = uniquePdfs.find((u) => /bov|beskrivning|vardering/i.test(u)) || uniquePdfs[0] || null;
+  const fullBovUrl = bovPdf ? `https://auktionstorget.kronofogden.se${bovPdf}` : null;
+
+  const imgRel = /<img[^>]+src="(\/images\/[^"]+)"/i.exec(summary.hitHtml || detailHtml || "")?.[1] || null;
+  const photoUrl = imgRel ? `https://auktionstorget.kronofogden.se${imgRel.replace(/&amp;/g, "&")}` : null;
+
+  const attachments = [];
+  if (fullBovUrl) {
+    attachments.push({
+      id: "se-bov-pdf",
+      kind: "report",
+      label: "Beskrivning och värdering (Kronofogden PDF)",
+      fileName: `kronofogden-${id}-beskrivning.pdf`,
+      proxyUrl: `/api/quelle/${encodedKey}?fileId=se-bov-pdf`,
+      directUrl: fullBovUrl,
+    });
+  }
+  if (photoUrl) {
+    attachments.push({
+      id: "se-photo-1",
+      kind: "photos",
+      label: "Objektfoto (Kronofogden)",
+      fileName: `se-kfm-${id}.jpg`,
+      proxyUrl: `/api/quelle/${encodedKey}?fileId=se-photo-1`,
+      directUrl: photoUrl,
+    });
+  }
+
+  const description = [ingress || rawHeading, regClean ? `Fastighetsbeteckning / BRF: ${regClean}` : null]
+    .filter(Boolean)
+    .join("\n\n")
+    .slice(0, 2600);
+
+  return {
+    key,
+    authority,
+    fileNo,
+    proceedingKind,
+    grundbuch,
+    description,
+    detailUrl,
+    documentUrl: fullBovUrl || detailUrl,
+    reportUrl: fullBovUrl,
+    firstSeenAt: null,
+    hearingAt,
+    endAt: hearingAt ? new Date(Date.parse(hearingAt) + 2 * 3600_000).toISOString() : null,
+    street,
+    postcode,
+    place,
+    state,
+    segmentLabel,
+    segment,
+    livingAreaM2,
+    usableAreaM2: null,
+    landAreaM2,
+    rooms,
+    yearBuilt,
+    appraisedValue,
+    minimumBid,
+    depositAmount,
+    isSecondRound,
+    lat: null,
+    lng: null,
+    photoUrl,
+    attachments,
   };
 }
 

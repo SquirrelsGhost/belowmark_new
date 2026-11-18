@@ -1,9 +1,9 @@
 import { MarketCode } from "@/lib/constants";
 import { SegmentKey } from "@/lib/snapshot";
 
-export type DachCountry = "DE" | "AT" | "CH" | "IT" | "ES" | "FR" | "GB" | "NL" | "PL";
+export type DachCountry = "DE" | "AT" | "CH" | "IT" | "ES" | "FR" | "GB" | "NL" | "PL" | "CZ" | "SE";
 export type ListingCountry = DachCountry | "TR";
-export type ListingCurrency = "EUR" | "CHF" | "GBP" | "TRY" | "PLN";
+export type ListingCurrency = "EUR" | "CHF" | "GBP" | "TRY" | "PLN" | "CZK" | "SEK";
 
 /** One bidding window. DE: the hearing itself; TR: one e-auction round (1. / 2. Artırma). */
 export interface ListingRound {

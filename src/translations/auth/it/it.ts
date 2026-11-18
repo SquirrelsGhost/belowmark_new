@@ -42,6 +42,8 @@ export const AUTH_IT: IAuthTranslation = {
       GB: { Label: "Regno Unito", Hint: "Property & Receivership Auctions · 12 Regioni" },
       NL: { Label: "Paesi Bassi", Hint: "Executieveilingen (Art. 3:268 BW) · 12 Province" },
       PL: { Label: "Polonia", Hint: "Licytacje Komornicze (KRK) · 16 Voivodati" },
+      CZ: { Label: "Cechia", Hint: "Portál dražeb EKČR · 14 Regioni" },
+      SE: { Label: "Svezia", Hint: "Kronofogden Auktionstorget · 21 Contee" },
       TR: { Label: "Turchia", Hint: "Aste giudiziarie e pubbliche (UYAP) · 81 Province" },
     },
     MarketNote: "Scegli il tuo mercato principale (DE, AT, CH, IT, ES, FR, UK o TR). Modificabile in qualsiasi momento nell'account.",

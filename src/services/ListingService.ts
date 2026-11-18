@@ -71,6 +71,8 @@ function buildHaystack(listing: Listing): string {
     GB: "england uk united kingdom grossbritannien",
     NL: "niederlande netherlands nederland executieveiling vastgoedveiling",
     PL: "polen poland polska licytacje komornicze komornik",
+    CZ: "tschechien czechia cesko drazby nemovitosti portaldrazeb exekuce",
+    SE: "schweden sweden sverige kronofogden exekutiv auktion fastighet bostadsratt",
   };
   const countryTag = listing.market === "DE" ? cMap[getListingDachCountry(listing)] : null;
   const parts = [

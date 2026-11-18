@@ -1,6 +1,6 @@
 import { EuMarketLocationEntry, EuPseoMarketCode } from "@/types/pseo.types";
 
-function fmtMinEntry(e: EuMarketLocationEntry, ratio: number, locale: string, currency: "EUR" | "CHF" | "GBP" | "PLN"): string {
+function fmtMinEntry(e: EuMarketLocationEntry, ratio: number, locale: string, currency: "EUR" | "CHF" | "GBP" | "PLN" | "CZK" | "SEK"): string {
   if (!e.minAppraisedValue || e.minAppraisedValue < 15000) return "";
   const val = Math.round(e.minAppraisedValue * ratio);
   return new Intl.NumberFormat(locale, {
@@ -596,6 +596,140 @@ export const EU_MARKET_COPY: Record<EuPseoMarketCode, EuMarketCopyConfig> = {
     entryMetaDesc: (e) => {
       const low = fmtMinEntry(e, 0.6667, "pl-PL", "PLN");
       return `Sprawdź ${e.totalCount} aktywnych licytacji i e-licytacji komorniczych nieruchomości w lokalizacji ${e.name}${low ? ` już od ${low}` : ""}: mieszkania, domy i działki + 1 darmowe dossier.`;
+    },
+  },
+  CZ: {
+    hubEyebrow: "ČESKÁ REPUBLIKA · PORTÁL DRAŽEB EKČR & ELEKTRONICKÉ DRAŽBY · VŠECH 14 KRAJŮ",
+    hubTitle: (total, rCount, cCount) =>
+      `Exekuční a Elektronické Dražby Nemovitostí v ČR: ${rCount} Krajů, ${cCount} Exekutorských Úřadů a ${total} Aktivních Dražeb`,
+    hubLead:
+      "Kompletní přehled exekučních a veřejných elektronických dražeb nemovitostí v České republice (Exekutorská komora ČR · portaldrazeb.cz a okdrazby.cz) ve všech 14 krajích — s odhadní cenou znalce, nejnižším podáním od 2/3 odhadu (§ 336e OSŘ), dražební jistotou, RÚIAN katastrem a 0% daní z nabytí nemovitosti.",
+    hubMetaTitle: (total) =>
+      `Exekuční Dražby Nemovitostí (${total} Aktivních Dnes): Byty, Domy a Pozemky od 2/3`,
+    hubMetaDesc: (total, rCount) =>
+      `Vyhledávač ${total} aktivních exekučních a elektronických dražeb nemovitostí ve ${rCount} krajích ČR: nejnižší podání 2/3 odhadu, 0% daň z nabytí a 1 bezplatné dossier.`,
+    calcButtonLabel: "🧮 Kalkulačka Exekuční Dražby Zdarma: Nejnižší Podání 2/3 a 1/2, Jistota a Náklady →",
+    ctaButtonLabel: "🎁 1 Dossier Zdarma: Odemknout Znalecký Posudek, Spisovou Značku a Vyhlášku →",
+    regionsHeading: (c) => `Všech ${c} Krajů ČR (Exekuční Dražby Nemovitostí)`,
+    citiesHeading: (c) => `Města a Obce s Aktivními Dražbami (${c} Obcí)`,
+    courtsHeading: (c) => `Exekutorské Úřady a Dražebníci (${c} Úřadů)`,
+    listingsHeading: "Aktivní Exekuční a Elektronické Dražby Nemovitostí (CZK)",
+    faqHeading: "Časté Dotazy k Exekučním Dražbám Nemovitostí v ČR (OSŘ)",
+    valueLabel: "Odhadní Cena dle Znaleckého Posudku (CZK)",
+    minBidLabel: "Nejnižší Podání v 1. Dražebním Kole (2/3 = 66,7 % ex § 336e OSŘ)",
+    depositLabel: "Dražební Jistota (max. 3/4 z nejnižšího podání · typicky ~15 %)",
+    thresholdLabel: "Opakovaná Dražba (1/2 = 50 % odhadní ceny ex § 336m OSŘ)",
+    taxLabel: "Správní Poplatek Katastru Nemovitostí (0 % Daň z nabytí zrušena)",
+    repairLabel: "Rozpočet na Rekonstrukci a Vyklizení (CZK)",
+    totalCostLabel: "Celková Investice při Nejnižším Podání 2/3 (Kč)",
+    discountLabel: "Okamžitá Sleva Oproti Odhadní Ceně Znalce (-33,3 %)",
+    defaultValue: 3500000,
+    defaultTaxPct: 0.2,
+    defaultRepair: 250000,
+    minBidRatio: 0.6667,
+    thresholdRatio: 0.5,
+    depositRatio: 0.15,
+    courtFeeRatio: 0.002,
+    calcPageTitle: "Kalkulačka Exekuční Dražby Nemovitosti: Nejnižší Podání 2/3 a 1/2 (§ 336e OSŘ), Dražební Jistota a 0% Daň",
+    calcPageLead:
+      "Zadejte výslednou cenu ze znaleckého posudku v dražební vyhlášce: okamžitě spočítejte zákonné nejnižší podání v prvním dražebním jednání (2/3 = 66,67 %, § 336e odst. 1 OSŘ) i v opakované dražbě (1/2 = 50 %, § 336m odst. 3 OSŘ), orientační dražební jistotu a celkový kapitál v CZK (daň z nabytí nemovitých věcí je v ČR 0 %).",
+    calcMetaTitle: "Kalkulačka Exekuční Dražby Nemovitosti: Nejnižší Podání 2/3 a Jistota",
+    calcMetaDesc:
+      "Spočítejte zdarma nejnižší podání 2/3 (1. kolo) a 1/2 (opakovaná dražba), dražební jistotu a celkovou investici v CZK pro exekuční dražby nemovitostí.",
+    faqs: [
+      {
+        q: "Jaká je výše nejnižšího podání u exekuční dražby nemovitosti v ČR?",
+        a: "Podle § 336e odst. 1 občanského soudního řádu (OSŘ) se nejnižší podání při prvním dražebním jednání stanoví ve výši dvou třetin (2/3, tj. 66,67 %) výsledné ceny určené znaleckým posudkem. V opakované dražbě klesá nejnižší podání na polovinu (1/2, tj. 50 %) výsledné ceny (§ 336m odst. 3 OSŘ).",
+      },
+      {
+        q: "Platí vydražitel v České republice daň z nabytí nemovitých věcí?",
+        a: "Ne. Daň z nabytí nemovitých věcí (dříve 4 %) byla v České republice zákonem č. 386/2020 Sb. zcela zrušena. Vydražitel hradí pouze správní poplatek za vklad vlastnického práva do katastru nemovitostí (standardně 2 000 Kč).",
+      },
+      {
+        q: "Zanikají exekuční zástavní práva a břemena po nabytí právní moci usnesení o příklepu?",
+        a: "Ano. Nabytím právní moci usnesení o příklepu a zaplacením nejvyššího podání zanikají zástavní práva a další exekuční omezení váznoucí na nemovitosti (§ 337h OSŘ), s výjimkou věcných břemen, o nichž bylo v dražební vyhlášce rozhodnuto, že nezanikají.",
+      },
+    ],
+    entryTitle: (e) =>
+      `Exekuční Dražby Nemovitostí ${e.name}: ${e.totalCount} Bytů, Domů a Pozemků`,
+    entryLead: (e) =>
+      `Aktuální exekuční a veřejné elektronické dražby nemovitostí pro lokalitu ${e.name} (${e.nativeRegionName}) — s odhadní cenou znalce, nejnižším podáním od 2/3 odhadu (§ 336e OSŘ), dražební jistotou a 0% daní z nabytí.`,
+    entryMetaTitle: (e) => {
+      const low = fmtMinEntry(e, 0.6667, "cs-CZ", "CZK");
+      const full = `Dražby Nemovitostí ${e.name} (${e.totalCount} Aktivních)${low ? ` od ${low}` : ""}`;
+      if (full.length <= 65) return full;
+      return `Exekuční Dražby ${e.name}: ${e.totalCount} Nemovitostí od 2/3`;
+    },
+    entryMetaDesc: (e) => {
+      const low = fmtMinEntry(e, 0.6667, "cs-CZ", "CZK");
+      return `Přehled ${e.totalCount} aktivních exekučních a elektronických dražeb nemovitostí pro ${e.name}${low ? ` již od ${low}` : ""}: znalecké posudky, RÚIAN a 1 dossier zdarma.`;
+    },
+  },
+  SE: {
+    hubEyebrow: "SVERIGE · KRONOFOGDEN AUKTIONSTORGET · ALLA 21 LÄN",
+    hubTitle: (total, rCount, cCount) =>
+      `Exekutiv Auktion & Kronofogden Fastigheter Sverige: ${rCount} Län, ${cCount} Försäljningsorter och ${total} Objekt till Salu`,
+    hubLead:
+      "Samlad översikt över alla aktuella exekutiva auktioner av utmätta fastigheter, villor, tomter och bostadsrätter från Kronofogden (auktionstorget.kronofogden.se) i Sveriges samtliga 21 län — med bedömt marknadsvärde i SEK, Beskrivning och värdering (PDF), 10 % handpenning (12 kap. UB) och 1,5 % lagfart / stämpelskatt.",
+    hubMetaTitle: (total) =>
+      `Kronofogden Auktionstorget (${total} Fastigheter & Bostadsrätter till Salu)`,
+    hubMetaDesc: (total, rCount) =>
+      `Sök bland alla ${total} utmätta fastigheter, villor och bostadsrätter på exekutiv auktion hos Kronofogden i ${rCount} län: värderingsutlåtanden, 10 % handpenning & 1 gratis dossier.`,
+    calcButtonLabel: "🧮 Gratis Kalkylator för Exekutiv Auktion: Handpenning 10 %, Skyddsbelopp & Lagfart 1,5 % →",
+    ctaButtonLabel: "🎁 1 Gratis Dossier: Lås upp Fastighetsbeteckning, Värdering PDF & KFM-Ärende →",
+    regionsHeading: (c) => `Alla ${c} Svenska Län (Kronofogden Exekutiva Auktioner)`,
+    citiesHeading: (c) => `Kommuner & Orter med Aktuella Auktioner (${c} Kommuner)`,
+    courtsHeading: (c) => `Kronofogdens Försäljningsorter (${c} Kontor)`,
+    listingsHeading: "Utmätta Fastigheter, Villor & Bostadsrätter till Salu (SEK)",
+    faqHeading: "Vanliga Frågor om Exekutiv Auktion hos Kronofogden (12 kap. UB)",
+    valueLabel: "Bedömt Marknadsvärde enligt Kronofogden (SEK)",
+    minBidLabel: "Indikativ Budnivå under Marknadsvärde (75 % riktmärke)",
+    depositLabel: "Handpenning direkt vid klubbslag (10 % av köpeskillingen)",
+    thresholdLabel: "Konservativ Budbudget (85 % av marknadsvärde)",
+    taxLabel: "Stämpelskatt / Lagfart (1,5 % privatperson · 0 % bostadsrätt)",
+    repairLabel: "Renoverings- och Tillträdesbuffert (SEK)",
+    totalCostLabel: "Totalt Kapitalbehov vid Köp (Bud + Lagfart + Renovering)",
+    discountLabel: "Potentiell Rabatt mot Bedömt Marknadsvärde",
+    defaultValue: 2200000,
+    defaultTaxPct: 1.5,
+    defaultRepair: 180000,
+    minBidRatio: 0.75,
+    thresholdRatio: 0.85,
+    depositRatio: 0.1,
+    courtFeeRatio: 0.005,
+    calcPageTitle: "Kalkylator för Exekutiv Auktion (Kronofogden): Handpenning 10 %, Lagfart 1,5 % och Totalbudget",
+    calcPageLead:
+      "Ange det bedömda marknadsvärdet ur Kronofogdens Beskrivning och värdering: räkna direkt ut handpenningen på 10 % (betalas med kort vid auktionen enligt 12 kap. Utsökningsbalken), lagfartskostnad / stämpelskatt (1,5 % för privatpersoner, 4,25 % för juridiska personer, 0 % för bostadsrätter) samt total investering i SEK.",
+    calcMetaTitle: "Kalkylator Kronofogden Exekutiv Auktion: Handpenning 10 % & Lagfart 1,5 %",
+    calcMetaDesc:
+      "Räkna gratis på exekutiv auktion hos Kronofogden i SEK: 10 % handpenning, 1,5 % lagfart / stämpelskatt, budutrymme och renoveringsbuffert.",
+    faqs: [
+      {
+        q: "Hur betalas handpenningen (10 %) vid en exekutiv auktion hos Kronofogden?",
+        a: "Om ditt högsta bud godtas vid bevaknings- och auktionssammanträdet ska du betala en handpenning på 10 % av köpeskillingen direkt på plats med ditt eget betalkort (chip och pinkod — ej kontanter eller postväxel). Resterande köpeskilling betalas senast vid fördelningssammanträdet (normalt ca 4 veckor senare).",
+      },
+      {
+        q: "Vad innebär befintligt skick och undersökningsplikt vid köp via Kronofogden?",
+        a: "Fastigheter och bostadsrätter på exekutiv auktion säljs i befintligt skick utan dolda fel-garanti från säljaren. Det är därför avgörande att granska Kronofogdens Beskrivning och värdering (PDF), pantbrev/skyddsbelopp samt gå på den bokningsbara visningen före auktionen.",
+      },
+      {
+        q: "Vad kostar lagfart (stämpelskatt) vid köp av utmätt fastighet?",
+        a: "För privatpersoner är stämpelskatten för lagfart hos Lantmäteriet 1,5 % av köpeskillingen (eller taxeringsvärdet om det är högre) plus 825 kr i expeditionsavgift. För aktiebolag och andra juridiska personer är stämpelskatten 4,25 %. För bostadsrätter utgår ingen lagfartskostnad.",
+      },
+    ],
+    entryTitle: (e) =>
+      `Kronofogden Exekutiv Auktion ${e.name}: ${e.totalCount} Fastigheter & Bostadsrätter till Salu`,
+    entryLead: (e) =>
+      `Aktuella exekutiva auktioner av utmätta fastigheter, villor, tomter och bostadsrätter hos Kronofogden i ${e.name} (${e.nativeRegionName}) — med bedömt marknadsvärde i SEK, värderingsprotokoll, 10 % handpenning och ${e.transferTaxPct} % stämpelskatt.`,
+    entryMetaTitle: (e) => {
+      const low = fmtMinEntry(e, 0.75, "sv-SE", "SEK");
+      const full = `Exekutiv Auktion ${e.name} (${e.totalCount} Objekt Kronofogden)${low ? ` från ${low}` : ""}`;
+      if (full.length <= 65) return full;
+      return `Kronofogden Auktion ${e.name}: ${e.totalCount} Fastigheter till Salu`;
+    },
+    entryMetaDesc: (e) => {
+      const low = fmtMinEntry(e, 0.75, "sv-SE", "SEK");
+      return `Se alla ${e.totalCount} utmätta fastigheter och bostadsrätter på exekutiv auktion i ${e.name}${low ? ` från ${low}` : ""}: Kronofogdens värdering PDF, 10 % handpenning & 1 gratis dossier.`;
     },
   },
 };

@@ -1,4 +1,4 @@
-export type EuPseoMarketCode = "AT" | "CH" | "IT" | "ES" | "FR" | "GB" | "NL" | "PL";
+export type EuPseoMarketCode = "AT" | "CH" | "IT" | "ES" | "FR" | "GB" | "NL" | "PL" | "CZ" | "SE";
 export type PseoLocale = "de" | "tr" | "en" | "it" | "es" | "fr";
 
 export interface PseoPreviewListing {
@@ -18,7 +18,7 @@ export interface PseoPreviewListing {
   areaM2: number | null;
   rooms: string | null;
   discountPct: number | null;
-  currency: "EUR" | "CHF" | "GBP" | "TRY" | "PLN";
+  currency: "EUR" | "CHF" | "GBP" | "TRY" | "PLN" | "CZK" | "SEK";
 }
 
 export interface CourtPseoEntry {
@@ -76,7 +76,7 @@ export interface EuMarketLocationEntry {
   nativeRegionName: string;
   regionSlug: string;
   transferTaxPct: number;
-  currency: "EUR" | "CHF" | "GBP" | "PLN";
+  currency: "EUR" | "CHF" | "GBP" | "PLN" | "CZK" | "SEK";
   totalCount: number;
   limitsWaivedCount: number;
   withDocsCount: number;
@@ -91,7 +91,7 @@ export interface EuMarketLocationEntry {
 export interface EuMarketCatalog {
   market: EuPseoMarketCode;
   locale: PseoLocale;
-  currency: "EUR" | "CHF" | "GBP" | "PLN";
+  currency: "EUR" | "CHF" | "GBP" | "PLN" | "CZK" | "SEK";
   hubPath: string;
   calcPath: string;
   totalListings: number;

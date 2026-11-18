@@ -31,6 +31,8 @@ const HUB_BY_COUNTRY: Record<PricingCountryCode, { label: string; path: string }
   GB: { label: "🇬🇧 UK (Property Auctions)", path: "/en/uk-property-auctions" },
   NL: { label: "🇳🇱 NL (Executieveiling)", path: "/nl/executieveiling" },
   PL: { label: "🇵🇱 PL (Licytacje KRK)", path: "/pl/licytacje-komornicze" },
+  CZ: { label: "🇨🇿 CZ (Portál dražeb)", path: "/cz/drazby-nemovitosti" },
+  SE: { label: "🇸🇪 SE (Kronofogden)", path: "/se/exekutiv-auktion" },
 };
 
 export default function AtlasEmbedBox({ locale = "de" }: AtlasEmbedBoxProps) {

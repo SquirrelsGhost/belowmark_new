@@ -20,10 +20,10 @@ export function slugifyPublicSegment(input: string, country?: PricingCountryCode
     .replace(/I/g, "i")
     .replace(/ı/g, "i")
     .toLowerCase();
-  if (!isTr) {
+  if (!isTr && country !== "SE" && country !== "CZ") {
     s = s.replace(/ä/g, "ae").replace(/ö/g, "oe").replace(/ü/g, "ue");
   } else {
-    s = s.replace(/ö/g, "o").replace(/ü/g, "u");
+    s = s.replace(/ä/g, "a").replace(/ö/g, "o").replace(/ü/g, "u");
   }
   return s
     .replace(/Ł/gi, "l")
@@ -191,6 +191,38 @@ export function localizePublicSegmentLabel(
         return raw || "Nieruchomość z Licytacji";
     }
   }
+  if (country === "CZ") {
+    switch (segment) {
+      case "apartment":
+        return raw || "Byt v Exekuční Dražbě";
+      case "house":
+        return raw || "Rodinný Dům v Dražbě";
+      case "commercial":
+      case "multiFamily":
+        return raw || "Komerční Nemovitost / Bytový Dům";
+      case "land":
+      case "farmland":
+        return raw || "Pozemek / Parcela v Dražbě";
+      default:
+        return raw || "Nemovitost v Dražbě";
+    }
+  }
+  if (country === "SE") {
+    switch (segment) {
+      case "apartment":
+        return raw || "Bostadsrätt på Exekutiv Auktion";
+      case "house":
+        return raw || "Villa / Fastighet (Kronofogden)";
+      case "commercial":
+      case "multiFamily":
+        return raw || "Kommersiell Fastighet";
+      case "land":
+      case "farmland":
+        return raw || "Tomt / Lantbruksfastighet";
+      default:
+        return raw || "Fastighet på Exekutiv Auktion";
+    }
+  }
   return raw || "Immobilie";
 }
 
@@ -203,6 +235,8 @@ export function inferPreviewListingCountry(item: Pick<PseoPreviewListing, "key" 
   if (item.key.startsWith("gb-") || item.currency === "GBP") return "GB";
   if (item.key.startsWith("nl-")) return "NL";
   if (item.key.startsWith("pl-") || item.currency === "PLN") return "PL";
+  if (item.key.startsWith("cz-") || item.currency === "CZK") return "CZ";
+  if (item.key.startsWith("se-") || item.currency === "SEK") return "SE";
   if (fallbackLocale === "tr" || item.currency === "TRY" || /^\d+#\d+$/.test(item.key)) return "TR";
   return "DE";
 }
@@ -220,6 +254,8 @@ export function countryToPseoLocale(country: PricingCountryCode): PseoLocale {
     case "GB":
     case "NL":
     case "PL":
+    case "CZ":
+    case "SE":
       return "en";
     default:
       return "de";
@@ -228,7 +264,18 @@ export function countryToPseoLocale(country: PricingCountryCode): PseoLocale {
 
 export function publicListingRoutePrefix(country: PricingCountryCode): "/objekt" | "/tr/ilan" | "/lot" {
   if (country === "TR") return "/tr/ilan";
-  if (country === "IT" || country === "ES" || country === "FR" || country === "GB" || country === "NL" || country === "PL") return "/lot";
+  if (
+    country === "IT" ||
+    country === "ES" ||
+    country === "FR" ||
+    country === "GB" ||
+    country === "NL" ||
+    country === "PL" ||
+    country === "CZ" ||
+    country === "SE"
+  ) {
+    return "/lot";
+  }
   return "/objekt";
 }
 
@@ -288,6 +335,16 @@ export function sanitizePublicListingHeadline(params: {
 
   if (country === "PL") {
     const seg = segmentLabel || "Nieruchomość z Licytacji Komorniczej";
+    return locPart ? `${seg} · ${locPart}` : seg;
+  }
+
+  if (country === "CZ") {
+    const seg = segmentLabel || "Nemovitost v Exekuční Dražbě";
+    return locPart ? `${seg} · ${locPart}` : seg;
+  }
+
+  if (country === "SE") {
+    const seg = segmentLabel || "Fastighet på Exekutiv Auktion";
     return locPart ? `${seg} · ${locPart}` : seg;
   }
 
