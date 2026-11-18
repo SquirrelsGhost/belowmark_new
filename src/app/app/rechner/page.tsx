@@ -35,7 +35,7 @@ export default async function CalculatorPage() {
             <TrCalculatorExtras locale={locale} now={viewer.now} initialLira={TR_DEFAULTS.value} />
           </>
         ) : (
-          <BidCalculator key={viewer.country} t={t.HomePage.Calculator} locale={locale} config={getHomeMarketBundle(viewer.country, locale).calculator} />
+          <BidCalculator key={viewer.country} t={t.HomePage.Calculator} locale={locale} config={getHomeMarketBundle(viewer.country).calculator} />
         )}
       </PageStack>
     </AppMain>

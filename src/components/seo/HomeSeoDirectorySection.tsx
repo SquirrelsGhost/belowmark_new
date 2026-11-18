@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { DEFAULT_LOCALE, LocaleOption } from "@/lib/constants";
-import { HOME_DIRECTORY_COPY } from "@/lib/homeDirectoryCopy";
+import { HOME_DIRECTORY_COPY, HomeDirectoryHeadingCopy } from "@/lib/homeDirectoryCopy";
 
 interface HomeSeoDirectorySectionProps {
   locale?: LocaleOption;
+  copyOverride?: HomeDirectoryHeadingCopy;
 }
 
 const COUNTRY_HUBS = [
@@ -66,8 +67,8 @@ const BLOG_HUBS = [
   { href: "/ru/blog", label: "🇷🇺 Гид инвестора на русском (RU)" },
 ] as const;
 
-export default function HomeSeoDirectorySection({ locale = DEFAULT_LOCALE }: HomeSeoDirectorySectionProps) {
-  const copy = HOME_DIRECTORY_COPY[locale] ?? HOME_DIRECTORY_COPY.en;
+export default function HomeSeoDirectorySection({ locale = DEFAULT_LOCALE, copyOverride }: HomeSeoDirectorySectionProps) {
+  const copy = copyOverride ?? HOME_DIRECTORY_COPY[locale] ?? HOME_DIRECTORY_COPY.en;
 
   return (
     <section aria-label={copy.ariaLabel} className="border-t-2 border-ink bg-paper-bright">

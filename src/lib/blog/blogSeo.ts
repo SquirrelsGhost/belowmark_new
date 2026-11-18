@@ -68,25 +68,45 @@ export function normalizeCanonicalUrl(rawUrl: string): string {
   return trimmed.replace(/\/+$/, "");
 }
 
-export type HtmlLangCode = "de" | "tr" | "en" | "it" | "es" | "fr" | "ar" | "ru";
+export type HtmlLangCode =
+  | "de"
+  | "de-AT"
+  | "de-CH"
+  | "fr-CH"
+  | "it-CH"
+  | "tr"
+  | "en"
+  | "en-GB"
+  | "it"
+  | "es"
+  | "fr"
+  | "nl"
+  | "pl"
+  | "cs"
+  | "sv"
+  | "ar"
+  | "ru";
 
 export function resolveHtmlLang(pathname: string, fallbackLocale: string): HtmlLangCode {
   const prefixMatch = /^\/(tr|en|it|es|fr|ar|ru)(\/|$)/.exec(pathname);
   if (prefixMatch) {
     return prefixMatch[1] as HtmlLangCode;
   }
-  if (/^\/(de\/blog|blog|zwangsversteigerungen|zwangsversteigerung|bundesland|amtsgericht|rechner|oesterreich|schweiz)(\/|$)/.test(pathname)) {
+  if (/^\/nl(\/|$)/.test(pathname)) return "nl";
+  if (/^\/pl(\/|$)/.test(pathname)) return "pl";
+  if (/^\/cz(\/|$)/.test(pathname)) return "cs";
+  if (/^\/se(\/|$)/.test(pathname)) return "sv";
+  if (/^\/oesterreich(\/|$)/.test(pathname)) return "de-AT";
+  if (/^\/schweiz(\/|$)/.test(pathname)) return "de-CH";
+  if (/^\/(de\/blog|blog|zwangsversteigerungen|zwangsversteigerung|bundesland|amtsgericht|rechner)(\/|$)/.test(pathname)) {
     return "de";
   }
-  if (
-    fallbackLocale === "de" ||
-    fallbackLocale === "tr" ||
-    fallbackLocale === "en" ||
-    fallbackLocale === "it" ||
-    fallbackLocale === "es" ||
-    fallbackLocale === "fr"
-  ) {
-    return fallbackLocale;
+  const valid: readonly string[] = [
+    "de", "de-AT", "de-CH", "fr-CH", "it-CH", "tr", "en", "en-GB",
+    "it", "es", "fr", "nl", "pl", "cs", "sv",
+  ];
+  if (valid.includes(fallbackLocale)) {
+    return fallbackLocale as HtmlLangCode;
   }
   return "en";
 }

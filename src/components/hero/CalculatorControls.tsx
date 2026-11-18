@@ -1,12 +1,11 @@
-import { LocaleOption } from "@/lib/constants";
-import { formatMoney, formatPercent } from "@/lib/format";
+import { formatMoney, formatPercent, HomeFormatLocale } from "@/lib/format";
 import { HomeCalculatorConfig } from "@/lib/homeMarketData";
 import { ITranslation } from "@/translations/ITranslation";
 import { HearingKind } from "@/types/calculator.types";
 
 interface CalculatorControlsProps {
   t: ITranslation["HomePage"]["Calculator"];
-  locale: LocaleOption;
+  locale: HomeFormatLocale;
   config: HomeCalculatorConfig;
   value: number;
   regionCode: string;

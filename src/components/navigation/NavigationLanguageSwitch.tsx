@@ -1,58 +1,56 @@
-// Needs onChange event + router.refresh() to switch UI language
+// Needs onChange event + router.refresh() to switch active country & language
 "use client";
 
 import { useRouter } from "next/navigation";
 import { ChangeEvent, useTransition } from "react";
-import { LOCALE_OPTIONS, LocaleOption } from "@/lib/constants";
-import { setLocaleAction } from "@/lib/regionActions";
+import { setSelectorCountryAction } from "@/lib/regionActions";
+import type { HomeSelectorCode } from "@/translations/homeCountries/homeCountryTypes";
 
 interface NavigationLanguageSwitchProps {
-  current: LocaleOption;
+  current: HomeSelectorCode;
 }
 
-const LOCALE_LABELS: Record<LocaleOption, string> = {
-  en: "EN",
-  de: "DE",
-  tr: "TR",
-  it: "IT",
-  es: "ES",
-  fr: "FR",
-};
+const SELECTOR_OPTIONS: ReadonlyArray<{ code: HomeSelectorCode; label: string }> = [
+  { code: "DE", label: "🇩🇪 DE · Deutsch" },
+  { code: "AT", label: "🇦🇹 AT · Österreich" },
+  { code: "CH", label: "🇨🇭 CH · Schweiz" },
+  { code: "IT", label: "🇮🇹 IT · Italia" },
+  { code: "ES", label: "🇪🇸 ES · España" },
+  { code: "FR", label: "🇫🇷 FR · France" },
+  { code: "GB", label: "🇬🇧 UK · English" },
+  { code: "NL", label: "🇳🇱 NL · Nederland" },
+  { code: "PL", label: "🇵🇱 PL · Polska" },
+  { code: "CZ", label: "🇨🇿 CZ · Česko" },
+  { code: "SE", label: "🇸🇪 SE · Sverige" },
+  { code: "TR", label: "🇹🇷 TR · Türkiye" },
+  { code: "INTL", label: "🌐 EN · International" },
+];
 
-const ARIA_LABELS: Record<LocaleOption, string> = {
-  en: "Select language",
-  de: "Sprache wählen",
-  tr: "Dil seçin",
-  it: "Seleziona lingua",
-  es: "Seleccionar idioma",
-  fr: "Choisir la langue",
-};
-
-/** Compact editorial language selector in the sticky masthead. */
+/** Compact 12-country + International selector in the sticky masthead. */
 export default function NavigationLanguageSwitch({ current }: NavigationLanguageSwitchProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
   const handleChange = (event: ChangeEvent<HTMLSelectElement>) => {
-    const next = event.target.value as LocaleOption;
+    const next = event.target.value as HomeSelectorCode;
     if (next === current) return;
     startTransition(async () => {
-      await setLocaleAction(next);
+      await setSelectorCountryAction(next);
       router.refresh();
     });
   };
 
   return (
     <select
-      aria-label={ARIA_LABELS[current]}
+      aria-label="Country & Language"
       value={current}
       disabled={isPending}
       onChange={handleChange}
-      className="cursor-pointer border border-ink/30 bg-paper px-1.5 py-1 font-mono text-[11px] font-semibold tracking-wider text-ink uppercase transition-colors hover:border-ink focus:border-ink focus:outline-none disabled:opacity-50"
+      className="max-w-[7.25rem] cursor-pointer border border-ink/30 bg-paper px-1.5 py-1 font-mono text-[11px] font-semibold tracking-tight text-ink transition-colors hover:border-ink focus:border-ink focus:outline-none disabled:opacity-50 sm:max-w-[8.75rem]"
     >
-      {LOCALE_OPTIONS.map((code) => (
-        <option key={code} value={code}>
-          {LOCALE_LABELS[code]}
+      {SELECTOR_OPTIONS.map((item) => (
+        <option key={item.code} value={item.code}>
+          {item.label}
         </option>
       ))}
     </select>

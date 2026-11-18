@@ -3,7 +3,9 @@ import { headers } from "next/headers";
 import ServiceWorkerCleanup from "@/components/ui/ServiceWorkerCleanup";
 import { resolveHtmlLang } from "@/lib/blog/blogSeo";
 import { env } from "@/lib/env";
+import { RegionService } from "@/services/RegionService";
 import { TranslationService } from "@/services/TranslationService";
+import { resolveHomeCountryProfile } from "@/translations/homeCountries";
 import "@/styles/globals.css";
 
 /** Variable width grotesk — condensed for display, normal for body text. */
@@ -54,13 +56,18 @@ export const metadata = {
 };
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
-  const [rawLocale, reqHeaders] = await Promise.all([
+  const [rawLocale, region, reqHeaders] = await Promise.all([
     TranslationService.GetUserLocale(),
+    RegionService.GetRegion(),
     headers(),
   ]);
   const locale = TranslationService.ToLocaleOption(rawLocale);
   const pathname = reqHeaders.get("x-pathname") ?? "";
-  const htmlLang = resolveHtmlLang(pathname, locale);
+  const acceptLang = reqHeaders.get("accept-language");
+  const isRootHome = pathname === "" || pathname === "/";
+  const htmlLang = isRootHome
+    ? resolveHomeCountryProfile(region, acceptLang).htmlLang
+    : resolveHtmlLang(pathname, locale);
 
   return (
     <html

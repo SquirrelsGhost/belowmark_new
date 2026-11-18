@@ -71,6 +71,7 @@ export class RegionService {
       cookieStore.get(MARKET_COOKIE_NAME)?.value,
       locationCountry,
     )?.toUpperCase();
+    const isIntlChosen = scopedMarketRaw === "INTL";
     const isMarketChosen = isPricingCountry(scopedMarketRaw);
 
     const scopedLocaleRaw = parseGeoScopedCookie(
@@ -80,15 +81,15 @@ export class RegionService {
     const chosenLocale = isLocaleOption(scopedLocaleRaw) ? scopedLocaleRaw : null;
 
     // Deterministic canonical region & English global default for search & AI crawlers
-    if (!isMarketChosen && !chosenLocale && SEARCH_CRAWLER_UA.test(ua)) {
+    if ((!isMarketChosen && !chosenLocale && SEARCH_CRAWLER_UA.test(ua)) || isIntlChosen) {
       return {
         market: DEFAULT_MARKET,
         pricingCountry: DEFAULT_PRICING_COUNTRY,
         locale: DEFAULT_LOCALE,
         isCountryMatched: false,
         isMarketChosen: false,
-        isFromGeoHeader: true,
-        country: null,
+        isFromGeoHeader: isIntlChosen ? Boolean(geoCountry) : true,
+        country: locationCountry,
       };
     }
 

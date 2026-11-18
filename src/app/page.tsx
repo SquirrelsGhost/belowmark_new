@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { headers } from "next/headers";
 import BrandMark from "@/components/brand/BrandMark";
 import ClosingCta from "@/components/closing/ClosingCta";
 import CompareRow from "@/components/compare/CompareRow";
@@ -40,8 +41,7 @@ import LandingShell from "@/components/ui/LandingShell";
 import PageMain from "@/components/ui/PageMain";
 import PaperTexture from "@/components/ui/PaperTexture";
 import { BILLING_ROUTES, MARKET_PARAM, OFFER_PARAM } from "@/lib/billing/billingConfig";
-import { TRIAL_COPY } from "@/lib/billing/trialCopy";
-import { LocaleOption, ROUTES } from "@/lib/constants";
+import { ROUTES } from "@/lib/constants";
 import {
   formatCompactMoney,
   formatDate,
@@ -54,12 +54,12 @@ import { getHomeMarketBundle } from "@/lib/homeMarketData";
 import { SNAPSHOT_DATE } from "@/lib/snapshot";
 import { MetaTagService } from "@/services/MetaTagService";
 import { RegionService } from "@/services/RegionService";
-import { TranslationService } from "@/services/TranslationService";
+import { resolveHomeCountryProfile } from "@/translations/homeCountries";
 import { IPricingPlan } from "@/translations/ITranslation";
 
 /**
- * This page reads cookies() and headers() via TranslationService for locale
- * and country detection. That is request-time data, so this route must be dynamic.
+ * This page reads cookies() and headers() via RegionService for country and
+ * language detection. That is request-time data, so this route must be dynamic.
  */
 export const instant = false;
 
@@ -68,35 +68,28 @@ const STAGGER_MS = 100;
 const AUTHORITY_HAS_TITLE_RE =
   /^(?:AG|BG|TJ|Trib|Juzg|U\.R\.|Secci|Komornik|Exekutor|Kronofogd|SDL|BTG|Betreibungs|Konkurs|Office|De Randamie|Westvaer|Quadrant|Vastgoed|RoX)|Mahkeme|İcra|Memurluğu/i;
 
-const LIVE_SEARCH_LABELS: Record<LocaleOption, string> = {
-  en: "Live Search",
-  de: "Live-Suche",
-  tr: "Canlı Arama",
-  it: "Ricerca Live",
-  es: "Buscador",
-  fr: "Recherche",
-};
-
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await TranslationService.GetUserTranslations();
-  return MetaTagService.CreateMetaTags(t.HomePage.MetaTags);
+  const [region, reqHeaders] = await Promise.all([RegionService.GetRegion(), headers()]);
+  const profile = resolveHomeCountryProfile(region, reqHeaders.get("accept-language"));
+  return MetaTagService.CreateMetaTags(profile.HomePage.MetaTags);
 }
 
 export default async function HomePage() {
-  const region = await RegionService.GetRegion();
-  const userLocale = await TranslationService.GetUserLocale();
-  const t = TranslationService.GetTranslations(userLocale);
-  const locale = TranslationService.ToLocaleOption(userLocale);
-  const { Hero, Calculator, Ticker, Stats, Notice, Method, States, Limits, Compare, Pricing, Faq, Closing } = t.HomePage;
-  const nav = t.Navigation;
-  const plans = Pricing.Markets[region.pricingCountry];
-  const bundle = getHomeMarketBundle(region.pricingCountry, locale);
-  const { snapshot, calculator, noticeCard, statesOverride, heroNoteOverride } = bundle;
+  const [region, reqHeaders] = await Promise.all([RegionService.GetRegion(), headers()]);
+  const profile = resolveHomeCountryProfile(region, reqHeaders.get("accept-language"));
+  const { formatLocale, htmlLang, selectorCode, liveSearchLabel, freeBadge, trialBadge, directoryCopy } = profile;
+  const { Hero, Calculator, Ticker, Stats, Notice, Method, States, Limits, Compare, Pricing, Faq, Closing } =
+    profile.HomePage;
+  const nav = profile.Navigation;
+  const footer = profile.Footer;
+  const activeCountry = profile.pricingCountry;
+  const plans = Pricing.Markets[activeCountry];
+  const bundle = getHomeMarketBundle(activeCountry);
+  const { snapshot, calculator, noticeCard } = bundle;
   const maxRegionHearings = Math.max(1, ...snapshot.regions.map((item) => item.hearings ?? 0));
 
-  // lang on the wrapper so uppercase display type follows locale rules (İ/I in Turkish)
   return (
-    <LandingShell lang={locale}>
+    <LandingShell lang={htmlLang}>
       <HomeJsonLd faqs={Faq.Items} />
       <PaperTexture />
       {!region.isFromGeoHeader && <RegionDetector country={region.country} />}
@@ -104,7 +97,7 @@ export default async function HomePage() {
       <Navigation label={nav.MainNavLabel}>
         <BrandMark />
         <NavigationSpacer />
-        <NavigationItem href={`/suche?markt=${region.pricingCountry}`} label={LIVE_SEARCH_LABELS[locale]} />
+        <NavigationItem href={`/suche?markt=${activeCountry}`} label={liveSearchLabel} />
         <NavigationItem href={ROUTES.calculator} label={nav.CalculatorLabel} />
         <NavigationItem href={ROUTES.notice} label={nav.NoticeLabel} />
         <NavigationItem href={ROUTES.method} label={nav.MethodLabel} />
@@ -113,7 +106,7 @@ export default async function HomePage() {
         <NavigationItem href={ROUTES.faq} label={nav.FaqLabel} />
         <NavigationItem href={ROUTES.blog} label={nav.BlogLabel} />
         <NavigationVerticalLine />
-        <NavigationLanguageSwitch current={locale} />
+        <NavigationLanguageSwitch current={selectorCode} />
         <NavigationLoginButton loginLabel={nav.LoginLabel} signupLabel={nav.SignupLabel} />
       </Navigation>
 
@@ -128,9 +121,9 @@ export default async function HomePage() {
           principle={Hero.Principle}
           primaryCta={Hero.PrimaryCta}
           secondaryCta={Hero.SecondaryCta}
-          note={heroNoteOverride ?? Hero.Note}
+          note={Hero.Note}
         >
-          <BidCalculator key={bundle.country} t={Calculator} locale={locale} config={calculator} />
+          <BidCalculator key={`${selectorCode}-${htmlLang}`} t={Calculator} locale={formatLocale} config={calculator} />
         </HeroSection>
 
         <NoticeTicker label={Ticker.Label}>
@@ -140,7 +133,7 @@ export default async function HomePage() {
               court={formatTickerCourt(Ticker.CourtPrefix, entry.authority)}
               segment={Ticker.Segments[entry.segment]}
               state={entry.regionBadge}
-              date={`${Ticker.HearingPrefix} ${formatShortDate(entry.date, locale)}`}
+              date={`${Ticker.HearingPrefix} ${formatShortDate(entry.date, formatLocale)}`}
               valueLabel={Ticker.ValueHidden}
             />
           ))}
@@ -148,20 +141,20 @@ export default async function HomePage() {
 
         <StatsLedger
           asOfLabel={Stats.AsOf}
-          asOfDate={formatDate(SNAPSHOT_DATE, locale)}
+          asOfDate={formatDate(SNAPSHOT_DATE, formatLocale)}
           sourceLabel={snapshot.sourcePortal}
         >
-          <StatsLedgerItem value={formatNumber(snapshot.stats.proceedings, locale)} label={Stats.Proceedings} />
-          <StatsLedgerItem value={formatNumber(snapshot.stats.withAppraisal, locale)} label={Stats.WithAppraisal} delay={STAGGER_MS} />
-          <StatsLedgerItem value={formatNumber(snapshot.stats.statesWithHearings, locale)} label={Stats.States} delay={STAGGER_MS * 2} />
+          <StatsLedgerItem value={formatNumber(snapshot.stats.proceedings, formatLocale)} label={Stats.Proceedings} />
+          <StatsLedgerItem value={formatNumber(snapshot.stats.withAppraisal, formatLocale)} label={Stats.WithAppraisal} delay={STAGGER_MS} />
+          <StatsLedgerItem value={formatNumber(snapshot.stats.statesWithHearings, formatLocale)} label={Stats.States} delay={STAGGER_MS * 2} />
           <StatsLedgerItem
-            value={formatCompactMoney(snapshot.stats.totalAppraised, snapshot.currency, locale)}
+            value={formatCompactMoney(snapshot.stats.totalAppraised, snapshot.currency, formatLocale)}
             label={Stats.TotalValue}
             delay={STAGGER_MS * 3}
             isAccent
           />
           <StatsLedgerItem
-            value={formatMoney(snapshot.stats.medianAppraised, snapshot.currency, locale)}
+            value={formatMoney(snapshot.stats.medianAppraised, snapshot.currency, formatLocale)}
             label={Stats.Median}
             delay={STAGGER_MS * 4}
           />
@@ -187,12 +180,12 @@ export default async function HomePage() {
         <StateIndex
           number="03"
           eyebrow={States.Eyebrow}
-          title={statesOverride?.title ?? States.Title}
-          description={statesOverride?.description ?? States.Description}
-          colState={statesOverride?.colState ?? States.ColState}
+          title={States.Title}
+          description={States.Description}
+          colState={States.ColState}
           colHearings={States.ColHearings}
           colTax={States.ColTax}
-          footnote={statesOverride?.footnote ?? States.Footnote}
+          footnote={States.Footnote}
         >
           {snapshot.regions.map((item) => (
             <StateIndexRow
@@ -201,8 +194,8 @@ export default async function HomePage() {
               code={item.code}
               href={item.href}
               share={item.hearings === null ? null : (item.hearings / maxRegionHearings) * 100}
-              hearingsLabel={item.hearings === null ? States.NotPublished : formatNumber(item.hearings, locale)}
-              taxLabel={formatPercent(item.transferTaxPct, locale)}
+              hearingsLabel={item.hearings === null ? States.NotPublished : formatNumber(item.hearings, formatLocale)}
+              taxLabel={formatPercent(item.transferTaxPct, formatLocale)}
             />
           ))}
         </StateIndex>
@@ -243,7 +236,7 @@ export default async function HomePage() {
           disclaimer={Pricing.Disclaimer}
           marketSwitch={
             <PricingMarketSwitch
-              current={region.pricingCountry}
+              current={activeCountry}
               label={Pricing.MarketLabel}
               detectedLabel={!region.isMarketChosen && region.isCountryMatched ? Pricing.MarketDetected : undefined}
               hint={Pricing.MarketHint}
@@ -264,24 +257,20 @@ export default async function HomePage() {
             />
           }
         >
-          <PricingPlan
-            {...planProps(plans.Free)}
-            href={ROUTES.signup}
-            trialBadge={(TRIAL_COPY[locale] ?? TRIAL_COPY.en).homeFreeBadge}
-          />
+          <PricingPlan {...planProps(plans.Free)} href={ROUTES.signup} trialBadge={freeBadge} />
           <PricingPlan
             {...planProps(plans.Investor)}
-            href={`${BILLING_ROUTES.order}?${OFFER_PARAM}=investor-monat&${MARKET_PARAM}=${region.pricingCountry}`}
+            href={`${BILLING_ROUTES.order}?${OFFER_PARAM}=investor-monat&${MARKET_PARAM}=${activeCountry}`}
             altPrice={`${Pricing.AltPricePrefix} ${plans.Investor.AltPrice} ${plans.Investor.AltPeriod}`}
-            trialBadge={(TRIAL_COPY[locale] ?? TRIAL_COPY.en).homeTrialBadge}
+            trialBadge={trialBadge}
             recommendedLabel={Pricing.Recommended}
             delay={STAGGER_MS}
           />
           <PricingPlan
             {...planProps(plans.Pro)}
-            href={`${BILLING_ROUTES.order}?${OFFER_PARAM}=pro-monat&${MARKET_PARAM}=${region.pricingCountry}`}
+            href={`${BILLING_ROUTES.order}?${OFFER_PARAM}=pro-monat&${MARKET_PARAM}=${activeCountry}`}
             altPrice={`${Pricing.AltPricePrefix} ${plans.Pro.AltPrice} ${plans.Pro.AltPeriod}`}
-            trialBadge={(TRIAL_COPY[locale] ?? TRIAL_COPY.en).homeTrialBadge}
+            trialBadge={trialBadge}
             delay={STAGGER_MS * 2}
           />
         </PricingSection>
@@ -300,11 +289,11 @@ export default async function HomePage() {
           secondaryCta={Closing.SecondaryCta}
         />
 
-        <HomeSeoDirectorySection locale={locale} />
+        <HomeSeoDirectorySection copyOverride={directoryCopy} />
       </PageMain>
 
-      <Footer tagline={t.Footer.Tagline} disclaimer={t.Footer.Disclaimer} rights={t.Footer.Rights}>
-        <FooterColumn title={t.Footer.ProductTitle}>
+      <Footer tagline={footer.Tagline} disclaimer={footer.Disclaimer} rights={footer.Rights}>
+        <FooterColumn title={footer.ProductTitle}>
           <FooterLink href="/zwangsversteigerungen" label="🇩🇪 DE · ZVG Verzeichnis (530 AG)" />
           <FooterLink href="/oesterreich/ediktsdatei" label="🇦🇹 AT · Ediktsdatei (9 Länder)" />
           <FooterLink href="/schweiz/shab-versteigerungen" label="🇨🇭 CH · SHAB Steigerungen (26 Kantone)" />
@@ -318,7 +307,7 @@ export default async function HomePage() {
           <FooterLink href="/se/exekutiv-auktion" label="🇸🇪 SE · Kronofogden Auktioner (21 Län)" />
           <FooterLink href="/tr/icra-ihale" label="🇹🇷 TR · İcra & İhale (81 İl)" />
         </FooterColumn>
-        <FooterColumn title={t.Footer.SourcesTitle}>
+        <FooterColumn title={footer.SourcesTitle}>
           <FooterLink href="/rechner/5-10-und-7-10-grenze" label="🧮 DE · 5/10- & 7/10-Rechner" />
           <FooterLink href="/oesterreich/rechner/geringstes-gebot-vadium" label="🧮 AT · § 151 EO & Vadium Rechner" />
           <FooterLink href="/schweiz/rechner/betreibungsamtliche-steigerung-schkg" label="🧮 CH · SchKG Steigerungsrechner" />
@@ -332,11 +321,11 @@ export default async function HomePage() {
           <FooterLink href="/se/kalkylator/kronofogden-exekutiv-auktion-handpenning" label="🧮 SE · Kronofogden Kalkylator" />
           <FooterLink href="/tr/hesaplama/icra-ihale-teminat" label="🧮 TR · İcra Teminat Hesaplama" />
         </FooterColumn>
-        <FooterColumn title={t.Footer.LegalTitle}>
-          <FooterLink href={ROUTES.imprint} label={t.Footer.Imprint} />
-          <FooterLink href={ROUTES.terms} label={t.Footer.Terms} />
-          <FooterLink href={ROUTES.withdrawal} label={t.Footer.Withdrawal} />
-          <FooterLink href={ROUTES.privacy} label={t.Footer.Privacy} />
+        <FooterColumn title={footer.LegalTitle}>
+          <FooterLink href={ROUTES.imprint} label={footer.Imprint} />
+          <FooterLink href={ROUTES.terms} label={footer.Terms} />
+          <FooterLink href={ROUTES.withdrawal} label={footer.Withdrawal} />
+          <FooterLink href={ROUTES.privacy} label={footer.Privacy} />
           <ConsumerFooterButtons tone="paper" />
         </FooterColumn>
       </Footer>

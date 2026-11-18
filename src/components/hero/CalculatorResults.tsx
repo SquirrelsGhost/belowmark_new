@@ -1,12 +1,12 @@
 import CalculatorRow from "@/components/hero/CalculatorRow";
-import { LocaleOption, ZVG } from "@/lib/constants";
-import { formatMoney, formatPercent, HomeCurrencyCode } from "@/lib/format";
+import { ZVG } from "@/lib/constants";
+import { formatMoney, formatPercent, HomeCurrencyCode, HomeFormatLocale } from "@/lib/format";
 import { ITranslation } from "@/translations/ITranslation";
 import { Verdict } from "@/types/calculator.types";
 
 interface CalculatorResultsProps {
   t: ITranslation["HomePage"]["Calculator"];
-  locale: LocaleOption;
+  locale: HomeFormatLocale;
   currency?: HomeCurrencyCode;
   value: number;
   bid: number;

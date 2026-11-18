@@ -1,12 +1,12 @@
-import { CALCULATOR, LocaleOption, ZVG } from "@/lib/constants";
-import { formatPercent } from "@/lib/format";
+import { CALCULATOR, ZVG } from "@/lib/constants";
+import { formatPercent, HomeFormatLocale } from "@/lib/format";
 import { GaugeMark } from "@/lib/homeMarketData";
 import { ITranslation } from "@/translations/ITranslation";
 import { HearingKind } from "@/types/calculator.types";
 
 interface BidGaugeProps {
   t: ITranslation["HomePage"]["Calculator"];
-  locale: LocaleOption;
+  locale: HomeFormatLocale;
   value?: number;
   bidPct: number;
   hearing: HearingKind;
