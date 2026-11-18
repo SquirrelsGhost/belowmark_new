@@ -8,6 +8,7 @@ import { BELOWMARK_ORIGIN } from "@/lib/blog/blogSeo";
 import { ROUTES } from "@/lib/constants";
 import { EU_MARKET_COPY } from "@/lib/pseo/euMarketCopy";
 import { EU_MARKET_META } from "@/lib/pseo/euMarketRegions";
+import { buildPreviewCardListingHref } from "@/lib/pseo/publicListingUrls";
 import { EuMarketCatalog, EuPseoMarketCode } from "@/types/pseo.types";
 
 interface PseoEuHubViewProps {
@@ -93,6 +94,32 @@ export default function PseoEuHubView({ catalog }: PseoEuHubViewProps) {
               },
             }
           : {}),
+      },
+      {
+        "@type": "ItemList",
+        name: hubTitle,
+        description: copy.hubLead,
+        url: canonicalUrl,
+        numberOfItems: catalog.totalListings,
+        itemListElement: topListings.map((item, idx) => ({
+          "@type": "ListItem",
+          position: idx + 1,
+          item: {
+            "@type": "RealEstateListing",
+            name: `${item.title} — ${item.segmentLabel} in ${item.place} (${item.authority})`,
+            url: `${BELOWMARK_ORIGIN}${buildPreviewCardListingHref(item, catalog.locale)}`,
+            ...(item.minimumBid || item.appraisedValue
+              ? {
+                  offers: {
+                    "@type": "Offer",
+                    price: item.minimumBid ?? item.appraisedValue,
+                    priceCurrency: item.currency,
+                    availability: "https://schema.org/InStock",
+                  },
+                }
+              : {}),
+          },
+        })),
       },
       {
         "@type": "FAQPage",
@@ -235,6 +262,20 @@ export default function PseoEuHubView({ catalog }: PseoEuHubViewProps) {
               <Link key={ct.slug} href={`${catalog.hubPath}/${ct.slug}`} className="border border-rule bg-paper px-3 py-1.5 font-mono text-xs text-ink-soft hover:border-ink hover:text-ink">
                 {ct.name} ({ct.totalCount})
               </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {copy.faqs.length > 0 && (
+        <section className="mt-12 border-2 border-ink bg-paper-bright p-6 sm:p-8">
+          <h2 className="font-display text-2xl text-ink sm:text-3xl">{copy.faqHeading}</h2>
+          <div className="mt-5 space-y-4">
+            {copy.faqs.map((f) => (
+              <div key={f.q} className="border-b border-rule-strong pb-4 last:border-b-0">
+                <h3 className="font-display text-lg text-ink">{f.q}</h3>
+                <p className="mt-1.5 font-serif text-base leading-relaxed text-ink-soft">{f.a}</p>
+              </div>
             ))}
           </div>
         </section>

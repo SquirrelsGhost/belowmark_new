@@ -272,9 +272,9 @@ export const EU_MARKET_COPY: Record<EuPseoMarketCode, EuMarketCopyConfig> = {
     hubLead:
       "Directorio actualizado de subastas judiciales, notariales y de la Agencia Tributaria publicadas en el Portal de Subastas del Boletín Oficial del Estado (BOE) en las 17 comunidades autónomas — con Valor de Subasta, reglas del 70% y 50% (Art. 670 LEC), depósito del 5% y cálculo del ITP autonómico.",
     hubMetaTitle: (total) =>
-      `Subastas BOE (${total} Activas Hoy): Buscador sin Cl@ve -50%`,
+      `Subastas BOE 2026 (${total} Activas): Buscador Gratis sin Cl@ve`,
     hubMetaDesc: (total, rCount) =>
-      `Buscador abierto de Subastas BOE (${total} pisos, casas y locales activos en ${rCount} CCAA): consulta sin Cl@ve umbrales 70%/50% LEC, depósito 5% y 1 expediente gratis.`,
+      `Listado oficial actualizado de ${total} Subastas BOE en toda España (${rCount} CCAA): pisos, casas y locales al -50% (Art. 670 LEC), sin Cl@ve y 1 expediente gratis.`,
     calcButtonLabel: "🧮 Calculadora Gratuita Subasta BOE: Regla 70% / 50% (Art. 670 LEC), Depósito 5% e ITP →",
     ctaButtonLabel: "🎁 1 Expediente Gratis: Desbloquear Edicto BOE, Cargas y PDF →",
     regionsHeading: (c) => `Las ${c} Comunidades Autónomas de España (Subastas BOE)`,
@@ -323,15 +323,15 @@ export const EU_MARKET_COPY: Record<EuPseoMarketCode, EuMarketCopyConfig> = {
       `Listado actualizado de subastas judiciales del BOE (viviendas, locales y solares) en ${e.name} (${e.nativeRegionName}) — con Valor de Subasta BOE, umbral del 70% (Art. 670 LEC), depósito del 5% e ITP autonómico del ${e.transferTaxPct}%.`,
     entryMetaTitle: (e) => {
       const low = fmtMinEntry(e, 0.5, "es-ES", "EUR");
-      const full = `Subastas BOE ${e.name} (${e.totalCount} Hoy sin Cl@ve)${low ? ` desde ${low}` : " -50%"}`;
+      const full = `Subastas BOE ${e.name} 2026 (${e.totalCount} Pisos y Casas)${low ? ` desde ${low}` : ""}`;
       if (full.length <= 65) return full;
-      const mid = `Subastas BOE ${e.name} (${e.totalCount} sin Cl@ve)${low ? ` · ${low}` : " -50%"}`;
+      const mid = `Subastas BOE ${e.name} (${e.totalCount} Inmuebles)${low ? ` desde ${low}` : " -50%"}`;
       if (mid.length <= 65) return mid;
       return `Subastas BOE ${e.name}: ${e.totalCount} Activas sin Cl@ve -50%`;
     },
     entryMetaDesc: (e) => {
       const low = fmtMinEntry(e, 0.5, "es-ES", "EUR");
-      return `Buscador sin Cl@ve de las ${e.totalCount} Subastas BOE activas hoy en ${e.name}${low ? ` desde ${low} (-50% LEC)` : ""}: pisos, casas, garajes y locales judiciales + 1 expediente gratis.`;
+      return `Consulta gratis y sin Cl@ve las ${e.totalCount} Subastas BOE activas en ${e.name}${low ? ` desde ${low} (-50% Art. 670 LEC)` : ""}: pisos, casas, garajes y 1 expediente gratis.`;
     },
   },
   FR: {

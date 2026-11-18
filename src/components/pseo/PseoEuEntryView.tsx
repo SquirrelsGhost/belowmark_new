@@ -1,7 +1,6 @@
 import PseoDirectoryView from "@/components/pseo/PseoDirectoryView";
 import { BELOWMARK_ORIGIN } from "@/lib/blog/blogSeo";
 import { EU_MARKET_COPY } from "@/lib/pseo/euMarketCopy";
-import { EU_MARKET_META } from "@/lib/pseo/euMarketRegions";
 import { EuMarketCatalog, EuMarketLocationEntry, PseoLocale } from "@/types/pseo.types";
 
 interface PseoEuEntryViewProps {
@@ -115,9 +114,21 @@ function buildEntityFaq(entry: EuMarketLocationEntry, fmtAvg: string): { q: stri
   }
 }
 
+const HUB_BREADCRUMB_LABEL: Record<EuMarketCatalog["market"], string> = {
+  AT: "Ediktsdatei Österreich",
+  CH: "SHAB Versteigerungen Schweiz",
+  IT: "Aste Giudiziarie Italia",
+  ES: "Subastas BOE España",
+  FR: "Enchères Immobilières France",
+  GB: "UK Property Auctions",
+  NL: "Executieveiling Nederland",
+  PL: "Licytacje Komornicze Polska",
+  CZ: "Dražby Nemovitostí ČR",
+  SE: "Exekutiv Auktion Sverige",
+};
+
 export default function PseoEuEntryView({ catalog, entry }: PseoEuEntryViewProps) {
   const copy = EU_MARKET_COPY[catalog.market];
-  const meta = EU_MARKET_META[catalog.market];
   const sLabels = STAT_LABELS[catalog.locale] ?? STAT_LABELS.de;
 
   const fmtAvg = entry.avgAppraisedValue
@@ -130,7 +141,7 @@ export default function PseoEuEntryView({ catalog, entry }: PseoEuEntryViewProps
 
   const breadcrumbs = [
     { label: "Belowmark", href: "/" },
-    { label: meta.shortLabel, href: catalog.hubPath },
+    { label: HUB_BREADCRUMB_LABEL[catalog.market], href: catalog.hubPath },
     ...(entry.kind !== "region"
       ? [{ label: entry.nativeRegionName, href: `${catalog.hubPath}/${entry.regionSlug}` }]
       : []),
