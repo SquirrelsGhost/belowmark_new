@@ -12,6 +12,8 @@ import NavigationSpacer from "@/components/navigation/NavigationSpacer";
 import NavigationVerticalLine from "@/components/navigation/NavigationVerticalLine";
 import PaperTexture from "@/components/ui/PaperTexture";
 import { ROUTES } from "@/lib/constants";
+import { getFeaturedMarketHubs } from "@/lib/footerDirectoryData";
+import { getFooterDirectoryUi } from "@/lib/footerDirectoryUi";
 import { TranslationService } from "@/services/TranslationService";
 import { BlogLang } from "@/types/blog.types";
 
@@ -39,6 +41,8 @@ export default async function BlogShell({ lang, children }: BlogShellProps) {
   const locale = TranslationService.NormalizeLocale(lang);
   const t = TranslationService.GetTranslations(locale);
   const nav = t.Navigation;
+  const footerUi = getFooterDirectoryUi(lang);
+  const featuredHubs = getFeaturedMarketHubs(lang === "tr" ? "TR" : undefined);
   const homePrefix = "/";
   const blogHref =
     lang === "de"
@@ -46,7 +50,6 @@ export default async function BlogShell({ lang, children }: BlogShellProps) {
       : lang === "nl" || lang === "pl" || lang === "cs" || lang === "sv"
         ? "/en/blog"
         : `/${lang}/blog`;
-  const atlasHref = lang === "en" || lang === "fr" || lang === "it" || lang === "es" || lang === "tr" ? `/${lang}/atlas` : "/atlas";
   const searchLabel = SEARCH_NAV_LABEL[lang] ?? "Live Search";
 
   return (
@@ -72,28 +75,22 @@ export default async function BlogShell({ lang, children }: BlogShellProps) {
         tagline={t.Footer.Tagline}
         disclaimer={t.Footer.Disclaimer}
         rights={t.Footer.Rights}
+        lang={lang}
+        searchHref="/suche"
+        searchLabel={searchLabel}
       >
         <FooterColumn title={t.Footer.ProductTitle}>
-          <FooterLink href="/suche" label="🔍 Live-Suche (8 Länder · 22.700+ Objekte)" />
-          <FooterLink href={atlasHref} label="📊 Europäischer Markt-Atlas & Datenreport" />
-          <FooterLink href="/zwangsversteigerungen" label="🇩🇪 DE · ZVG Verzeichnis (16 Länder)" />
-          <FooterLink href="/oesterreich/ediktsdatei" label="🇦🇹 AT · Ediktsdatei (9 Länder)" />
-          <FooterLink href={lang === "fr" ? "/fr/suisse/ventes-aux-encheres-shab" : lang === "it" ? "/it/svizzera/aste-ufficio-esecuzione-fosc" : "/schweiz/shab-versteigerungen"} label="🇨🇭 CH · SHAB / FOSC / FUSC (26 Kantone)" />
-          <FooterLink href="/it/aste-giudiziarie" label="🇮🇹 IT · Aste Giudiziarie PVP (20 Regioni)" />
-          <FooterLink href="/es/subastas-boe" label="🇪🇸 ES · Subastas BOE (17 CCAA)" />
-          <FooterLink href="/fr/encheres-immobilieres" label="🇫🇷 FR · Enchères Licitor & Avoventes" />
-          <FooterLink href="/en/uk-property-auctions" label="🇬🇧 UK · Property Auctions (12 Regions)" />
-          <FooterLink href="/tr/icra-ihale" label="🇹🇷 TR · İcra & İhale (81 İl)" />
+          <FooterLink href="/suche" label={searchLabel} />
+          <FooterLink href={`${homePrefix}${ROUTES.calculator}`} label={nav.CalculatorLabel} />
+          <FooterLink href={`${homePrefix}${ROUTES.method}`} label={nav.MethodLabel} />
+          <FooterLink href={`${homePrefix}${ROUTES.pricing}`} label={nav.PricingLabel} />
+          <FooterLink href={footerUi.atlasHref} label={footerUi.atlasLabel} />
+          <FooterLink href={blogHref} label={nav.BlogLabel} />
         </FooterColumn>
-        <FooterColumn title={t.Footer.SourcesTitle}>
-          <FooterLink href="/rechner/5-10-und-7-10-grenze" label="🧮 DE · 5/10- & 7/10-Rechner" />
-          <FooterLink href="/oesterreich/rechner/geringstes-gebot-vadium" label="🧮 AT · § 151 EO & Vadium Rechner" />
-          <FooterLink href="/schweiz/rechner/betreibungsamtliche-steigerung-schkg" label="🧮 CH · SchKG Steigerungsrechner" />
-          <FooterLink href="/it/calcolatore/offerta-minima-75-asta-giudiziaria" label="🧮 IT · Calcolatore Offerta 75%" />
-          <FooterLink href="/es/calculadora/subasta-judicial-boe-70-por-ciento" label="🧮 ES · Calculadora BOE 70% LEC" />
-          <FooterLink href="/fr/calculateur/encheres-judiciaires-licitor-frais" label="🧮 FR · Calculateur Frais Licitor" />
-          <FooterLink href="/en/calculator/uk-property-auction-stamp-duty-deposit" label="🧮 UK · Auction & SDLT Calculator" />
-          <FooterLink href="/tr/hesaplama/icra-ihale-teminat" label="🧮 TR · İcra Teminat Hesaplama" />
+        <FooterColumn title={footerUi.marketsColumnTitle}>
+          {featuredHubs.map((hub) => (
+            <FooterLink key={hub.href} href={hub.href} label={hub.shortLabel} />
+          ))}
         </FooterColumn>
         <FooterColumn title={t.Footer.LegalTitle}>
           <FooterLink href={ROUTES.imprint} label={t.Footer.Imprint} />

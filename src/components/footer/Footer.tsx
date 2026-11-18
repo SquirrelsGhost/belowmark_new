@@ -1,5 +1,7 @@
 import { ReactNode } from "react";
+import Link from "next/link";
 import BrandMark from "@/components/brand/BrandMark";
+import FooterDirectoryDrawer from "@/components/footer/FooterDirectoryDrawer";
 import Container from "@/components/ui/Container";
 import { APP_NAME, CURRENT_YEAR } from "@/lib/constants";
 
@@ -7,22 +9,50 @@ interface FooterProps {
   tagline: string;
   disclaimer: string;
   rights: string;
+  lang?: string;
+  searchHref?: string;
+  searchLabel?: string;
+  topRegionsHeading?: string;
   /** <FooterColumn /> elements */
   children: ReactNode;
 }
 
-/** Ink footer with the oversized wordmark sitting on the market line. */
-export default function Footer({ tagline, disclaimer, rights, children }: FooterProps) {
+const searchCtaClass =
+  "mt-1 inline-flex items-center gap-2.5 border border-paper/22 bg-paper/[0.05] px-4 py-2 font-mono text-xs font-medium text-paper-bright transition-colors hover:border-signal hover:bg-signal";
+
+/** Ink footer with balanced primary columns, collapsible 12-market SEO index, and the oversized wordmark sitting on the market line. */
+export default function Footer({
+  tagline,
+  disclaimer,
+  rights,
+  lang,
+  searchHref,
+  searchLabel,
+  topRegionsHeading,
+  children,
+}: FooterProps) {
   return (
-    <footer className="relative overflow-hidden bg-ink text-paper-bright">
-      <Container className="relative z-10 grid gap-12 pt-16 pb-12 md:grid-cols-[1.4fr_repeat(3,1fr)]">
+    <footer className="relative overflow-hidden border-t-2 border-ink bg-ink text-paper-bright">
+      <Container className="relative z-10 grid gap-10 pt-16 pb-10 md:grid-cols-[1.35fr_repeat(3,1fr)] md:gap-12">
         <div className="flex flex-col items-start gap-5">
           <BrandMark inverted alwaysWordmark />
           <p className="max-w-xs font-serif text-2xl leading-tight italic text-paper/80">{tagline}</p>
+          {searchHref && searchLabel && (
+            <Link href={searchHref} className={searchCtaClass}>
+              <span aria-hidden="true" className="size-2 bg-signal" />
+              <span>{searchLabel}</span>
+              <span aria-hidden="true">→</span>
+            </Link>
+          )}
         </div>
         {children}
       </Container>
-      <Container className="relative z-10 flex flex-col gap-3 border-t border-paper/20 py-6 font-mono text-[11px] text-paper/50 sm:flex-row sm:items-center sm:justify-between">
+
+      <Container className="relative z-10 pb-10">
+        <FooterDirectoryDrawer lang={lang} topRegionsHeading={topRegionsHeading} />
+      </Container>
+
+      <Container className="relative z-10 flex flex-col gap-3 border-t border-paper/20 py-6 font-mono text-[11px] text-paper/55 sm:flex-row sm:items-center sm:justify-between">
         <span>{disclaimer}</span>
         <span className="flex flex-wrap items-center gap-x-4 gap-y-1 sm:shrink-0">
           <span>© {CURRENT_YEAR} {APP_NAME}. {rights}</span>
@@ -39,6 +69,7 @@ export default function Footer({ tagline, disclaimer, rights, children }: Footer
           </span>
         </span>
       </Container>
+
       <div aria-hidden="true" className="pointer-events-none relative select-none">
         <span className="absolute inset-x-0 top-[0.18em] h-1.5 bg-signal" />
         <p className="-mb-[0.12em] text-center font-display text-[19vw] leading-[0.8] tracking-tight text-paper/[0.07]">{APP_NAME}</p>
