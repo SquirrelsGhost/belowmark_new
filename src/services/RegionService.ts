@@ -6,17 +6,19 @@ import {
   DEFAULT_MARKET,
   DEFAULT_PRICING_COUNTRY,
   GEO_COUNTRY_HEADERS,
+  isLocaleOption,
   isPricingCountry,
+  LOCALE_COOKIE_NAME,
   LocaleOption,
   MARKET_COOKIE_NAME,
   MARKETS,
   MarketCode,
   PricingCountryCode,
-  pricingCountryToLocale,
   pricingCountryToMarket,
 } from "@/lib/constants";
 import {
   normalizeGeoCountryCode,
+  parseGeoScopedCookie,
   resolveFallbackFromAcceptLanguage,
   resolveLocaleForCountry,
   resolvePricingCountryForDetected,
@@ -31,7 +33,7 @@ export interface IRegion {
   locale: LocaleOption;
   /** true when the detected country directly matched one of the localized pricing markets */
   isCountryMatched: boolean;
-  /** true once the visitor picked the market/country in the pricing section */
+  /** true once the visitor picked the market/country in the pricing section during this location session */
   isMarketChosen: boolean;
   /** true when the host's geo header decided — then no browser check is needed */
   isFromGeoHeader: boolean;
@@ -48,8 +50,8 @@ export interface IRegion {
  *   3. Accept-Language header (when neither Geo-IP nor cookie exists yet)
  *   4. Global fallback language: English ("en")
  *
- * Once the visitor explicitly picks a country in the pricing switcher ("BELOWMARK_MARKET"),
- * the chosen market overrides automatic detection.
+ * Manual overrides (navbar language switcher or pricing market dropdown) are session-only
+ * and geo-scoped (`<geo>:<value>`), so traveling to another country always auto-detects fresh.
  */
 const SEARCH_CRAWLER_UA =
   /googlebot|adsbot-google|apis-google|mediapartners-google|inspectiontool|bingbot|adidxbot|msnbot|slurp|duckduckbot|baiduspider|yandexbot|applebot|facebookexternalhit|twitterbot|linkedinbot|oai-searchbot|gptbot|chatgpt-user|perplexitybot|claudebot|amazonbot|ahrefsbot|semrushbot/i;
@@ -58,13 +60,27 @@ export class RegionService {
   static GetRegion = cache(async (): Promise<IRegion> => {
     const headersList = await headers();
     const cookieStore = await cookies();
-
-    const chosenRaw = cookieStore.get(MARKET_COOKIE_NAME)?.value?.toUpperCase();
-    const isMarketChosen = isPricingCountry(chosenRaw);
     const ua = headersList.get("user-agent") ?? "";
 
+    const geoCountry =
+      GEO_COUNTRY_HEADERS.map((name) => normalizeGeoCountryCode(headersList.get(name))).find(Boolean) ?? null;
+    const cookieCountry = normalizeGeoCountryCode(cookieStore.get(COUNTRY_COOKIE_NAME)?.value);
+    const locationCountry = geoCountry ?? cookieCountry;
+
+    const scopedMarketRaw = parseGeoScopedCookie(
+      cookieStore.get(MARKET_COOKIE_NAME)?.value,
+      locationCountry,
+    )?.toUpperCase();
+    const isMarketChosen = isPricingCountry(scopedMarketRaw);
+
+    const scopedLocaleRaw = parseGeoScopedCookie(
+      cookieStore.get(LOCALE_COOKIE_NAME)?.value,
+      locationCountry,
+    )?.toLowerCase();
+    const chosenLocale = isLocaleOption(scopedLocaleRaw) ? scopedLocaleRaw : null;
+
     // Deterministic canonical region & English global default for search & AI crawlers
-    if (!isMarketChosen && SEARCH_CRAWLER_UA.test(ua)) {
+    if (!isMarketChosen && !chosenLocale && SEARCH_CRAWLER_UA.test(ua)) {
       return {
         market: DEFAULT_MARKET,
         pricingCountry: DEFAULT_PRICING_COUNTRY,
@@ -76,12 +92,7 @@ export class RegionService {
       };
     }
 
-    const geoCountry =
-      GEO_COUNTRY_HEADERS.map((name) => normalizeGeoCountryCode(headersList.get(name))).find(Boolean) ?? null;
-    const cookieCountry = normalizeGeoCountryCode(cookieStore.get(COUNTRY_COOKIE_NAME)?.value);
     const acceptLang = headersList.get("accept-language");
-
-    const locationCountry = geoCountry ?? cookieCountry;
     let detectedCountryCode: string | null;
     let detectedLocale: LocaleOption;
 
@@ -96,12 +107,8 @@ export class RegionService {
 
     const { pricingCountry: detectedPricingCountry, isCountryMatched } =
       resolvePricingCountryForDetected(detectedCountryCode);
-    const pricingCountry: PricingCountryCode = isMarketChosen ? chosenRaw : detectedPricingCountry;
-    const locale: LocaleOption = isMarketChosen
-      ? chosenRaw === "CH"
-        ? resolveLocaleForCountry("CH", acceptLang)
-        : pricingCountryToLocale(chosenRaw)
-      : detectedLocale;
+    const pricingCountry: PricingCountryCode = isMarketChosen ? scopedMarketRaw : detectedPricingCountry;
+    const locale: LocaleOption = chosenLocale ?? detectedLocale;
 
     return {
       market: pricingCountryToMarket(pricingCountry),

@@ -2,7 +2,9 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   detectCountryFromTimeZone,
+  formatGeoScopedCookie,
   normalizeGeoCountryCode,
+  parseGeoScopedCookie,
   parsePrimaryAcceptLanguage,
   resolveFallbackFromAcceptLanguage,
   resolveLocaleForCountry,
@@ -105,4 +107,20 @@ test("detectCountryFromTimeZone maps European, Turkish and international timezon
   assert.equal(detectCountryFromTimeZone("Asia/Dubai"), "US");
   assert.equal(detectCountryFromTimeZone("UTC"), null);
   assert.equal(detectCountryFromTimeZone(""), null);
+});
+
+test("parseGeoScopedCookie invalidates stale cookies when visitor travels to another country", () => {
+  const cookieInDe = formatGeoScopedCookie("DE", "de");
+  assert.equal(cookieInDe, "DE:de");
+  // Still in DE -> valid
+  assert.equal(parseGeoScopedCookie(cookieInDe, "DE"), "de");
+  // Traveled to TR -> invalidated (returns null so TR auto-detection wins!)
+  assert.equal(parseGeoScopedCookie(cookieInDe, "TR"), null);
+  // Legacy unscoped cookie ("DE") -> rejected (returns null!)
+  assert.equal(parseGeoScopedCookie("DE", "TR"), null);
+  assert.equal(parseGeoScopedCookie("DE", "DE"), null);
+  // Localhost / no geo country -> uses "--" scope
+  const localCookie = formatGeoScopedCookie(null, "en");
+  assert.equal(parseGeoScopedCookie(localCookie, null), "en");
+  assert.equal(parseGeoScopedCookie(localCookie, "TR"), null);
 });

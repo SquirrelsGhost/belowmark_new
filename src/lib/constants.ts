@@ -11,6 +11,9 @@ export const DEFAULT_LOCALE: LocaleOption = "en";
 export const LOCALE_OPTIONS = ["de", "tr", "en", "it", "es", "fr"] as const;
 export type LocaleOption = (typeof LOCALE_OPTIONS)[number];
 
+export const isLocaleOption = (value: unknown): value is LocaleOption =>
+  typeof value === "string" && (LOCALE_OPTIONS as readonly string[]).includes(value);
+
 /** The two separately booked markets: German/European ZVG & Turkish İcra/İhale. */
 export const MARKETS = ["DE", "TR"] as const;
 export type MarketCode = (typeof MARKETS)[number];
@@ -52,10 +55,14 @@ export const pricingCountryToLocale = (country: PricingCountryCode): LocaleOptio
 
 /** Country detected from the browser time zone when the host sends no geo header. */
 export const COUNTRY_COOKIE_NAME = "BELOWMARK_COUNTRY";
-/** Market the visitor picked in the pricing section. */
-export const MARKET_COOKIE_NAME = "BELOWMARK_MARKET";
-/** One year — how long detected country and chosen market are remembered. */
-export const REGION_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
+/** Geo-scoped pricing market picked in the pricing section (session-only). */
+export const MARKET_COOKIE_NAME = "BELOWMARK_PRICING_V2";
+/** Geo-scoped UI language manually selected in the navbar (session-only). */
+export const LOCALE_COOKIE_NAME = "BELOWMARK_LOCALE_V2";
+/** Legacy unscoped cookie name — purged when encountered so old DE cookies never override Geo-IP. */
+export const LEGACY_MARKET_COOKIE_NAME = "BELOWMARK_MARKET";
+/** Max age for browser time-zone fallback cookie when no CDN Geo-IP header is present (7 days). */
+export const REGION_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
 
 /** Geo headers set by common hosts & reverse proxies (Vercel, Cloudflare, CloudFront, Nginx), checked in order. */
 export const GEO_COUNTRY_HEADERS = [

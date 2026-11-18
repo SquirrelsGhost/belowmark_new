@@ -1,14 +1,13 @@
 "use server";
 
 import { randomBytes } from "node:crypto";
-import { cookies } from "next/headers";
 import { limitOrNull, mayMail, requestLocale, unknownError } from "@/lib/auth/actionHelpers";
 import { RATE_LIMITS } from "@/lib/auth/authConfig";
 import { verifyLoginPoW } from "@/lib/auth/loginPow";
 import { getRequestInfo } from "@/lib/auth/requestInfo";
 import { saveSignupContextCookie } from "@/lib/auth/signupContext";
 import { field, quickSignupSchema, signupSchema, toFieldErrors } from "@/lib/auth/validation";
-import { MARKET_COOKIE_NAME, PricingCountryCode, pricingCountryToMarket, REGION_COOKIE_MAX_AGE } from "@/lib/constants";
+import { PricingCountryCode, pricingCountryToMarket } from "@/lib/constants";
 import { AuthService } from "@/services/AuthService";
 import { MailService } from "@/services/MailService";
 import { RateLimitService } from "@/services/RateLimitService";
@@ -96,8 +95,6 @@ export async function signupAction(_prev: AuthFormState, formData: FormData): Pr
       },
       canMail,
     );
-    const cookieStore = await cookies();
-    cookieStore.set(MARKET_COOKIE_NAME, market, { path: "/", maxAge: REGION_COOKIE_MAX_AGE, sameSite: "lax" });
     await saveSignupContextCookie({ key: targetKey, city: targetCity, market });
     const explicitSrc = field(formData, "signupSource").trim();
     const srcKind = explicitSrc === "hub-inline" ? "hub-inline" : targetKey ? "dossier-inline" : "direct";

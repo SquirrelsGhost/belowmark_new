@@ -1,40 +1,65 @@
 "use server";
 
 import { eq } from "drizzle-orm";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { db } from "@/db";
 import { users } from "@/db/schema";
 import {
   COUNTRY_COOKIE_NAME,
+  GEO_COUNTRY_HEADERS,
+  isLocaleOption,
   isPricingCountry,
+  LEGACY_MARKET_COOKIE_NAME,
+  LOCALE_COOKIE_NAME,
+  LocaleOption,
   MARKET_COOKIE_NAME,
   PricingCountryCode,
   pricingCountryToMarket,
   REGION_COOKIE_MAX_AGE,
 } from "@/lib/constants";
 import { hasPermission } from "@/lib/permissions";
-import { normalizeGeoCountryCode } from "@/lib/regionLocale";
+import { formatGeoScopedCookie, normalizeGeoCountryCode } from "@/lib/regionLocale";
 import { SessionService } from "@/services/SessionService";
 
-const COOKIE_OPTIONS = { path: "/", maxAge: REGION_COOKIE_MAX_AGE, sameSite: "lax" } as const;
+const PERSISTENT_COUNTRY_COOKIE = { path: "/", maxAge: REGION_COOKIE_MAX_AGE, sameSite: "lax" } as const;
+const SESSION_SCOPED_COOKIE = { path: "/", sameSite: "lax" } as const;
+
+async function currentLocationScope(): Promise<string | null> {
+  const headersList = await headers();
+  const cookieStore = await cookies();
+  const geo = GEO_COUNTRY_HEADERS.map((name) => normalizeGeoCountryCode(headersList.get(name))).find(Boolean) ?? null;
+  if (geo) return geo;
+  return normalizeGeoCountryCode(cookieStore.get(COUNTRY_COOKIE_NAME)?.value);
+}
 
 /** Server Action: stores the 2-letter ISO country <RegionDetector /> derived from the browser time zone. */
 export async function setDetectedCountryAction(country: string): Promise<void> {
   const normalized = normalizeGeoCountryCode(country);
   if (!normalized) return;
   const cookieStore = await cookies();
-  cookieStore.set(COUNTRY_COOKIE_NAME, normalized, COOKIE_OPTIONS);
+  cookieStore.set(COUNTRY_COOKIE_NAME, normalized, PERSISTENT_COUNTRY_COOKIE);
+  cookieStore.delete(LEGACY_MARKET_COOKIE_NAME);
+}
+
+/** Server Action: stores the UI language picked in the top navigation bar (session-scoped to current country). */
+export async function setLocaleAction(locale: LocaleOption): Promise<void> {
+  if (!isLocaleOption(locale)) return;
+  const scope = await currentLocationScope();
+  const cookieStore = await cookies();
+  cookieStore.set(LOCALE_COOKIE_NAME, formatGeoScopedCookie(scope, locale), SESSION_SCOPED_COOKIE);
+  cookieStore.delete(LEGACY_MARKET_COOKIE_NAME);
 }
 
 /**
  * Server Action: stores the country/market picked in the pricing section or on /buchen.
- * If the signed-in user has no locked paid subscription (free/trial) or is an admin,
- * their account market is also updated immediately.
+ * Session-scoped to the current physical country so traveling never gets stuck on an old market.
  */
 export async function setMarketAction(country: PricingCountryCode): Promise<void> {
   if (!isPricingCountry(country)) return;
+  const scope = await currentLocationScope();
   const cookieStore = await cookies();
-  cookieStore.set(MARKET_COOKIE_NAME, country, COOKIE_OPTIONS);
+  cookieStore.set(MARKET_COOKIE_NAME, formatGeoScopedCookie(scope, country), SESSION_SCOPED_COOKIE);
+  cookieStore.delete(LEGACY_MARKET_COOKIE_NAME);
 
   const market = pricingCountryToMarket(country);
   const user = await SessionService.getCurrentUser();

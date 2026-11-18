@@ -182,3 +182,28 @@ export function detectCountryFromTimeZone(timeZone: string | null | undefined): 
   if (tz.includes("/")) return "US";
   return null;
 }
+
+/** Encodes a manual choice bound to the visitor's current detected country ("TR:en" or "--:en"). */
+export function formatGeoScopedCookie(
+  geoCountry: string | null | undefined,
+  value: string,
+): string {
+  const scope = normalizeGeoCountryCode(geoCountry) ?? "--";
+  return `${scope}:${value.trim()}`;
+}
+
+/**
+ * Reads a geo-scoped cookie and invalidates it automatically if the visitor
+ * is now physically in a different country (or if it is a legacy unscoped cookie).
+ */
+export function parseGeoScopedCookie(
+  rawCookie: string | null | undefined,
+  currentGeoCountry: string | null | undefined,
+): string | null {
+  if (!rawCookie || !rawCookie.includes(":")) return null;
+  const [rawScope, rawVal] = rawCookie.split(":", 2);
+  if (!rawScope || !rawVal) return null;
+  const expectedScope = normalizeGeoCountryCode(currentGeoCountry) ?? "--";
+  if (rawScope !== expectedScope) return null;
+  return rawVal.trim() || null;
+}

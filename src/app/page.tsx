@@ -17,6 +17,7 @@ import MethodSection from "@/components/method/MethodSection";
 import MethodStep from "@/components/method/MethodStep";
 import Navigation from "@/components/navigation/Navigation";
 import NavigationItem from "@/components/navigation/NavigationItem";
+import NavigationLanguageSwitch from "@/components/navigation/NavigationLanguageSwitch";
 import NavigationLoginButton from "@/components/navigation/NavigationLoginButton";
 import NavigationSkipLink from "@/components/navigation/NavigationSkipLink";
 import NavigationSpacer from "@/components/navigation/NavigationSpacer";
@@ -105,6 +106,7 @@ export default async function HomePage() {
         <NavigationItem href={ROUTES.faq} label={nav.FaqLabel} />
         <NavigationItem href={ROUTES.blog} label={nav.BlogLabel} />
         <NavigationVerticalLine />
+        <NavigationLanguageSwitch current={locale} />
         <NavigationLoginButton loginLabel={nav.LoginLabel} signupLabel={nav.SignupLabel} />
       </Navigation>
 
