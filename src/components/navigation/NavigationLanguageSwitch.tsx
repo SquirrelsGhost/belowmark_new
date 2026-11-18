@@ -11,19 +11,19 @@ interface NavigationLanguageSwitchProps {
 }
 
 const SELECTOR_OPTIONS: ReadonlyArray<{ code: HomeSelectorCode; label: string }> = [
-  { code: "DE", label: "🇩🇪 DE · Deutsch" },
-  { code: "AT", label: "🇦🇹 AT · Österreich" },
-  { code: "CH", label: "🇨🇭 CH · Schweiz" },
-  { code: "IT", label: "🇮🇹 IT · Italia" },
-  { code: "ES", label: "🇪🇸 ES · España" },
-  { code: "FR", label: "🇫🇷 FR · France" },
-  { code: "GB", label: "🇬🇧 UK · English" },
-  { code: "NL", label: "🇳🇱 NL · Nederland" },
-  { code: "PL", label: "🇵🇱 PL · Polska" },
-  { code: "CZ", label: "🇨🇿 CZ · Česko" },
-  { code: "SE", label: "🇸🇪 SE · Sverige" },
-  { code: "TR", label: "🇹🇷 TR · Türkiye" },
-  { code: "INTL", label: "🌐 EN · International" },
+  { code: "DE", label: "DE · Deutsch" },
+  { code: "AT", label: "AT · Österreich" },
+  { code: "CH", label: "CH · Schweiz" },
+  { code: "IT", label: "IT · Italia" },
+  { code: "ES", label: "ES · España" },
+  { code: "FR", label: "FR · France" },
+  { code: "GB", label: "UK · English" },
+  { code: "NL", label: "NL · Nederland" },
+  { code: "PL", label: "PL · Polska" },
+  { code: "CZ", label: "CZ · Česko" },
+  { code: "SE", label: "SE · Sverige" },
+  { code: "TR", label: "TR · Türkiye" },
+  { code: "INTL", label: "INTL · English" },
 ];
 
 /** Compact 12-country + International selector in the sticky masthead. */
