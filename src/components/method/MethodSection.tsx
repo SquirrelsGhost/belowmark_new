@@ -20,8 +20,8 @@ export default function MethodSection(props: MethodSectionProps) {
     <section id={ROUTES.method.slice(1)} className="scroll-mt-16 bg-ink py-20 text-paper-bright sm:py-28">
       <Container>
         <SectionHeader number={props.number} eyebrow={props.eyebrow} title={props.title} description={props.description} inverted />
-        <ol className="mt-16 grid border-t border-paper/25 md:grid-cols-3">{props.children}</ol>
-        <aside className="mt-14 grid gap-4 border border-paper/25 p-6 sm:grid-cols-[auto_1fr] sm:gap-10 sm:p-8">
+        <ol className="mt-16 grid border-t border-b border-paper/25 md:grid-cols-3">{props.children}</ol>
+        <aside className="mt-12 grid items-baseline gap-4 border border-paper/25 p-6 sm:grid-cols-[auto_1fr] sm:gap-10 sm:p-8">
           <p className="font-display text-2xl tracking-wide">{props.disclaimerTitle}</p>
           <p className="max-w-3xl leading-relaxed text-paper/70">{props.disclaimerBody}</p>
         </aside>
