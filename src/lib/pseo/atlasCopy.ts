@@ -38,11 +38,11 @@ export const ATLAS_COPY: Record<PseoLocale, AtlasLocaleCopy> = {
   de: {
     path: "/atlas",
     numLocale: "de-DE",
-    metaTitle: (t) => `Zwangsversteigerungs-Atlas 2026: ${t} Auktionen in 8 Ländern`,
-    metaDesc: (t) => `Aktuelle Primärdaten-Studie zu ${t} gerichtlichen Immobilienversteigerungen in DE, AT, CH, TR, IT, ES, FR & UK: Wertgrenzen, Kautionen & Gerichte.`,
-    eyebrow: "DATENREPORT & MARKTATLAS 2026 · 8 LÄNDER LIVE",
+    metaTitle: (t) => `Zwangsversteigerungs-Atlas 2026: ${t} Auktionen in 12 Ländern`,
+    metaDesc: (t) => `Aktuelle Primärdaten-Studie zu ${t} gerichtlichen Immobilienversteigerungen in 12 Ländern (DE, AT, CH, TR, IT, ES, FR, UK, NL, PL, CZ, SE): Wertgrenzen & Gerichte.`,
+    eyebrow: "DATENREPORT & MARKTATLAS 2026 · 12 LÄNDER LIVE",
     h1: (t) => `Europäischer Zwangsversteigerungs-Atlas: ${t} aktive Gerichtsverfahren im Vergleich`,
-    lead: "Tagesaktuelle Primärdaten-Auswertung amtlicher Vollstreckungsportale in 8 Märkten — Wertgrenzen, Kautionsregeln, Gerichtsstandorte und regionale Schwerpunkte für Investoren, Redaktionen und Finanzierungsberater.",
+    lead: "Tagesaktuelle Primärdaten-Auswertung amtlicher Vollstreckungsportale in 12 Märkten — Wertgrenzen, Kautionsregeln, Gerichtsstandorte und regionale Schwerpunkte für Investoren, Redaktionen und Finanzierungsberater.",
     tableHeading: "Ländervergleich: Verfahren, Portale & gesetzliche Mindestgebote",
     colCountry: "Land",
     colSource: "Amtliche Quelle",
@@ -296,16 +296,14 @@ export const ATLAS_COPY: Record<PseoLocale, AtlasLocaleCopy> = {
 };
 
 export function buildAtlasAlternates(activeLocale: PseoLocale) {
+  if (activeLocale !== "de") {
+    return { canonical: `${BELOWMARK_ORIGIN}${ATLAS_COPY[activeLocale].path}` };
+  }
   return {
-    canonical: `${BELOWMARK_ORIGIN}${ATLAS_COPY[activeLocale].path}`,
+    canonical: `${BELOWMARK_ORIGIN}/atlas`,
     languages: {
       de: `${BELOWMARK_ORIGIN}/atlas`,
-      en: `${BELOWMARK_ORIGIN}/en/atlas`,
-      fr: `${BELOWMARK_ORIGIN}/fr/atlas`,
-      it: `${BELOWMARK_ORIGIN}/it/atlas`,
-      es: `${BELOWMARK_ORIGIN}/es/atlas`,
-      tr: `${BELOWMARK_ORIGIN}/tr/atlas`,
-      "x-default": `${BELOWMARK_ORIGIN}/en/atlas`,
+      "x-default": `${BELOWMARK_ORIGIN}/atlas`,
     },
   };
 }

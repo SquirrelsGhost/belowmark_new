@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { permanentRedirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import BlogArticleView from "@/components/blog/BlogArticleView";
 import BlogShell from "@/components/blog/BlogShell";
@@ -23,7 +23,7 @@ interface LangArticleProps {
 export async function generateMetadata({ params }: LangArticleProps): Promise<Metadata> {
   const { lang, slug } = await params;
   if (!VALID_LANGS.has(lang as BlogLang)) {
-    permanentRedirect("/blog");
+    notFound();
   }
   const cleanLang = lang as BlogLang;
   const [t, { cluster }] = await Promise.all([
@@ -32,10 +32,7 @@ export async function generateMetadata({ params }: LangArticleProps): Promise<Me
   ]);
   const entry = cluster?.languages[cleanLang];
   if (!cluster || !entry) {
-    permanentRedirect(`/${cleanLang}/blog`);
-  }
-  if (entry.slug !== slug) {
-    permanentRedirect(entry.url);
+    notFound();
   }
   return {
     ...MetaTagService.CreateMetaTags({
@@ -53,12 +50,11 @@ export async function generateMetadata({ params }: LangArticleProps): Promise<Me
 export default async function LangBlogArticlePage({ params }: LangArticleProps) {
   await connection();
   const { lang, slug } = await params;
-  if (!VALID_LANGS.has(lang as BlogLang)) permanentRedirect("/blog");
+  if (!VALID_LANGS.has(lang as BlogLang)) notFound();
   const cleanLang = lang as BlogLang;
   const { cluster } = await BlogService.FindClusterBySlug(cleanLang, slug);
   const entry = cluster?.languages[cleanLang];
-  if (!cluster || !entry) permanentRedirect(`/${cleanLang}/blog`);
-  if (entry.slug !== slug) permanentRedirect(entry.url);
+  if (!cluster || !entry) notFound();
 
   return (
     <BlogShell lang={cleanLang}>

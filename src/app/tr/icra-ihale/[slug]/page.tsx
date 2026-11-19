@@ -1,9 +1,10 @@
 import { Metadata } from "next";
-import { permanentRedirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import BlogShell from "@/components/blog/BlogShell";
 import PseoDirectoryView from "@/components/pseo/PseoDirectoryView";
 import { BELOWMARK_ORIGIN, DEFAULT_BLOG_OG } from "@/lib/blog/blogSeo";
 import { formatNumber } from "@/lib/format";
+import { resolveTrEntityOrDormant } from "@/lib/pseo/euPageHelpers";
 import { MetaTagService } from "@/services/MetaTagService";
 import { PseoService } from "@/services/PseoService";
 
@@ -11,6 +12,14 @@ export const instant = false;
 
 interface TrIcraEntityPageProps {
   params: Promise<{ slug: string }>;
+}
+
+export async function generateStaticParams(): Promise<Array<{ slug: string }>> {
+  const catalog = await PseoService.GetCatalog();
+  return catalog.trLocations
+    .filter((l) => l.kind === "province")
+    .slice(0, 24)
+    .map((p) => ({ slug: p.slug }));
 }
 
 const formatTry = (val: number | null) =>
@@ -21,12 +30,9 @@ const formatTry = (val: number | null) =>
 export async function generateMetadata({ params }: TrIcraEntityPageProps): Promise<Metadata> {
   const { slug } = await params;
   const catalog = await PseoService.GetCatalog();
-  const entity = catalog.trBySlug.get(slug);
+  const entity = resolveTrEntityOrDormant(catalog, slug);
   if (!entity) {
-    permanentRedirect("/tr/icra-ihale");
-  }
-  if (entity.slug !== slug) {
-    permanentRedirect(`/tr/icra-ihale/${entity.slug}`);
+    notFound();
   }
 
   const trBids = entity.listings
@@ -69,9 +75,8 @@ export async function generateMetadata({ params }: TrIcraEntityPageProps): Promi
 export default async function TrIcraEntityPage({ params }: TrIcraEntityPageProps) {
   const { slug } = await params;
   const catalog = await PseoService.GetCatalog();
-  const entity = catalog.trBySlug.get(slug);
-  if (!entity) permanentRedirect("/tr/icra-ihale");
-  if (entity.slug !== slug) permanentRedirect(`/tr/icra-ihale/${entity.slug}`);
+  const entity = resolveTrEntityOrDormant(catalog, slug);
+  if (!entity) notFound();
 
   const provinces = catalog.trLocations.filter((l) => l.kind === "province" && l.slug !== entity.slug).slice(0, 24);
   const isCourt = entity.kind === "court";

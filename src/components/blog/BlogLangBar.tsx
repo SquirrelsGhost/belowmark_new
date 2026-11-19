@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { BLOG_COPY, BLOG_LANG_SWITCH } from "@/lib/blog/blogCopy";
+import { isIndexedBlogLang } from "@/lib/blog/blogSeo";
 import { BlogClusterItem, BlogLang } from "@/types/blog.types";
 
 interface BlogLangBarProps {
@@ -35,10 +36,14 @@ export default function BlogLangBar({ lang, backHref, backLabel, cluster }: Blog
         {BLOG_LANG_SWITCH.map((item) => {
           const targetHref = cluster ? (cluster.languages[item.code]?.url ?? item.href) : item.href;
           const isCurrent = item.code === lang;
+          const indexed = isIndexedBlogLang(item.code);
           return (
             <Link
               key={item.code}
               href={targetHref}
+              hrefLang={indexed ? item.code : undefined}
+              rel={indexed ? undefined : "nofollow"}
+              prefetch={indexed ? undefined : false}
               className={isCurrent ? ACTIVE_LINK_CLASS : INACTIVE_LINK_CLASS}
             >
               {item.flag} · {item.label}

@@ -1,9 +1,10 @@
 import { Metadata } from "next";
-import { permanentRedirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import BlogShell from "@/components/blog/BlogShell";
 import PseoDirectoryView from "@/components/pseo/PseoDirectoryView";
 import { BELOWMARK_ORIGIN, DEFAULT_BLOG_OG } from "@/lib/blog/blogSeo";
 import { formatEuro, formatNumber } from "@/lib/format";
+import { resolveDeCourtOrDormant } from "@/lib/pseo/euPageHelpers";
 import { MetaTagService } from "@/services/MetaTagService";
 import { PseoService } from "@/services/PseoService";
 
@@ -13,14 +14,16 @@ interface AmtsgerichtPageProps {
   params: Promise<{ slug: string }>;
 }
 
+export async function generateStaticParams(): Promise<Array<{ slug: string }>> {
+  const catalog = await PseoService.GetCatalog();
+  return catalog.courts.slice(0, 24).map((c) => ({ slug: c.slug }));
+}
+
 export async function generateMetadata({ params }: AmtsgerichtPageProps): Promise<Metadata> {
   const { slug } = await params;
   const catalog = await PseoService.GetCatalog();
-  const entity = catalog.courtBySlug.get(slug);
-  if (!entity) {
-    const legacyTarget = catalog.legacyCourtRedirects.get(slug);
-    permanentRedirect(legacyTarget ?? "/zwangsversteigerungen");
-  }
+  const entity = resolveDeCourtOrDormant(catalog, slug);
+  if (!entity) notFound();
 
   const minBidVal = entity.minAppraisedValue ? Math.round(entity.minAppraisedValue * 0.5) : null;
   const minBidStr = minBidVal ? ` ab ${formatEuro(minBidVal, "de")}` : "";
@@ -30,32 +33,32 @@ export async function generateMetadata({ params }: AmtsgerichtPageProps): Promis
       : entity.region;
   const fullTitle = `${entity.displayName}: ${entity.totalCount} ZVG-Termine & Immobilien${minBidStr}`;
   const compactTitle = `${entity.displayName}: ${entity.totalCount} Zwangsversteigerungen${minBidStr}`;
-  return MetaTagService.CreateMetaTags({
-    title: fullTitle.length <= 65 ? fullTitle : compactTitle,
-    description: `Alle ${entity.totalCount} aktuellen Zwangsversteigerungen & Termine am ${entity.displayName} (${agLabel})${minBidStr} — 50 %-Grenze, Verkehrswert & PDF-Gutachten.`,
-    imgUrl: DEFAULT_BLOG_OG,
-    tags: [
-      `${entity.displayName} Zwangsversteigerungen`,
-      `${entity.displayName} Termine`,
-      `${entity.authority} Zwangsversteigerung`,
-      `ZVG Termine ${entity.displayName}`,
-      `Immobilien Zwangsversteigerung ${entity.displayName}`,
-      entity.region,
-      "Verkehrswert",
-      "5/10 Grenze",
-    ],
-    url: `${BELOWMARK_ORIGIN}/amtsgericht/${entity.slug}`,
-  });
+  return {
+    ...MetaTagService.CreateMetaTags({
+      title: fullTitle.length <= 65 ? fullTitle : compactTitle,
+      description: `Alle ${entity.totalCount} aktuellen Zwangsversteigerungen & Termine am ${entity.displayName} (${agLabel})${minBidStr} — 50 %-Grenze, Verkehrswert & PDF-Gutachten.`,
+      imgUrl: DEFAULT_BLOG_OG,
+      tags: [
+        `${entity.displayName} Zwangsversteigerungen`,
+        `${entity.displayName} Termine`,
+        `${entity.authority} Zwangsversteigerung`,
+        `ZVG Termine ${entity.displayName}`,
+        `Immobilien Zwangsversteigerung ${entity.displayName}`,
+        entity.region,
+        "Verkehrswert",
+        "5/10 Grenze",
+      ],
+      url: `${BELOWMARK_ORIGIN}/amtsgericht/${entity.slug}`,
+    }),
+    ...(entity.totalCount === 0 ? { robots: { index: false, follow: true } } : {}),
+  };
 }
 
 export default async function AmtsgerichtPage({ params }: AmtsgerichtPageProps) {
   const { slug } = await params;
   const catalog = await PseoService.GetCatalog();
-  const entity = catalog.courtBySlug.get(slug);
-  if (!entity) {
-    const legacyTarget = catalog.legacyCourtRedirects.get(slug);
-    permanentRedirect(legacyTarget ?? "/zwangsversteigerungen");
-  }
+  const entity = resolveDeCourtOrDormant(catalog, slug);
+  if (!entity) notFound();
 
   const shortAg = entity.authority && entity.authority !== entity.displayName ? ` (${entity.authority})` : "";
 

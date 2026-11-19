@@ -1,9 +1,10 @@
 import { Metadata } from "next";
-import { permanentRedirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import BlogShell from "@/components/blog/BlogShell";
 import PseoDirectoryView from "@/components/pseo/PseoDirectoryView";
 import { BELOWMARK_ORIGIN, DEFAULT_BLOG_OG } from "@/lib/blog/blogSeo";
 import { formatEuro, formatNumber } from "@/lib/format";
+import { resolveDeCityOrDormant } from "@/lib/pseo/euPageHelpers";
 import { MetaTagService } from "@/services/MetaTagService";
 import { PseoService } from "@/services/PseoService";
 
@@ -13,14 +14,16 @@ interface StadtPageProps {
   params: Promise<{ stadt: string }>;
 }
 
+export async function generateStaticParams(): Promise<Array<{ stadt: string }>> {
+  const catalog = await PseoService.GetCatalog();
+  return catalog.cities.slice(0, 24).map((c) => ({ stadt: c.slug }));
+}
+
 export async function generateMetadata({ params }: StadtPageProps): Promise<Metadata> {
   const { stadt } = await params;
   const catalog = await PseoService.GetCatalog();
-  const entity = catalog.cityBySlug.get(stadt);
-  if (!entity) {
-    const legacyTarget = catalog.legacyCityRedirects.get(stadt);
-    permanentRedirect(legacyTarget ?? "/zwangsversteigerungen");
-  }
+  const entity = resolveDeCityOrDormant(catalog, stadt);
+  if (!entity) notFound();
 
   const minBidVal = entity.minAppraisedValue ? Math.round(entity.minAppraisedValue * 0.5) : null;
   const minBidStr = minBidVal ? ` ab ${formatEuro(minBidVal, "de")}` : "";
@@ -49,11 +52,8 @@ export async function generateMetadata({ params }: StadtPageProps): Promise<Meta
 export default async function ZwangsversteigerungStadtPage({ params }: StadtPageProps) {
   const { stadt } = await params;
   const catalog = await PseoService.GetCatalog();
-  const entity = catalog.cityBySlug.get(stadt);
-  if (!entity) {
-    const legacyTarget = catalog.legacyCityRedirects.get(stadt);
-    permanentRedirect(legacyTarget ?? "/zwangsversteigerungen");
-  }
+  const entity = resolveDeCityOrDormant(catalog, stadt);
+  if (!entity) notFound();
 
   return (
     <BlogShell lang="de">

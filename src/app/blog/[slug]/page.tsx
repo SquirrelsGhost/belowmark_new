@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { permanentRedirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import BlogArticleView from "@/components/blog/BlogArticleView";
 import BlogShell from "@/components/blog/BlogShell";
@@ -25,10 +25,7 @@ export async function generateMetadata({ params }: BlogSlugProps): Promise<Metad
   ]);
   const entry = cluster?.languages.de;
   if (!cluster || !entry) {
-    permanentRedirect("/blog");
-  }
-  if (entry.slug !== slug) {
-    permanentRedirect(entry.url);
+    notFound();
   }
   return {
     ...MetaTagService.CreateMetaTags({
@@ -48,8 +45,7 @@ export default async function BlogArticlePage({ params }: BlogSlugProps) {
   const { slug } = await params;
   const { cluster } = await BlogService.FindClusterBySlug("de", slug);
   const entry = cluster?.languages.de;
-  if (!cluster || !entry) permanentRedirect("/blog");
-  if (entry.slug !== slug) permanentRedirect(entry.url);
+  if (!cluster || !entry) notFound();
 
   return (
     <BlogShell lang="de">

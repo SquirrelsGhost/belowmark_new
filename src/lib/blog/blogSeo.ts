@@ -2,6 +2,11 @@ import { Metadata } from "next";
 import { BlogArticleLangEntry, BlogClusterItem, BlogLang } from "@/types/blog.types";
 
 export const BLOG_LANGS: readonly BlogLang[] = ["de", "tr", "en", "it", "es", "fr", "ar", "ru"];
+/** Primary blog language indexed in Google; translated `/[lang]/blog` routes stay live for UX with `noindex, follow`. */
+export const INDEXED_BLOG_LANGS: readonly BlogLang[] = ["de"];
+export const isIndexedBlogLang = (lang: string): boolean =>
+  (INDEXED_BLOG_LANGS as readonly string[]).includes(lang);
+
 export const BELOWMARK_ORIGIN = "https://www.belowmark.com";
 export const DEFAULT_BLOG_OG = `${BELOWMARK_ORIGIN}/og/home.png`;
 
@@ -121,6 +126,10 @@ const MARKET_HUB_LANGUAGES: Readonly<Record<string, string>> = {
   "es-ES": `${BELOWMARK_ORIGIN}/es/subastas-boe`,
   "fr-FR": `${BELOWMARK_ORIGIN}/fr/encheres-immobilieres`,
   "en-GB": `${BELOWMARK_ORIGIN}/en/uk-property-auctions`,
+  "nl-NL": `${BELOWMARK_ORIGIN}/nl/executieveiling`,
+  "pl-PL": `${BELOWMARK_ORIGIN}/pl/licytacje-komornicze`,
+  "cs-CZ": `${BELOWMARK_ORIGIN}/cz/drazby-nemovitosti`,
+  "sv-SE": `${BELOWMARK_ORIGIN}/se/exekutiv-auktion`,
   "tr-TR": `${BELOWMARK_ORIGIN}/tr/icra-ihale`,
   "x-default": `${BELOWMARK_ORIGIN}/zwangsversteigerungen`,
 };
@@ -133,6 +142,10 @@ const MARKET_CALC_LANGUAGES: Readonly<Record<string, string>> = {
   "es-ES": `${BELOWMARK_ORIGIN}/es/calculadora/subasta-judicial-boe-70-por-ciento`,
   "fr-FR": `${BELOWMARK_ORIGIN}/fr/calculateur/encheres-judiciaires-licitor-frais`,
   "en-GB": `${BELOWMARK_ORIGIN}/en/calculator/uk-property-auction-stamp-duty-deposit`,
+  "nl-NL": `${BELOWMARK_ORIGIN}/nl/calculator/executieveiling-kosten-overdrachtsbelasting`,
+  "pl-PL": `${BELOWMARK_ORIGIN}/pl/kalkulator/licytacja-komornicza-wadium`,
+  "cs-CZ": `${BELOWMARK_ORIGIN}/cz/kalkulacka/exekucni-drazba-nejnizsi-podani-jistota`,
+  "sv-SE": `${BELOWMARK_ORIGIN}/se/kalkylator/kronofogden-exekutiv-auktion-handpenning`,
   "tr-TR": `${BELOWMARK_ORIGIN}/tr/hesaplama/icra-ihale-teminat`,
   "x-default": `${BELOWMARK_ORIGIN}/rechner/5-10-und-7-10-grenze`,
 };
@@ -165,8 +178,11 @@ export const blogArticleCoverUrl = (cluster: BlogClusterItem, lang: BlogLang): s
   `${BELOWMARK_ORIGIN}${blogArticleCoverPath(cluster.clusterKey, lang)}`;
 
 export function blogHubAlternates(lang: BlogLang, origin = BELOWMARK_ORIGIN): Metadata["alternates"] {
+  if (!isIndexedBlogLang(lang)) {
+    return { canonical: blogHubUrl(lang, origin) };
+  }
   const languages: Record<string, string> = {};
-  BLOG_LANGS.forEach((l) => {
+  INDEXED_BLOG_LANGS.forEach((l) => {
     languages[l] = blogHubUrl(l, origin);
   });
   languages["x-default"] = blogHubUrl("de", origin);
@@ -181,8 +197,14 @@ export function blogArticleSeo(
   if (!isIndexableArticle(entry)) {
     return { robots: { index: false, follow: true } };
   }
+  if (!isIndexedBlogLang(lang)) {
+    return {
+      robots: { index: false, follow: true },
+      alternates: { canonical: `${BELOWMARK_ORIGIN}${entry.url}` },
+    };
+  }
   const languages: Record<string, string> = {};
-  BLOG_LANGS.forEach((l) => {
+  INDEXED_BLOG_LANGS.forEach((l) => {
     const e = cluster.languages[l];
     if (isIndexableArticle(e)) {
       languages[l] = `${BELOWMARK_ORIGIN}${e.url}`;

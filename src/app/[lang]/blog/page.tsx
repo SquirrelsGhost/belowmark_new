@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { permanentRedirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import BlogClusterCard from "@/components/blog/BlogClusterCard";
 import BlogHubGrid from "@/components/blog/BlogHubGrid";
@@ -29,7 +29,7 @@ interface LangBlogProps {
 export async function generateMetadata({ params }: LangBlogProps): Promise<Metadata> {
   const { lang } = await params;
   if (!VALID_LANGS.has(lang as BlogLang)) {
-    permanentRedirect("/blog");
+    notFound();
   }
   const cleanLang = lang as BlogLang;
   const t = await TranslationService.GetUserTranslations();
@@ -41,6 +41,7 @@ export async function generateMetadata({ params }: LangBlogProps): Promise<Metad
       description: copy.sub,
       url: `${BELOWMARK_ORIGIN}/${cleanLang}/blog`,
     }),
+    robots: { index: false, follow: true },
     alternates: blogHubAlternates(cleanLang, BELOWMARK_ORIGIN),
   };
 }
@@ -48,7 +49,7 @@ export async function generateMetadata({ params }: LangBlogProps): Promise<Metad
 export default async function LangBlogHubPage({ params }: LangBlogProps) {
   await connection();
   const { lang } = await params;
-  if (!VALID_LANGS.has(lang as BlogLang)) permanentRedirect("/blog");
+  if (!VALID_LANGS.has(lang as BlogLang)) notFound();
   const cleanLang = lang as BlogLang;
   const feed = await BlogService.GetFeed();
   const copy = BLOG_COPY[cleanLang];

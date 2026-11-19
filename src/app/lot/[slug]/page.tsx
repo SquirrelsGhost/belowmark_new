@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { connection } from "next/server";
 import { generatePublicListingMetadata, renderPublicListingPage } from "@/lib/pseo/publicListingPage";
 
 // Reads session cookie to show direct Investor Workbench button when signed in.
@@ -14,6 +15,7 @@ export async function generateMetadata({ params }: LotSlugPageProps): Promise<Me
 }
 
 export default async function PublicLotPage({ params }: LotSlugPageProps) {
+  await connection();
   const { slug } = await params;
   return renderPublicListingPage(slug, "/lot");
 }

@@ -1886,17 +1886,39 @@ const LEGACY_CITY_REDIRECTS: Readonly<Record<string, string>> = {
   "zumarraga": "/es/subastas-boe/zumarraga",
 };
 
-const EU_MARKET_CODES: readonly EuPseoMarketCode[] = ["AT", "CH", "IT", "ES", "FR", "GB"];
+const EU_MARKET_CODES: readonly EuPseoMarketCode[] = [
+  "AT",
+  "CH",
+  "IT",
+  "ES",
+  "FR",
+  "GB",
+  "NL",
+  "PL",
+  "CZ",
+  "SE",
+];
 
 const EU_HUB_REGION_SLUGS: ReadonlyArray<{
   hubPrefix: string;
   hubPath: string;
   regionSlugs: ReadonlySet<string>;
-}> = EU_MARKET_CODES.map((code) => ({
-  hubPrefix: `${EU_MARKET_META[code].hubPath}/`,
-  hubPath: EU_MARKET_META[code].hubPath,
-  regionSlugs: new Set(EU_REGION_SEEDS[code].map((seed) => seed.slug)),
-}));
+  aliasToCanonical: ReadonlyMap<string, string>;
+}> = EU_MARKET_CODES.map((code) => {
+  const aliasMap = new Map<string, string>();
+  for (const seed of EU_REGION_SEEDS[code]) {
+    const codeSlug = seed.code.toLowerCase();
+    if (codeSlug && codeSlug !== seed.slug) {
+      aliasMap.set(codeSlug, seed.slug);
+    }
+  }
+  return {
+    hubPrefix: `${EU_MARKET_META[code].hubPath}/`,
+    hubPath: EU_MARKET_META[code].hubPath,
+    regionSlugs: new Set(EU_REGION_SEEDS[code].map((seed) => seed.slug)),
+    aliasToCanonical: aliasMap,
+  };
+});
 
 function isNoisyPlaceSlug(slug: string): boolean {
   return (
@@ -1931,10 +1953,14 @@ export function resolvePseoCanonicalRedirect(pathname: string): string | null {
     }
   }
 
-  for (const { hubPrefix, hubPath, regionSlugs } of EU_HUB_REGION_SLUGS) {
+  for (const { hubPrefix, hubPath, regionSlugs, aliasToCanonical } of EU_HUB_REGION_SLUGS) {
     if (pathname.startsWith(hubPrefix)) {
       const slug = pathname.slice(hubPrefix.length);
       if (slug && !slug.includes("/")) {
+        const canonicalRegion = aliasToCanonical.get(slug);
+        if (canonicalRegion) {
+          return `${hubPath}/${canonicalRegion}`;
+        }
         if (!regionSlugs.has(slug) && slug.endsWith("-stadt")) {
           const baseSlug = slug.slice(0, -"-stadt".length);
           if (regionSlugs.has(baseSlug)) {

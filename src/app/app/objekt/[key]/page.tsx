@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { connection } from "next/server";
 import CaveatList from "@/components/app/listing/CaveatList";
 import CopyButton from "@/components/app/listing/CopyButton";
 import FactRow from "@/components/app/listing/FactRow";
@@ -65,6 +66,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function ListingPage({ params }: PageProps<"/app/objekt/[key]">) {
+  await connection();
   const key = decodeURIComponent((await params).key);
   const { viewer, t, app, locale, meta } = await getAppPageContext(listingHref(key));
   const { Listing: L, Row } = app;

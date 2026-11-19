@@ -1,14 +1,18 @@
 import { Metadata } from "next";
-import { permanentRedirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import BlogShell from "@/components/blog/BlogShell";
 import PseoEuEntryView from "@/components/pseo/PseoEuEntryView";
-import { buildEuEntryMetadata } from "@/lib/pseo/euPageHelpers";
+import { buildEuEntryMetadata, getEuStaticRegionParams, resolveEuEntryOrDormant } from "@/lib/pseo/euPageHelpers";
 import { PseoService } from "@/services/PseoService";
 
 export const instant = false;
 
 interface NlExecutieveilingEntryPageProps {
   params: Promise<{ slug: string }>;
+}
+
+export async function generateStaticParams(): Promise<Array<{ slug: string }>> {
+  return getEuStaticRegionParams("NL");
 }
 
 export async function generateMetadata({ params }: NlExecutieveilingEntryPageProps): Promise<Metadata> {
@@ -19,9 +23,8 @@ export async function generateMetadata({ params }: NlExecutieveilingEntryPagePro
 export default async function NlExecutieveilingEntryPage({ params }: NlExecutieveilingEntryPageProps) {
   const { slug } = await params;
   const catalog = (await PseoService.GetCatalog()).euMarkets.NL;
-  const entry = catalog.bySlug.get(slug);
-  if (!entry) permanentRedirect(catalog.hubPath);
-  if (entry.slug !== slug) permanentRedirect(`${catalog.hubPath}/${entry.slug}`);
+  const entry = resolveEuEntryOrDormant(catalog, slug);
+  if (!entry) notFound();
   return (
     <BlogShell lang="nl">
       <PseoEuEntryView catalog={catalog} entry={entry} />

@@ -1,5 +1,5 @@
 import { connection } from "next/server";
-import { BELOWMARK_ORIGIN, BLOG_LANGS, isIndexableArticle } from "@/lib/blog/blogSeo";
+import { BELOWMARK_ORIGIN, INDEXED_BLOG_LANGS, isIndexableArticle } from "@/lib/blog/blogSeo";
 import { BlogService } from "@/services/BlogService";
 
 const escapeXml = (str: string) =>
@@ -33,14 +33,14 @@ export async function GET(): Promise<Response> {
     };
 
     addUrl(`${BELOWMARK_ORIGIN}/blog`, "0.90", "daily", latestPub);
-    for (const lang of BLOG_LANGS) {
+    for (const lang of INDEXED_BLOG_LANGS) {
       if (lang === "de") continue;
       addUrl(`${BELOWMARK_ORIGIN}/${lang}/blog`, lang === "tr" ? "0.90" : "0.85", "daily", latestPub);
     }
 
     for (const cluster of feed.clusters) {
       const modDate = (cluster.publishedAt ?? latestPub).slice(0, 10);
-      for (const lang of BLOG_LANGS) {
+      for (const lang of INDEXED_BLOG_LANGS) {
         const entry = cluster.languages[lang];
         if (isIndexableArticle(entry)) {
           addUrl(`${BELOWMARK_ORIGIN}${entry.url}`, "0.85", "weekly", modDate);

@@ -66,15 +66,21 @@ export default function PublicAtlasView({ catalog, locale = "de" }: PublicAtlasV
             {copy.eyebrow}
           </span>
           <div className="flex flex-wrap gap-1.5 font-mono text-[11px]">
-            {LANG_SWITCH_ITEMS.map((item) => (
-              <Link
-                key={item.locale}
-                href={item.href}
-                className={`border px-2 py-0.5 ${item.locale === locale ? "border-signal bg-signal font-semibold text-paper-bright" : "border-rule-strong bg-paper text-ink-soft hover:border-ink hover:text-ink"}`}
-              >
-                {item.label}
-              </Link>
-            ))}
+            {LANG_SWITCH_ITEMS.map((item) => {
+              const indexed = item.locale === "de";
+              return (
+                <Link
+                  key={item.locale}
+                  href={item.href}
+                  hrefLang={indexed ? "de" : undefined}
+                  rel={indexed ? undefined : "nofollow"}
+                  prefetch={indexed ? undefined : false}
+                  className={`border px-2 py-0.5 ${item.locale === locale ? "border-signal bg-signal font-semibold text-paper-bright" : "border-rule-strong bg-paper text-ink-soft hover:border-ink hover:text-ink"}`}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
           </div>
         </div>
         <h1 className="mt-3 font-display text-3xl leading-tight text-ink sm:text-5xl">{copy.h1(fmt(grandTotal))}</h1>

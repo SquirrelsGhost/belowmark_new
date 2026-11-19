@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { permanentRedirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import BlogShell from "@/components/blog/BlogShell";
 import PublicAtlasView from "@/components/pseo/PublicAtlasView";
@@ -20,8 +20,7 @@ interface LangAtlasPageProps {
 
 export async function generateMetadata({ params }: LangAtlasPageProps): Promise<Metadata> {
   const { lang } = await params;
-  if (lang === "de") permanentRedirect("/atlas");
-  if (!ATLAS_LANGS.has(lang as PseoLocale)) permanentRedirect("/atlas");
+  if (!ATLAS_LANGS.has(lang as PseoLocale)) notFound();
   const locale = lang as PseoLocale;
   const copy = ATLAS_COPY[locale];
 
@@ -44,6 +43,7 @@ export async function generateMetadata({ params }: LangAtlasPageProps): Promise<
       ],
       url: `${BELOWMARK_ORIGIN}${copy.path}`,
     }),
+    robots: { index: false, follow: true },
     alternates: buildAtlasAlternates(locale),
   };
 }
@@ -51,8 +51,7 @@ export async function generateMetadata({ params }: LangAtlasPageProps): Promise<
 export default async function LangAtlasPage({ params }: LangAtlasPageProps) {
   await connection();
   const { lang } = await params;
-  if (lang === "de") permanentRedirect("/atlas");
-  if (!ATLAS_LANGS.has(lang as PseoLocale)) permanentRedirect("/atlas");
+  if (!ATLAS_LANGS.has(lang as PseoLocale)) notFound();
   const locale = lang as PseoLocale;
   const catalog = await PseoService.GetCatalog();
 

@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { permanentRedirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import BlogShell from "@/components/blog/BlogShell";
 import PseoDirectoryView from "@/components/pseo/PseoDirectoryView";
 import { BELOWMARK_ORIGIN, DEFAULT_BLOG_OG } from "@/lib/blog/blogSeo";
@@ -13,15 +13,17 @@ interface BundeslandPageProps {
   params: Promise<{ slug: string }>;
 }
 
+export async function generateStaticParams(): Promise<Array<{ slug: string }>> {
+  const catalog = await PseoService.GetCatalog();
+  return catalog.deStates.map((s) => ({ slug: s.slug }));
+}
+
 export async function generateMetadata({ params }: BundeslandPageProps): Promise<Metadata> {
   const { slug } = await params;
   const catalog = await PseoService.GetCatalog();
   const state = catalog.deStateBySlug.get(slug);
   if (!state) {
-    permanentRedirect("/zwangsversteigerungen");
-  }
-  if (state.slug !== slug) {
-    permanentRedirect(`/bundesland/${state.slug}`);
+    notFound();
   }
 
   const minBidVal = state.minAppraisedValue ? Math.round(state.minAppraisedValue * 0.5) : null;
@@ -45,8 +47,7 @@ export default async function BundeslandPage({ params }: BundeslandPageProps) {
   const { slug } = await params;
   const catalog = await PseoService.GetCatalog();
   const state = catalog.deStateBySlug.get(slug);
-  if (!state) permanentRedirect("/zwangsversteigerungen");
-  if (state.slug !== slug) permanentRedirect(`/bundesland/${state.slug}`);
+  if (!state) notFound();
 
   return (
     <BlogShell lang="de">

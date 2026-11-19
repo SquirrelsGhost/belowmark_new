@@ -91,10 +91,6 @@ function attachRotatedCookie(response: NextResponse, user: SessionUser, rawCooki
  */
 export async function proxy(req: NextRequest): Promise<NextResponse> {
   const { pathname, search } = req.nextUrl;
-  const host = (req.headers.get("x-forwarded-host") ?? req.headers.get("host") ?? "").split(",")[0].trim().toLowerCase();
-  if (host === "belowmark.com") {
-    return NextResponse.redirect(new URL(`${pathname}${search}`, "https://www.belowmark.com"), 301);
-  }
   const policy = findPolicy(req.method, pathname);
 
   // 1. Deny by default: no policy = no access (403 Forbidden)
@@ -107,14 +103,7 @@ export async function proxy(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ success: false, error: "Automated access forbidden" }, { status: 403 });
   }
 
-  const requestHeaders = new Headers(req.headers);
-  requestHeaders.delete("x-user-id");
-  requestHeaders.delete("x-user-name");
-  requestHeaders.delete("x-user-permissions");
-  requestHeaders.delete(VERIFIED_SESSION_HEADER);
-  requestHeaders.set("x-pathname", pathname);
-
-  // 2. Public routes skip session validation (with O(1) canonical 308 pSEO redirect check)
+  // 2. Public routes skip session validation (with O(1) canonical 308 pSEO redirect + clean fast-path)
   if (policy.access === "public") {
     if (req.method === "GET" || req.method === "HEAD") {
       const canonicalRedirect = resolvePseoCanonicalRedirect(pathname);
@@ -122,8 +111,33 @@ export async function proxy(req: NextRequest): Promise<NextResponse> {
         return NextResponse.redirect(new URL(`${canonicalRedirect}${search}`, req.url), 308);
       }
     }
-    return NextResponse.next({ request: { headers: requestHeaders } });
+
+    const hasSpoofableHeader =
+      req.headers.has("x-user-id") ||
+      req.headers.has("x-user-name") ||
+      req.headers.has("x-user-permissions") ||
+      req.headers.has(VERIFIED_SESSION_HEADER) ||
+      req.headers.has("x-pathname");
+
+    if (pathname === "/" && !hasSpoofableHeader) {
+      return NextResponse.next();
+    }
+
+    const publicHeaders = new Headers(req.headers);
+    publicHeaders.delete("x-user-id");
+    publicHeaders.delete("x-user-name");
+    publicHeaders.delete("x-user-permissions");
+    publicHeaders.delete(VERIFIED_SESSION_HEADER);
+    publicHeaders.set("x-pathname", pathname);
+    return NextResponse.next({ request: { headers: publicHeaders } });
   }
+
+  const requestHeaders = new Headers(req.headers);
+  requestHeaders.delete("x-user-id");
+  requestHeaders.delete("x-user-name");
+  requestHeaders.delete("x-user-permissions");
+  requestHeaders.delete(VERIFIED_SESSION_HEADER);
+  requestHeaders.set("x-pathname", pathname);
 
   // 3. Unified Session + Ban Check (with two-phase ACK-confirmed 15-min tokenId rotation)
   const rawCookie =
