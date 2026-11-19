@@ -186,6 +186,10 @@ export class BillingUpgradeService {
       fr: "Belowmark Passage à Pro · période restante",
       es: "Belowmark Cambio a Pro · periodo restante",
       it: "Belowmark Passaggio a Pro · periodo residuo",
+      pl: "Belowmark Przejście na Pro · pozostały okres",
+      cs: "Belowmark Přechod na Pro · zbývající období",
+      nl: "Belowmark Upgrade naar Pro · resterende looptijd",
+      sv: "Belowmark Uppgradering till Pro · återstående tid",
     };
     const name = upgradeNames[stripeLocale];
     const session = await stripeClient().checkout.sessions.create(

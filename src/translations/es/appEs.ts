@@ -42,7 +42,7 @@ export const APP_ES: IAppTranslation = {
     Calculator: "Calculadora",
     Account: "Cuenta",
     SignOut: "Cerrar sesión",
-    Market: { DE: "Europa · 7 países", TR: "İcra · Turquía" },
+    Market: { DE: "Europa · 11 países", TR: "İcra · Turquía" },
     TrialRunning: "Acceso de prueba (quedan {days} días): acceso completo — finaliza automáticamente, sin datos de pago ni renovación automática.",
     TrialLastDay: "Acceso de prueba (último día): finaliza automáticamente sin costes — sin tarjeta guardada ni cobro automático.",
     FreePlan: "Cuenta gratuita (14 días sin compromiso — fin automático): Sin datos de pago registrados ni renovación automática.",
@@ -63,7 +63,7 @@ export const APP_ES: IAppTranslation = {
   },
 
   Search: {
-    Eyebrow: { DE: "Tablón de edictos · DE · AT · CH · IT · ES · FR · UK", TR: "Tablón de anuncios · Subastas ejecutivas Turquía" },
+    Eyebrow: { DE: "Tablón de edictos · DE · AT · CH · IT · ES · FR · UK · NL · PL · CZ · SE", TR: "Tablón de anuncios · Subastas ejecutivas Turquía" },
     Title: "Edictos de subasta",
     Countries: {
       DE: { Name: "Alemania", Source: "Portal ZVG", Region: "Estado federado" },

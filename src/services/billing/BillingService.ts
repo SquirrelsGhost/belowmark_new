@@ -20,12 +20,22 @@ import { isStripeTestKey, stripeClient } from "@/services/billing/StripeClient";
 import { resolveUserHardwareFingerprint } from "@/services/FreeUnlockService";
 import { BillingAccess, BillingAvailability, OrderBlocker, OrderResult } from "@/types/billing.types";
 
-export type StripeSupportedLocale = "de" | "tr" | "en" | "fr" | "es" | "it";
-export type StripeCheckoutUiLocale = StripeSupportedLocale | "nl" | "pl" | "cs" | "sv";
+export type StripeSupportedLocale = "de" | "tr" | "en" | "fr" | "es" | "it" | "pl" | "cs" | "nl" | "sv";
+export type StripeCheckoutUiLocale = StripeSupportedLocale;
 
 export function toStripeLocale(locale: string | null | undefined): StripeSupportedLocale {
   const clean = (locale || "de").trim().toLowerCase().slice(0, 2);
-  if (clean === "tr" || clean === "en" || clean === "fr" || clean === "es" || clean === "it") {
+  if (
+    clean === "tr" ||
+    clean === "en" ||
+    clean === "fr" ||
+    clean === "es" ||
+    clean === "it" ||
+    clean === "pl" ||
+    clean === "cs" ||
+    clean === "nl" ||
+    clean === "sv"
+  ) {
     return clean;
   }
   return "de";
@@ -81,6 +91,34 @@ const OFFER_NAMES: Record<StripeSupportedLocale, Record<BillingOfferId, string>>
     "investor-quartal": "Belowmark Investor · 3 Mesi",
     "pro-monat": "Belowmark Pro · Mensile",
     "pro-quartal": "Belowmark Pro · 3 Mesi",
+  },
+  pl: {
+    "investor-monat": "Belowmark Investor · Miesięcznie",
+    "investor-pass": "Belowmark Investor · 14-dniowy Karnet Jednorazowy (Bez Subskrypcji)",
+    "investor-quartal": "Belowmark Investor · 3 Miesiące",
+    "pro-monat": "Belowmark Pro · Miesięcznie",
+    "pro-quartal": "Belowmark Pro · 3 Miesiące",
+  },
+  cs: {
+    "investor-monat": "Belowmark Investor · Měsíčně",
+    "investor-pass": "Belowmark Investor · 14denní Jednorázový Přístup (Bez Předplatného)",
+    "investor-quartal": "Belowmark Investor · 3 Měsíce",
+    "pro-monat": "Belowmark Pro · Měsíčně",
+    "pro-quartal": "Belowmark Pro · 3 Měsíce",
+  },
+  nl: {
+    "investor-monat": "Belowmark Investor · Maandelijks",
+    "investor-pass": "Belowmark Investor · 14-daagse Eenmalige Pas (Geen Abonnement)",
+    "investor-quartal": "Belowmark Investor · 3 Maanden",
+    "pro-monat": "Belowmark Pro · Maandelijks",
+    "pro-quartal": "Belowmark Pro · 3 Maanden",
+  },
+  sv: {
+    "investor-monat": "Belowmark Investor · Månadsvis",
+    "investor-pass": "Belowmark Investor · 14-dagars Engångspass (Ingen Prenumeration)",
+    "investor-quartal": "Belowmark Investor · 3 Månader",
+    "pro-monat": "Belowmark Pro · Månadsvis",
+    "pro-quartal": "Belowmark Pro · 3 Månader",
   },
 };
 

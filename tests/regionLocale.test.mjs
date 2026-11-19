@@ -49,11 +49,11 @@ test("resolveLocaleForCountry maps countries to their native language and defaul
   assert.equal(resolveLocaleForCountry("MC"), "fr");
   assert.equal(resolveLocaleForCountry("GB"), "en");
 
-  // Supported pricing markets without separate UI translation -> English default
-  assert.equal(resolveLocaleForCountry("NL"), "en");
-  assert.equal(resolveLocaleForCountry("PL"), "en");
-  assert.equal(resolveLocaleForCountry("CZ"), "en");
-  assert.equal(resolveLocaleForCountry("SE"), "en");
+  // Newly localized European markets -> native UI language
+  assert.equal(resolveLocaleForCountry("NL"), "nl");
+  assert.equal(resolveLocaleForCountry("PL"), "pl");
+  assert.equal(resolveLocaleForCountry("CZ"), "cs");
+  assert.equal(resolveLocaleForCountry("SE"), "sv");
 
   // Rest of the world & unknown -> English default (even if browser were e.g. pt-BR or ja)
   assert.equal(resolveLocaleForCountry("US"), "en");
@@ -67,7 +67,7 @@ test("resolveLocaleForCountry maps countries to their native language and defaul
 
 test("resolveLocaleForCountry handles multilingual BE/LU/CA/CY nuances", () => {
   assert.equal(resolveLocaleForCountry("BE", "fr-BE,fr;q=0.9"), "fr");
-  assert.equal(resolveLocaleForCountry("BE", "nl-BE,nl;q=0.9"), "en");
+  assert.equal(resolveLocaleForCountry("BE", "nl-BE,nl;q=0.9"), "nl");
   assert.equal(resolveLocaleForCountry("CA", "fr-CA,fr;q=0.9"), "fr");
   assert.equal(resolveLocaleForCountry("CA", "en-CA,en;q=0.9"), "en");
   assert.equal(resolveLocaleForCountry("CY", "tr-TR,tr;q=0.9"), "tr");

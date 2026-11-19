@@ -38,6 +38,10 @@ export const MARKET_SEARCH_PLACEHOLDERS: Record<LocaleOption, string> = {
   fr: "Rechercher pays, code ou devise (ex. FR, CH, BE, TR …)",
   es: "Buscar país, código o divisa (p. ej. ES, DE, CH, TR …)",
   it: "Cerca Paese, codice o valuta (es. IT, CH, DE, TR …)",
+  pl: "Szukaj kraju, kodu lub waluty (np. PL, DE, CZ, PLN …)",
+  cs: "Hledat zemi, kód nebo měnu (např. CZ, DE, PL, CZK …)",
+  nl: "Zoek land, code of valuta (bijv. NL, DE, BE, EUR …)",
+  sv: "Sök land, kod eller valuta (t.ex. SE, DE, UK, SEK …)",
 };
 
 export const MARKET_SEARCH_EMPTY: Record<LocaleOption, string> = {
@@ -47,6 +51,10 @@ export const MARKET_SEARCH_EMPTY: Record<LocaleOption, string> = {
   fr: "Aucun pays correspondant.",
   es: "No se encontró ningún país.",
   it: "Nessun Paese trovato.",
+  pl: "Nie znaleziono pasującego kraju.",
+  cs: "Nebyla nalezena žádná odpovídající země.",
+  nl: "Geen passend land gevonden.",
+  sv: "Inget matchande land hittades.",
 };
 
 export function matchesMarketSearch(

@@ -17,6 +17,10 @@ const LOCALE_FORMAT: Record<LocaleOption, string> = {
   it: "it-IT",
   es: "es-ES",
   fr: "fr-FR",
+  pl: "pl-PL",
+  cs: "cs-CZ",
+  nl: "nl-NL",
+  sv: "sv-SE",
 };
 
 const QUICK_OPEN_LABEL: Record<LocaleOption, string> = {
@@ -26,12 +30,19 @@ const QUICK_OPEN_LABEL: Record<LocaleOption, string> = {
   fr: "🔓 Ouvrir ce Dossier Gratuit →",
   es: "🔓 Abrir Este Expediente Gratis →",
   it: "🔓 Sblocca Questo Fascicolo Gratis →",
+  pl: "🔓 Otwórz te akta za darmo →",
+  cs: "🔓 Odemknout tento spis zdarma →",
+  nl: "🔓 Dit dossier gratis openen →",
+  sv: "🔓 Lås upp denna akt gratis →",
 };
 
-function defaultCurrency(country: ListingCountry): "EUR" | "CHF" | "GBP" | "TRY" {
+function defaultCurrency(country: ListingCountry): "EUR" | "CHF" | "GBP" | "TRY" | "PLN" | "CZK" | "SEK" {
   if (country === "CH") return "CHF";
   if (country === "GB") return "GBP";
   if (country === "TR") return "TRY";
+  if (country === "PL") return "PLN";
+  if (country === "CZ") return "CZK";
+  if (country === "SE") return "SEK";
   return "EUR";
 }
 

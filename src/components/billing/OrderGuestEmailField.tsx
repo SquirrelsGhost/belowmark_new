@@ -53,6 +53,30 @@ const COPY: Record<
     hint: "Nessuna password richiesta in anticipo — l'accesso completo viene attivato su questa e-mail.",
     error: "Inserisci un indirizzo e-mail valido.",
   },
+  pl: {
+    legend: "Twój adres e-mail (Dostęp i Faktura)",
+    placeholder: "imie@przyklad.pl",
+    hint: "Hasło nie jest wymagane z góry — pełny dostęp zostanie aktywowany bezpośrednio dla tego adresu e-mail.",
+    error: "Podaj prawidłowy adres e-mail (bez adresów tymczasowych).",
+  },
+  cs: {
+    legend: "Vaše e-mailová adresa (Přístup a Faktura)",
+    placeholder: "jmeno@priklad.cz",
+    hint: "Heslo není předem nutné — plný přístup bude aktivován přímo pro tuto e-mailovou adresu.",
+    error: "Zadejte prosím platnou e-mailovou adresu (žádné dočasné adresy).",
+  },
+  nl: {
+    legend: "Uw e-mailadres (Toegang & Factuur)",
+    placeholder: "naam@voorbeeld.nl",
+    hint: "Vooraf geen wachtwoord nodig — uw volledige toegang wordt direct op dit e-mailadres geactiveerd.",
+    error: "Vul een geldig e-mailadres in (geen wegwerpadressen).",
+  },
+  sv: {
+    legend: "Din e-postadress (Åtkomst & Kvitto)",
+    placeholder: "namn@exempel.se",
+    hint: "Inget lösenord krävs i förväg — full åtkomst aktiveras direkt för denna e-postadress.",
+    error: "Ange en giltig e-postadress (inga engångsadresser).",
+  },
 };
 
 export default function OrderGuestEmailField({

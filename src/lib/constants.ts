@@ -8,7 +8,7 @@ export const APP_NAME = "Belowmark";
 export const DEFAULT_LOCALE: LocaleOption = "en";
 
 /** Locales the page is written in; used for Intl formatting and the lang attribute. */
-export const LOCALE_OPTIONS = ["de", "tr", "en", "it", "es", "fr"] as const;
+export const LOCALE_OPTIONS = ["de", "tr", "en", "it", "es", "fr", "pl", "cs", "nl", "sv"] as const;
 export type LocaleOption = (typeof LOCALE_OPTIONS)[number];
 
 export const isLocaleOption = (value: unknown): value is LocaleOption =>
@@ -37,11 +37,15 @@ export const pricingCountryToLocale = (country: PricingCountryCode): LocaleOptio
     case "TR":
       return "tr";
     case "GB":
-    case "NL":
-    case "PL":
-    case "CZ":
-    case "SE":
       return "en";
+    case "NL":
+      return "nl";
+    case "PL":
+      return "pl";
+    case "CZ":
+      return "cs";
+    case "SE":
+      return "sv";
     case "IT":
       return "it";
     case "ES":

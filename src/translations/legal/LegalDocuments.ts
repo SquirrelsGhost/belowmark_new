@@ -1,5 +1,9 @@
 import { LocaleOption } from "@/lib/constants";
 import { LegalDocument, LEGAL_GAP } from "../../types/legal.types";
+import { IMPRINT_CS } from "./cs/imprintCs";
+import { PRIVACY_CS } from "./cs/privacyCs";
+import { termsCs } from "./cs/termsCs";
+import { WITHDRAWAL_CS } from "./cs/withdrawalCs";
 import { IMPRINT_DE } from "./de/imprintDe";
 import { PRIVACY_DE } from "./de/privacyDe";
 import { termsDe } from "./de/termsDe";
@@ -20,6 +24,18 @@ import { IMPRINT_IT } from "./it/imprintIt";
 import { PRIVACY_IT } from "./it/privacyIt";
 import { termsIt } from "./it/termsIt";
 import { WITHDRAWAL_IT } from "./it/withdrawalIt";
+import { IMPRINT_NL } from "./nl/imprintNl";
+import { PRIVACY_NL } from "./nl/privacyNl";
+import { termsNl } from "./nl/termsNl";
+import { WITHDRAWAL_NL } from "./nl/withdrawalNl";
+import { IMPRINT_PL } from "./pl/imprintPl";
+import { PRIVACY_PL } from "./pl/privacyPl";
+import { termsPl } from "./pl/termsPl";
+import { WITHDRAWAL_PL } from "./pl/withdrawalPl";
+import { IMPRINT_SV } from "./sv/imprintSv";
+import { PRIVACY_SV } from "./sv/privacySv";
+import { termsSv } from "./sv/termsSv";
+import { WITHDRAWAL_SV } from "./sv/withdrawalSv";
 import { IMPRINT_TR } from "./tr/imprintTr";
 import { PRIVACY_TR } from "./tr/privacyTr";
 import { termsTr } from "./tr/termsTr";
@@ -27,7 +43,7 @@ import { WITHDRAWAL_TR } from "./tr/withdrawalTr";
 
 export type LegalDocumentKey = "imprint" | "terms" | "withdrawal" | "privacy";
 
-/** Returns the localized legal document for DE, TR, EN, IT, ES or FR. */
+/** Returns the localized legal document for all 10 supported UI languages. */
 export function legalDocument(
   key: LegalDocumentKey,
   vatMode: "inclusive" | "kleinunternehmer" | null,
@@ -35,33 +51,49 @@ export function legalDocument(
 ): LegalDocument {
   switch (key) {
     case "imprint":
+      if (lang === "de") return IMPRINT_DE;
       if (lang === "tr") return IMPRINT_TR;
-      if (lang === "en") return IMPRINT_EN;
       if (lang === "it") return IMPRINT_IT;
       if (lang === "es") return IMPRINT_ES;
       if (lang === "fr") return IMPRINT_FR;
-      return IMPRINT_DE;
+      if (lang === "pl") return IMPRINT_PL;
+      if (lang === "cs") return IMPRINT_CS;
+      if (lang === "nl") return IMPRINT_NL;
+      if (lang === "sv") return IMPRINT_SV;
+      return IMPRINT_EN;
     case "terms":
+      if (lang === "de") return termsDe(vatMode);
       if (lang === "tr") return termsTr(vatMode);
-      if (lang === "en") return termsEn(vatMode);
       if (lang === "it") return termsIt(vatMode);
       if (lang === "es") return termsEs(vatMode);
       if (lang === "fr") return termsFr(vatMode);
-      return termsDe(vatMode);
+      if (lang === "pl") return termsPl(vatMode);
+      if (lang === "cs") return termsCs(vatMode);
+      if (lang === "nl") return termsNl(vatMode);
+      if (lang === "sv") return termsSv(vatMode);
+      return termsEn(vatMode);
     case "withdrawal":
+      if (lang === "de") return WITHDRAWAL_DE;
       if (lang === "tr") return WITHDRAWAL_TR;
-      if (lang === "en") return WITHDRAWAL_EN;
       if (lang === "it") return WITHDRAWAL_IT;
       if (lang === "es") return WITHDRAWAL_ES;
       if (lang === "fr") return WITHDRAWAL_FR;
-      return WITHDRAWAL_DE;
+      if (lang === "pl") return WITHDRAWAL_PL;
+      if (lang === "cs") return WITHDRAWAL_CS;
+      if (lang === "nl") return WITHDRAWAL_NL;
+      if (lang === "sv") return WITHDRAWAL_SV;
+      return WITHDRAWAL_EN;
     case "privacy":
+      if (lang === "de") return PRIVACY_DE;
       if (lang === "tr") return PRIVACY_TR;
-      if (lang === "en") return PRIVACY_EN;
       if (lang === "it") return PRIVACY_IT;
       if (lang === "es") return PRIVACY_ES;
       if (lang === "fr") return PRIVACY_FR;
-      return PRIVACY_DE;
+      if (lang === "pl") return PRIVACY_PL;
+      if (lang === "cs") return PRIVACY_CS;
+      if (lang === "nl") return PRIVACY_NL;
+      if (lang === "sv") return PRIVACY_SV;
+      return PRIVACY_EN;
   }
 }
 

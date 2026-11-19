@@ -1,10 +1,14 @@
 import { Locale } from "../Translations";
+import { TR_MARKET_CS } from "./cs/cs";
 import { TR_MARKET_DE } from "./de/de";
 import { TR_MARKET_EN } from "./en/en";
 import { TR_MARKET_ES } from "./es/es";
 import { TR_MARKET_FR } from "./fr/fr";
 import { ITrMarketTranslation } from "./ITrMarketTranslation";
 import { TR_MARKET_IT } from "./it/it";
+import { TR_MARKET_NL } from "./nl/nl";
+import { TR_MARKET_PL } from "./pl/pl";
+import { TR_MARKET_SV } from "./sv/sv";
 import { TR_MARKET_TR } from "./tr/tr";
 
 export const TrMarketTranslations: Record<Locale, ITrMarketTranslation> = {
@@ -14,4 +18,8 @@ export const TrMarketTranslations: Record<Locale, ITrMarketTranslation> = {
   [Locale.IT]: TR_MARKET_IT,
   [Locale.ES]: TR_MARKET_ES,
   [Locale.FR]: TR_MARKET_FR,
+  [Locale.PL]: TR_MARKET_PL,
+  [Locale.CS]: TR_MARKET_CS,
+  [Locale.NL]: TR_MARKET_NL,
+  [Locale.SV]: TR_MARKET_SV,
 };

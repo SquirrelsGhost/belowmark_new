@@ -1,11 +1,15 @@
 import { LocaleOption } from "../../lib/constants";
 import { Locale } from "../Translations";
+import { PORTFOLIO_CS } from "./cs/portfolioCs";
 import { PORTFOLIO_DE } from "./de/portfolioDe";
 import { PORTFOLIO_EN } from "./en/portfolioEn";
 import { PORTFOLIO_ES } from "./es/portfolioEs";
 import { PORTFOLIO_FR } from "./fr/portfolioFr";
 import { IPortfolioTranslation } from "./IPortfolioTranslation";
 import { PORTFOLIO_IT } from "./it/portfolioIt";
+import { PORTFOLIO_NL } from "./nl/portfolioNl";
+import { PORTFOLIO_PL } from "./pl/portfolioPl";
+import { PORTFOLIO_SV } from "./sv/portfolioSv";
 import { PORTFOLIO_TR } from "./tr/portfolioTr";
 
 export const PortfolioTranslations: Record<Locale, IPortfolioTranslation> = {
@@ -15,6 +19,10 @@ export const PortfolioTranslations: Record<Locale, IPortfolioTranslation> = {
   [Locale.IT]: PORTFOLIO_IT,
   [Locale.ES]: PORTFOLIO_ES,
   [Locale.FR]: PORTFOLIO_FR,
+  [Locale.PL]: PORTFOLIO_PL,
+  [Locale.CS]: PORTFOLIO_CS,
+  [Locale.NL]: PORTFOLIO_NL,
+  [Locale.SV]: PORTFOLIO_SV,
 };
 
 /** The portfolio strings for the lower-case locale the app pages carry around. */

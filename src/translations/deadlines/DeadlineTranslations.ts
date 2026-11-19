@@ -1,11 +1,15 @@
 import { LocaleOption } from "../../lib/constants";
 import { Locale } from "../Translations";
+import { DEADLINE_CS } from "./cs/deadlineCs";
 import { DEADLINE_DE } from "./de/deadlineDe";
 import { DEADLINE_EN } from "./en/deadlineEn";
 import { DEADLINE_ES } from "./es/deadlineEs";
 import { DEADLINE_FR } from "./fr/deadlineFr";
 import { IDeadlineTranslation } from "./IDeadlineTranslation";
 import { DEADLINE_IT } from "./it/deadlineIt";
+import { DEADLINE_NL } from "./nl/deadlineNl";
+import { DEADLINE_PL } from "./pl/deadlinePl";
+import { DEADLINE_SV } from "./sv/deadlineSv";
 import { DEADLINE_TR } from "./tr/deadlineTr";
 
 export const DeadlineTranslations: Record<Locale, IDeadlineTranslation> = {
@@ -15,6 +19,10 @@ export const DeadlineTranslations: Record<Locale, IDeadlineTranslation> = {
   [Locale.IT]: DEADLINE_IT,
   [Locale.ES]: DEADLINE_ES,
   [Locale.FR]: DEADLINE_FR,
+  [Locale.PL]: DEADLINE_PL,
+  [Locale.CS]: DEADLINE_CS,
+  [Locale.NL]: DEADLINE_NL,
+  [Locale.SV]: DEADLINE_SV,
 };
 
 /** The deadline strings for the lower-case locale the app pages carry around. */

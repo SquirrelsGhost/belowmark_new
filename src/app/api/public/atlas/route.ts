@@ -1,3 +1,5 @@
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 import { ok, err } from "@/lib/api";
 import { BELOWMARK_ORIGIN } from "@/lib/blog/blogSeo";
 import { PseoService } from "@/services/PseoService";
@@ -22,26 +24,91 @@ interface AtlasApiResponse {
   markets: AtlasMarketStat[];
 }
 
+interface AtlasSummaryFile {
+  generatedAt: string;
+  deTotalListings: number;
+  deCourtsCount: number;
+  trTotalListings: number;
+  trCourtsCount: number;
+  euMarkets: Record<
+    string,
+    {
+      market: string;
+      currency: string;
+      hubPath: string;
+      calcPath: string;
+      totalListings: number;
+      courtsCount: number;
+    }
+  >;
+}
+
+function statutoryRuleForEuMarket(market: string): string {
+  switch (market) {
+    case "AT":
+      return "50% minimum bid (§ 151 EO), 10% Vadium";
+    case "CH":
+      return "Deckungsprinzip (Art. 126 SchKG)";
+    case "IT":
+      return "75% Offerta Minima (Art. 571 c.p.c.), 10% Cauzione";
+    case "ES":
+      return "70% / 50% rule (Art. 670 LEC), 5% BOE deposit";
+    case "FR":
+      return "Mise à prix Tribunal Judiciaire, 10% CARPA";
+    case "NL":
+      return "Executieveiling (Art. 3:268 BW), 10% Waarborgsom";
+    case "PL":
+      return "3/4 & 2/3 valuation limits (Art. 965 / 983 KPC), 10% Wadium";
+    case "CZ":
+      return "2/3 lowest bid (OSŘ / Exekuční řád), up to 15% Jistota";
+    case "SE":
+      return "Kronofogden Exekutiv Auktion (Utsökningsbalken), 10% Handpenning";
+    default:
+      return "Guide Price / Reserve Price, 10% Exchange Deposit";
+  }
+}
+
+async function loadAtlasSummary(): Promise<AtlasSummaryFile> {
+  try {
+    const raw = await readFile(join(process.cwd(), "data", "snapshots", "atlas-summary.json"), "utf8");
+    const parsed = JSON.parse(raw) as AtlasSummaryFile;
+    if (parsed && typeof parsed.deTotalListings === "number" && parsed.euMarkets) {
+      return parsed;
+    }
+  } catch {
+    // Fall back to full PseoService catalog if summary has not been generated yet
+  }
+  const catalog = await PseoService.GetCatalog();
+  const euMarkets: AtlasSummaryFile["euMarkets"] = {};
+  for (const m of Object.values(catalog.euMarkets)) {
+    euMarkets[m.market] = {
+      market: m.market,
+      currency: m.currency,
+      hubPath: m.hubPath,
+      calcPath: m.calcPath,
+      totalListings: m.totalListings,
+      courtsCount: m.courts.length,
+    };
+  }
+  return {
+    generatedAt: catalog.generatedAt,
+    deTotalListings: catalog.deTotalListings,
+    deCourtsCount: catalog.courts.length,
+    trTotalListings: catalog.trTotalListings,
+    trCourtsCount: catalog.trLocations.filter((l) => l.kind === "court").length,
+    euMarkets,
+  };
+}
+
 export async function GET(): Promise<Response> {
   try {
-    const catalog = await PseoService.GetCatalog();
-    const euMarkets: AtlasMarketStat[] = Object.values(catalog.euMarkets).map((m) => ({
+    const summary = await loadAtlasSummary();
+    const euMarkets: AtlasMarketStat[] = Object.values(summary.euMarkets).map((m) => ({
       country: m.market,
       currency: m.currency,
       activeListings: m.totalListings,
-      courtsCount: m.courts.length,
-      statutoryRule:
-        m.market === "AT"
-          ? "50% minimum bid (§ 151 EO), 10% Vadium"
-          : m.market === "CH"
-            ? "Deckungsprinzip (Art. 126 SchKG)"
-            : m.market === "IT"
-              ? "75% Offerta Minima (Art. 571 c.p.c.), 10% Cauzione"
-              : m.market === "ES"
-                ? "70% / 50% rule (Art. 670 LEC), 5% BOE deposit"
-                : m.market === "FR"
-                  ? "Mise à prix Tribunal Judiciaire, 10% CARPA"
-                  : "Guide Price / Reserve Price, 10% Exchange Deposit",
+      courtsCount: m.courtsCount,
+      statutoryRule: statutoryRuleForEuMarket(m.market),
       directoryUrl: `${BELOWMARK_ORIGIN}${m.hubPath}`,
       calculatorUrl: `${BELOWMARK_ORIGIN}${m.calcPath}`,
     }));
@@ -50,8 +117,8 @@ export async function GET(): Promise<Response> {
       {
         country: "DE",
         currency: "EUR",
-        activeListings: catalog.deTotalListings,
-        courtsCount: catalog.courts.length,
+        activeListings: summary.deTotalListings,
+        courtsCount: summary.deCourtsCount,
         statutoryRule: "5/10 & 7/10 limits (§§ 74a, 85a ZVG), 10% security deposit (§ 68 ZVG)",
         directoryUrl: `${BELOWMARK_ORIGIN}/zwangsversteigerungen`,
         calculatorUrl: `${BELOWMARK_ORIGIN}/rechner/5-10-und-7-10-grenze`,
@@ -60,8 +127,8 @@ export async function GET(): Promise<Response> {
       {
         country: "TR",
         currency: "TRY",
-        activeListings: catalog.trTotalListings,
-        courtsCount: catalog.trLocations.filter((l) => l.kind === "court").length,
+        activeListings: summary.trTotalListings,
+        courtsCount: summary.trCourtsCount,
         statutoryRule: "50% starting bid + costs (UYAP E-Satış), 10% electronic deposit",
         directoryUrl: `${BELOWMARK_ORIGIN}/tr/icra-ihale`,
         calculatorUrl: `${BELOWMARK_ORIGIN}/tr/hesaplama/icra-ihale-teminat`,
@@ -72,7 +139,7 @@ export async function GET(): Promise<Response> {
       title: "Belowmark European Foreclosure & Court Auction Atlas",
       sourceUrl: `${BELOWMARK_ORIGIN}/atlas`,
       embedCalculatorUrl: `${BELOWMARK_ORIGIN}/embed/rechner?country=DE`,
-      updatedAt: catalog.generatedAt,
+      updatedAt: summary.generatedAt,
       totalActiveListings: markets.reduce((sum, item) => sum + item.activeListings, 0),
       marketsCount: markets.length,
       markets,

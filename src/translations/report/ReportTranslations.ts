@@ -1,10 +1,14 @@
 import { Locale } from "../Translations";
+import { REPORT_CS } from "./cs/reportCs";
 import { REPORT_DE } from "./de/reportDe";
 import { REPORT_EN } from "./en/reportEn";
 import { REPORT_ES } from "./es/reportEs";
 import { REPORT_FR } from "./fr/reportFr";
 import { IReportTranslation } from "./IReportTranslation";
 import { REPORT_IT } from "./it/reportIt";
+import { REPORT_NL } from "./nl/reportNl";
+import { REPORT_PL } from "./pl/reportPl";
+import { REPORT_SV } from "./sv/reportSv";
 import { REPORT_TR } from "./tr/reportTr";
 
 export const ReportTranslations: Record<Locale, IReportTranslation> = {
@@ -14,4 +18,8 @@ export const ReportTranslations: Record<Locale, IReportTranslation> = {
   [Locale.IT]: REPORT_IT,
   [Locale.ES]: REPORT_ES,
   [Locale.FR]: REPORT_FR,
+  [Locale.PL]: REPORT_PL,
+  [Locale.CS]: REPORT_CS,
+  [Locale.NL]: REPORT_NL,
+  [Locale.SV]: REPORT_SV,
 };

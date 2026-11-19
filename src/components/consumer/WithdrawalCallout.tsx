@@ -33,6 +33,22 @@ const CALLOUT_COPY: Record<Locale, { title: string; body: string }> = {
     title: "Aucune rétractation après l'activation des contenus numériques (§ 356 al. 5 BGB).",
     body: "Toutes les données numériques, mises à prix et analyses étant débloquées immédiatement dès confirmation du paiement, le droit de rétractation s'éteint dès l'activation. Vous pouvez résilier un abonnement mensuel à tout moment pour la fin du mois payé.",
   },
+  [Locale.PL]: {
+    title: "Brak prawa odstąpienia po aktywacji produktów cyfrowych (§ 356 ust. 5 BGB).",
+    body: "Ponieważ wszystkie dane cyfrowe, sumy oszacowania i analizy są udostępniane natychmiast po potwierdzeniu płatności, prawo odstąpienia od umowy wygasa z chwilą aktywacji. Miesięczną subskrypcję można jednak wypowiedzieć w dowolnym momencie ze skutkiem na koniec opłaconego miesiąca.",
+  },
+  [Locale.CS]: {
+    title: "Bez práva na odstoupení po aktivaci digitálního obsahu (§ 356 odst. 5 BGB).",
+    body: "Vzhledem k tomu, že veškerá digitální data, odhady a analýzy jsou zpřístupněny okamžitě po potvrzení platby, právo na odstoupení od smlouvy zaniká aktivací. Měsíční předplatné můžete kdykoli zrušit ke konci zaplaceného období.",
+  },
+  [Locale.NL]: {
+    title: "Geen herroepingsrecht na activering van digitale producten (§ 356 lid 5 BGB).",
+    body: "Omdat alle digitale gegevens, taxaties en analyses direct na betalingsbevestiging worden vrijgegeven, vervalt het herroepingsrecht onmiddellijk bij activering. Een lopend maandabonnement kunt u op elk moment opzeggen tegen het einde van de betaalde maand.",
+  },
+  [Locale.SV]: {
+    title: "Ingen ångerrätt efter aktivering av digitala produkter (§ 356 st. 5 BGB).",
+    body: "Eftersom all digital data, värderingar och analyser låses upp omedelbart vid betalningsbekräftelse upphör ångerrätten vid aktivering. En löpande månadsprenumeration kan sägas upp när som helst till slutet av den betalda månaden.",
+  },
 };
 
 const BOX_CLASSES = "flex flex-col items-start gap-4 border-2 border-ink bg-paper-bright p-6 shadow-[6px_6px_0_0_var(--signal)]";

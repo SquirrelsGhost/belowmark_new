@@ -24,6 +24,10 @@ export class TranslationService {
     if (lower.startsWith("it")) return Locale.IT;
     if (lower.startsWith("es")) return Locale.ES;
     if (lower.startsWith("fr")) return Locale.FR;
+    if (lower.startsWith("pl")) return Locale.PL;
+    if (lower.startsWith("cs") || lower === "cz" || lower.startsWith("sk")) return Locale.CS;
+    if (lower.startsWith("nl")) return Locale.NL;
+    if (lower.startsWith("sv") || lower === "se") return Locale.SV;
     return Locale.EN;
   };
 
@@ -40,6 +44,14 @@ export class TranslationService {
         return "es";
       case Locale.FR:
         return "fr";
+      case Locale.PL:
+        return "pl";
+      case Locale.CS:
+        return "cs";
+      case Locale.NL:
+        return "nl";
+      case Locale.SV:
+        return "sv";
       default:
         return "en";
     }

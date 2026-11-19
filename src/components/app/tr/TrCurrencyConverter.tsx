@@ -25,6 +25,10 @@ const INTL_LOCALES: Record<LocaleOption, string> = {
   it: "it-IT",
   es: "es-ES",
   fr: "fr-FR",
+  pl: "pl-PL",
+  cs: "cs-CZ",
+  nl: "nl-NL",
+  sv: "sv-SE",
 };
 
 /** Accepts "2.500.000", "2 500 000" or "2500000,50" — digits and one decimal comma. */

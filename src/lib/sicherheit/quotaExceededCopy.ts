@@ -97,4 +97,60 @@ export const QUOTA_EXCEEDED_COPY: Record<LocaleOption, QuotaExceededLocaleCopy> 
     ctaFree: "Prova 7 giorni gratis",
     ctaBack: "Torna alla ricerca",
   },
+  pl: {
+    kicker: "Ochrona bezpieczeństwa · Osiągnięto limit zapytań",
+    title: "Wykryto nietypowo wysoką częstotliwość zapytań",
+    bodyFree:
+      "Darmowe konto zawiera dzienny limit podglądów chroniący przed automatycznym scrapingiem. Uruchom 7-dniowy okres próbny Investor (0,00 zł dzisiaj), aby odblokować pełne akta, wyceny i oficjalne dokumenty PDF.",
+    bodyPaid:
+      "W celu ochrony przed masowym scrapingiem liczba jednoczesnych zapytań jest ograniczona. Odczekaj chwilę przed otwarciem kolejnych spraw.",
+    warning:
+      "Uwaga (§ 9 Regulaminu): automatyczne pobieranie danych (scraping/boty) prowadzi do natychmiastowej blokady konta bez zwrotu środków.",
+    retryPrefix: "Ponowna próba możliwa za ok.",
+    minutes: "min",
+    ctaFree: "Wypróbuj 7 dni za darmo",
+    ctaBack: "Powrót do listy",
+  },
+  cs: {
+    kicker: "Bezpečnostní ochrana · Dosažen limit požadavků",
+    title: "Zjištěna neobvykle vysoká frekvence požadavků",
+    bodyFree:
+      "Bezplatný účet má denní limit zobrazení jako ochranu před automatizovaným scrapingem. Spusťte 7denní zkušební verzi Investor (dnes 0 Kč) a odemkněte plné spisy, odhady a oficiální PDF.",
+    bodyPaid:
+      "Z důvodu ochrany před hromadným scrapingem je počet souběžných požadavků omezen. Počkejte prosím chvíli, než otevřete další řízení.",
+    warning:
+      "Upozornění (§ 9 Podmínek): automatizovaný scraping nebo obcházení ochrany vede k okamžitému zablokování účtu bez nároku na vrácení peněz.",
+    retryPrefix: "Další pokus možný přibližně za",
+    minutes: "min",
+    ctaFree: "Vyzkoušet 7 dní zdarma",
+    ctaBack: "Zpět na přehled",
+  },
+  nl: {
+    kicker: "Beveiliging · Aanvraaglimiet bereikt",
+    title: "Ongewoon hoge aanvraagfrequentie gedetecteerd",
+    bodyFree:
+      "Het gratis account heeft een dagelijkse weergavelimiet tegen geautomatiseerd scrapen. Start uw 7-daagse Investor-proefperiode (€ 0,00 vandaag) voor volledige dossiers, taxaties en officiële PDF's.",
+    bodyPaid:
+      "Om geautomatiseerd bulk-scrapen te voorkomen is het aantal gelijktijdige aanvragen begrensd. Wacht een kort moment voordat u meer dossiers opent.",
+    warning:
+      "Let op (§ 9 Voorwaarden): geautomatiseerd scrapen of omzeilen van beveiliging leidt tot onmiddellijke blokkering van het account zonder restitutie.",
+    retryPrefix: "Opnieuw proberen over ca.",
+    minutes: "min",
+    ctaFree: "7 dagen gratis proberen",
+    ctaBack: "Terug naar overzicht",
+  },
+  sv: {
+    kicker: "Säkerhetsskydd · Förfrågningsgräns nådd",
+    title: "Ovanligt hög förfrågningsfrekvens upptäckt",
+    bodyFree:
+      "Gratiskontot har en daglig gräns som skydd mot automatiserad skrapning. Starta din 7-dagars kostnadsfria Investor-provperiod (0 kr idag) för fullständiga akter, värderingar och officiella PDF-dokument.",
+    bodyPaid:
+      "För att skydda mot automatiserad masskrapning är antalet samtidiga förfrågningar begränsat. Vänta en kort stund innan du öppnar fler ärenden.",
+    warning:
+      "Observera (§ 9 Villkor): automatiserad skrapning eller kringgående av säkerhetskontroller leder till omedelbar avstängning utan återbetalning.",
+    retryPrefix: "Nytt försök möjligt om ca",
+    minutes: "min",
+    ctaFree: "Prova 7 dagar gratis",
+    ctaBack: "Tillbaka till sökningen",
+  },
 };

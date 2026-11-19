@@ -1,11 +1,15 @@
 import { fill } from "@/lib/appFormat";
 import { Locale } from "../Translations";
+import { AUTH_CS } from "./cs/cs";
 import { AUTH_DE } from "./de/de";
 import { AUTH_EN } from "./en/en";
 import { AUTH_ES } from "./es/es";
 import { AUTH_FR } from "./fr/fr";
 import { IAuthTranslation } from "./IAuthTranslation";
 import { AUTH_IT } from "./it/it";
+import { AUTH_NL } from "./nl/nl";
+import { AUTH_PL } from "./pl/pl";
+import { AUTH_SV } from "./sv/sv";
 import { AUTH_TR } from "./tr/tr";
 
 export const AuthTranslations: Record<Locale, IAuthTranslation> = {
@@ -15,6 +19,10 @@ export const AuthTranslations: Record<Locale, IAuthTranslation> = {
   [Locale.IT]: AUTH_IT,
   [Locale.ES]: AUTH_ES,
   [Locale.FR]: AUTH_FR,
+  [Locale.PL]: AUTH_PL,
+  [Locale.CS]: AUTH_CS,
+  [Locale.NL]: AUTH_NL,
+  [Locale.SV]: AUTH_SV,
 };
 
 export { fill };

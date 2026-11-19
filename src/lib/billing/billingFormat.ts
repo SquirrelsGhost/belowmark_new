@@ -8,6 +8,10 @@ const INTL_LOCALES: Record<LocaleOption, string> = {
   it: "it-IT",
   es: "es-ES",
   fr: "fr-FR",
+  pl: "pl-PL",
+  cs: "cs-CZ",
+  nl: "nl-NL",
+  sv: "sv-SE",
 };
 
 /** Contract dates are Berlin calendar dates — the provider sits in Germany. */

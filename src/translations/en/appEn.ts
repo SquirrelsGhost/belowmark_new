@@ -42,7 +42,7 @@ export const APP_EN: IAppTranslation = {
     Calculator: "Calculator",
     Account: "Account",
     SignOut: "Sign out",
-    Market: { DE: "Europe · 7 countries", TR: "İcra · Turkey" },
+    Market: { DE: "Europe · 11 countries", TR: "İcra · Turkey" },
     TrialRunning: "Trial access ({days} days left): full access — ends automatically, no payment details stored, no automatic subscription renewal.",
     TrialLastDay: "Trial access (last day): ends automatically at zero cost — no payment details on file, no automatic charge.",
     FreePlan: "Free account (14-day commitment-free access — ends automatically): No payment details stored, no automatic billing or renewal.",
@@ -63,7 +63,7 @@ export const APP_EN: IAppTranslation = {
   },
 
   Search: {
-    Eyebrow: { DE: "Notice board · DE · AT · CH · IT · ES · FR · UK", TR: "Notice board · Turkish enforcement auctions" },
+    Eyebrow: { DE: "Notice board · DE · AT · CH · IT · ES · FR · UK · NL · PL · CZ · SE", TR: "Notice board · Turkish enforcement auctions" },
     Title: "Notices",
     Countries: {
       DE: { Name: "Germany", Source: "ZVG Portal", Region: "Federal state" },
@@ -83,7 +83,7 @@ export const APP_EN: IAppTranslation = {
     CountryLead: "Official auction hearings in {country} from {source} — with appraised value, minimum bid and deadlines up to the hearing. Other countries are separate plans and do not appear here.",
     CountrySwitch: "Country",
     Lead: {
-      DE: "Official judicial foreclosures and property auctions across Germany (ZVG), Austria (Ediktsdatei), Switzerland (SHAB), Italy (Aste Giudiziarie / PVP), Spain (BOE Portal), France (Licitor TJ) and the UK — with appraised value, minimum bid, security deposit and transfer tax.",
+      DE: "Official judicial foreclosures and property auctions across Germany (ZVG), Austria (Ediktsdatei), Switzerland (SHAB), Italy (Aste Giudiziarie / PVP), Spain (BOE Portal), France (Licitor TJ), the UK, the Netherlands (Executieveiling), Poland (Licytacje Komornicze), Czechia (Portál dražeb) and Sweden (Kronofogden) — with appraised value, minimum bid, security deposit and transfer tax.",
       TR: "Turkish enforcement proceedings with starting bid, security deposit and acquisition costs. Red marks the appraised value; below it lies the statutory starting bid.",
     },
     Filters: {

@@ -42,7 +42,7 @@ export const APP_TR: IAppTranslation = {
     Calculator: "Hesap",
     Account: "Hesabım",
     SignOut: "Çıkış",
-    Market: { DE: "Avrupa · 7 Ülke", TR: "İcra · Türkiye" },
+    Market: { DE: "Avrupa · 11 Ülke", TR: "İcra · Türkiye" },
     TrialRunning: "Deneme erişimi ({days} gün kaldı): tam erişim — otomatik biter, ödeme bilgisi kayıtlı değildir, otomatik abonelik yenilemesi yoktur.",
     TrialLastDay: "Deneme erişimi (son gün): ücretsiz olarak otomatik sona erer — kart bilgisi kayıtlı değildir, otomatik çekim yapılmaz.",
     FreePlan: "Ücretsiz hesap (14 gün bağlayıcılıksız — otomatik biter): Ödeme bilgisi kayıtlı değildir, otomatik abonelik veya çekim yoktur.",
@@ -63,7 +63,7 @@ export const APP_TR: IAppTranslation = {
   },
 
   Search: {
-    Eyebrow: { DE: "İlan panosu · DE · AT · CH · IT · ES · FR · UK", TR: "İlan panosu · İcra satışları" },
+    Eyebrow: { DE: "İlan panosu · DE · AT · CH · IT · ES · FR · UK · NL · PL · CZ · SE", TR: "İlan panosu · İcra satışları" },
     Title: "İlanlar",
     Countries: {
       DE: { Name: "Almanya", Source: "ZVG portalı", Region: "Eyalet" },

@@ -73,11 +73,61 @@ export const AUTH_MAIL_CHROME: Record<LocaleOption, AuthMailChrome> = {
     defaultDocCode: "BM-PROFILO · SICUREZZA",
     defaultEyebrow: "Conferma Account e Accesso",
   },
+  pl: {
+    headerLine: "BELOWMARK — KONTO I BEZPIECZEŃSTWO",
+    codeHeading: "Twój 6-cyfrowy kod weryfikacyjny",
+    copyLabel: "Bezpośredni link (jeśli przycisk nie działa)",
+    securityLabel: "Informacja o bezpieczeństwie",
+    otpLabel: "Alternatywnie: 6-cyfrowy kod weryfikacyjny",
+    otpHint: "Możesz wpisać ten kod bezpośrednio na stronie rejestracji lub potwierdzenia.",
+    defaultDocCode: "BM-KONTO · BEZPIECZEŃSTWO",
+    defaultEyebrow: "Potwierdzenie Konta i Dostępu",
+  },
+  cs: {
+    headerLine: "BELOWMARK — ÚČET A ZABEZPEČENÍ",
+    codeHeading: "Váš 6místný ověřovací kód",
+    copyLabel: "Přímý odkaz (pokud tlačítko nefunguje)",
+    securityLabel: "Bezpečnostní upozornění",
+    otpLabel: "Alternativa: 6místný ověřovací kód",
+    otpHint: "Tento kód můžete zadat také přímo na stránce registrace nebo ověření.",
+    defaultDocCode: "BM-ÚČET · ZABEZPEČENÍ",
+    defaultEyebrow: "Potvrzení Účtu a Přístupu",
+  },
+  nl: {
+    headerLine: "BELOWMARK — ACCOUNT & BEVEILIGING",
+    codeHeading: "Uw 6-cijferige verificatiecode",
+    copyLabel: "Directe link (als de knop niet opent)",
+    securityLabel: "Beveiligingsmelding",
+    otpLabel: "Alternatief: 6-cijferige verificatiecode",
+    otpHint: "U kunt deze code ook rechtstreeks invoeren op de registratie- of bevestigingspagina.",
+    defaultDocCode: "BM-ACCOUNT · BEVEILIGING",
+    defaultEyebrow: "Account- & Toegangsbevestiging",
+  },
+  sv: {
+    headerLine: "BELOWMARK — KONTO & SÄKERHET",
+    codeHeading: "Din 6-siffriga verifieringskod",
+    copyLabel: "Direktlänk (om knappen inte öppnas)",
+    securityLabel: "Säkerhetsinformation",
+    otpLabel: "Alternativ: 6-siffrig verifieringskod",
+    otpHint: "Du kan också ange denna kod direkt på registrerings- eller verifieringssidan.",
+    defaultDocCode: "BM-KONTO · SÄKERHET",
+    defaultEyebrow: "Konto- & Åtkomstbekräftelse",
+  },
 };
 
 export function normalizeMailLang(raw?: string | null): LocaleOption {
   const prefix = (raw ?? "de").trim().toLowerCase().slice(0, 2);
-  if (prefix === "tr" || prefix === "en" || prefix === "fr" || prefix === "es" || prefix === "it") {
+  if (
+    prefix === "tr" ||
+    prefix === "en" ||
+    prefix === "fr" ||
+    prefix === "es" ||
+    prefix === "it" ||
+    prefix === "pl" ||
+    prefix === "cs" ||
+    prefix === "nl" ||
+    prefix === "sv"
+  ) {
     return prefix;
   }
   return "de";

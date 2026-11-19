@@ -35,6 +35,10 @@ const LOCALE_TO_DEFAULT_MARKET: Record<LocaleOption, PricingCountryCode> = {
   it: "IT",
   es: "ES",
   fr: "FR",
+  pl: "PL",
+  cs: "CZ",
+  nl: "NL",
+  sv: "SE",
 };
 
 async function currentLocationScope(): Promise<string | null> {

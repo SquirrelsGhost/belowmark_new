@@ -30,3 +30,20 @@ test("fast 64KB snapshot meta reader matches full snapshot meta in under 25ms", 
     assert.ok(fastMs < 50, `Expected fast meta read < 50ms for ${rel}, got ${fastMs.toFixed(2)}ms`);
   }
 });
+
+test("per-country EU shards preserve 100% of de.json listings and generate atlas-summary.json", async () => {
+  const eu = ["de", "at", "ch", "it", "es", "fr", "gb", "nl", "pl", "cz", "se"];
+  const fullDe = JSON.parse(await readFile(join(process.cwd(), "data/snapshots/de.json"), "utf8"));
+  let shardTotal = 0;
+  for (const cc of eu) {
+    const shard = JSON.parse(await readFile(join(process.cwd(), `data/snapshots/countries/${cc}.json`), "utf8"));
+    assert.ok(Array.isArray(shard.listings), `Missing listings array in ${cc}.json`);
+    shardTotal += shard.listings.length;
+  }
+  assert.equal(shardTotal, fullDe.listings.length);
+
+  const summary = JSON.parse(await readFile(join(process.cwd(), "data/snapshots/atlas-summary.json"), "utf8"));
+  assert.ok(summary.deTotalListings > 0);
+  assert.ok(summary.trTotalListings > 0);
+  assert.equal(Object.keys(summary.euMarkets).length, 10);
+});

@@ -44,3 +44,7 @@ next-env.d.ts
 
 # Instagram-Bilder (npm run insta:daily)
 /marketing/instagram/
+
+# Auto-generated per-country snapshot shards & atlas summary (rebuilt by npm run build)
+/data/snapshots/countries/
+/data/snapshots/atlas-summary.json

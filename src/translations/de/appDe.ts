@@ -42,7 +42,7 @@ export const APP_DE: IAppTranslation = {
     Calculator: "Rechner",
     Account: "Konto",
     SignOut: "Abmelden",
-    Market: { DE: "Europa · 7 Länder", TR: "İcra · Türkei" },
+    Market: { DE: "Europa · 11 Länder", TR: "İcra · Türkei" },
     TrialRunning: "Testzugang (noch {days} Tage): voller Zugriff — endet automatisch, keine Zahlungsdaten hinterlegt, keine automatische Abo-Verlängerung.",
     TrialLastDay: "Testzugang (letzter Tag): endet automatisch ohne Kosten — keine Zahlungsdaten hinterlegt, keine automatische Abbuchung.",
     FreePlan: "Kostenloses Konto (14 Tage unverbindlich testen — endet automatisch): Keine Zahlungsdaten hinterlegt, keine automatische Abo-Verlängerung.",
@@ -63,7 +63,7 @@ export const APP_DE: IAppTranslation = {
   },
 
   Search: {
-    Eyebrow: { DE: "Aushangtafel · DE · AT · CH · IT · ES · FR · UK", TR: "İlan panosu · İcra satışları" },
+    Eyebrow: { DE: "Aushangtafel · DE · AT · CH · IT · ES · FR · UK · NL · PL · CZ · SE", TR: "İlan panosu · İcra satışları" },
     Title: "Aushänge",
     Countries: {
       DE: { Name: "Deutschland", Source: "ZVG-Portal", Region: "Bundesland" },
@@ -83,7 +83,7 @@ export const APP_DE: IAppTranslation = {
     CountryLead: "Amtliche Versteigerungstermine in {country} aus {source} — mit Verkehrswert, Mindestgebot und den Fristen bis zum Termin. Andere Länder sind eigene Tarife und erscheinen hier nicht.",
     CountrySwitch: "Land",
     Lead: {
-      DE: "Amtliche Zwangsversteigerungen und Gerichtsauktionen in Deutschland (ZVG), Österreich (Ediktsdatei), der Schweiz (SHAB), Italien (Aste Giudiziarie / PVP), Spanien (Portal BOE), Frankreich (Licitor TJ) und UK — mit Verkehrswert, Mindestgebot, Sicherheitsleistung und Grunderwerbsteuer.",
+      DE: "Amtliche Zwangsversteigerungen und Gerichtsauktionen in Deutschland (ZVG), Österreich (Ediktsdatei), der Schweiz (SHAB), Italien (Aste Giudiziarie / PVP), Spanien (Portal BOE), Frankreich (Licitor TJ), UK, den Niederlanden (Executieveiling), Polen (Licytacje Komornicze), Tschechien (Portál dražeb) und Schweden (Kronofogden) — mit Verkehrswert, Mindestgebot, Sicherheitsleistung und Grunderwerbsteuer.",
       TR: "Türkische Vollstreckungsverfahren mit Startgebot, Sicherheit und Kaufnebenkosten. Rot ist der Schätzwert, darunter liegt das gesetzliche Startgebot.",
     },
     Filters: {

@@ -14,6 +14,10 @@ const INTL_LOCALES: Record<LocaleOption, string> = {
   it: "it-IT",
   es: "es-ES",
   fr: "fr-FR",
+  pl: "pl-PL",
+  cs: "cs-CZ",
+  nl: "nl-NL",
+  sv: "sv-SE",
 };
 const CURRENCY: Record<MarketCode, string> = { DE: "EUR", TR: "TRY" };
 const TIME_ZONE: Record<MarketCode, string> = MARKET_TIME_ZONES;

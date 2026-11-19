@@ -57,6 +57,34 @@ const COPY: Record<
     val: "Valore di Stima",
     cta: "Apri fascicolo →",
   },
+  pl: {
+    eyebrow: "WIĘCEJ AKTYWNYCH LICYTACJI W TYM REGIONIE",
+    heading: (r) => `Inne aktualne licytacje komornicze — ${r}`,
+    subFree: "Sprawdź kolejną sprawę — odblokuj wszystkie obwieszczenia i operaty dzięki 7-dniowemu testowi (0,00 zł dzisiaj).",
+    val: "Suma oszacowania",
+    cta: "Sprawdź akta →",
+  },
+  cs: {
+    eyebrow: "DALŠÍ AKTIVNÍ DRAŽBY V TOMTO REGIONU",
+    heading: (r) => `Další aktuální exekuční dražby — ${r}`,
+    subFree: "Prohlédněte si další spis — odemkněte všechny posudky a vyhlášky se 7denní zkouškou (dnes 0 Kč).",
+    val: "Výsledná / odhadní cena",
+    cta: "Otevřít spis →",
+  },
+  nl: {
+    eyebrow: "MEER ACTIEVE VEILINGEN IN DEZE REGIO",
+    heading: (r) => `Andere actieve executieveilingen in ${r}`,
+    subFree: "Bekijk het volgende dossier — ontgrendel alle veilingvoorwaarden met 7 dagen proefperiode (€ 0,00 vandaag).",
+    val: "Marktwaarde / Taxatie",
+    cta: "Dossier bekijken →",
+  },
+  sv: {
+    eyebrow: "FLER AKTIVA AUKTIONER I DENNA REGION",
+    heading: (r) => `Fler aktuella exekutiva auktioner i ${r}`,
+    subFree: "Granska nästa ärende — lås upp alla värderingar och handlingar med 7 dagars provperiod (0 kr idag).",
+    val: "Marknadsvärde",
+    cta: "Granska akt →",
+  },
 };
 
 export default function RelatedRegionalListings({

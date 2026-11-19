@@ -42,7 +42,7 @@ export const APP_IT: IAppTranslation = {
     Calculator: "Calcolatore",
     Account: "Account",
     SignOut: "Esci",
-    Market: { DE: "Europa · 7 Paesi", TR: "İcra · Turchia" },
+    Market: { DE: "Europa · 11 Paesi", TR: "İcra · Turchia" },
     TrialRunning: "Accesso di prova (ancora {days} giorni): accesso completo — termina automaticamente, nessun dato di pagamento salvato, nessun rinnovo automatico.",
     TrialLastDay: "Accesso di prova (ultimo giorno): termina automaticamente senza costi — nessuna carta registrata, nessun addebito.",
     FreePlan: "Account gratuito (14 giorni senza impegno — termine automatico): Nessun dato di pagamento salvato, nessun abbonamento automatico.",
@@ -63,7 +63,7 @@ export const APP_IT: IAppTranslation = {
   },
 
   Search: {
-    Eyebrow: { DE: "Albo avvisi · DE · AT · CH · IT · ES · FR · UK", TR: "Albo avvisi · Aste esecutive Turchia" },
+    Eyebrow: { DE: "Albo avvisi · DE · AT · CH · IT · ES · FR · UK · NL · PL · CZ · SE", TR: "Albo avvisi · Aste esecutive Turchia" },
     Title: "Avvisi d'asta",
     Countries: {
       DE: { Name: "Germania", Source: "Portale ZVG", Region: "Land" },

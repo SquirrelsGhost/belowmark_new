@@ -42,7 +42,7 @@ export const APP_FR: IAppTranslation = {
     Calculator: "Calculateur",
     Account: "Compte",
     SignOut: "Déconnexion",
-    Market: { DE: "Europe · 7 pays", TR: "İcra · Turquie" },
+    Market: { DE: "Europe · 11 pays", TR: "İcra · Turquie" },
     TrialRunning: "Accès d'essai (encore {days} jours) : accès complet — prend fin automatiquement, aucune carte enregistrée, aucun renouvellement automatique.",
     TrialLastDay: "Accès d'essai (dernier jour) : prend fin automatiquement sans frais — aucune donnée bancaire enregistrée, aucun prélèvement.",
     FreePlan: "Compte gratuit (14 jours sans engagement — fin automatique) : Aucune donnée bancaire enregistrée, aucun renouvellement automatique.",
@@ -63,7 +63,7 @@ export const APP_FR: IAppTranslation = {
   },
 
   Search: {
-    Eyebrow: { DE: "Tableau des criées · DE · AT · CH · IT · ES · FR · UK", TR: "Tableau des annonces · Ventes forcées Turquie" },
+    Eyebrow: { DE: "Tableau des criées · DE · AT · CH · IT · ES · FR · UK · NL · PL · CZ · SE", TR: "Tableau des annonces · Ventes forcées Turquie" },
     Title: "Avis d'adjudication",
     Countries: {
       DE: { Name: "Allemagne", Source: "Portail ZVG", Region: "Land" },

@@ -105,13 +105,18 @@ export function resolveLocaleForCountry(
   }
   if (code === "TR") return "tr";
   if (code === "IT" || code === "SM" || code === "VA") return "it";
+  if (code === "PL") return "pl";
+  if (code === "CZ" || code === "SK") return "cs";
+  if (code === "NL") return "nl";
+  if (code === "SE") return "sv";
   if (SPANISH_COUNTRIES.has(code)) return "es";
   if (FRENCH_COUNTRIES.has(code)) return "fr";
 
   if (code === "BE" || code === "LU") {
+    if (primaryLang.startsWith("nl")) return "nl";
     if (primaryLang.startsWith("fr")) return "fr";
     if (primaryLang.startsWith("de")) return "de";
-    return "en";
+    return code === "BE" ? "nl" : "en";
   }
   if (code === "CA") {
     return primaryLang.startsWith("fr") ? "fr" : "en";
@@ -163,10 +168,10 @@ export function resolveFallbackFromAcceptLanguage(acceptLanguage: string | null 
   if (primary.startsWith("es")) return { countryCode: "ES", locale: "es" };
   if (primary === "fr-ch") return { countryCode: "CH", locale: "fr" };
   if (primary.startsWith("fr")) return { countryCode: "FR", locale: "fr" };
-  if (primary.startsWith("nl")) return { countryCode: "NL", locale: "en" };
-  if (primary.startsWith("pl")) return { countryCode: "PL", locale: "en" };
-  if (primary.startsWith("cs")) return { countryCode: "CZ", locale: "en" };
-  if (primary.startsWith("sv")) return { countryCode: "SE", locale: "en" };
+  if (primary.startsWith("nl")) return { countryCode: "NL", locale: "nl" };
+  if (primary.startsWith("pl")) return { countryCode: "PL", locale: "pl" };
+  if (primary.startsWith("cs") || primary.startsWith("sk")) return { countryCode: "CZ", locale: "cs" };
+  if (primary.startsWith("sv")) return { countryCode: "SE", locale: "sv" };
   if (primary === "en-gb" || primary === "en-ie") return { countryCode: "GB", locale: "en" };
 
   return { countryCode: null, locale: "en" };
