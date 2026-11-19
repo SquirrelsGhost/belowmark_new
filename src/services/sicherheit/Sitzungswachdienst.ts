@@ -94,7 +94,7 @@ export class Sitzungswachdienst {
       })
       .returning();
 
-    await Sitzungswachdienst.bereinigeAbgelaufene(params.userId);
+    runInBackground(() => Sitzungswachdienst.bereinigeAbgelaufene(params.userId));
     return created;
   }
 

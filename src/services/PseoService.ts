@@ -1,11 +1,10 @@
 import "server-only";
-import { readFile } from "node:fs/promises";
-import { join } from "node:path";
 import { EU_MARKET_META, EU_REGION_SEEDS } from "@/lib/pseo/euMarketRegions";
 import { DE_COMBO_SPECS, EU_CATEGORY_SPECS, TR_COMBO_SPECS } from "@/lib/pseo/pseoCategoryBuilder";
 import { localizePublicSegmentLabel, sanitizePublicListingHeadline } from "@/lib/pseo/publicListingUrls";
 import { STATES } from "@/lib/snapshot";
-import { Listing, ListingSnapshot } from "@/types/listing.types";
+import { ListingService } from "@/services/ListingService";
+import { Listing } from "@/types/listing.types";
 import {
   CityPseoEntry,
   CourtPseoEntry,
@@ -18,10 +17,17 @@ import {
   TrLocationPseoEntry,
 } from "@/types/pseo.types";
 
-let cachedCatalog: Promise<PseoCatalog> | null = null;
+const globalForPseo = globalThis as unknown as {
+  pseoCatalogPromise?: Promise<PseoCatalog> | null;
+  pseoSlugCache?: Map<string, string>;
+};
+
+const slugCache = (globalForPseo.pseoSlugCache ??= new Map<string, string>());
 
 export function slugifyPseo(input: string): string {
-  return input
+  const cached = slugCache.get(input);
+  if (cached !== undefined) return cached;
+  const computed = input
     .replace(/İ/g, "i")
     .replace(/I/g, "i")
     .replace(/ı/g, "i")
@@ -39,6 +45,9 @@ export function slugifyPseo(input: string): string {
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
+  if (slugCache.size > 60_000) slugCache.clear();
+  slugCache.set(input, computed);
+  return computed;
 }
 
 function expandCourtDisplayName(authority: string): string {
@@ -530,15 +539,14 @@ function buildEuMarketCatalog(market: EuPseoMarketCode, marketListings: Listing[
 }
 
 async function buildCatalog(): Promise<PseoCatalog> {
-  const [deRaw, trRaw] = await Promise.all([
-    readFile(join(process.cwd(), "data", "snapshots", "de.json"), "utf8"),
-    readFile(join(process.cwd(), "data", "snapshots", "tr.json"), "utf8"),
+  const [deMeta, rawDeListings, rawTrListings] = await Promise.all([
+    ListingService.getMeta("DE"),
+    ListingService.getAllSnapshotListings("DE"),
+    ListingService.getAllSnapshotListings("TR"),
   ]);
-  const deSnap = JSON.parse(deRaw) as ListingSnapshot;
-  const trSnap = JSON.parse(trRaw) as ListingSnapshot;
 
-  const allEuroListings = (deSnap.listings ?? []).filter((l) => !l.cancelled);
-  const trListings = (trSnap.listings ?? []).filter((l) => !l.cancelled);
+  const allEuroListings = rawDeListings.filter((l) => !l.cancelled);
+  const trListings = rawTrListings.filter((l) => !l.cancelled);
 
   const deOnlyListings: Listing[] = [];
   const euBuckets: Record<EuPseoMarketCode, Listing[]> = {
@@ -1145,7 +1153,7 @@ async function buildCatalog(): Promise<PseoCatalog> {
   trLocations.sort((a, b) => b.totalCount - a.totalCount);
 
   return {
-    generatedAt: deSnap.meta?.generatedAt || "2026-11-02T00:00:00.000Z",
+    generatedAt: deMeta.generatedAt || "2026-11-02T00:00:00.000Z",
     deTotalListings: deOnlyListings.length,
     trTotalListings: trListings.length,
     deStates,
@@ -1164,12 +1172,12 @@ async function buildCatalog(): Promise<PseoCatalog> {
 
 export class PseoService {
   public static async GetCatalog(): Promise<PseoCatalog> {
-    if (!cachedCatalog) {
-      cachedCatalog = buildCatalog().catch((err) => {
-        cachedCatalog = null;
+    if (!globalForPseo.pseoCatalogPromise) {
+      globalForPseo.pseoCatalogPromise = buildCatalog().catch((err) => {
+        globalForPseo.pseoCatalogPromise = null;
         throw err;
       });
     }
-    return cachedCatalog;
+    return globalForPseo.pseoCatalogPromise;
   }
 }

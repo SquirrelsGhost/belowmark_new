@@ -80,7 +80,7 @@ export async function GET(): Promise<Response> {
 
     const res = ok(payload);
     res.headers.set("Access-Control-Allow-Origin", "*");
-    res.headers.set("Cache-Control", "public, max-age=900, stale-while-revalidate=3600");
+    res.headers.set("Cache-Control", "public, max-age=900, s-maxage=3600, stale-while-revalidate=86400");
     return res;
   } catch (error) {
     console.error("[GET /api/public/atlas]", error);

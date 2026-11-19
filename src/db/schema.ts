@@ -66,7 +66,7 @@ export const users = pgTable("users", {
   passwordChangedAt: timestamp("password_changed_at", { withTimezone: true }),
   lastLoginAt: timestamp("last_login_at", { withTimezone: true }),
   ...timestamps,
-});
+}, (table) => [index("users_hardware_fingerprint_idx").on(table.hardwareFingerprint)]);
 
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;

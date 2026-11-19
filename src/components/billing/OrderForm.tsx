@@ -1,7 +1,7 @@
 // Needs state for the chosen market & duration, and useActionState for the order action
 "use client";
 
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useActionState, useState, useTransition } from "react";
 import AuthCheckbox from "@/components/auth/AuthCheckbox";
 import AuthErrorSummary from "@/components/auth/AuthErrorSummary";
@@ -15,6 +15,7 @@ import OrderTermsNote from "@/components/billing/OrderTermsNote";
 import MarketDropdown from "@/components/ui/MarketDropdown";
 import { placeOrderAction } from "@/lib/billing/actions/placeOrderAction";
 import { INITIAL_ORDER_STATE, OrderFormLabels, OrderMarketView, OrderOfferView } from "@/lib/billing/billingForm.types";
+import { MARKET_PARAM } from "@/lib/billing/billingConfig";
 import { LocaleOption, PRICING_COUNTRIES, PricingCountryCode } from "@/lib/constants";
 import { setMarketAction } from "@/lib/regionActions";
 
@@ -51,11 +52,13 @@ export default function OrderForm({
   labels,
 }: OrderFormProps) {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [state, action] = useActionState(placeOrderAction, INITIAL_ORDER_STATE);
   const [selectedMarket, setSelectedMarket] = useState<PricingCountryCode>(state.market ?? initialMarket);
   const [selected, setSelected] = useState(state.offer ?? initialOffer);
   const [guestEmail, setGuestEmail] = useState(state.guestEmail ?? initialGuestEmail);
-  const [, startTransition] = useTransition();
+  const [isSwitchingMarket, startTransition] = useTransition();
 
   const offers = offersByMarket[selectedMarket];
   const offer = offers.find((item) => item.id === selected) ?? offers[0];
@@ -68,7 +71,9 @@ export default function OrderForm({
     startTransition(async () => {
       try {
         await setMarketAction(next);
-        router.refresh();
+        const nextParams = new URLSearchParams(searchParams.toString());
+        nextParams.set(MARKET_PARAM, next);
+        router.replace(`${pathname}?${nextParams.toString()}`, { scroll: false });
       } catch {}
     });
   };
@@ -93,12 +98,10 @@ export default function OrderForm({
           id="order-market-select"
           name="market"
           value={selectedMarket}
+          locale={locale}
+          disabled={isSwitchingMarket}
           onChange={chooseMarket}
-          options={PRICING_COUNTRIES.map((code) => ({
-            code,
-            label: markets[code].label,
-            hint: markets[code].hint,
-          }))}
+          options={PRICING_COUNTRIES.map((code) => ({ code, label: markets[code].label, hint: markets[code].hint }))}
         />
         <p className="text-xs leading-relaxed text-muted">{labels.MarketNote}</p>
       </div>
@@ -107,15 +110,7 @@ export default function OrderForm({
         <BillingNotice message={currentMarket.blocker} />
       ) : (
         <>
-          <OrderOfferList
-            legend={labels.ChooseOffer}
-            legendClassName={STEP_LEGEND_CLASSES}
-            offers={offers}
-            selectedId={offer.id}
-            onSelect={setSelected}
-            upgrade={upgrade}
-          />
-
+          <OrderOfferList legend={labels.ChooseOffer} legendClassName={STEP_LEGEND_CLASSES} offers={offers} selectedId={offer.id} onSelect={setSelected} upgrade={upgrade} />
           <OrderSummarySection
             legendClassName={STEP_LEGEND_CLASSES}
             offer={offer}
@@ -125,20 +120,14 @@ export default function OrderForm({
             vatNote={vatNotes[selectedMarket]}
             labels={labels}
           />
-
           <AuthCheckbox id="order-consent" name="consent" required error={state.code === "consent_required" ? labels.ConsentRequired : undefined}>
             <OrderTermsNote template={labels.ConsentLabel} labels={{ terms: labels.TermsLink, withdrawal: labels.WithdrawalLink, privacy: labels.PrivacyLink }} />
           </AuthCheckbox>
-
-          <div className="grid gap-3">
-            <AuthSubmit
-              label={offer.isTrial && offer.trialSubmitLabel ? offer.trialSubmitLabel : labels.Submit}
-              pendingLabel={labels.Pending}
-              variant="signal"
-            />
-            <p className="flex items-start gap-2 font-mono text-[11px] leading-relaxed text-muted">
+          <div className="grid min-w-0 gap-3">
+            <AuthSubmit label={offer.isTrial && offer.trialSubmitLabel ? offer.trialSubmitLabel : labels.Submit} pendingLabel={labels.Pending} variant="signal" />
+            <p className="flex min-w-0 items-start gap-2 font-mono text-[11px] leading-relaxed wrap-break-word text-muted">
               <AuthIcon name="lock" className="mt-0.5 size-3.5 shrink-0 text-ink" />
-              {offer.isTrial && offer.trialPaymentNote ? offer.trialPaymentNote : labels.PaymentNote}
+              <span className="min-w-0">{offer.isTrial && offer.trialPaymentNote ? offer.trialPaymentNote : labels.PaymentNote}</span>
             </p>
           </div>
         </>

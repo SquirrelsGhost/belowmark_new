@@ -35,7 +35,7 @@ export default function PricingMarketSwitch({ current, label, detectedLabel, hin
   };
 
   return (
-    <div className="mt-12 max-w-xl">
+    <div className="mt-12 max-w-3xl">
       <label htmlFor="pricing-market-select" className="mb-3 flex flex-wrap items-baseline gap-x-3 gap-y-1 font-mono text-xs tracking-[0.2em] uppercase">
         <span>{label}</span>
         {detectedLabel && <span className="tracking-normal text-signal normal-case">· {detectedLabel}</span>}

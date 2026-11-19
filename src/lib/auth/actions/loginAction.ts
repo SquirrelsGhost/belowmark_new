@@ -31,28 +31,29 @@ export async function loginAction(_prev: AuthFormState, formData: FormData): Pro
     return { status: "error", code: powCheck.reason, values };
   }
 
-  const ipLimit = await limitOrNull(`login:ip:${ip}`, RATE_LIMITS.loginIp, values);
-  if (ipLimit) return ipLimit;
-
   const parsed = loginSchema.safeParse({
     email: field(formData, "email"),
     password: field(formData, "password"),
     remember: formData.get("remember") === "on",
   });
-  if (!parsed.success) return toFieldErrors(parsed.error, values);
+  if (!parsed.success) {
+    const ipLimit = await limitOrNull(`login:ip:${ip}`, RATE_LIMITS.loginIp, values);
+    if (ipLimit) return ipLimit;
+    return toFieldErrors(parsed.error, values);
+  }
   const { email, password, remember } = parsed.data;
   const hardwareFingerprint = field(formData, "hardwareFingerprint").trim() || undefined;
 
   const ipBackoffKey = `login:backoff:ip:${ip}`;
   const accountKey = `login:acct:${email}`;
   try {
-    const [ipBackoff, accountBackoff] = await Promise.all([
-      RateLimitService.checkBackoff(ipBackoffKey),
-      RateLimitService.checkBackoff(accountKey),
+    const [ipLimit, backoff] = await Promise.all([
+      limitOrNull(`login:ip:${ip}`, RATE_LIMITS.loginIp, values),
+      RateLimitService.checkManyBackoffs([ipBackoffKey, accountKey]),
     ]);
-    if (!ipBackoff.allowed || !accountBackoff.allowed) {
-      const retryAfterMinutes = Math.max(ipBackoff.retryAfterMinutes, accountBackoff.retryAfterMinutes);
-      return { status: "error", code: "rate_limited", retryAfterMinutes, values };
+    if (ipLimit) return ipLimit;
+    if (!backoff.allowed) {
+      return { status: "error", code: "rate_limited", retryAfterMinutes: backoff.retryAfterMinutes, values };
     }
 
     const result = await AuthService.login(email, password, hardwareFingerprint);
@@ -63,13 +64,16 @@ export async function loginAction(_prev: AuthFormState, formData: FormData): Pro
           RateLimitService.recordFailure(accountKey),
         ]);
       }
-      return { status: "error", code: result.reason, values: { ...values, email } };
+      return { status: "error", code: result.reason, values };
     }
     await Promise.all([
-      RateLimitService.reset(accountKey),
-      RateLimitService.reset(ipBackoffKey),
+      SessionService.create(result.userId, remember, userAgent, {
+        ip,
+        hardwareFingerprint,
+        sitzungsVersion: result.sitzungsVersion,
+      }),
+      RateLimitService.resetMany([accountKey, ipBackoffKey]),
     ]);
-    await SessionService.create(result.userId, remember, userAgent, { ip, hardwareFingerprint });
   } catch (error) {
     return unknownError("loginAction", error, values);
   }

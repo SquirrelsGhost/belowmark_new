@@ -22,6 +22,7 @@ export default async function VerifyEmailPage({ searchParams }: PageProps<"/emai
   const [{ t, lang, region }, params] = await Promise.all([getAuthPageContext(), searchParams]);
   const rawToken = params[AUTH_PARAMS.token];
   const token = typeof rawToken === "string" ? rawToken : "";
+  const initialEmail = typeof params.email === "string" ? params.email.trim().slice(0, 254) : undefined;
   const rawObjekt = params.objekt ?? params.key;
   const targetKey = typeof rawObjekt === "string" ? rawObjekt.trim().slice(0, 128) : undefined;
   const rawStadt = params.stadt ?? params.city;
@@ -43,6 +44,7 @@ export default async function VerifyEmailPage({ searchParams }: PageProps<"/emai
         <VerifyEmailForm
           t={{ Fields: t.Fields, Errors: t.Errors, Verify: t.Verify }}
           token={token}
+          initialEmail={initialEmail}
           targetKey={targetKey}
           targetCity={targetCity}
         />

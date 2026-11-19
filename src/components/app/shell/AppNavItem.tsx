@@ -14,8 +14,8 @@ interface AppNavItemProps {
   variant?: "bar" | "tab";
 }
 
-const BAR_CLASSES = "relative hidden h-16 items-center gap-2 px-3 font-narrow text-sm font-semibold tracking-[0.08em] uppercase lg:inline-flex";
-const TAB_CLASSES = "relative flex flex-1 flex-col items-center justify-center gap-0.5 py-2 font-narrow text-[11px] font-semibold tracking-[0.08em] uppercase";
+const BAR_CLASSES = "relative hidden h-16 items-center gap-2 px-2.5 font-narrow text-sm font-semibold tracking-[0.06em] whitespace-nowrap uppercase lg:inline-flex xl:px-3 xl:tracking-[0.08em]";
+const TAB_CLASSES = "relative flex min-w-fit flex-1 shrink-0 flex-col items-center justify-center gap-0.5 px-2.5 py-2 font-narrow text-[10px] font-semibold tracking-[0.06em] whitespace-nowrap uppercase sm:text-[11px]";
 
 /** Section link; the active one gets the red market line. */
 export default function AppNavItem({ href, label, count, variant = "bar" }: AppNavItemProps) {

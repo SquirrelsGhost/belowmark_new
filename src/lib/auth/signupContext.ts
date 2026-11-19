@@ -162,6 +162,7 @@ export async function completePostSignupOnboarding(
       .select({
         market: users.market,
         country: users.country,
+        plan: users.plan,
         locale: users.locale,
         permissions: users.permissions,
       })
@@ -180,6 +181,7 @@ export async function completePostSignupOnboarding(
           id: userId,
           market: userRow.market,
           country: userRow.country,
+          plan: userRow.plan,
           permissions: [],
           teamSeat: false,
         });

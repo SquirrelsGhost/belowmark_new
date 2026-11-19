@@ -229,7 +229,7 @@ export const TR: ITranslation = {
       AltPricePrefix: "veya",
       MarketLabel: "Ülke ve pazar seçin",
       MarketDetected: "konuma göre algılandı",
-      MarketHint: "Ülke bazlı yerel fiyatlandırma ve para birimi (EUR · CHF · GBP · TRY).",
+      MarketHint: "12 ülke doğrudan seçilebilir — yerel fiyatlandırma ve para birimleri (EUR · CHF · GBP · PLN · CZK · SEK · TRY).",
       Markets: {
         DE: {
           Label: "Almanya",

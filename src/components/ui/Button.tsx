@@ -14,7 +14,7 @@ interface ButtonProps {
   size?: "sm" | "md" | "lg";
   /** Shows a trailing arrow that slides on hover */
   withArrow?: boolean;
-  /** Stretches to the container width */
+  /** Stretches to the container width and allows long labels to wrap cleanly */
   fullWidth?: boolean;
   /** Disables the button and shows reduced opacity */
   disabled?: boolean;
@@ -23,7 +23,7 @@ interface ButtonProps {
 }
 
 const BASE_CLASSES = [
-  "group relative inline-flex items-center justify-center gap-3 whitespace-nowrap",
+  "group relative inline-flex max-w-full items-center justify-center gap-2.5 sm:gap-3",
   "font-narrow font-semibold uppercase tracking-[0.08em]",
   "transition-[background-color,color,box-shadow,transform] duration-200 ease-out",
   "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-signal",
@@ -37,20 +37,24 @@ const VARIANT_CLASSES: Record<NonNullable<ButtonProps["variant"]>, string> = {
   paper: "bg-paper-bright text-ink shadow-[4px_4px_0_0_var(--signal)] hover:shadow-[6px_6px_0_0_var(--signal)]",
 };
 
-const SIZE_CLASSES: Record<NonNullable<ButtonProps["size"]>, string> = {
-  sm: "h-9 px-4 text-xs",
-  md: "h-11 px-5 text-sm",
-  lg: "h-14 px-7 text-base",
+const INLINE_SIZE_CLASSES: Record<NonNullable<ButtonProps["size"]>, string> = {
+  sm: "h-9 px-3.5 text-xs whitespace-nowrap sm:px-4",
+  md: "h-11 px-5 text-sm whitespace-nowrap",
+  lg: "min-h-14 px-6 py-3 text-base whitespace-normal text-center leading-tight sm:px-7",
 };
 
-const ARROW_CLASSES = "size-4 transition-transform duration-200 group-hover:translate-x-1";
+const FULL_SIZE_CLASSES: Record<NonNullable<ButtonProps["size"]>, string> = {
+  sm: "min-h-9 w-full px-4 py-2 text-xs whitespace-normal text-center leading-snug",
+  md: "min-h-11 w-full px-5 py-2.5 text-sm whitespace-normal text-center leading-snug",
+  lg: "min-h-14 w-full px-4 py-3.5 text-sm whitespace-normal text-center leading-tight sm:px-6 sm:text-base",
+};
+
+const ARROW_CLASSES = "size-4 shrink-0 transition-transform duration-200 group-hover:translate-x-1";
 
 /**
  * Hard-edged button with an offset "stamp" shadow. Renders a Next.js <Link>
- * when `href` is given.
- *
- * @example
- * <Button label="Zugang testen" href="/signup" variant="signal" withArrow />
+ * when `href` is given. Full-width buttons wrap multi-word CTA labels cleanly
+ * so long localized texts never overflow mobile or card containers.
  */
 export default function Button({
   label,
@@ -63,10 +67,11 @@ export default function Button({
   disabled = false,
   type = "button",
 }: ButtonProps) {
-  const className = [BASE_CLASSES, VARIANT_CLASSES[variant], SIZE_CLASSES[size], fullWidth ? "w-full" : ""].join(" ");
+  const sizeClass = fullWidth ? FULL_SIZE_CLASSES[size] : INLINE_SIZE_CLASSES[size];
+  const className = [BASE_CLASSES, VARIANT_CLASSES[variant], sizeClass].join(" ");
   const content = (
     <>
-      <span>{label}</span>
+      <span className="min-w-0 wrap-break-word">{label}</span>
       {withArrow && <Icon name="arrowRight" className={ARROW_CLASSES} />}
     </>
   );

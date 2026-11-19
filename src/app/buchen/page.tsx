@@ -49,7 +49,14 @@ export default async function OrderPage({ searchParams }: PageProps<"/buchen">) 
 
   const [currentUser, region] = await Promise.all([SessionService.getCurrentUser(), RegionService.GetRegion()]);
   const viewerCountry: PricingCountryCode = currentUser ? (await CountryAccessService.forUser(currentUser)).country : region.pricingCountry;
-  const initialMarket: PricingCountryCode = isPricingCountry(rawMarket) ? rawMarket : viewerCountry;
+  const [access, trialEligible] = currentUser
+    ? await Promise.all([BillingService.access(currentUser.id), BillingService.isTrialEligible(currentUser.id)])
+    : [GUEST_ACCESS, true];
+  const initialMarket: PricingCountryCode = isPricingCountry(rawMarket)
+    ? rawMarket
+    : !access.isActive && region.isMarketChosen
+      ? region.pricingCountry
+      : viewerCountry;
   const preferredLocale = resolveOrderPageLocale({
     isLocaleChosen: region.isLocaleChosen,
     regionLocale: region.locale,
@@ -66,9 +73,6 @@ export default async function OrderPage({ searchParams }: PageProps<"/buchen">) 
   const availabilityDe = BillingService.availability("DE");
   const availabilityTr = BillingService.availability("TR");
   const availability = initialMarket === "TR" ? availabilityTr : availabilityDe;
-  const [access, trialEligible] = currentUser
-    ? await Promise.all([BillingService.access(currentUser.id), BillingService.isTrialEligible(currentUser.id)])
-    : [GUEST_ACCESS, true];
   const vatNotes = Object.fromEntries(
     PRICING_COUNTRIES.map((code) => [
       code,
@@ -110,10 +114,10 @@ export default async function OrderPage({ searchParams }: PageProps<"/buchen">) 
 
   return (
     <AuthLayout lang={lang} layout={layout}>
-      <OrderIntro eyebrow={Order.Eyebrow} title={Order.Title} lead={Order.Lead} lineLabel={layout.LineLabel} points={Order.Points} notices={notices}>
+      <OrderIntro compact eyebrow={Order.Eyebrow} title={Order.Title} lead={Order.Lead} lineLabel={layout.LineLabel} points={Order.Points} notices={notices}>
         <OrderProNote title={Order.ProTitle} body={Order.ProBody} cta={Order.ProCta} href={ROUTES.contact} />
       </OrderIntro>
-      <AuthCard label={Order.Eyebrow} formNumber="BM-10" title={Order.SummaryTitle}>
+      <AuthCard wide label={Order.Eyebrow} formNumber="BM-10" title={Order.SummaryTitle}>
         {bothMarketsClosed && availability.blocker ? (
           <PageStack variant="grid4">
             <BillingNotice message={Order.Blockers[availability.blocker]} />
@@ -127,6 +131,7 @@ export default async function OrderPage({ searchParams }: PageProps<"/buchen">) 
           </PageStack>
         ) : (
           <OrderForm
+            key={initialMarket}
             offersByMarket={offersByMarket}
             markets={markets}
             initialMarket={initialMarket}

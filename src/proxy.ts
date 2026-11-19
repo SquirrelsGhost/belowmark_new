@@ -1,7 +1,13 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { AUTH_PARAMS, AUTH_ROUTES, SESSION_COOKIE_NAME } from "@/lib/auth/authConfig";
-import { createSessionCookieToken, readCookieFromRequest, readSessionCookieToken } from "@/lib/auth/sessionToken";
+import {
+  createSessionCookieToken,
+  readCookieFromRequest,
+  readSessionCookieToken,
+  signInternalSessionContext,
+  VERIFIED_SESSION_HEADER,
+} from "@/lib/auth/sessionToken";
 import { hasPermission } from "@/lib/permissions";
 import { resolvePseoCanonicalRedirect } from "@/lib/pseo/legacyPseoRedirects";
 import { findPolicy } from "@/lib/routePolicies";
@@ -105,6 +111,7 @@ export async function proxy(req: NextRequest): Promise<NextResponse> {
   requestHeaders.delete("x-user-id");
   requestHeaders.delete("x-user-name");
   requestHeaders.delete("x-user-permissions");
+  requestHeaders.delete(VERIFIED_SESSION_HEADER);
   requestHeaders.set("x-pathname", pathname);
 
   // 2. Public routes skip session validation (with O(1) canonical 308 pSEO redirect check)
@@ -163,9 +170,31 @@ export async function proxy(req: NextRequest): Promise<NextResponse> {
   headers.delete("x-user-id");
   headers.delete("x-user-name");
   headers.delete("x-user-permissions");
+  headers.delete(VERIFIED_SESSION_HEADER);
   headers.set("x-user-id", headerSafeValue(user.id));
   headers.set("x-user-name", headerSafeValue(user.name));
   headers.set("x-user-permissions", user.permissions.join(","));
+  headers.set(
+    VERIFIED_SESSION_HEADER,
+    signInternalSessionContext({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      market: user.market,
+      country: user.country,
+      locale: user.locale,
+      emailVerifiedAt: user.emailVerifiedAt,
+      trialEndsAt: user.trialEndsAt,
+      hasTrialEnded: user.hasTrialEnded,
+      plan: user.plan,
+      permissions: user.permissions,
+      hasFullAccess: user.hasFullAccess,
+      teamSeat: user.teamSeat,
+      paidMarkets: user.paidMarkets,
+      createdAt: user.createdAt,
+      sessionId: user.sessionId,
+    }),
+  );
 
   const response = NextResponse.next({ request: { headers } });
   return attachRotatedCookie(response, user, rawCookie);

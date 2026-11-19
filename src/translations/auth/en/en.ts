@@ -46,7 +46,7 @@ export const AUTH_EN: IAuthTranslation = {
       SE: { Label: "Sweden", Hint: "Kronofogden foreclosure auctions · 21 counties" },
       TR: { Label: "Türkiye", Hint: "İcra & public auctions (UYAP) · 81 provinces" },
     },
-    MarketNote: "Select your primary market (DE, AT, CH, IT, ES, FR, UK, or TR). Can be changed anytime in your account.",
+    MarketNote: "All 12 countries available (DE, AT, CH, IT, ES, FR, UK, NL, PL, CZ, SE, TR). Can be switched anytime in your account.",
     Terms: "I accept the {terms} and have read the {privacy}.",
     TermsLink: "Terms & Conditions",
     PrivacyLink: "Privacy Policy",
@@ -129,7 +129,7 @@ export const AUTH_EN: IAuthTranslation = {
       Points: [
         "Free daily email alerts, watchlist & 1 Free Dossier included",
         "14-day commitment-free access — ends automatically, no card & no subscription",
-        "8 markets selectable: DE · AT · CH · IT · ES · FR · UK · TR",
+        "12 markets selectable: DE · AT · CH · IT · ES · FR · UK · NL · PL · CZ · SE · TR",
       ],
     },
     CardLabel: "Account & Alert",

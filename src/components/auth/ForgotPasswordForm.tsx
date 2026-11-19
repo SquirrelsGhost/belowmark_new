@@ -15,10 +15,11 @@ import { INITIAL_AUTH_STATE } from "@/types/auth.types";
 
 interface ForgotPasswordFormProps {
   t: Pick<IAuthTranslation, "Fields" | "Errors" | "Forgot">;
+  initialEmail?: string;
 }
 
 /** Requests a reset link; the answer is identical for known and unknown addresses. */
-export default function ForgotPasswordForm({ t }: ForgotPasswordFormProps) {
+export default function ForgotPasswordForm({ t, initialEmail }: ForgotPasswordFormProps) {
   const [state, formAction] = useActionState(forgotPasswordAction, INITIAL_AUTH_STATE);
   const formRef = useRef<HTMLFormElement>(null);
   useFocusFirstError(formRef, state);
@@ -47,7 +48,7 @@ export default function ForgotPasswordForm({ t }: ForgotPasswordFormProps) {
         placeholder={t.Fields.EmailPlaceholder}
         autoComplete="username"
         inputMode="email"
-        defaultValue={state.values?.email}
+        defaultValue={state.values?.email ?? initialEmail}
         error={emailError ? t.Errors[emailError] : undefined}
       />
       <AuthSubmit label={t.Forgot.Submit} pendingLabel={t.Forgot.Pending} />

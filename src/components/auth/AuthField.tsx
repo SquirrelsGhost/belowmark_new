@@ -13,6 +13,8 @@ interface AuthFieldProps {
   inputMode?: "email" | "text";
   placeholder?: string;
   defaultValue?: string;
+  value?: string;
+  onValueChange?: (value: string) => void;
   readOnly?: boolean;
   hint?: string;
   /** Translated error text; marks the field invalid */
@@ -22,7 +24,25 @@ interface AuthFieldProps {
 }
 
 /** Label, input, hint and error — wired together for assistive technology. */
-export default function AuthField({ id, name, label, number, type = "text", autoComplete, inputMode, placeholder, defaultValue, readOnly, hint, error, aside }: AuthFieldProps) {
+export default function AuthField({
+  id,
+  name,
+  label,
+  number,
+  type = "text",
+  autoComplete,
+  inputMode,
+  placeholder,
+  defaultValue,
+  value,
+  onValueChange,
+  readOnly,
+  hint,
+  error,
+  aside,
+}: AuthFieldProps) {
+  const controlledProps = value !== undefined ? { value } : { defaultValue };
+
   return (
     <div className="grid gap-1.5">
       <div className="flex items-baseline justify-between gap-3">
@@ -38,7 +58,9 @@ export default function AuthField({ id, name, label, number, type = "text", auto
         autoComplete={autoComplete}
         inputMode={inputMode}
         placeholder={placeholder}
-        defaultValue={defaultValue}
+        {...controlledProps}
+        onChange={onValueChange ? (e) => onValueChange(e.currentTarget.value) : undefined}
+        onInput={onValueChange ? (e) => onValueChange(e.currentTarget.value) : undefined}
         readOnly={readOnly}
         required={!readOnly}
         spellCheck={false}

@@ -26,11 +26,12 @@ const globalForDb = globalThis as unknown as {
   dbInstance: DatabaseInstance | undefined;
   dbInitPromise: Promise<DatabaseInstance> | undefined;
   lastMigratedJournalSignature: string | undefined;
+  lastMigratedJournalMtimeMs: number | undefined;
   lastJournalCheckAt: number | undefined;
   isRemotePg: boolean | undefined;
 };
 
-const JOURNAL_CHECK_TTL_MS = 30_000;
+const JOURNAL_CHECK_TTL_MS = 10 * 60_000;
 
 const MIGRATIONS_FOLDER = path.join(process.cwd(), "drizzle");
 const JOURNAL_FILE = path.join(MIGRATIONS_FOLDER, "meta", "_journal.json");
@@ -66,10 +67,23 @@ function readJournalSignature(): string {
  */
 async function ensureSchemaOnDb(dbInst: DatabaseInstance, isRemotePg = false): Promise<void> {
   globalForDb.lastJournalCheckAt = Date.now();
-  if (!fs.existsSync(JOURNAL_FILE)) return;
+  let journalMtimeMs = 0;
+  try {
+    journalMtimeMs = fs.statSync(JOURNAL_FILE).mtimeMs;
+  } catch {
+    return;
+  }
+  if (
+    globalForDb.lastMigratedJournalMtimeMs !== undefined &&
+    globalForDb.lastMigratedJournalMtimeMs === journalMtimeMs &&
+    globalForDb.lastMigratedJournalSignature
+  ) {
+    return;
+  }
 
   const signature = readJournalSignature();
   if (globalForDb.lastMigratedJournalSignature === signature && signature !== "") {
+    globalForDb.lastMigratedJournalMtimeMs = journalMtimeMs;
     return;
   }
 
@@ -81,6 +95,7 @@ async function ensureSchemaOnDb(dbInst: DatabaseInstance, isRemotePg = false): P
       const rows = (check as unknown as { rows?: Array<{ cnt: number }> }).rows;
       if (rows && rows[0]?.cnt === 9) {
         globalForDb.lastMigratedJournalSignature = signature;
+        globalForDb.lastMigratedJournalMtimeMs = journalMtimeMs;
         return;
       }
     } catch {
@@ -116,6 +131,7 @@ async function ensureSchemaOnDb(dbInst: DatabaseInstance, isRemotePg = false): P
   }
 
   globalForDb.lastMigratedJournalSignature = signature;
+  globalForDb.lastMigratedJournalMtimeMs = journalMtimeMs;
 }
 
 async function initOrSyncDatabase(): Promise<DatabaseInstance> {

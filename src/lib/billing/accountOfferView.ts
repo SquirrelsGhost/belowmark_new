@@ -1,6 +1,6 @@
 import { BILLING_OFFERS, BILLING_ROUTES, BillingOfferId, MARKET_PARAM, OFFER_PARAM, OFFERS, UPGRADES } from "@/lib/billing/billingConfig";
 import { fill, formatCardPrice, formatContractDate } from "@/lib/billing/billingFormat";
-import { LocaleOption, PricingCountryCode } from "@/lib/constants";
+import { LocaleOption, PRICING_COUNTRIES, PricingCountryCode } from "@/lib/constants";
 import { BillingAccess, OrderBlocker } from "@/types/billing.types";
 import { IBillingTranslation } from "@/translations/billing/IBillingTranslation";
 
@@ -83,8 +83,25 @@ export function buildAccountOfferCards(
       plan,
       name: Account.Pick.Plans[plan].Name,
       summary: Account.Pick.Plans[plan].Summary,
-      isCurrent: access.isActive && access.plan === plan,
+      isCurrent: access.isActive && access.plan === plan && country === currentCountry,
       rows,
     };
   });
+}
+
+/** Precomputes Investor & Pro offer cards for all 12 countries so /konto switches prices in 0ms. */
+export function buildAccountOfferCardsByMarket(
+  t: IBillingTranslation,
+  access: BillingAccess,
+  lang: LocaleOption,
+  currentCountry: PricingCountryCode,
+  blockerFor: OrderBlockerFn,
+  marketOpenByCountry: Record<PricingCountryCode, boolean>,
+): Record<PricingCountryCode, AccountPlanCardView[]> {
+  return Object.fromEntries(
+    PRICING_COUNTRIES.map((code) => [
+      code,
+      buildAccountOfferCards(t, access, lang, code, currentCountry, blockerFor, marketOpenByCountry[code]),
+    ]),
+  ) as Record<PricingCountryCode, AccountPlanCardView[]>;
 }

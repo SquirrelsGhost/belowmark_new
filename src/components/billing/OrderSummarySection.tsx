@@ -22,14 +22,14 @@ export default function OrderSummarySection({
   labels,
 }: OrderSummarySectionProps) {
   return (
-    <section aria-labelledby="order-summary-title">
+    <section aria-labelledby="order-summary-title" className="min-w-0">
       <h3 id="order-summary-title" className={legendClassName}>
         <span className="text-signal">03</span> {labels.SummaryTitle}
       </h3>
-      <dl className="mt-3 border-t border-rule" aria-live="polite">
+      <dl className="mt-3 min-w-0 border-t border-rule" aria-live="polite">
         <OrderSummaryRow label={offer.name} value={offer.summary} />
         <OrderSummaryRow label={labels.Account} value={summaryEmail} />
-        <OrderSummaryRow label={labels.Market} value={`${currentMarket.label} · ${selectedMarket}`} />
+        <OrderSummaryRow label={labels.Market} value={`${currentMarket.label} · ${selectedMarket === "GB" ? "UK" : selectedMarket}`} />
         <OrderSummaryRow label={labels.Start} value={offer.isTrial && offer.trialStartValue ? offer.trialStartValue : labels.StartValue} />
         {offer.isTrial && offer.trialAfterLabel && offer.trialAfterValue ? (
           <>

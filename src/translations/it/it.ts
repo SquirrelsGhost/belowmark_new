@@ -229,7 +229,7 @@ export const IT: ITranslation = {
       AltPricePrefix: "oppure",
       MarketLabel: "Seleziona Paese e mercato",
       MarketDetected: "rilevato dalla posizione",
-      MarketHint: "Prezzi locali per Paese in base al volume di mercato e alla valuta (EUR · CHF · GBP · TRY).",
+      MarketHint: "12 Paesi disponibili — prezzi locali e valute (EUR · CHF · GBP · PLN · CZK · SEK · TRY).",
       Markets: {
         DE: {
           Label: "Germania",

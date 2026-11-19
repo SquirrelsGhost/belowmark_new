@@ -66,6 +66,8 @@ export interface CurrentUser {
   hasFullAccess: boolean;
   /** Full access comes from a team seat (owner's Pro), not from an own plan or trial */
   teamSeat: boolean;
+  /** Preloaded active paid order markets (`billing_orders.market`) to avoid an extra DB round-trip */
+  paidMarkets?: string[];
   createdAt: Date;
   sessionId: string;
 }

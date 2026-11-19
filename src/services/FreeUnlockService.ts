@@ -1,5 +1,5 @@
 import "server-only";
-import { and, desc, eq, inArray, isNotNull, ne, or } from "drizzle-orm";
+import { and, desc, eq, inArray, isNotNull, sql } from "drizzle-orm";
 import { cache } from "react";
 import { db } from "@/db";
 import { freeListingUnlocks, sessions, users } from "@/db/schema";
@@ -92,31 +92,27 @@ export class FreeUnlockService {
     );
   };
 
-  /** Full status for rendering `ListingUnlockBanner` / `FreeUnlockedNotice`. */
+  /** Full status for rendering `ListingUnlockBanner` / `FreeUnlockedNotice` in a single DB round-trip. */
   static getStatus = cache(async (userId: string, currentListingKey?: string): Promise<FreeUnlockStatus> => {
-    const [ownUnlock] = await db
-      .select({ listingKey: freeListingUnlocks.listingKey })
-      .from(freeListingUnlocks)
-      .where(eq(freeListingUnlocks.userId, userId));
-
-    if (ownUnlock) {
-      return {
-        unlockedListingKey: ownUnlock.listingKey,
-        isCurrentListingUnlocked: Boolean(currentListingKey && ownUnlock.listingKey === currentListingKey),
-        canClaimFreeUnlock: false,
-        deviceAlreadyClaimed: false,
-      };
-    }
-
-    const [user] = await db
+    const [row] = await db
       .select({
+        ownUnlockKey: freeListingUnlocks.listingKey,
         emailVerifiedAt: users.emailVerifiedAt,
         gesperrtAm: users.gesperrtAm,
+        userHw: users.hardwareFingerprint,
+        sessionHw: sql<string | null>`(
+          select s.hardware_fingerprint
+          from sessions s
+          where s.user_id = ${users.id} and s.hardware_fingerprint is not null
+          order by s.created_at desc
+          limit 1
+        )`,
       })
       .from(users)
+      .leftJoin(freeListingUnlocks, eq(freeListingUnlocks.userId, users.id))
       .where(eq(users.id, userId));
 
-    if (!user || user.gesperrtAm || !user.emailVerifiedAt) {
+    if (!row) {
       return {
         unlockedListingKey: null,
         isCurrentListingUnlocked: false,
@@ -125,17 +121,46 @@ export class FreeUnlockService {
       };
     }
 
-    const hw = await resolveUserHardwareFingerprint(userId);
+    if (row.ownUnlockKey) {
+      return {
+        unlockedListingKey: row.ownUnlockKey,
+        isCurrentListingUnlocked: Boolean(currentListingKey && row.ownUnlockKey === currentListingKey),
+        canClaimFreeUnlock: false,
+        deviceAlreadyClaimed: false,
+      };
+    }
+
+    if (row.gesperrtAm || !row.emailVerifiedAt) {
+      return {
+        unlockedListingKey: null,
+        isCurrentListingUnlocked: false,
+        canClaimFreeUnlock: false,
+        deviceAlreadyClaimed: false,
+      };
+    }
+
+    const hw =
+      row.userHw && HARDWARE_FP_REGEX.test(row.userHw)
+        ? row.userHw
+        : row.sessionHw && HARDWARE_FP_REGEX.test(row.sessionHw)
+          ? row.sessionHw
+          : null;
+
     if (hw) {
+      if (!row.userHw && row.sessionHw === hw) {
+        void db
+          .update(users)
+          .set({ hardwareFingerprint: hw })
+          .where(eq(users.id, userId))
+          .catch(() => undefined);
+      }
+
       const [otherDeviceClaim] = await db
         .select({ userId: freeListingUnlocks.userId })
         .from(freeListingUnlocks)
         .innerJoin(users, eq(users.id, freeListingUnlocks.userId))
         .where(
-          and(
-            ne(freeListingUnlocks.userId, userId),
-            or(eq(freeListingUnlocks.hardwareFingerprint, hw), eq(users.hardwareFingerprint, hw)),
-          ),
+          sql`${freeListingUnlocks.userId} <> ${userId} and (${freeListingUnlocks.hardwareFingerprint} = ${hw} or ${users.hardwareFingerprint} = ${hw})`,
         )
         .limit(1);
 

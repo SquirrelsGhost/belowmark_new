@@ -16,6 +16,11 @@ const globalForScheduler = globalThis as unknown as {
 
 export async function register(): Promise<void> {
   if (process.env.NEXT_RUNTIME !== "nodejs") return;
+  // Never run heavy multi-snapshot warmup or background timers inside Vercel Serverless
+  // functions or local dev HMR: on serverless, firing a 500ms timer during a cold `/login`
+  // or `/api/health` invocation blocks the single vCPU event loop parsing ~80 MB of JSON
+  // while Vercel Crons (`vercel.json`) already handle scheduled alert & deadline runs.
+  if (process.env.VERCEL || process.env.NODE_ENV !== "production") return;
   if (globalForScheduler.reminderSchedulerStarted) return;
   globalForScheduler.reminderSchedulerStarted = true;
 

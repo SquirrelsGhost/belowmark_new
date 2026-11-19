@@ -26,6 +26,8 @@ export interface SessionUser {
   hasFullAccess: boolean;
   /** Full access comes from a team seat, not from an own plan or trial */
   teamSeat: boolean;
+  /** Preloaded active paid order markets (`billing_orders.market`) */
+  paidMarkets?: string[];
   banned: boolean;
   banReason?: string;
   createdAt: Date;
@@ -34,10 +36,16 @@ export interface SessionUser {
   neuesTokenId?: string;
 }
 
-const SESSION_DEDUP_TTL_MS = 1_500;
+const SESSION_DEDUP_TTL_MS = 5_000;
 const recentSessionResolutions = new Map<string, { expiresAt: number; user: SessionUser | null }>();
+let sessionInvalidationEpoch = 0;
+
+export function getSessionInvalidationEpoch(): number {
+  return sessionInvalidationEpoch;
+}
 
 export function clearSessionResolutionCache(): void {
+  sessionInvalidationEpoch += 1;
   recentSessionResolutions.clear();
 }
 
@@ -83,6 +91,8 @@ export async function resolveSessionToken(
       gesperrtAm: users.gesperrtAm,
       sperrGrund: users.sperrGrund,
       createdAt: users.createdAt,
+      hasTeamMembership: sql<boolean>`exists(select 1 from team_members tm where tm.user_id = ${users.id} and tm.role <> 'owner')`,
+      paidMarkets: sql<string[]>`coalesce((select array_agg(distinct bo.market::text) from billing_orders bo where bo.user_id = ${users.id} and bo.status = 'paid' and (bo.access_ends_at is null or bo.access_ends_at > now())), '{}'::text[])`,
       // Read together with the user: one round trip instead of two
       sitzung: getTableColumns(sessions),
     })
@@ -140,9 +150,11 @@ export async function resolveSessionToken(
     trialEndsAt: user.trialEndsAt,
     bannedAt: user.gesperrtAm,
   });
-  // A team seat only matters when the account has no full access of its own
-  const teamSeat = !hasFullAppAccess(ownPerms) && (await TeamSeatService.has(user.id));
+  // A team seat only matters when the account has no full access of its own and actually belongs to a team
+  const teamSeat =
+    !hasFullAppAccess(ownPerms) && Boolean(user.hasTeamMembership) && (await TeamSeatService.has(user.id));
   const effectivePerms = teamSeat ? effectiveUserPermissions({ permissions: user.permissions, plan: user.plan, bannedAt: user.gesperrtAm, teamSeat }) : ownPerms;
+  const paidMarkets = Array.isArray(user.paidMarkets) ? user.paidMarkets : [];
 
   const resolved: SessionUser = {
     id: user.id,
@@ -158,6 +170,7 @@ export async function resolveSessionToken(
     permissions: effectivePerms,
     hasFullAccess: hasFullAppAccess(effectivePerms),
     teamSeat,
+    paidMarkets,
     banned: false,
     createdAt: user.createdAt,
     sessionId: daten.sessionId,

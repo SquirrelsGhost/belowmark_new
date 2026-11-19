@@ -229,7 +229,7 @@ export const DE: ITranslation = {
       AltPricePrefix: "oder",
       MarketLabel: "Land & Markt wählen",
       MarketDetected: "nach Standort erkannt",
-      MarketHint: "Lokale Preise je Land nach Marktvolumen und Währung (EUR · CHF · GBP · TRY).",
+      MarketHint: "12 Länder direkt wählbar — lokale Preise & Landeswährungen (EUR · CHF · GBP · PLN · CZK · SEK · TRY).",
       Markets: {
         DE: {
           Label: "Deutschland",

@@ -18,11 +18,13 @@ export interface VerificationContextParams {
   key?: string;
   city?: string;
   market?: string;
+  email?: string;
 }
 
 function link(path: string, token?: string, ctx?: VerificationContextParams, baseOverride?: string): string {
   const url = new URL(path, baseOverride || env.appUrl);
   if (token) url.searchParams.set(AUTH_PARAMS.token, token);
+  if (ctx?.email) url.searchParams.set("email", ctx.email);
   if (ctx?.key) url.searchParams.set("objekt", ctx.key);
   if (ctx?.city) url.searchParams.set("stadt", ctx.city);
   if (ctx?.market) url.searchParams.set("markt", ctx.market);
@@ -93,16 +95,16 @@ export class AuthMailService {
     verificationCode?: string,
     ctx?: VerificationContextParams,
   ) =>
-    send("VerifyEmail", to, link(AUTH_ROUTES.verifyEmail, token, ctx), { verificationCode });
+    send("VerifyEmail", to, link(AUTH_ROUTES.verifyEmail, token, { ...ctx, email: to.email }), { verificationCode });
 
   static sendPasswordReset = (to: Recipient, token: string) =>
     send("ResetPassword", to, link(AUTH_ROUTES.resetPassword, token));
 
   static sendAccountExists = (to: Recipient) =>
-    send("AccountExists", to, link(AUTH_ROUTES.login));
+    send("AccountExists", to, link(AUTH_ROUTES.login, undefined, { email: to.email }));
 
   static sendPasswordChanged = (to: Recipient) =>
-    send("PasswordChanged", to, link(AUTH_ROUTES.forgotPassword));
+    send("PasswordChanged", to, link(AUTH_ROUTES.forgotPassword, undefined, { email: to.email }));
 
   static sendWelcomeTrial = async (to: Recipient, trialEndsAt: Date): Promise<void> => {
     const locale = TranslationService.NormalizeLocale(to.locale);
@@ -139,7 +141,7 @@ export class AuthMailService {
 
     const rendered = renderAuthMail({
       template: bundle.template,
-      url: link(AUTH_ROUTES.verifyEmail, token, undefined, publicBase),
+      url: link(AUTH_ROUTES.verifyEmail, token, { email: to.email }, publicBase),
       signature: bundle.signature,
       footer: bundle.footer,
       lang,

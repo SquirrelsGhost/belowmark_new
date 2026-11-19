@@ -2,7 +2,7 @@
 "use client";
 
 import { usePathname, useSearchParams } from "next/navigation";
-import { useOptimistic, useTransition } from "react";
+import { ChangeEvent, useOptimistic, useTransition } from "react";
 import { SEARCH_PARAMS } from "@/lib/appConstants";
 import { switchAppCountryAction } from "@/lib/appCountryActions";
 import { ListingCountry } from "@/types/listing.types";
@@ -18,13 +18,14 @@ interface AppCountrySwitchProps {
   options: AppCountryOption[];
 }
 
-const PILL_BASE = "px-1.5 py-0.5 font-mono text-[10px] tracking-[0.12em] uppercase transition-colors cursor-pointer disabled:opacity-50";
-const PILL_ACTIVE = `${PILL_BASE} bg-paper-bright font-semibold text-ink`;
-const PILL_INACTIVE = `${PILL_BASE} text-paper/65 hover:bg-paper/15 hover:text-paper-bright`;
+const PILL_BASE = "px-1.5 py-0.5 font-mono text-[10px] tracking-[0.1em] uppercase transition-colors cursor-pointer disabled:opacity-50";
+const PILL_ACTIVE = `${PILL_BASE} bg-paper-bright font-bold text-ink`;
+const PILL_INACTIVE = `${PILL_BASE} text-paper/70 hover:bg-paper/15 hover:text-paper-bright`;
 
 /**
- * Topbar country switcher shown in AppStatusLine whenever the viewer holds
- * multiple countries (multi-country plans or superusers).
+ * Topbar country switcher shown in AppStatusLine:
+ * - Phones (< md): compact high-contrast <select> so 12 countries fit cleanly in 1 line
+ * - Tablet/Desktop (md+): 1-click country pills across all available countries
  */
 export default function AppCountrySwitch({ current, currentLabel, options }: AppCountrySwitchProps) {
   const pathname = usePathname();
@@ -52,13 +53,33 @@ export default function AppCountrySwitch({ current, currentLabel, options }: App
     });
   };
 
+  const handleSelectChange = (event: ChangeEvent<HTMLSelectElement>) => {
+    handleSelect(event.target.value as ListingCountry);
+  };
+
   return (
-    <span className="flex items-center gap-2">
+    <span className="flex min-w-0 flex-wrap items-center gap-2">
       <span aria-hidden="true" className="size-1.5 shrink-0 bg-signal" />
-      <span>{displayLabel}</span>
-      <span className="ml-1 flex items-center gap-0.5 border-l border-paper/20 pl-2" role="group" aria-label="Land wechseln">
+      <span className="truncate font-semibold">{displayLabel}</span>
+
+      <select
+        aria-label="Country"
+        value={optimisticCode}
+        disabled={isPending}
+        onChange={handleSelectChange}
+        className="cursor-pointer border border-paper/40 bg-paper-bright px-1.5 py-0.5 font-mono text-[10px] font-bold tracking-wider text-ink uppercase focus:outline-none disabled:opacity-50 md:hidden"
+      >
+        {options.map((opt) => (
+          <option key={opt.code} value={opt.code}>
+            {opt.code === "GB" ? "UK" : opt.code} · {opt.name}
+          </option>
+        ))}
+      </select>
+
+      <span className="ml-1 hidden flex-wrap items-center gap-0.5 border-l border-paper/20 pl-2 md:flex" role="group" aria-label="Countries">
         {options.map((opt) => {
           const isActive = opt.code === optimisticCode;
+          const shortCode = opt.code === "GB" ? "UK" : opt.code;
           return (
             <button
               key={opt.code}
@@ -69,7 +90,7 @@ export default function AppCountrySwitch({ current, currentLabel, options }: App
               aria-pressed={isActive}
               className={isActive ? PILL_ACTIVE : PILL_INACTIVE}
             >
-              {opt.code}
+              {shortCode}
             </button>
           );
         })}

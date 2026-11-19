@@ -46,7 +46,7 @@ export const AUTH_TR: IAuthTranslation = {
       SE: { Label: "İsveç", Hint: "Kronofogden Auktionstorget · 21 il" },
       TR: { Label: "Türkiye", Hint: "UYAP e-Satış icra ve kamu ihaleleri · 81 il" },
     },
-    MarketNote: "Ana ülke ve pazarınızı seçin (DE, AT, CH, IT, ES, FR, UK veya TR). Hesabınızdan istediğiniz zaman değiştirebilirsiniz.",
+    MarketNote: "12 ülkenin tamamı doğrudan seçilebilir (DE, AT, CH, IT, ES, FR, UK, NL, PL, CZ, SE, TR). Hesabınızdan istediğiniz zaman değiştirebilirsiniz.",
     Terms: "{terms} kabul ediyorum ve {privacy} okudum.",
     TermsLink: "Kullanım koşullarını",
     PrivacyLink: "gizlilik bildirimini",
@@ -129,7 +129,7 @@ export const AUTH_TR: IAuthTranslation = {
       Points: [
         "Ücretsiz e-posta alarmları, takip listesi ve 1 Ücretsiz Dosya dahil",
         "14 gün ücretsiz ve bağlayıcılıksız — otomatik biter, kart bilgisi veya otomatik abonelik yok",
-        "8 ülke pazarı: DE · AT · CH · IT · ES · FR · UK · TR",
+        "12 ülke pazarı: DE · AT · CH · IT · ES · FR · UK · NL · PL · CZ · SE · TR",
       ],
     },
     CardLabel: "Hesap ve İhale Alarmı",

@@ -6,16 +6,18 @@ interface OrderSummaryRowProps {
   note?: string;
 }
 
-/** A line of the order summary, ledger style. */
+/** A line of the order summary, ledger style — stacks cleanly on small screens and wraps safely on wide ones. */
 export default function OrderSummaryRow({ label, value, isTotal = false, note }: OrderSummaryRowProps) {
   return (
-    <div className={`flex items-baseline justify-between gap-4 py-3 ${isTotal ? "border-t-2 border-ink" : "border-b border-rule"}`}>
-      <dt className="shrink-0 font-mono text-[11px] tracking-[0.12em] text-muted uppercase">{label}</dt>
-      <dd className="min-w-0 text-right">
-        <span className={isTotal ? "font-display text-3xl leading-none whitespace-nowrap" : "font-mono text-xs leading-snug font-medium text-ink sm:text-sm"}>
+    <div className={`flex min-w-0 flex-col gap-1 py-3 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4 ${isTotal ? "border-t-2 border-ink" : "border-b border-rule"}`}>
+      <dt className="min-w-0 font-mono text-[11px] leading-snug tracking-[0.12em] wrap-break-word text-muted uppercase sm:max-w-[46%]">
+        {label}
+      </dt>
+      <dd className="min-w-0 wrap-break-word sm:text-right">
+        <span className={isTotal ? "font-display text-3xl leading-none" : "font-mono text-xs leading-snug font-medium text-ink sm:text-sm"}>
           {value}
         </span>
-        {note && <span className="mt-1 block font-mono text-[11px] text-muted">{note}</span>}
+        {note && <span className="mt-1 block font-mono text-[11px] leading-relaxed text-muted">{note}</span>}
       </dd>
     </div>
   );

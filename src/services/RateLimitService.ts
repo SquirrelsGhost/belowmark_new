@@ -1,5 +1,5 @@
 import "server-only";
-import { eq, lt, sql } from "drizzle-orm";
+import { eq, inArray, lt, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { rateLimits } from "@/db/schema";
 import { RateLimitRule } from "@/lib/auth/authConfig";
@@ -49,6 +49,39 @@ export class RateLimitService {
     return result(row.count, rule.limit, row.resetAt);
   };
 
+  /**
+   * Atomically increments two rate-limit buckets in a single SQL statement & single pooled connection,
+   * avoiding extra TLS-tunnel connection handshakes when checking minute + hour/day quotas together.
+   */
+  static hitPair = async (
+    keyA: string,
+    ruleA: RateLimitRule,
+    keyB: string,
+    ruleB: RateLimitRule,
+  ): Promise<[RateLimitResult, RateLimitResult]> => {
+    const now = Date.now();
+    const resetA = new Date(now + ruleA.windowMs);
+    const resetB = new Date(now + ruleB.windowMs);
+    const rows = await db
+      .insert(rateLimits)
+      .values([
+        { key: keyA, count: 1, resetAt: resetA },
+        { key: keyB, count: 1, resetAt: resetB },
+      ])
+      .onConflictDoUpdate({
+        target: rateLimits.key,
+        set: {
+          count: sql`CASE WHEN ${rateLimits.resetAt} < now() THEN 1 ELSE ${rateLimits.count} + 1 END`,
+          resetAt: sql`CASE WHEN ${rateLimits.resetAt} < now() THEN excluded.reset_at ELSE ${rateLimits.resetAt} END`,
+        },
+      })
+      .returning({ key: rateLimits.key, count: rateLimits.count, resetAt: rateLimits.resetAt });
+
+    const rowA = rows.find((r) => r.key === keyA) ?? { count: 1, resetAt: resetA };
+    const rowB = rows.find((r) => r.key === keyB) ?? { count: 1, resetAt: resetB };
+    return [result(rowA.count, ruleA.limit, rowA.resetAt), result(rowB.count, ruleB.limit, rowB.resetAt)];
+  };
+
   /** Reads the counter without counting — for "failures only" limits. */
   static peek = async (key: string, rule: RateLimitRule): Promise<RateLimitResult> => {
     const [row] = await db.select().from(rateLimits).where(eq(rateLimits.key, key));
@@ -67,6 +100,22 @@ export class RateLimitService {
     const remainingMs = row.lockedUntil.getTime() - Date.now();
     if (remainingMs <= 0) return { allowed: true, retryAfterMinutes: 0 };
     return { allowed: false, retryAfterMinutes: Math.max(1, Math.ceil(remainingMs / MINUTE_MS)) };
+  };
+
+  /** Checks multiple backoff keys in a single DB round-trip (`WHERE key IN (...)`). */
+  static checkManyBackoffs = async (keys: string[]): Promise<RateLimitResult> => {
+    if (keys.length === 0) return { allowed: true, retryAfterMinutes: 0 };
+    const rows = await db.select().from(rateLimits).where(inArray(rateLimits.key, keys));
+    const now = Date.now();
+    let maxRemainingMs = 0;
+    for (const row of rows) {
+      if (row.lockedUntil) {
+        const rem = row.lockedUntil.getTime() - now;
+        if (rem > maxRemainingMs) maxRemainingMs = rem;
+      }
+    }
+    if (maxRemainingMs <= 0) return { allowed: true, retryAfterMinutes: 0 };
+    return { allowed: false, retryAfterMinutes: Math.max(1, Math.ceil(maxRemainingMs / MINUTE_MS)) };
   };
 
   /** Records a failed login attempt for IP or account and applies persistent exponential backoff. */
@@ -94,6 +143,11 @@ export class RateLimitService {
 
   static reset = async (key: string): Promise<void> => {
     await db.delete(rateLimits).where(eq(rateLimits.key, key));
+  };
+
+  static resetMany = async (keys: string[]): Promise<void> => {
+    if (keys.length === 0) return;
+    await db.delete(rateLimits).where(inArray(rateLimits.key, keys));
   };
 
   /** Housekeeping: drops expired windows so the table stays small. */

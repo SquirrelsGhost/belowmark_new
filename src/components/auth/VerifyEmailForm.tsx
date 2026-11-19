@@ -16,6 +16,7 @@ import { INITIAL_AUTH_STATE } from "@/types/auth.types";
 interface VerifyEmailFormProps {
   t: Pick<IAuthTranslation, "Fields" | "Errors" | "Verify">;
   token: string;
+  initialEmail?: string;
   targetKey?: string;
   targetCity?: string;
 }
@@ -26,7 +27,7 @@ interface VerifyEmailFormProps {
  * (safe against non-JS mail link scanners, zero extra click for human users),
  * and offers direct 6-digit OTP verification if opened without a token.
  */
-export default function VerifyEmailForm({ t, token, targetKey, targetCity }: VerifyEmailFormProps) {
+export default function VerifyEmailForm({ t, token, initialEmail, targetKey, targetCity }: VerifyEmailFormProps) {
   const [state, formAction] = useActionState(verifyEmailAction, INITIAL_AUTH_STATE);
   const formRef = useRef<HTMLFormElement>(null);
   const autoSubmittedRef = useRef(false);
@@ -39,12 +40,16 @@ export default function VerifyEmailForm({ t, token, targetKey, targetCity }: Ver
   }, [token, state.status]);
 
   if (!token || state.code === "token_invalid") {
+    const loginHref = initialEmail
+      ? `${AUTH_ROUTES.login}?email=${encodeURIComponent(initialEmail)}`
+      : AUTH_ROUTES.login;
     return (
       <div className="grid gap-4">
         <AuthNotice tone="signal" title={t.Verify.InvalidTitle} body={t.Verify.InvalidBody}>
-          <AuthTextLink href={AUTH_ROUTES.login} label={t.Verify.InvalidAction} />
+          <AuthTextLink href={loginHref} label={t.Verify.InvalidAction} />
         </AuthNotice>
         <VerifyOtpForm
+          email={initialEmail}
           errors={t.Errors}
           emailLabel={t.Fields.Email}
           emailPlaceholder={t.Fields.EmailPlaceholder}

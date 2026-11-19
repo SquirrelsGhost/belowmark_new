@@ -94,10 +94,12 @@ export class AntiScrapingService {
     const minRule = isLocked ? SCRAPING_LIMITS.searchFreeMinute : SCRAPING_LIMITS.searchPaidMinute;
     const hourRule = isLocked ? SCRAPING_LIMITS.searchFreeHour : SCRAPING_LIMITS.searchPaidHour;
 
-    const [minHit, hourHit] = await Promise.all([
-      RateLimitService.hit(`scrape:search:min:${userId}`, minRule),
-      RateLimitService.hit(`scrape:search:hr:${userId}`, hourRule),
-    ]);
+    const [minHit, hourHit] = await RateLimitService.hitPair(
+      `scrape:search:min:${userId}`,
+      minRule,
+      `scrape:search:hr:${userId}`,
+      hourRule,
+    );
 
     if (!minHit.allowed) {
       const banned = await AntiScrapingService.recordBurstStrike(userId, "search-burst");
@@ -138,10 +140,12 @@ export class AntiScrapingService {
     const minRule = isLocked ? SCRAPING_LIMITS.detailFreeMinute : SCRAPING_LIMITS.detailPaidMinute;
     const dayRule = isLocked ? SCRAPING_LIMITS.detailFreeDay : SCRAPING_LIMITS.detailPaidDay;
 
-    const [minHit, dayHit]: [RateLimitResult, RateLimitResult] = await Promise.all([
-      RateLimitService.hit(`scrape:detail:min:${userId}`, minRule),
-      RateLimitService.hit(`scrape:detail:day:${userId}`, dayRule),
-    ]);
+    const [minHit, dayHit]: [RateLimitResult, RateLimitResult] = await RateLimitService.hitPair(
+      `scrape:detail:min:${userId}`,
+      minRule,
+      `scrape:detail:day:${userId}`,
+      dayRule,
+    );
 
     if (!minHit.allowed) {
       const banned = await AntiScrapingService.recordBurstStrike(userId, "detail-burst");
@@ -169,10 +173,12 @@ export class AntiScrapingService {
       return { allowed: false, retryAfterMinutes: 60, honeypotTriggered: true, banned: true };
     }
 
-    const [minHit, dayHit] = await Promise.all([
-      RateLimitService.hit(`scrape:doc:min:${userId}`, SCRAPING_LIMITS.sourceDocMinute),
-      RateLimitService.hit(`scrape:doc:day:${userId}`, SCRAPING_LIMITS.sourceDocDay),
-    ]);
+    const [minHit, dayHit] = await RateLimitService.hitPair(
+      `scrape:doc:min:${userId}`,
+      SCRAPING_LIMITS.sourceDocMinute,
+      `scrape:doc:day:${userId}`,
+      SCRAPING_LIMITS.sourceDocDay,
+    );
 
     if (!minHit.allowed) {
       const banned = await AntiScrapingService.recordBurstStrike(userId, "doc-burst");

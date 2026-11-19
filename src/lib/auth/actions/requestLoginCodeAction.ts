@@ -48,5 +48,5 @@ export async function requestLoginCodeAction(_prev: AuthFormState, formData: For
     return unknownError("requestLoginCodeAction", error, values);
   }
 
-  return { status: "success", values: { email } };
+  return { status: "success", values: { email: rawEmail || email } };
 }

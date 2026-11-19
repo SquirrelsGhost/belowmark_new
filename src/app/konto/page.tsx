@@ -5,6 +5,7 @@ import AccountAside from "@/components/account/AccountAside";
 import AccountDetailRow from "@/components/account/AccountDetailRow";
 import AccountDetails from "@/components/account/AccountDetails";
 import AccountHeader from "@/components/account/AccountHeader";
+import AccountMarketSwitcher from "@/components/account/AccountMarketSwitcher";
 import AccountOfferPicker from "@/components/account/AccountOfferPicker";
 import AccountDataPanel from "@/components/account/AccountDataPanel";
 import AccountOverviewPanel from "@/components/account/AccountOverviewPanel";
@@ -22,12 +23,12 @@ import { ACCOUNT_SECTION_PARAM, ACCOUNT_SECTIONS, accountSectionHref, resolveAcc
 import { APP_ROUTES } from "@/lib/appConstants";
 import { AUTH_PARAMS, AUTH_ROUTES } from "@/lib/auth/authConfig";
 import { authMetadata, getAuthPageContext } from "@/lib/auth/authPage";
-import { buildAccountOfferCards } from "@/lib/billing/accountOfferView";
+import { buildAccountOfferCardsByMarket } from "@/lib/billing/accountOfferView";
 import { buildAccountPlanView } from "@/lib/billing/accountPlanView";
 import { BILLING_ROUTES, BILLING_STATUS } from "@/lib/billing/billingConfig";
 import { fill } from "@/lib/billing/billingFormat";
 import { BILLING_ACCOUNT_PARAM } from "@/lib/billing/billingRoutes";
-import { PricingCountryCode, ROUTES } from "@/lib/constants";
+import { PRICING_COUNTRIES, PricingCountryCode, ROUTES } from "@/lib/constants";
 import { formatDate } from "@/lib/format";
 import { buildInvoiceListView, invoiceCount } from "@/lib/invoice/invoiceView";
 import { getLegalPageContext } from "@/lib/legal/legalPage";
@@ -97,12 +98,25 @@ export default async function AccountPage({ searchParams }: PageProps<"/konto">)
       ? `${formatDate(user.trialEndsAt.toISOString(), lang)} · ${Account.Details.TrialEnded}`
       : fill(billing.Account.TrialEndsAuto, { date: formatDate(user.trialEndsAt.toISOString(), lang) })
     : "—";
-  // The account's own country: every country is its own plan, so the packages shown are the ones for it
+  // The account's own country: every country is its own plan, while free/trial users can freely switch all 12 countries
   const activePricingCountry: PricingCountryCode = accountCountry(user.country, user.market === "TR" ? "TR" : "DE");
-  const marketLabel = `${t.Fields.Markets[activePricingCountry].Label} (${activePricingCountry})`;
-  // Packages in the account's own country, with the same order gates as /buchen
-  const marketAvailability = BillingService.availability(activePricingCountry === "TR" ? "TR" : "DE");
-  const offerCards = buildAccountOfferCards(billing, access, lang, activePricingCountry, activePricingCountry, BillingService.orderBlocker, !marketAvailability.blocker);
+  const marketLabel = `${t.Fields.Markets[activePricingCountry].Label} (${activePricingCountry === "GB" ? "UK" : activePricingCountry})`;
+  const marketOptions = PRICING_COUNTRIES.map((code) => ({
+    code,
+    label: t.Fields.Markets[code].Label,
+    hint: t.Fields.Markets[code].Hint,
+  }));
+  const marketOpenByCountry = Object.fromEntries(
+    PRICING_COUNTRIES.map((code) => [code, !BillingService.availability(code).blocker]),
+  ) as Record<PricingCountryCode, boolean>;
+  const closedNotices = Object.fromEntries(
+    PRICING_COUNTRIES.flatMap((code) => {
+      const blocker = BillingService.availability(code).blocker;
+      return blocker ? [[code, billing.Order.Blockers[blocker]]] : [];
+    }),
+  ) as Partial<Record<PricingCountryCode, string>>;
+  const offerCardsByMarket = buildAccountOfferCardsByMarket(billing, access, lang, activePricingCountry, BillingService.orderBlocker, marketOpenByCountry);
+  const canSwitchFreeMarket = (!access.isActive && !user.teamSeat) || isAdmin;
   const accessValue = isAdmin
     ? Account.Details.AccessAdmin
     : user.plan
@@ -156,6 +170,16 @@ export default async function AccountPage({ searchParams }: PageProps<"/konto">)
                 )}
                 <AccountDetailRow label={Account.Details.Since} value={formatDate(user.createdAt.toISOString(), lang)} />
               </AccountDetails>
+              {canSwitchFreeMarket && (
+                <AccountMarketSwitcher
+                  key={activePricingCountry}
+                  label={t.Fields.Market}
+                  note={t.Fields.MarketNote}
+                  initialCountry={activePricingCountry}
+                  locale={lang}
+                  options={marketOptions}
+                />
+              )}
             </AccountPanel>
           </>
         )}
@@ -164,14 +188,18 @@ export default async function AccountPage({ searchParams }: PageProps<"/konto">)
             <AccountPlanPanel t={planTexts} view={planView} notice={paymentNotice}>
               {!viaTeam && (
                 <AccountOfferPicker
+                  key={activePricingCountry}
                   title={billing.Account.Pick.Title}
                   lead={billing.Account.Pick.Lead}
-                  cards={offerCards}
+                  marketLabel={t.Fields.Market}
+                  initialCountry={activePricingCountry}
+                  locale={lang}
+                  cardsByMarket={offerCardsByMarket}
+                  marketOptions={marketOptions}
+                  closedNotices={closedNotices}
                   currentLabel={billing.Account.Pick.Current}
-                  countryNote={fill(billing.Account.Pick.Country, { country: marketLabel })}
-                  changeCountry={{ href: BILLING_ROUTES.order, label: billing.Account.Pick.ChangeCountry }}
+                  countryNoteTemplate={billing.Account.Pick.Country}
                   team={{ question: billing.Order.ProTitle, href: ROUTES.contact, label: billing.Order.ProCta }}
-                  closedNotice={marketAvailability.blocker ? billing.Order.Blockers[marketAvailability.blocker] : undefined}
                 />
               )}
             </AccountPlanPanel>

@@ -41,8 +41,13 @@ function readCountryGeo(country: ListingCountry): Promise<string> {
   }
 }
 
-const countries = new Map<ListingCountry, Promise<MarketGeo>>();
-const sprites = new Map<ListingCountry, Promise<LocatorSprite>>();
+const globalForGeo = globalThis as unknown as {
+  geoCountries?: Map<ListingCountry, Promise<MarketGeo>>;
+  geoSprites?: Map<ListingCountry, Promise<LocatorSprite>>;
+};
+
+const countries = (globalForGeo.geoCountries ??= new Map<ListingCountry, Promise<MarketGeo>>());
+const sprites = (globalForGeo.geoSprites ??= new Map<ListingCountry, Promise<LocatorSprite>>());
 
 /** The region outlines of the small locator maps as one SVG file, and the URL it is served at. */
 export interface LocatorSprite {

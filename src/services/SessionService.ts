@@ -6,7 +6,12 @@ import { cache } from "react";
 import { db } from "@/db";
 import { users } from "@/db/schema";
 import { SESSION_COOKIE_CANDIDATES, SESSION_COOKIE_NAME, SESSION_TTL } from "@/lib/auth/authConfig";
-import { createSessionCookieToken, readSessionCookieToken } from "@/lib/auth/sessionToken";
+import {
+  createSessionCookieToken,
+  readSessionCookieToken,
+  VERIFIED_SESSION_HEADER,
+  verifyInternalSessionContext,
+} from "@/lib/auth/sessionToken";
 import { resolveSessionToken } from "@/services/sicherheit/SessionUserService";
 import { Sitzungswachdienst } from "@/services/sicherheit/Sitzungswachdienst";
 import { CurrentUser } from "@/types/auth.types";
@@ -23,6 +28,8 @@ export { SESSION_COOKIE_CANDIDATES };
 export interface CreateSessionOptions {
   ip?: string;
   hardwareFingerprint?: string;
+  /** Avoids a redundant `SELECT sitzungs_version FROM users` when the caller just loaded the user */
+  sitzungsVersion?: number;
 }
 
 /**
@@ -42,15 +49,19 @@ export class SessionService {
     userAgent: string | null,
     options?: CreateSessionOptions,
   ): Promise<void> => {
-    const [user] = await db
-      .select({ id: users.id, sitzungsVersion: users.sitzungsVersion })
-      .from(users)
-      .where(eq(users.id, userId));
-    if (!user) return;
+    let sitzungsVersion = options?.sitzungsVersion;
+    if (sitzungsVersion === undefined) {
+      const [user] = await db
+        .select({ id: users.id, sitzungsVersion: users.sitzungsVersion })
+        .from(users)
+        .where(eq(users.id, userId));
+      if (!user) return;
+      sitzungsVersion = user.sitzungsVersion;
+    }
 
     const ttlMs = remember ? SESSION_TTL.remember : SESSION_TTL.browser;
     const sitzung = await Sitzungswachdienst.erstelleSitzung({
-      userId: user.id,
+      userId,
       ttlMs,
       userAgent,
       ip: options?.ip,
@@ -59,8 +70,8 @@ export class SessionService {
 
     const token = createSessionCookieToken(
       {
-        id: user.id,
-        version: user.sitzungsVersion,
+        id: userId,
+        version: sitzungsVersion,
         sessionId: sitzung.id,
         tokenId: sitzung.aktivesTokenId,
         exp: sitzung.expiresAt.getTime(),
@@ -86,6 +97,15 @@ export class SessionService {
       cookieStore.get("bm_session")?.value;
     if (!rawToken) return null;
 
+    const cookiePayload = readSessionCookieToken(rawToken, Date.now());
+    if (!cookiePayload) return null;
+
+    // Fast path: reuse the HMAC-verified session already validated against PostgreSQL in `src/proxy.ts`
+    const fromProxy = verifyInternalSessionContext(hdrs.get(VERIFIED_SESSION_HEADER), cookiePayload.sessionId);
+    if (fromProxy) {
+      return fromProxy;
+    }
+
     const ua = hdrs.get("user-agent");
     const sessionUser = await resolveSessionToken(rawToken, ua, false);
     if (!sessionUser || sessionUser.banned) return null;
@@ -104,6 +124,7 @@ export class SessionService {
       permissions: sessionUser.permissions,
       hasFullAccess: sessionUser.hasFullAccess,
       teamSeat: sessionUser.teamSeat,
+      paidMarkets: sessionUser.paidMarkets,
       createdAt: sessionUser.createdAt,
       sessionId: sessionUser.sessionId,
     };

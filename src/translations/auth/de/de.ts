@@ -46,7 +46,7 @@ export const AUTH_DE: IAuthTranslation = {
       SE: { Label: "Schweden", Hint: "Kronofogden Auktionstorget · 21 Län" },
       TR: { Label: "Türkei", Hint: "İcra- und Behördenauktionen (UYAP) · 81 Provinzen" },
     },
-    MarketNote: "Wählen Sie Ihren primären Markt (DE, AT, CH, IT, ES, FR, UK oder TR). Jederzeit im Konto anpassbar.",
+    MarketNote: "Alle 12 Länder direkt wählbar (DE, AT, CH, IT, ES, FR, UK, NL, PL, CZ, SE, TR). Jederzeit im Konto wechselbar.",
     Terms: "Ich akzeptiere die {terms} und habe die {privacy} gelesen.",
     TermsLink: "AGB",
     PrivacyLink: "Datenschutzerklärung",
@@ -129,7 +129,7 @@ export const AUTH_DE: IAuthTranslation = {
       Points: [
         "Kostenlose Such-Alerts, Merkliste & 1 Gratis-Dossier inklusive",
         "14 Tage unverbindlich testen — endet automatisch, keine Zahlungsdaten & kein Abo",
-        "8 Märkte wählbar: DE · AT · CH · IT · ES · FR · UK · TR",
+        "12 Länder wählbar: DE · AT · CH · IT · ES · FR · UK · NL · PL · CZ · SE · TR",
       ],
     },
     CardLabel: "Konto & Such-Alert",

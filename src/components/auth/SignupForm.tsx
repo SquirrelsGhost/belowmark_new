@@ -101,7 +101,7 @@ export default function SignupForm({
           note={t.Fields.MarketNote}
           defaultValue={market}
           error={fieldError("market")}
-          compactInitial={true}
+          compactInitial={false}
           options={PRICING_COUNTRIES.map((code) => ({
             code,
             label: t.Fields.Markets[code].Label,

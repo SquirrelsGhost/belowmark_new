@@ -59,12 +59,8 @@ export default async function SearchResultsContent({
   const market = viewer.market;
   const { Search, Row, Segments, Views } = app;
 
-  const quota = await AntiScrapingService.enforceSearchQuota(viewer.id, isLocked);
-  if (!quota.allowed) {
-    return <QuotaExceededNotice locale={locale} retryAfterMinutes={quota.retryAfterMinutes} isLocked={isLocked} />;
-  }
-
-  const [rawResult, saved, geo, sprite, freeStatus, stripeTrialEligible] = await Promise.all([
+  const [quota, rawResult, saved, geo, sprite, freeStatus, stripeTrialEligible] = await Promise.all([
+    AntiScrapingService.enforceSearchQuota(viewer.id, isLocked),
     ListingService.search(country, filters, viewer.now),
     WatchlistService.keys(viewer.id),
     GeoService.getCountry(country),
@@ -72,6 +68,9 @@ export default async function SearchResultsContent({
     isLocked ? FreeUnlockService.getStatus(viewer.id) : Promise.resolve(null),
     isLocked ? BillingService.isTrialEligible(viewer.id) : Promise.resolve(false),
   ]);
+  if (!quota.allowed) {
+    return <QuotaExceededNotice locale={locale} retryAfterMinutes={quota.retryAfterMinutes} isLocked={isLocked} />;
+  }
   const result = isLocked ? redactSearchResultForFreePlan(rawResult) : rawResult;
   const isMap = filters.view === "map";
   const count = new Intl.NumberFormat(locale).format(result.total);

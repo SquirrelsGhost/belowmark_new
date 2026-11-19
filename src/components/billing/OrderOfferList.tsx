@@ -12,14 +12,14 @@ interface OrderOfferListProps {
   upgrade?: { href: string; label: string };
 }
 
-/** Step 02 of /buchen: the four offers as radio cards, plus the upgrade link when it applies. */
+/** Step 02 of /buchen: the offers as radio cards, plus the upgrade link when it applies. */
 export default function OrderOfferList({ legend, legendClassName, offers, selectedId, onSelect, upgrade }: OrderOfferListProps) {
   return (
-    <fieldset className="grid gap-3">
+    <fieldset className="grid min-w-0 gap-3">
       <legend className={legendClassName}>
         <span className="text-signal">02</span> {legend}
       </legend>
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid min-w-0 gap-3.5 sm:grid-cols-2">
         {offers.map((item) => (
           <OrderOfferOption key={item.id} {...item} isSelected={item.id === selectedId} onSelect={() => onSelect(item.id)} />
         ))}

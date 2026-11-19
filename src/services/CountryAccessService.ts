@@ -20,13 +20,13 @@ export interface CountryAccess {
   countries: readonly ListingCountry[];
 }
 
-type AccessUser = Pick<CurrentUser, "id" | "market" | "country" | "permissions" | "teamSeat">;
+type AccessUser = Pick<CurrentUser, "id" | "market" | "country" | "plan" | "permissions" | "teamSeat" | "paidMarkets">;
 
 /**
  * CountryAccessService
  *
  * Resolves the active country and all countries an account holds (from active
- * paid orders, team seat, or superuser capabilities).
+ * paid orders, team seat, free/trial exploration, or superuser capabilities).
  */
 export class CountryAccessService {
   static forUser = cache(async (user: AccessUser): Promise<CountryAccess> => {
@@ -36,16 +36,24 @@ export class CountryAccessService {
       return { country: own, countries: LISTING_COUNTRIES };
     }
 
-    const paidRows = await db
-      .select({ market: billingOrders.market })
-      .from(billingOrders)
-      .where(
-        and(
-          eq(billingOrders.userId, user.id),
-          eq(billingOrders.status, "paid"),
-          or(isNull(billingOrders.accessEndsAt), gt(billingOrders.accessEndsAt, new Date())),
-        ),
-      );
+    const paidRows = Array.isArray(user.paidMarkets)
+      ? user.paidMarkets.map((m) => ({ market: m }))
+      : await db
+          .select({ market: billingOrders.market })
+          .from(billingOrders)
+          .where(
+            and(
+              eq(billingOrders.userId, user.id),
+              eq(billingOrders.status, "paid"),
+              or(isNull(billingOrders.accessEndsAt), gt(billingOrders.accessEndsAt, new Date())),
+            ),
+          );
+
+    // Free Scout & Trial accounts without a locked paid plan or team seat can freely explore all 12 countries
+    if (!user.plan && paidRows.length === 0 && !user.teamSeat) {
+      return { country: own, countries: LISTING_COUNTRIES };
+    }
+
     const held = new Set<ListingCountry>([own]);
     for (const row of paidRows) {
       if (isListingCountry(row.market)) held.add(row.market);
@@ -82,6 +90,6 @@ export class CountryAccessService {
     if (!row) return null;
     const permissions = effectiveUserPermissions(row);
     const teamSeat = !hasFullAppAccess(permissions) && (await TeamSeatService.has(userId));
-    return CountryAccessService.forUser({ id: userId, market: row.market, country: row.country, permissions, teamSeat });
+    return CountryAccessService.forUser({ id: userId, market: row.market, country: row.country, plan: row.plan, permissions, teamSeat });
   };
 }

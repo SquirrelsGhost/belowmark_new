@@ -1,8 +1,10 @@
 import "server-only";
-import { and, eq, gt, inArray, isNotNull, sql } from "drizzle-orm";
+import { and, eq, gt, inArray, isNotNull, or, sql } from "drizzle-orm";
+import { after } from "next/server";
 import { db } from "@/db";
 import { authTokens, users } from "@/db/schema";
 import { TOKEN_PURPOSE, TOKEN_TTL, TokenPurpose, TRIAL_MS } from "@/lib/auth/authConfig";
+import { normalizeEmail } from "@/lib/auth/normalizeEmail";
 import { hashPassword, needsRehash, simulatePasswordCheck, verifyPassword } from "@/lib/auth/password";
 import { isBreachedPassword } from "@/lib/auth/passwordBreach";
 import { generateToken, generateVerificationCode, hashToken, hashVerificationCode } from "@/lib/auth/tokens";
@@ -10,7 +12,7 @@ import { MarketCode, PricingCountryCode } from "@/lib/constants";
 import { AuthMailService, VerificationContextParams } from "@/services/AuthMailService";
 
 export type LoginResult =
-  | { ok: true; userId: string }
+  | { ok: true; userId: string; sitzungsVersion: number }
   | { ok: false; reason: "invalid_credentials" | "unverified" | "account_banned" | "device_banned" };
 
 export interface SignupInput {
@@ -125,7 +127,13 @@ async function activateVerifiedUser(userId: string): Promise<string | null> {
 }
 
 async function findByEmail(email: string) {
-  const [user] = await db.select().from(users).where(eq(users.email, email));
+  const canonical = normalizeEmail(email);
+  const rawLower = email.normalize("NFKC").trim().toLowerCase();
+  const condition =
+    canonical === rawLower
+      ? eq(users.email, canonical)
+      : or(eq(users.email, canonical), eq(sql`lower(${users.email})`, rawLower));
+  const [user] = await db.select().from(users).where(condition);
   return user ?? null;
 }
 
@@ -284,10 +292,13 @@ export class AuthService {
       await simulatePasswordCheck(password);
       return { ok: false, reason: "invalid_credentials" };
     }
-    if (await isHardwareBanned(hardwareFingerprint)) {
+    const [deviceBanned, user] = await Promise.all([
+      isHardwareBanned(hardwareFingerprint),
+      findByEmail(email),
+    ]);
+    if (deviceBanned) {
       return { ok: false, reason: "device_banned" };
     }
-    const user = await findByEmail(email);
     if (!user) {
       await simulatePasswordCheck(password);
       return { ok: false, reason: "invalid_credentials" };
@@ -301,9 +312,23 @@ export class AuthService {
       update.hardwareFingerprint = hardwareFingerprint;
     }
     // Old immo hashes (N=16384) are upgraded silently on the next login.
-    if (needsRehash(user.passwordHash)) update.passwordHash = await hashPassword(password);
-    await db.update(users).set(update).where(eq(users.id, user.id));
-    return { ok: true, userId: user.id };
+    if (needsRehash(user.passwordHash)) {
+      update.passwordHash = await hashPassword(password);
+      await db.update(users).set(update).where(eq(users.id, user.id));
+    } else {
+      const writeLastLogin = () =>
+        db
+          .update(users)
+          .set(update)
+          .where(eq(users.id, user.id))
+          .catch((err: unknown) => console.error("[AuthService.login] lastLoginAt update failed", err));
+      try {
+        after(writeLastLogin);
+      } catch {
+        void writeLastLogin();
+      }
+    }
+    return { ok: true, userId: user.id, sitzungsVersion: user.sitzungsVersion };
   };
 
   /** Re-sends the confirmation link + 6-digit OTP code for unconfirmed accounts. */

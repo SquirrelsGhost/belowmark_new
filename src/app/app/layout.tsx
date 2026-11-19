@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import Link from "next/link";
 import AppAccount from "@/components/app/shell/AppAccount";
 import AppCountrySwitch from "@/components/app/shell/AppCountrySwitch";
 import AppFooter from "@/components/app/shell/AppFooter";
@@ -14,6 +15,7 @@ import NavigationSpacer from "@/components/navigation/NavigationSpacer";
 import { APP_MAIN_ID, APP_ROUTES } from "@/lib/appConstants";
 import { fill } from "@/lib/appFormat";
 import { getAppPageContext } from "@/lib/appPage";
+import { SessionService } from "@/services/SessionService";
 import { TranslationService } from "@/services/TranslationService";
 import { WatchlistService } from "@/services/WatchlistService";
 import { AlertsTranslations } from "@/translations/alerts/AlertsTranslations";
@@ -38,13 +40,14 @@ export const instant = false;
 const TRIAL_NUDGE_DAYS = 3;
 
 export default async function AppLayout({ children }: LayoutProps<"/app">) {
-  const [{ viewer, app, locale, meta, dataDate }, userLocale, proUser] = await Promise.all([
+  const [{ viewer, app, locale, meta, dataDate }, userLocale, proUser, savedSet] = await Promise.all([
     getAppPageContext(APP_ROUTES.search),
     TranslationService.GetUserLocale(),
     getProUser(),
+    SessionService.getCurrentUser().then((u) => (u ? WatchlistService.keys(u.id) : null)),
   ]);
   const { Shell } = app;
-  const saved = (await WatchlistService.keys(viewer.id)).size;
+  const saved = (savedSet ?? (await WatchlistService.keys(viewer.id))).size;
   const trialMessage = viewer.trialDaysLeft === 0 || viewer.trialDaysLeft === 1 ? Shell.TrialLastDay : fill(Shell.TrialRunning, { days: viewer.trialDaysLeft ?? 0 });
   const { AccountMenu } = AuthTranslations[userLocale];
   const alertsNav = AlertsTranslations[userLocale].Nav;
@@ -66,17 +69,28 @@ export default async function AppLayout({ children }: LayoutProps<"/app">) {
         sourceName={meta.source}
         sourceUrl={meta.sourceUrl}
       >
-        {viewer.countries.length > 1 && (
+        {viewer.countries.length > 1 ? (
           <Suspense fallback={null}>
             <AppCountrySwitch
               current={viewer.country}
-              currentLabel={viewer.market === "TR" ? Shell.Market.TR : app.Search.Countries[viewer.country].Name}
+              currentLabel={app.Search.Countries[viewer.country].Name}
               options={viewer.countries.map((code) => ({
                 code,
-                name: code === "TR" ? Shell.Market.TR : app.Search.Countries[code].Name,
+                name: app.Search.Countries[code].Name,
               }))}
             />
           </Suspense>
+        ) : (
+          <span className="flex items-center gap-2.5">
+            <span aria-hidden="true" className="size-1.5 shrink-0 bg-signal" />
+            <span>{app.Search.Countries[viewer.country].Name}</span>
+            <Link
+              href="/konto?bereich=tarif"
+              className="border border-paper/30 px-1.5 py-0.5 text-[10px] text-paper/80 transition-colors hover:border-paper-bright hover:text-paper-bright"
+            >
+              {app.Search.CountrySwitch} ↗
+            </Link>
+          </span>
         )}
       </AppStatusLine>
       <AppMasthead label={Shell.NavLabel}>

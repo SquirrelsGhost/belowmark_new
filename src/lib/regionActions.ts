@@ -1,6 +1,7 @@
 "use server";
 
 import { eq } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
 import { cookies, headers } from "next/headers";
 import { db } from "@/db";
 import { users } from "@/db/schema";
@@ -21,6 +22,7 @@ import {
 import { hasPermission } from "@/lib/permissions";
 import { formatGeoScopedCookie, normalizeGeoCountryCode } from "@/lib/regionLocale";
 import { SessionService } from "@/services/SessionService";
+import { clearSessionResolutionCache } from "@/services/sicherheit/SessionUserService";
 import type { HomeSelectorCode } from "@/translations/homeCountries/homeCountryTypes";
 
 const PERSISTENT_COUNTRY_COOKIE = { path: "/", maxAge: REGION_COOKIE_MAX_AGE, sameSite: "lax" } as const;
@@ -103,9 +105,13 @@ export async function setMarketAction(country: PricingCountryCode): Promise<void
 
   const market = pricingCountryToMarket(country);
   const user = await SessionService.getCurrentUser();
-  if (!user || user.market === market) return;
+  if (!user || (user.market === market && user.country === country)) return;
   const canSwitch = !user.plan || hasPermission(user.permissions, "*");
   if (canSwitch && !user.teamSeat) {
-    await db.update(users).set({ market }).where(eq(users.id, user.id));
+    await db.update(users).set({ market, country }).where(eq(users.id, user.id));
+    clearSessionResolutionCache();
+    revalidatePath("/app", "layout");
+    revalidatePath("/konto");
+    revalidatePath("/buchen");
   }
 }

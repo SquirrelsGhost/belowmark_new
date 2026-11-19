@@ -42,8 +42,8 @@ export default async function UpgradePage({ searchParams }: PageProps<"/buchen/u
 
   return (
     <AuthLayout lang={lang} layout={layout}>
-      <OrderIntro eyebrow={Upgrade.Eyebrow} title={Upgrade.Title} lead={Upgrade.Lead} lineLabel={layout.LineLabel} points={Upgrade.Points} notices={notices} />
-      <AuthCard label={Upgrade.Eyebrow} formNumber="BM-11" title={Upgrade.SummaryTitle}>
+      <OrderIntro compact eyebrow={Upgrade.Eyebrow} title={Upgrade.Title} lead={Upgrade.Lead} lineLabel={layout.LineLabel} points={Upgrade.Points} notices={notices} />
+      <AuthCard wide label={Upgrade.Eyebrow} formNumber="BM-11" title={Upgrade.SummaryTitle}>
         {quote ? (
           <UpgradeForm view={buildUpgradeView(quote, t, lang, note)} labels={{ ...Order, Today: Upgrade.Today, Submit: Upgrade.Submit, Pending: Upgrade.Pending, Failed: Upgrade.Failed }} />
         ) : (

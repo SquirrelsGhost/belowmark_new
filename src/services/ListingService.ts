@@ -1,5 +1,5 @@
 import "server-only";
-import { readFile, stat } from "node:fs/promises";
+import { open, readFile, stat } from "node:fs/promises";
 import { join } from "node:path";
 import { DAY_MS, SEARCH } from "@/lib/appConstants";
 import { MarketCode } from "@/lib/constants";
@@ -40,14 +40,36 @@ interface LoadedMarket {
   byKey: Map<string, Listing>;
   /** Proceedings per country — the unit everything else is cut from */
   byCountry: Map<ListingCountry, Listing[]>;
-  /** Normalised search text per listing key */
+  /** Lazily populated normalised search text per listing key */
   haystack: Map<string, string>;
   mtimeMs: number;
   checkedAt: number;
 }
 
-const loaded = new Map<MarketCode, Promise<LoadedMarket>>();
-const STAT_TTL_MS = 10_000;
+const globalForListings = globalThis as unknown as {
+  loadedMarkets?: Map<MarketCode, Promise<LoadedMarket>>;
+  resolvedMarkets?: Map<MarketCode, LoadedMarket>;
+  fastMetaCache?: Map<MarketCode, Promise<ListingSnapshot["meta"]>>;
+  refreshingMarkets?: Set<MarketCode>;
+};
+
+const loaded = (globalForListings.loadedMarkets ??= new Map<MarketCode, Promise<LoadedMarket>>());
+const resolvedMarkets = (globalForListings.resolvedMarkets ??= new Map<MarketCode, LoadedMarket>());
+const fastMetaCache = (globalForListings.fastMetaCache ??= new Map<MarketCode, Promise<ListingSnapshot["meta"]>>());
+const STAT_TTL_MS = 30_000;
+
+const COUNTRY_DEFAULT_PORTALS: Partial<Record<ListingCountry, { source: string; sourceUrl: string }>> = {
+  AT: { source: "edikte.justiz.gv.at", sourceUrl: "https://edikte.justiz.gv.at/" },
+  CH: { source: "shab.ch", sourceUrl: "https://www.shab.ch/" },
+  IT: { source: "astegiudiziarie.it · pvp.giustizia.it", sourceUrl: "https://www.astegiudiziarie.it/" },
+  ES: { source: "subastas.boe.es", sourceUrl: "https://subastas.boe.es/" },
+  FR: { source: "licitor.com · immobilier.notaires.fr", sourceUrl: "https://www.licitor.com/" },
+  GB: { source: "eigpropertyauctions.co.uk", sourceUrl: "https://www.eigpropertyauctions.co.uk/" },
+  NL: { source: "vastgoedveiling.nl", sourceUrl: "https://www.vastgoedveiling.nl/" },
+  PL: { source: "licytacje.komornik.pl", sourceUrl: "https://licytacje.komornik.pl/" },
+  CZ: { source: "portaldrazeb.cz", sourceUrl: "https://www.portaldrazeb.cz/" },
+  SE: { source: "auktionstorget.kronofogden.se", sourceUrl: "https://auktionstorget.kronofogden.se/" },
+};
 
 /** Lower case, no accents, Turkish dotless i folded — "cesme" finds "Çeşme". */
 export function normalizeText(value: string): string {
@@ -171,6 +193,53 @@ function sanitizeSnapshotListing(listing: Listing): Listing {
   return listing;
 }
 
+function getListingHaystack(haystack: Map<string, string>, listing: Listing): string {
+  let cached = haystack.get(listing.key);
+  if (cached === undefined) {
+    cached = buildHaystack(listing);
+    haystack.set(listing.key, cached);
+  }
+  return cached;
+}
+
+/**
+ * Reads only the first 64 KB of a snapshot file to parse its `"meta"` header in <1ms,
+ * so `AppLayout` never blocks initial HTML streaming waiting for 31–50 MB of listings JSON.
+ */
+async function readFastSnapshotMeta(market: MarketCode): Promise<ListingSnapshot["meta"]> {
+  const existing = resolvedMarkets.get(market);
+  if (existing) return existing.snapshot.meta;
+
+  const cached = fastMetaCache.get(market);
+  if (cached) return cached;
+
+  const promise = (async () => {
+    let handle: Awaited<ReturnType<typeof open>> | null = null;
+    try {
+      handle = await open(snapshotPath(market), "r");
+      const buf = Buffer.allocUnsafe(65_536);
+      const { bytesRead } = await handle.read(buf, 0, buf.length, 0);
+      const head = buf.subarray(0, bytesRead).toString("utf8");
+      const markerIdx = head.indexOf(',"listings":[');
+      if (markerIdx > 0) {
+        const parsed = JSON.parse(`${head.slice(0, markerIdx)}}`) as { meta: ListingSnapshot["meta"] };
+        if (parsed?.meta?.generatedAt) {
+          return parsed.meta;
+        }
+      }
+    } catch {
+      // Fall back to full snapshot load below
+    } finally {
+      await handle?.close().catch(() => undefined);
+    }
+    return (await getMarket(market)).snapshot.meta;
+  })();
+
+  fastMetaCache.set(market, promise);
+  promise.catch(() => fastMetaCache.delete(market));
+  return promise;
+}
+
 async function loadMarket(market: MarketCode): Promise<LoadedMarket> {
   const [raw, fileStat] = await Promise.all([
     readSnapshot(market),
@@ -178,19 +247,30 @@ async function loadMarket(market: MarketCode): Promise<LoadedMarket> {
   ]);
   const snapshot = JSON.parse(raw) as ListingSnapshot;
   snapshot.listings = snapshot.listings.map(sanitizeSnapshotListing);
-  const byKey = new Map(snapshot.listings.map((listing) => [listing.key, listing]));
-  const haystack = new Map(snapshot.listings.map((listing) => [listing.key, buildHaystack(listing)]));
+  const byKey = new Map<string, Listing>();
+  const haystack = new Map<string, string>();
   const byCountry = new Map<ListingCountry, Listing[]>();
   for (const listing of snapshot.listings) {
+    byKey.set(listing.key, listing);
     const country = getListingCountry(listing);
     const bucket = byCountry.get(country);
     if (bucket) bucket.push(listing);
     else byCountry.set(country, [listing]);
   }
-  return { snapshot, byKey, byCountry, haystack, mtimeMs: fileStat.mtimeMs, checkedAt: Date.now() };
+  const result: LoadedMarket = {
+    snapshot,
+    byKey,
+    byCountry,
+    haystack,
+    mtimeMs: fileStat.mtimeMs,
+    checkedAt: Date.now(),
+  };
+  resolvedMarkets.set(market, result);
+  fastMetaCache.set(market, Promise.resolve(snapshot.meta));
+  return result;
 }
 
-const refreshing = new Set<MarketCode>();
+const refreshing = (globalForListings.refreshingMarkets ??= new Set<MarketCode>());
 
 /**
  * Loads a market once and keeps it in memory. When the snapshot file changes
@@ -261,7 +341,23 @@ export class ListingService {
    * to the country, so no other country's regions or counts leave here.
    */
   static getMeta = async (country: ListingCountry): Promise<ListingSnapshot["meta"]> => {
-    const { snapshot, byCountry } = await getMarket(countryMarket(country));
+    const market = countryMarket(country);
+    const warm = resolvedMarkets.get(market);
+    if (!warm) {
+      // Kick off full market load in the background for `<Suspense>` children without blocking the layout shell
+      void getMarket(market).catch(() => undefined);
+      const meta = await readFastSnapshotMeta(market);
+      if (country === "TR") return meta;
+      const fallbackPortal = COUNTRY_DEFAULT_PORTALS[country];
+      return {
+        ...meta,
+        source: country === "DE" ? "zvg-portal.de · zvg.com" : (fallbackPortal?.source ?? meta.source),
+        sourceUrl: country === "DE" ? meta.sourceUrl : (fallbackPortal?.sourceUrl ?? meta.sourceUrl),
+        states: meta.states.filter((state) => regionCountry(state.code) === country),
+      };
+    }
+
+    const { snapshot, byCountry } = warm;
     const { meta } = snapshot;
     if (country === "TR") return meta;
     // The source line names only this country's portals
@@ -329,7 +425,8 @@ export class ListingService {
       if (filters.onlyOpportunity && !isOpportunityListing(listing)) return false;
       if (filters.onlyWithDocs && !hasListingDocs(listing)) return false;
       if (!ListingService.matchesScope(listing, filters, now)) return false;
-      const text = haystack.get(listing.key) ?? "";
+      if (terms.length === 0) return true;
+      const text = getListingHaystack(haystack, listing);
       return terms.every((term) => text.includes(term));
     });
 

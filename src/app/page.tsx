@@ -20,6 +20,8 @@ import Navigation from "@/components/navigation/Navigation";
 import NavigationItem from "@/components/navigation/NavigationItem";
 import NavigationLanguageSwitch from "@/components/navigation/NavigationLanguageSwitch";
 import NavigationLoginButton from "@/components/navigation/NavigationLoginButton";
+import NavigationMobileItem from "@/components/navigation/NavigationMobileItem";
+import NavigationMobileMenu from "@/components/navigation/NavigationMobileMenu";
 import NavigationSkipLink from "@/components/navigation/NavigationSkipLink";
 import NavigationSpacer from "@/components/navigation/NavigationSpacer";
 import NavigationVerticalLine from "@/components/navigation/NavigationVerticalLine";
@@ -112,6 +114,17 @@ export default async function HomePage() {
         <NavigationVerticalLine />
         <NavigationLanguageSwitch current={selectorCode} />
         <NavigationLoginButton loginLabel={nav.LoginLabel} signupLabel={nav.SignupLabel} />
+        <NavigationMobileMenu label={nav.MainNavLabel}>
+          <NavigationMobileItem href={`/suche?markt=${activeCountry}`} label={liveSearchLabel} />
+          <NavigationMobileItem href={ROUTES.calculator} label={nav.CalculatorLabel} />
+          <NavigationMobileItem href={ROUTES.notice} label={nav.NoticeLabel} />
+          <NavigationMobileItem href={ROUTES.method} label={nav.MethodLabel} />
+          <NavigationMobileItem href={ROUTES.states} label={nav.StatesLabel} />
+          <NavigationMobileItem href={ROUTES.pricing} label={nav.PricingLabel} />
+          <NavigationMobileItem href={ROUTES.faq} label={nav.FaqLabel} />
+          <NavigationMobileItem href={ROUTES.blog} label={nav.BlogLabel} />
+          <NavigationMobileItem href={ROUTES.login} label={nav.LoginLabel} isAccent />
+        </NavigationMobileMenu>
       </Navigation>
 
       <PageMain id={MAIN_ID}>

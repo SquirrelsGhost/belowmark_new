@@ -261,8 +261,8 @@ export class BillingService {
     const targetPlatformMarket = pricingCountryToMarket(user.market);
     const blocker = BillingService.orderBlocker(access, offerId, currentCountry, user.market);
     if (blocker) throw new Error(`order blocked: ${blocker}`);
-    if (!access.isActive && currentMarket !== targetPlatformMarket) {
-      await db.update(users).set({ market: targetPlatformMarket }).where(eq(users.id, user.id));
+    if (!access.isActive && (currentMarket !== targetPlatformMarket || currentCountry !== user.market)) {
+      await db.update(users).set({ market: targetPlatformMarket, country: user.market }).where(eq(users.id, user.id));
     }
 
     const offer = OFFERS[offerId];

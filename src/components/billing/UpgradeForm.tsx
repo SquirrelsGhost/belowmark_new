@@ -36,9 +36,9 @@ export default function UpgradeForm({ view, labels }: UpgradeFormProps) {
   const [state, action] = useActionState(upgradeAction, INITIAL_ORDER_STATE);
   const formError = state.code === "failed" ? labels.Failed : state.code === "blocked" ? labels.Blocked : undefined;
   return (
-    <form action={action} className="grid gap-7" noValidate>
+    <form action={action} className="grid min-w-0 gap-7" noValidate>
       {formError && <AuthErrorSummary title={labels.ErrorTitle} message={formError} />}
-      <dl className="border-t border-rule" aria-live="polite">
+      <dl className="min-w-0 border-t border-rule" aria-live="polite">
         {view.rows.map((row) => (
           <OrderSummaryRow key={row.label} label={row.label} value={row.value} />
         ))}

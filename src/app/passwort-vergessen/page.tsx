@@ -17,8 +17,10 @@ export async function generateMetadata(): Promise<Metadata> {
   return authMetadata((t) => t.Forgot.MetaTags);
 }
 
-export default async function ForgotPasswordPage() {
-  const { t, lang, region } = await getAuthPageContext();
+export default async function ForgotPasswordPage({ searchParams }: PageProps<"/passwort-vergessen">) {
+  const [{ t, lang, region }, params] = await Promise.all([getAuthPageContext(), searchParams]);
+  const initialEmail = typeof params.email === "string" ? params.email.trim().slice(0, 254) : undefined;
+  const backHref = initialEmail ? `${AUTH_ROUTES.login}?email=${encodeURIComponent(initialEmail)}` : AUTH_ROUTES.login;
 
   return (
     <AuthLayout lang={lang} layout={t.Layout} detector={!region.isFromGeoHeader && <RegionDetector country={region.country} />}>
@@ -28,9 +30,9 @@ export default async function ForgotPasswordPage() {
         formNumber={`${t.Layout.FormPrefix} ${t.Forgot.Intro.FormNumber}`}
         title={t.Forgot.Title}
         description={t.Forgot.Description}
-        footer={<AuthCardFooter href={AUTH_ROUTES.login} label={t.Forgot.Back} />}
+        footer={<AuthCardFooter href={backHref} label={t.Forgot.Back} />}
       >
-        <ForgotPasswordForm t={{ Fields: t.Fields, Errors: t.Errors, Forgot: t.Forgot }} />
+        <ForgotPasswordForm t={{ Fields: t.Fields, Errors: t.Errors, Forgot: t.Forgot }} initialEmail={initialEmail} />
       </AuthCard>
     </AuthLayout>
   );

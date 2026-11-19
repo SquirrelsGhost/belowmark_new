@@ -49,6 +49,7 @@ import { AntiScrapingService } from "@/services/sicherheit/AntiScrapingService";
 import { WatchlistService } from "@/services/WatchlistService";
 import {
   emptyPortalDetailsForFreePlan,
+  isHoneypotListingKey,
   redactListingForFreePlan,
 } from "@/lib/sicherheit/antiScrapingRules";
 import { getBiddingTranslation } from "@/translations/bidding/BiddingTranslations";
@@ -68,27 +69,33 @@ export default async function ListingPage({ params }: PageProps<"/app/objekt/[ke
   const { viewer, t, app, locale, meta } = await getAppPageContext(listingHref(key));
   const { Listing: L, Row } = app;
   const isFreePlan = viewer.plan === "free";
-  const [freeStatus, stripeTrialEligible] = isFreePlan
-    ? await Promise.all([
-        FreeUnlockService.getStatus(viewer.id, key),
-        BillingService.isTrialEligible(viewer.id),
-      ])
-    : [null, false];
-  const isLocked = isFreePlan && !freeStatus?.isCurrentListingUnlocked;
-
-  const quota = await AntiScrapingService.enforceDetailQuota(viewer.id, isLocked, key);
-  if (!quota.allowed) {
+  if (isHoneypotListingKey(key)) {
+    const quota = await AntiScrapingService.enforceDetailQuota(viewer.id, isFreePlan, key);
     return (
       <AppMain id={APP_MAIN_ID}>
         <ListingBackLink label={L.Back} />
-        <QuotaExceededNotice locale={locale} retryAfterMinutes={quota.retryAfterMinutes} isLocked={isLocked} />
+        <QuotaExceededNotice locale={locale} retryAfterMinutes={quota.retryAfterMinutes} isLocked={isFreePlan} />
       </AppMain>
     );
   }
 
-  const rawListing = await ListingService.getByKey(viewer.countries, key);
+  const [freeStatus, stripeTrialEligible, rawListing] = await Promise.all([
+    isFreePlan ? FreeUnlockService.getStatus(viewer.id, key) : Promise.resolve(null),
+    isFreePlan ? BillingService.isTrialEligible(viewer.id) : Promise.resolve(false),
+    ListingService.getByKey(viewer.countries, key),
+  ]);
+  const isLocked = isFreePlan && !freeStatus?.isCurrentListingUnlocked;
 
   if (!rawListing) {
+    const quota = await AntiScrapingService.enforceDetailQuota(viewer.id, isLocked, key);
+    if (!quota.allowed) {
+      return (
+        <AppMain id={APP_MAIN_ID}>
+          <ListingBackLink label={L.Back} />
+          <QuotaExceededNotice locale={locale} retryAfterMinutes={quota.retryAfterMinutes} isLocked={isLocked} />
+        </AppMain>
+      );
+    }
     return (
       <AppMain id={APP_MAIN_ID}>
         <ListingNotFound title={L.NotFound.Title} body={L.NotFound.Body} backLabel={L.Back} />
@@ -98,12 +105,21 @@ export default async function ListingPage({ params }: PageProps<"/app/objekt/[ke
 
   const listing = isLocked ? redactListingForFreePlan(rawListing) : rawListing;
   const market = listing.market;
-  const [entry, geo, sprite, relatedItems] = await Promise.all([
+  const [quota, entry, geo, sprite, relatedItems] = await Promise.all([
+    AntiScrapingService.enforceDetailQuota(viewer.id, isLocked, key),
     WatchlistService.get(viewer.id, listing.key),
     GeoService.getCountry(getListingCountry(listing)),
     GeoService.getLocatorSprite(getListingCountry(listing)),
     ListingService.getRelatedInRegion(rawListing, 4),
   ]);
+  if (!quota.allowed) {
+    return (
+      <AppMain id={APP_MAIN_ID}>
+        <ListingBackLink label={L.Back} />
+        <QuotaExceededNotice locale={locale} retryAfterMinutes={quota.retryAfterMinutes} isLocked={isLocked} />
+      </AppMain>
+    );
+  }
   const portalDetails = isLocked
     ? emptyPortalDetailsForFreePlan(listing.sourcePortal ?? "")
     : OfficialPortalService.getInstantFallback(listing);
