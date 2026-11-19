@@ -194,9 +194,9 @@ export class AuthService {
       if (allowExistingMail) {
         if (passwordless) {
           const { token, code } = await issueVerificationCredentials(existing.id);
-          await AuthMailService.sendVerification({ email, locale: existing.locale || locale }, token, code, signupCtx);
+          await AuthMailService.sendVerification({ email, locale: locale || existing.locale }, token, code, signupCtx);
         } else {
-          await AuthMailService.sendAccountExists(existing);
+          await AuthMailService.sendAccountExists({ email: existing.email, locale: locale || existing.locale });
         }
       }
       return;
@@ -219,12 +219,12 @@ export class AuthService {
   };
 
   /** Issues a 6-digit OTP + 1-click sign-in link for passwordless login on `/login`. */
-  static requestLoginCode = async (email: string): Promise<void> => {
+  static requestLoginCode = async (email: string, preferredLocale?: string): Promise<void> => {
     if (isBlockedSyntheticEmailInProd(email)) return;
     const user = await findByEmail(email);
     if (!user || user.gesperrtAm) return;
     const { token, code } = await issueVerificationCredentials(user.id);
-    await AuthMailService.sendVerification(user, token, code);
+    await AuthMailService.sendVerification({ email: user.email, locale: preferredLocale || user.locale }, token, code);
   };
 
   /**
@@ -332,12 +332,16 @@ export class AuthService {
   };
 
   /** Re-sends the confirmation link + 6-digit OTP code for unconfirmed accounts. */
-  static resendVerification = async (email: string): Promise<void> => {
+  static resendVerification = async (email: string, preferredLocale?: string): Promise<void> => {
     if (isBlockedSyntheticEmailInProd(email)) return;
     const user = await findByEmail(email);
     if (!user || user.emailVerifiedAt || user.gesperrtAm) return;
     const { token, code } = await issueVerificationCredentials(user.id);
-    await AuthMailService.sendVerification(user, token, code);
+    await AuthMailService.sendVerification(
+      { email: user.email, locale: preferredLocale || user.locale },
+      token,
+      code,
+    );
   };
 
   /** Issues fresh 72-hour verification credentials (link token + 6-digit code) for the 1× reminder mail. */
@@ -375,11 +379,14 @@ export class AuthService {
     return activateVerifiedUser(user.id);
   };
 
-  static requestPasswordReset = async (email: string): Promise<void> => {
+  static requestPasswordReset = async (email: string, preferredLocale?: string): Promise<void> => {
     if (isBlockedSyntheticEmailInProd(email)) return;
     const user = await findByEmail(email);
     if (!user || user.gesperrtAm) return;
-    await AuthMailService.sendPasswordReset(user, await issueToken(user.id, TOKEN_PURPOSE.resetPassword));
+    await AuthMailService.sendPasswordReset(
+      { email: user.email, locale: preferredLocale || user.locale },
+      await issueToken(user.id, TOKEN_PURPOSE.resetPassword),
+    );
   };
 
   /**
@@ -396,7 +403,11 @@ export class AuthService {
   };
 
   /** Sets the new password, increments `sitzungsVersion`, and proves inbox ownership. */
-  static resetPassword = async (token: string, password: string): Promise<{ id: string; email: string } | null> => {
+  static resetPassword = async (
+    token: string,
+    password: string,
+    preferredLocale?: string,
+  ): Promise<{ id: string; email: string } | null> => {
     const userId = await consumeToken(token, TOKEN_PURPOSE.resetPassword);
     if (!userId) return null;
     const now = new Date();
@@ -412,11 +423,19 @@ export class AuthService {
         trialEndsAt: user.trialEndsAt ?? new Date(now.getTime() + TRIAL_MS),
       })
       .where(eq(users.id, userId));
-    await AuthMailService.sendPasswordChanged(user);
+    await AuthMailService.sendPasswordChanged({
+      email: user.email,
+      locale: preferredLocale || user.locale,
+    });
     return { id: user.id, email: user.email };
   };
 
-  static changePassword = async (userId: string, currentPassword: string, password: string): Promise<boolean> => {
+  static changePassword = async (
+    userId: string,
+    currentPassword: string,
+    password: string,
+    preferredLocale?: string,
+  ): Promise<boolean> => {
     const [user] = await db.select().from(users).where(eq(users.id, userId));
     if (!user || user.gesperrtAm || !(await verifyPassword(currentPassword, user.passwordHash))) return false;
     await db
@@ -427,7 +446,10 @@ export class AuthService {
         sitzungsVersion: sql`${users.sitzungsVersion} + 1`,
       })
       .where(eq(users.id, userId));
-    await AuthMailService.sendPasswordChanged(user);
+    await AuthMailService.sendPasswordChanged({
+      email: user.email,
+      locale: preferredLocale || user.locale,
+    });
     return true;
   };
 }

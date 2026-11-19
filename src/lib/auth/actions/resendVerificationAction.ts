@@ -6,6 +6,7 @@ import { getRequestInfo } from "@/lib/auth/requestInfo";
 import { emailOnlySchema, field, toFieldErrors } from "@/lib/auth/validation";
 import { AuthService } from "@/services/AuthService";
 import { MailService } from "@/services/MailService";
+import { TranslationService } from "@/services/TranslationService";
 import { AuthFormState } from "@/types/auth.types";
 
 /** Server Action: send the confirmation link again (same answer for every address). */
@@ -21,7 +22,8 @@ export async function resendVerificationAction(_prev: AuthFormState, formData: F
   if (!MailService.isAvailable()) return { status: "error", code: "mail_unavailable", values };
 
   try {
-    if (await mayMail(parsed.data.email)) await AuthService.resendVerification(parsed.data.email);
+    const locale = await TranslationService.GetUserLocaleOption();
+    if (await mayMail(parsed.data.email)) await AuthService.resendVerification(parsed.data.email, locale);
   } catch (error) {
     return unknownError("resendVerificationAction", error, values);
   }

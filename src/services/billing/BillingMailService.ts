@@ -11,20 +11,14 @@ import { env } from "@/lib/env";
 import { LEGAL_OPERATOR } from "@/lib/legal/legalOperator";
 import { renderBillingMail } from "@/lib/mail/renderBillingMail";
 import { MailService } from "@/services/MailService";
+import { TranslationService } from "@/services/TranslationService";
 import { BillingTranslations } from "@/translations/billing/BillingTranslations";
 import { IBillingTranslation } from "@/translations/billing/IBillingTranslation";
 import { legalDocument, legalDocumentText } from "@/translations/legal/LegalDocuments";
 import { Locale } from "@/translations/Translations";
 
-const toLang = (locale: string | null | undefined): LocaleOption => {
-  const lower = (locale ?? "").toLowerCase();
-  if (lower.startsWith("tr")) return "tr";
-  if (lower.startsWith("en") || lower === "gb") return "en";
-  if (lower.startsWith("it")) return "it";
-  if (lower.startsWith("es")) return "es";
-  if (lower.startsWith("fr")) return "fr";
-  return "de";
-};
+const toLang = (locale: string | null | undefined): LocaleOption =>
+  TranslationService.ToLocaleOption(TranslationService.NormalizeLocale(locale));
 const textsFor = (lang: LocaleOption): IBillingTranslation => BillingTranslations[(lang.toUpperCase() as Locale)] ?? BillingTranslations[Locale.DE];
 
 const vatLabel = (t: IBillingTranslation, market: string): string => vatNote(t, env.billingVatMode, market === "TR" ? "TR" : "DE", env.billingTrKdvIncluded);

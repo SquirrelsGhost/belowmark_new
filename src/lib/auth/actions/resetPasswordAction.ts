@@ -8,6 +8,7 @@ import { field, resetSchema, toFieldErrors } from "@/lib/auth/validation";
 import { AuthService } from "@/services/AuthService";
 import { RateLimitService } from "@/services/RateLimitService";
 import { SessionService } from "@/services/SessionService";
+import { TranslationService } from "@/services/TranslationService";
 import { AuthFormState } from "@/types/auth.types";
 
 /** Server Action: set a new password from a reset link, sign out everywhere, sign in here. */
@@ -24,7 +25,8 @@ export async function resetPasswordAction(_prev: AuthFormState, formData: FormDa
     if (await AuthService.isBreached(parsed.data.password)) {
       return { status: "error", fieldErrors: { password: "password_breached" } };
     }
-    const user = await AuthService.resetPassword(parsed.data.token, parsed.data.password);
+    const locale = await TranslationService.GetUserLocaleOption();
+    const user = await AuthService.resetPassword(parsed.data.token, parsed.data.password, locale);
     if (!user) return { status: "error", code: "token_invalid" };
     // Whoever reset via the inbox is the owner: lift a guessing pause on the account.
     await RateLimitService.reset(`login:acct:${user.email}`);

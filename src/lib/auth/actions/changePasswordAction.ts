@@ -7,6 +7,7 @@ import { getRequestInfo } from "@/lib/auth/requestInfo";
 import { changePasswordSchema, field, toFieldErrors } from "@/lib/auth/validation";
 import { AuthService } from "@/services/AuthService";
 import { SessionService } from "@/services/SessionService";
+import { TranslationService } from "@/services/TranslationService";
 import { AuthFormState } from "@/types/auth.types";
 
 /** Server Action: change the password while signed in; other devices are signed out. */
@@ -28,7 +29,8 @@ export async function changePasswordAction(_prev: AuthFormState, formData: FormD
   const { ip, userAgent } = await getRequestInfo();
   try {
     if (await AuthService.isBreached(password)) return { status: "error", fieldErrors: { password: "password_breached" } };
-    const changed = await AuthService.changePassword(user.id, currentPassword, password);
+    const locale = await TranslationService.GetUserLocaleOption();
+    const changed = await AuthService.changePassword(user.id, currentPassword, password, locale);
     if (!changed) return { status: "error", fieldErrors: { currentPassword: "password_wrong" } };
     await SessionService.destroyAllForUser(user.id);
     await SessionService.create(user.id, true, userAgent, { ip });

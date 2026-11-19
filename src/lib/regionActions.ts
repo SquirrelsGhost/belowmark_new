@@ -70,6 +70,12 @@ export async function setLocaleAction(locale: LocaleOption): Promise<void> {
     SESSION_SCOPED_COOKIE,
   );
   cookieStore.delete(LEGACY_MARKET_COOKIE_NAME);
+
+  const user = await SessionService.getCurrentUser();
+  if (user && user.locale !== locale) {
+    await db.update(users).set({ locale }).where(eq(users.id, user.id));
+    clearSessionResolutionCache();
+  }
 }
 
 /** Server Action: switches between all 12 countries + International English ("INTL") from the top bar. */
@@ -80,6 +86,12 @@ export async function setSelectorCountryAction(code: HomeSelectorCode): Promise<
     cookieStore.set(MARKET_COOKIE_NAME, formatGeoScopedCookie(scope, "INTL"), SESSION_SCOPED_COOKIE);
     cookieStore.set(LOCALE_COOKIE_NAME, formatGeoScopedCookie(scope, "en"), SESSION_SCOPED_COOKIE);
     cookieStore.delete(LEGACY_MARKET_COOKIE_NAME);
+
+    const user = await SessionService.getCurrentUser();
+    if (user && user.locale !== "en") {
+      await db.update(users).set({ locale: "en" }).where(eq(users.id, user.id));
+      clearSessionResolutionCache();
+    }
     return;
   }
   if (isPricingCountry(code)) {
@@ -95,13 +107,14 @@ export async function setMarketAction(country: PricingCountryCode): Promise<void
   if (!isPricingCountry(country)) return;
   const scope = await currentLocationScope();
   const cookieStore = await cookies();
+  const nextLocale: LocaleOption = country === "CH" ? "de" : pricingCountryToLocale(country);
   cookieStore.set(MARKET_COOKIE_NAME, formatGeoScopedCookie(scope, country), SESSION_SCOPED_COOKIE);
   if (country === "CH") {
     cookieStore.delete(LOCALE_COOKIE_NAME);
   } else {
     cookieStore.set(
       LOCALE_COOKIE_NAME,
-      formatGeoScopedCookie(scope, pricingCountryToLocale(country)),
+      formatGeoScopedCookie(scope, nextLocale),
       SESSION_SCOPED_COOKIE,
     );
   }
@@ -109,13 +122,21 @@ export async function setMarketAction(country: PricingCountryCode): Promise<void
 
   const market = pricingCountryToMarket(country);
   const user = await SessionService.getCurrentUser();
-  if (!user || (user.market === market && user.country === country)) return;
+  if (!user) return;
   const canSwitch = !user.plan || hasPermission(user.permissions, "*");
   if (canSwitch && !user.teamSeat) {
-    await db.update(users).set({ market, country }).where(eq(users.id, user.id));
+    if (user.market !== market || user.country !== country || (country !== "CH" && user.locale !== nextLocale)) {
+      await db
+        .update(users)
+        .set({ market, country, ...(country !== "CH" ? { locale: nextLocale } : {}) })
+        .where(eq(users.id, user.id));
+      clearSessionResolutionCache();
+      revalidatePath("/app", "layout");
+      revalidatePath("/konto");
+      revalidatePath("/buchen");
+    }
+  } else if (country !== "CH" && user.locale !== nextLocale) {
+    await db.update(users).set({ locale: nextLocale }).where(eq(users.id, user.id));
     clearSessionResolutionCache();
-    revalidatePath("/app", "layout");
-    revalidatePath("/konto");
-    revalidatePath("/buchen");
   }
 }

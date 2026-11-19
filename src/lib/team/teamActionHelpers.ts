@@ -1,7 +1,8 @@
 import "server-only";
 import { revalidatePath } from "next/cache";
-import { MarketCode } from "@/lib/constants";
+import { LocaleOption, MarketCode } from "@/lib/constants";
 import { SessionService } from "@/services/SessionService";
+import { TranslationService } from "@/services/TranslationService";
 import { Permission } from "@/types/permissions.types";
 import { TeamActionState, TeamErrorCode } from "@/types/team.types";
 
@@ -13,7 +14,7 @@ export interface TeamActor {
   name: string;
   email: string;
   market: MarketCode;
-  locale: "de" | "tr";
+  locale: LocaleOption;
   permissions: Permission[];
 }
 
@@ -25,7 +26,7 @@ export async function currentActor(): Promise<TeamActor | null> {
     name: user.name,
     email: user.email,
     market: user.market === "TR" ? "TR" : "DE",
-    locale: user.locale === "tr" ? "tr" : "de",
+    locale: TranslationService.ToLocaleOption(TranslationService.NormalizeLocale(user.locale)),
     permissions: user.permissions,
   };
 }

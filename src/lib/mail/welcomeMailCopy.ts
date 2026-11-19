@@ -86,6 +86,82 @@ export function buildWelcomeMailBundle(lang: LocaleOption, endDate: string): Wel
         docCode: "BM-PROFILO · ATTIVAZIONE",
         eyebrow: "Attivazione Account · Nessun Abbonamento Automatico",
       };
+    case "pl":
+      return {
+        template: {
+          Subject: "Witamy w Belowmark — Twoje 1 Darmowe Akta i alerty licytacji są aktywne (bez subskrypcji)",
+          Preheader: "E-mail potwierdzony. Testuj przez 14 dni bez zobowiązań — brak zapisanej karty i brak automatycznego odnowienia.",
+          Greeting: "Dzień dobry,",
+          Body: "Twój adres e-mail został potwierdzony, a konto Belowmark jest już aktywne. Na koncie nie zapisano żadnych danych płatniczych: masz do dyspozycji 1 pełne Darmowe Akta Nieruchomości do wykorzystania na wybranej licytacji komorniczej (pełna sygnatura KM, dokładny adres, obwieszczenia i operat PDF, kalkulator 3/4 i 2/3 sumy oszacowania oraz analiza ryzyka AI). 14-dniowy okres próbny jest w 100% niezobowiązujący i kończy się automatycznie bez żadnych opłat ani automatycznej subskrypcji.",
+          Action: "Wykorzystaj moje 1 Darmowe Akta",
+          Expiry: `14-dniowy niezobowiązujący okres testowy do ${endDate} — kończy się automatycznie bez opłat. Brak zapisanej karty, brak automatycznych obciążeń i odnowień (nie trzeba niczego wypowiadać). Twoje 1 Darmowe Akta, obserwowana lista i alerty pozostają bezpłatnie aktywne.`,
+          Ignore: "Alertami wyszukiwania możesz zarządzać w każdej chwili w koncie; późniejsze przejście na nielimitowany plan Investor (/buchen) jest całkowicie dobrowolne.",
+        },
+        highlights: [
+          "100% bez zobowiązań: brak zapisanej karty, brak automatycznych opłat i odnowień subskrypcji",
+          "1 Darmowe Pełne Akta w pakiecie: odblokuj 1 wybraną nieruchomość (sygnatura, adres, PDF i AI) na stałe",
+          "Alerty wyszukiwania (/app/alerts): bezpłatne automatyczne e-maile o nowych licytacjach i zmianach terminów",
+        ],
+        docCode: "BM-KONTO · AKTYWACJA",
+        eyebrow: "Aktywacja Konta · Bez Automatycznej Subskrypcji",
+      };
+    case "cs":
+      return {
+        template: {
+          Subject: "Vítejte v Belowmark — Váš 1 Bezplatný Spis a hlídací psi dražeb jsou aktivní (bez předplatného)",
+          Preheader: "E-mail potvrzen. Vyzkoušejte 14 dní nezávazně — žádná uložená karta, žádné automatické prodlužování.",
+          Greeting: "Dobrý den,",
+          Body: "Vaše e-mailová adresa byla ověřena a Váš účet Belowmark je aktivní. Na účtu nejsou uloženy žádné platební údaje: máte okamžitě k dispozici 1 kompletní Bezplatný Spis k odemknutí libovolné dražby (plná spisová značka EX, přesná adresa, dražební vyhláška a znalecký posudek v PDF, kalkulačka nejnižšího podání 2/3 a AI analýza rizik). Vaše 14denní nezávazné zkušební období skončí automaticky bez jakýchkoliv poplatků či automatického předplatného.",
+          Action: "Uplatnit můj 1 Bezplatný Spis",
+          Expiry: `14denní nezávazné zkušební období do ${endDate} — končí automaticky a zdarma. Žádné uložené platební údaje, žádné automatické stržení ani předplatné (není nutná výpověď). Váš Bezplatný Spis, sledované položky i hlídací psi zůstávají trvale zdarma.`,
+          Ignore: "Hlídací psy můžete kdykoliv spravovat ve svém účtu; případný přechod na neomezený tarif Investor (/buchen) je zcela dobrovolný.",
+        },
+        highlights: [
+          "100% nezávazně: žádná platební karta v účtu, žádné automatické strhávání ani obnovení",
+          "1 Bezplatný Spis v ceně: odemkněte 1 kompletní dražbu (spisová značka, adresa, PDF a AI) natrvalo zdarma",
+          "Hlídací psi (/app/alerts): bezplatné automatické e-maily o nových dražbách a změnách termínů",
+        ],
+        docCode: "BM-ÚČET · AKTIVACE",
+        eyebrow: "Aktivace Účtu · Bez Automatického Předplatného",
+      };
+    case "nl":
+      return {
+        template: {
+          Subject: "Welkom bij Belowmark — uw 1 Gratis Dossier & veilingalerts zijn actief (geen abonnement)",
+          Preheader: "E-mail bevestigd. Test 14 dagen vrijblijvend — geen betaalgegevens opgeslagen, geen automatische verlenging.",
+          Greeting: "Goedendag,",
+          Body: "Uw e-mailadres is bevestigd en uw Belowmark-account is actief. Er zijn geen betaalgegevens opgeslagen in uw account: u beschikt direct over 1 volledig Gratis Dossier om een executieveiling naar keuze volledig te ontgrendelen (volledig dossiernummer, exact huisadres, officiële veilingvoorwaarden & proces-verbaal in PDF, biedcalculator en AI-risicoanalyse). Uw vrijblijvende proefperiode van 14 dagen eindigt automatisch zonder kosten of stilzwijgende verlenging.",
+          Action: "Mijn 1 Gratis Dossier inwisselen",
+          Expiry: `14 dagen vrijblijvend testen t/m ${endDate} — eindigt automatisch zonder kosten. Geen kaart geregistreerd, geen automatische incasso of abonnement (opzeggen niet nodig). Uw Gratis Dossier, volglijst en zoekalerts blijven blijvend gratis actief.`,
+          Ignore: "Beheer uw zoekalerts op elk moment in uw account; overstappen naar onbeperkte Investor-toegang (/buchen) is volledig optioneel.",
+        },
+        highlights: [
+          "100% vrijblijvend: geen betaalkaart geregistreerd, geen automatische afschrijving of verlenging",
+          "1 Gratis Volledig Dossier inbegrepen: ontgrendel 1 veilingpand (adres, officiële PDF's & AI-check) gratis",
+          "Zoekalerts (/app/alerts): gratis automatische e-mails bij nieuwe veilingen en gewijzigde zittingsdata",
+        ],
+        docCode: "BM-ACCOUNT · ACTIVATIE",
+        eyebrow: "Accountactivatie · Geen Automatisch Abonnement",
+      };
+    case "sv":
+      return {
+        template: {
+          Subject: "Välkommen till Belowmark — din 1 Kostnadsfria Akt och dina bevakningar är aktiva (ingen prenumeration)",
+          Preheader: "E-post bekräftad. Testa 14 dagar utan bindning — inga kortuppgifter sparade, ingen automatisk förnyelse.",
+          Greeting: "Hej,",
+          Body: "Din e-postadress är verifierad och ditt Belowmark-konto är nu aktivt. Inga betalningsuppgifter finns sparade på ditt konto: du har nu 1 komplett Kostnadsfri Fastighetsakt redo att användas på valfri exekutiv auktion (fullständigt målnummer, exakt gatuadress, objektsbeskrivning och värderingsutlåtande i PDF, budkalkylator samt AI-riskanalys). Din 14-dagars testperiod utan bindning avslutas automatiskt utan kostnad eller automatisk prenumeration.",
+          Action: "Lös in min 1 Kostnadsfria Akt",
+          Expiry: `14 dagars fri testperiod t.o.m. ${endDate} — avslutas automatiskt utan kostnad. Inget kort registrerat, ingen automatisk debitering eller förnyelse (ingen uppsägning behövs). Din Kostnadsfria Akt, minneslista och bevakningar förblir kostnadsfritt aktiva.`,
+          Ignore: "Hantera dina sökbevakningar när som helst på ditt konto; att uppgradera till obegränsad Investor-åtkomst (/buchen) senare är helt valfritt.",
+        },
+        highlights: [
+          "100 % utan bindning: inget betalkort sparat, ingen automatisk debitering eller prenumerationsförnyelse",
+          "1 Kostnadsfri Komplett Akt ingår: lås upp 1 valfritt objekt (målnummer, adress, PDF & AI-kontroll) gratis",
+          "Sökbevakningar (/app/alerts): kostnadsfria automatiska mejl vid nya utrop och ändrade visnings-/auktionsdatum",
+        ],
+        docCode: "BM-KONTO · AKTIVERING",
+        eyebrow: "Kontoaktivering · Ingen Automatisk Prenumeration",
+      };
     case "en":
       return {
         template: {

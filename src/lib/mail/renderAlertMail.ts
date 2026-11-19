@@ -1,5 +1,7 @@
+import type { LocaleOption } from "@/lib/constants";
 import { escapeHtml, MAIL_COLORS, renderMailFrame } from "@/lib/mail/mailLayout";
 import { RenderedMail } from "@/lib/mail/renderAuthMail";
+import { normalizeMailLang } from "@/lib/mail/verifyReminderMailCopy";
 
 export interface AlertMailItem {
   kind: string;
@@ -44,23 +46,125 @@ interface AlertMailParts {
   footer: string;
 }
 
+interface AlertMailChrome {
+  headerLine: string;
+  openLabel: string;
+  docCode: string;
+  eyebrow: string;
+}
+
+const ALERT_MAIL_CHROME: Record<LocaleOption, AlertMailChrome> = {
+  de: {
+    headerLine: "BELOWMARK — SUCH-ALERTS",
+    openLabel: "Aktenblatt",
+    docCode: "BM-ALERT · SUCHAUFTRAG",
+    eyebrow: "Benachrichtigung zu Ihren Such-Alerts",
+  },
+  tr: {
+    headerLine: "BELOWMARK — ARAMA ALARMLARI",
+    openLabel: "Dosyayı aç",
+    docCode: "BM-ALARM · BİLDİRİM",
+    eyebrow: "Kayıtlı Arama Bildirimi",
+  },
+  en: {
+    headerLine: "BELOWMARK — SEARCH ALERTS",
+    openLabel: "Open dossier",
+    docCode: "BM-ALERT · SAVED SEARCH",
+    eyebrow: "Saved Search Alert Notification",
+  },
+  fr: {
+    headerLine: "BELOWMARK — ALERTES DE RECHERCHE",
+    openLabel: "Ouvrir le dossier",
+    docCode: "BM-ALERTE · RECHERCHE",
+    eyebrow: "Notification d'Alerte de Recherche",
+  },
+  es: {
+    headerLine: "BELOWMARK — ALERTAS DE BÚSQUEDA",
+    openLabel: "Abrir expediente",
+    docCode: "BM-ALERTA · BÚSQUEDA",
+    eyebrow: "Notificación de Alerta de Búsqueda",
+  },
+  it: {
+    headerLine: "BELOWMARK — AVVISI DI RICERCA",
+    openLabel: "Apri fascicolo",
+    docCode: "BM-AVVISO · RICERCA",
+    eyebrow: "Notifica Avvisi di Ricerca Salvati",
+  },
+  pl: {
+    headerLine: "BELOWMARK — ALERTY WYSZUKIWANIA",
+    openLabel: "Otwórz akta",
+    docCode: "BM-ALERT · WYSZUKIWANIE",
+    eyebrow: "Powiadomienie o Alertach Wyszukiwania",
+  },
+  cs: {
+    headerLine: "BELOWMARK — HLÍDACÍ PSI",
+    openLabel: "Otevřít spis",
+    docCode: "BM-ALERT · HLÍDACÍ PES",
+    eyebrow: "Upozornění z Uloženého Hledání",
+  },
+  nl: {
+    headerLine: "BELOWMARK — ZOEKALERTS",
+    openLabel: "Dossier openen",
+    docCode: "BM-ALERT · ZOEKOPDRACHT",
+    eyebrow: "Melding voor Uw Zoekalerts",
+  },
+  sv: {
+    headerLine: "BELOWMARK — SÖKBEVAKNINGAR",
+    openLabel: "Öppna akt",
+    docCode: "BM-BEVAKNING · SÖKNING",
+    eyebrow: "Avisering från Dina Sökbevakningar",
+  },
+};
+
+const NEW_KEYWORDS = [
+  "neu",
+  "yeni",
+  "new",
+  "nouveau",
+  "nouvelle",
+  "nueva",
+  "nuevo",
+  "nuova",
+  "nuovo",
+  "nowa",
+  "nowe",
+  "nowy",
+  "nová",
+  "nové",
+  "nový",
+  "nieuw",
+  "ny",
+  "nytt",
+];
+
+const CANCEL_KEYWORDS = [
+  "aufgehoben",
+  "iptal",
+  "cancel",
+  "annul",
+  "revoc",
+  "odwołan",
+  "zrušen",
+  "geannuleerd",
+  "inställd",
+];
+
 function badgeColor(kind: string): { bg: string; fg: string; border: string } {
   const C = MAIL_COLORS;
   const k = kind.toLowerCase();
-  if (k.includes("neu") || k.includes("yeni")) {
+  if (NEW_KEYWORDS.some((word) => k.includes(word))) {
     return { bg: C.verdict, fg: C.bright, border: C.verdict };
   }
-  if (k.includes("aufgehoben") || k.includes("iptal")) {
+  if (CANCEL_KEYWORDS.some((word) => k.includes(word))) {
     return { bg: C.signal, fg: C.bright, border: C.signal };
   }
   return { bg: C.bright, fg: C.caution, border: C.caution };
 }
 
-function itemHtml(item: AlertMailItem, idx: number, isTr: boolean): string {
+function itemHtml(item: AlertMailItem, idx: number, openLabel: string): string {
   const C = MAIL_COLORS;
   const badge = badgeColor(item.kind);
   const borderTop = idx > 0 ? `border-top:1px solid ${C.rule};` : "";
-  const openLabel = isTr ? "Dosyayı aç" : "Aktenblatt";
 
   return `
     <tr>
@@ -74,7 +178,7 @@ function itemHtml(item: AlertMailItem, idx: number, isTr: boolean): string {
             </td>
             <td align="right" style="vertical-align:middle;">
               <a href="${escapeHtml(item.url)}" style="font-family:'Courier New',Courier,monospace;font-size:11px;font-weight:700;color:${C.signal};text-decoration:none;text-transform:uppercase;letter-spacing:0.8px;">
-                ${openLabel} &rarr;
+                ${escapeHtml(openLabel)} &rarr;
               </a>
             </td>
           </tr>
@@ -95,7 +199,7 @@ function itemHtml(item: AlertMailItem, idx: number, isTr: boolean): string {
     </tr>`;
 }
 
-function sectionHtml(section: AlertMailSection, openSearch: string, isTr: boolean): string {
+function sectionHtml(section: AlertMailSection, openSearch: string, openLabel: string): string {
   const C = MAIL_COLORS;
   const moreRow = section.more
     ? `<tr><td style="padding:10px 18px;border-top:1px solid ${C.rule};font-family:'Courier New',Courier,monospace;font-size:12px;color:${C.muted};">${escapeHtml(section.more)}</td></tr>`
@@ -120,7 +224,7 @@ function sectionHtml(section: AlertMailSection, openSearch: string, isTr: boolea
           </table>
         </td>
       </tr>
-      ${section.items.map((item, idx) => itemHtml(item, idx, isTr)).join("")}
+      ${section.items.map((item, idx) => itemHtml(item, idx, openLabel)).join("")}
       ${moreRow}
     </table>`;
 }
@@ -142,10 +246,11 @@ function sectionText(section: AlertMailSection, openSearch: string): string[] {
 /** Structured saved-search alert digest with plain-text twin. */
 export function renderAlertMail(parts: AlertMailParts): RenderedMail {
   const C = MAIL_COLORS;
-  const isTr = parts.lang === "tr";
+  const langKey = normalizeMailLang(parts.lang);
+  const chrome = ALERT_MAIL_CHROME[langKey];
 
   const text = [
-    "BELOWMARK — SUCH-ALERTS",
+    chrome.headerLine,
     "═".repeat(48),
     "",
     parts.greeting,
@@ -176,7 +281,7 @@ export function renderAlertMail(parts: AlertMailParts): RenderedMail {
       <td style="padding:4px 32px 24px;">
         <p style="margin:0 0 8px;font-size:16px;font-weight:700;color:${C.ink};">${escapeHtml(parts.greeting)}</p>
         <p style="margin:0 0 18px;font-size:15px;line-height:1.6;color:${C.inkSoft};">${escapeHtml(parts.intro)}</p>
-        ${parts.sections.map((section) => sectionHtml(section, parts.openSearch, isTr)).join("\n")}
+        ${parts.sections.map((section) => sectionHtml(section, parts.openSearch, chrome.openLabel)).join("\n")}
         ${
           parts.upgradeBox
             ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:${C.bright};border:2px solid ${C.ink};margin-bottom:18px;">
@@ -204,9 +309,9 @@ export function renderAlertMail(parts: AlertMailParts): RenderedMail {
     </tr>`;
 
   const html = renderMailFrame({
-    lang: parts.lang,
-    docCode: isTr ? "BM-ALARM · BİLDİRİM" : "BM-ALERT · SUCHAUFTRAG",
-    eyebrow: isTr ? "Kayıtlı Arama Bildirimi" : "Benachrichtigung zu Ihren Such-Alerts",
+    lang: langKey,
+    docCode: chrome.docCode,
+    eyebrow: chrome.eyebrow,
     subject: parts.subject,
     preheader: parts.preheader,
     bodyHtml,

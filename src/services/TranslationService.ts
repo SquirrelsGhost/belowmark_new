@@ -17,6 +17,11 @@ export class TranslationService {
     return TranslationService.NormalizeLocale(region.locale);
   });
 
+  static GetUserLocaleOption = async (): Promise<LocaleOption> => {
+    const locale = await TranslationService.GetUserLocale();
+    return TranslationService.ToLocaleOption(locale);
+  };
+
   static NormalizeLocale = (code: string | null | undefined): Locale => {
     const lower = (code ?? "").trim().toLowerCase();
     if (lower.startsWith("de") || lower === "at" || lower === "ch") return Locale.DE;

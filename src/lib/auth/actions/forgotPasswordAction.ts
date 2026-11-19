@@ -6,6 +6,7 @@ import { getRequestInfo } from "@/lib/auth/requestInfo";
 import { emailOnlySchema, field, toFieldErrors } from "@/lib/auth/validation";
 import { AuthService } from "@/services/AuthService";
 import { MailService } from "@/services/MailService";
+import { TranslationService } from "@/services/TranslationService";
 import { AuthFormState } from "@/types/auth.types";
 
 /**
@@ -24,7 +25,8 @@ export async function forgotPasswordAction(_prev: AuthFormState, formData: FormD
   if (!MailService.isAvailable()) return { status: "error", code: "mail_unavailable", values };
 
   try {
-    if (await mayMail(parsed.data.email)) await AuthService.requestPasswordReset(parsed.data.email);
+    const locale = await TranslationService.GetUserLocaleOption();
+    if (await mayMail(parsed.data.email)) await AuthService.requestPasswordReset(parsed.data.email, locale);
   } catch (error) {
     return unknownError("forgotPasswordAction", error, values);
   }

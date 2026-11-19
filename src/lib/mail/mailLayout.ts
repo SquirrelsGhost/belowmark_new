@@ -86,6 +86,38 @@ const NAV_LABELS: Record<
     legal: "Note legali e Privacy",
     subline: "Avvisi Giudiziari Ufficiali · Fonti Verificate",
   },
+  pl: {
+    app: "Wyszukiwarka",
+    deadlines: "Terminy",
+    alerts: "Alerty",
+    account: "Konto",
+    legal: "Informacje prawne i Prywatność",
+    subline: "Oficjalne Obwieszczenia Sądowe i Komornicze · Zweryfikowane Źródła",
+  },
+  cs: {
+    app: "Vyhledávání",
+    deadlines: "Termíny",
+    alerts: "Hlídací psi",
+    account: "Účet",
+    legal: "Právní údaje a Soukromí",
+    subline: "Oficiální Soudní a Exekuční Vyhlášky · Ověřené Zdroje",
+  },
+  nl: {
+    app: "Zoeken",
+    deadlines: "Termijnen",
+    alerts: "Alerts",
+    account: "Account",
+    legal: "Colofon & Privacy",
+    subline: "Officiële Executieveiling-publicaties · Geverifieerde Bronnen",
+  },
+  sv: {
+    app: "Sök",
+    deadlines: "Frister",
+    alerts: "Bevakningar",
+    account: "Konto",
+    legal: "Juridik & Integritet",
+    subline: "Officiella Exekutiva Auktionskungörelser · Verifierade Källor",
+  },
 };
 
 /**
@@ -97,7 +129,8 @@ export function renderMailFrame(opts: MailFrameOptions): string {
   const C = MAIL_COLORS;
   const base = (opts.baseUrl || "https://belowmark.com").replace(/\/+$/, "");
   const preheaderText = escapeHtml(opts.preheader || opts.subject);
-  const navLabels = NAV_LABELS[opts.lang] ?? NAV_LABELS.de;
+  const langKey = (opts.lang || "de").trim().toLowerCase().slice(0, 2);
+  const navLabels = NAV_LABELS[langKey] ?? NAV_LABELS.de;
 
   const manageBlock =
     opts.manageLabel && opts.manageUrl

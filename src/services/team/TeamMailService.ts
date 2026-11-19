@@ -2,7 +2,7 @@ import "server-only";
 import { fill } from "@/lib/appFormat";
 import { env } from "@/lib/env";
 import { renderAuthMail } from "@/lib/mail/renderAuthMail";
-import { MarketCode } from "@/lib/constants";
+import { LocaleOption, MarketCode } from "@/lib/constants";
 import { TEAM_PARAMS, TEAM_ROUTES, TeamRole, TEAMS } from "@/lib/team/teamConfig";
 import { MailService } from "@/services/MailService";
 import { getTeamTranslation } from "@/translations/team/TeamTranslations";
@@ -10,7 +10,7 @@ import { getTeamTranslation } from "@/translations/team/TeamTranslations";
 export interface InviteMail {
   to: string;
   /** Language of the inviter — the invited person has no stored language yet */
-  locale: "de" | "tr";
+  locale: LocaleOption;
   inviter: string;
   team: string;
   role: TeamRole;

@@ -7,6 +7,7 @@ import { getRequestInfo } from "@/lib/auth/requestInfo";
 import { emailOnlySchema, field, toFieldErrors } from "@/lib/auth/validation";
 import { AuthService } from "@/services/AuthService";
 import { MailService } from "@/services/MailService";
+import { TranslationService } from "@/services/TranslationService";
 import { AuthFormState } from "@/types/auth.types";
 
 /**
@@ -42,7 +43,8 @@ export async function requestLoginCodeAction(_prev: AuthFormState, formData: For
       return { status: "error", code: "device_banned", values };
     }
     if (await mayMail(email)) {
-      await AuthService.requestLoginCode(email);
+      const locale = await TranslationService.GetUserLocaleOption();
+      await AuthService.requestLoginCode(email, locale);
     }
   } catch (error) {
     return unknownError("requestLoginCodeAction", error, values);

@@ -120,7 +120,10 @@ function mailFor(recipient: Recipient, results: AlertResult[]) {
       title: getPlaceTitle(listing),
       reference: `${listing.authority} · ${listing.fileNo}`,
       dateLine: isMove ? fill(M.Moved, { before: date(hit.before), after: date(hit.after) }) : fill(M.NextDate, { date: date(hit.kind === "cancelled" ? hit.before : hit.after) }),
-      valueLine: listing.appraisedValue !== null ? `${M.Value[market]}: ${formatMoney(listing.appraisedValue, market, lang)}` : null,
+      valueLine:
+        listing.appraisedValue !== null
+          ? `${M.Value[market]}: ${formatMoney(listing.appraisedValue, market, lang, listing.currency)}`
+          : null,
       url: absolute(
         !recipient.hasFullAccess && !recipient.unlockedListingKey
           ? `${listingHref(listing.key)}#free-unlock`

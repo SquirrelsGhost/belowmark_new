@@ -249,6 +249,90 @@ export function buildVerifyReminderMailBundle(lang: LocaleOption): VerifyReminde
         signature: "Emre Ak — Belowmark",
         footer: "Questa e-mail è un promemoria unico per completare la registrazione in sospeso su Belowmark.",
       };
+    case "pl":
+      return {
+        template: {
+          Subject: "Krótkie przypomnienie: Potwierdź e-mail — Twoje 1 Darmowe Akta czekają (bez subskrypcji)",
+          Preheader: "100% za darmo i kończy się automatycznie bez pułapki abonamentowej. Nowy link ważny przez 72 godz.",
+          Greeting: "Dzień dobry,",
+          Body: "Niedawno utworzyłeś bezpłatne konto w Belowmark, ale brakuje jeszcze potwierdzenia adresu e-mail. Na wypadek wygaśnięcia pierwszego 24-godzinnego linku wygenerowaliśmy poniżej świeży link weryfikacyjny 1-klik oraz nowy 6-cyfrowy kod (ważne przez 72 godziny). Pełne bezpieczeństwo: rejestracja jest w 100% darmowa i kończy się automatycznie bez żadnej pułapki subskrypcyjnej — nie zapisujemy karty płatniczej i nigdy nie pobieramy opłat automatycznie.",
+          Action: "Potwierdź mój adres e-mail",
+          Expiry: "Nowy link i 6-cyfrowy kod z tego jednorazowego przypomnienia są ważne przez 72 godziny. Nie wyślemy kolejnych wiadomości przypominających.",
+          Ignore: "Jeśli nie chcesz już aktywować konta, zignoruj tę wiadomość — nic nie zostanie aktywowane i nie trzeba niczego anulować.",
+        },
+        highlights: [
+          "100% za darmo i bez pułapki subskrypcyjnej: brak danych płatniczych, automatyczny koniec po 14 dniach",
+          "Nowy link potwierdzający 1-klik + 6-cyfrowy kod (ważne przez 72 godziny)",
+          "Natychmiast po potwierdzeniu: 1 Darmowe Pełne Akta Nieruchomości + bezpłatne alerty licytacji",
+        ],
+        docCode: "BM-KONTO · PRZYPOMNIENIE (1/1)",
+        eyebrow: "Jednorazowe Przypomnienie o Weryfikacji · Bez Subskrypcji",
+        signature: "Emre Ak — Belowmark",
+        footer: "To jednorazowe przypomnienie dotyczące niepotwierdzonej rejestracji konta w serwisie Belowmark.",
+      };
+    case "cs":
+      return {
+        template: {
+          Subject: "Krátké připomenutí: Potvrďte e-mail — Váš 1 Bezplatný Spis čeká (bez předplatného)",
+          Preheader: "100% zdarma a končí automaticky bez pasti předplatného. Nový ověřovací odkaz platný 72 hodin.",
+          Greeting: "Dobrý den,",
+          Body: "Nedávno jste si na Belowmark vytvořili bezplatný účet a zbývá už jen potvrdit e-mailovou adresu. Pro případ, že původní 24hodinový odkaz vypršel, posíláme níže nový ověřovací odkaz na 1 kliknutí i čerstvý 6místný kód (platné 72 hodin). Naprostá jistota: vyzkoušení je 100% zdarma a skončí automaticky bez jakékoliv pasti předplatného — nejsou uloženy žádné platební údaje a nikdy nedochází k automatickému stržení.",
+          Action: "Potvrdit mou e-mailovou adresu",
+          Expiry: "Nový odkaz a 6místný kód v této jednorázové připomínce platí 72 hodin. Další připomínky již zasílat nebudeme.",
+          Ignore: "Pokud si účet nepřejete aktivovat, tuto zprávu jednoduše ignorujte — nic se neaktivuje a není třeba nic rušit.",
+        },
+        highlights: [
+          "100% zdarma a bez pasti předplatného: žádné platební údaje, 14denní test skončí automaticky zdarma",
+          "Čerstvý odkaz na 1 kliknutí + 6místný ověřovací kód (platné 72 hodin)",
+          "Ihned po potvrzení: 1 Bezplatný Kompletní Spis + bezplatní hlídací psi dražeb",
+        ],
+        docCode: "BM-ÚČET · PŘIPOMÍNKA (1/1)",
+        eyebrow: "Jednorázová Připomínka Ověření · Bez Předplatného",
+        signature: "Emre Ak — Belowmark",
+        footer: "Toto je jednorázové připomenutí nedokončené registrace účtu na portálu Belowmark.",
+      };
+    case "nl":
+      return {
+        template: {
+          Subject: "Korte herinnering: Bevestig uw e-mail — uw 1 Gratis Dossier staat klaar (geen abonnement)",
+          Preheader: "100% gratis & eindigt automatisch zonder abonnementsval. Nieuwe verificatielink (72 uur geldig).",
+          Greeting: "Goedendag,",
+          Body: "U heeft onlangs een gratis Belowmark-account aangemaakt, maar alleen de e-mailbevestiging staat nog open. Voor het geval uw eerste 24-uurslink is verlopen, vindt u hieronder een nieuwe 1-klik-bevestigingslink en een verse 6-cijferige code (72 uur geldig). Volledige zekerheid: testen is 100% gratis en stopt automatisch zonder abonnementsval — er zijn geen betaalgegevens opgeslagen en er vindt nooit een automatische incasso plaats.",
+          Action: "Mijn e-mailadres nu bevestigen",
+          Expiry: "De nieuwe link en 6-cijferige code in deze eenmalige herinnering zijn 72 uur geldig. Wij sturen geen verdere herinneringen.",
+          Ignore: "Wilt u uw account niet meer activeren, negeer dit bericht dan gerust — er wordt niets geactiveerd en opzeggen is niet nodig.",
+        },
+        highlights: [
+          "100% gratis & geen abonnementsval: geen betaalgegevens geregistreerd, stopt automatisch zonder kosten",
+          "Nieuwe 1-klik-bevestigingslink + 6-cijferige code (72 uur geldig)",
+          "Direct na bevestiging: 1 Gratis Volledig Dossier + gratis zoekalerts geactiveerd",
+        ],
+        docCode: "BM-ACCOUNT · HERINNERING (1/1)",
+        eyebrow: "Eenmalige Verificatieherinnering · Geen Abonnement",
+        signature: "Emre Ak — Belowmark",
+        footer: "Dit is een eenmalige bevestigingsherinnering voor uw openstaande registratie op Belowmark.",
+      };
+    case "sv":
+      return {
+        template: {
+          Subject: "Kort påminnelse: Bekräfta din e-post — din 1 Kostnadsfria Akt väntar (ingen prenumeration)",
+          Preheader: "100 % gratis & avslutas automatiskt utan prenumerationsfälla. Ny 72-timmars verifieringslänk.",
+          Greeting: "Hej,",
+          Body: "Du skapade nyligen ett kostnadsfritt konto på Belowmark och bara e-postbekräftelsen återstår. Om din första 24-timmarslänk har hunnit gå ut får du här en ny 1-klickslänk samt en ny 6-siffrig kod (giltiga i 72 timmar). Full trygghet: testet är 100 % gratis och avslutas automatiskt utan prenumerationsfälla — inga kortuppgifter sparas och ingen automatisk debitering sker någonsin.",
+          Action: "Bekräfta min e-postadress nu",
+          Expiry: "Den nya länken och 6-siffriga koden i denna engångspåminnelse gäller i 72 timmar. Vi skickar inga fler påminnelsemejl.",
+          Ignore: "Om du inte längre vill aktivera kontot kan du bara ignorera detta mejl — ingenting aktiveras och ingen uppsägning behövs.",
+        },
+        highlights: [
+          "100 % gratis & ingen prenumerationsfälla: inga betalningsuppgifter sparade, avslutas automatiskt utan kostnad",
+          "Ny 1-klickslänk + 6-siffrig verifieringskod (giltiga i 72 timmar)",
+          "Direkt efter bekräftelse: 1 Kostnadsfri Komplett Fastighetsakt + gratis sökbevakningar",
+        ],
+        docCode: "BM-KONTO · PÅMINNELSE (1/1)",
+        eyebrow: "Engångspåminnelse om Verifiering · Ingen Prenumeration",
+        signature: "Emre Ak — Belowmark",
+        footer: "Detta är en engångspåminnelse för din väntande kontoregistrering på Belowmark.",
+      };
     default:
       return {
         template: {

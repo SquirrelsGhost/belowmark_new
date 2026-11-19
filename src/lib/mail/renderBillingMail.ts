@@ -1,5 +1,7 @@
+import type { LocaleOption } from "@/lib/constants";
 import { escapeHtml, MAIL_COLORS, renderMailFrame } from "@/lib/mail/mailLayout";
 import { RenderedMail } from "@/lib/mail/renderAuthMail";
+import { normalizeMailLang } from "@/lib/mail/verifyReminderMailCopy";
 
 interface BillingMailParts {
   subject: string;
@@ -11,6 +13,87 @@ interface BillingMailParts {
   footer: string;
   lang: string;
 }
+
+interface BillingMailChrome {
+  headerLine: string;
+  appendixLabel: string;
+  docCode: string;
+  eyebrow: string;
+  manageLabel: string;
+}
+
+const BILLING_MAIL_CHROME: Record<LocaleOption, BillingMailChrome> = {
+  de: {
+    headerLine: "BELOWMARK — VERTRAGS- & EINGANGSBELEG",
+    appendixLabel: "Vertragsunterlagen auf dauerhaftem Datenträger (§ 312f Abs. 2 BGB)",
+    docCode: "BM-BELEG · VERTRAG",
+    eyebrow: "Vertrags- & Eingangsbestätigung",
+    manageLabel: "Konto & Tarif öffnen",
+  },
+  tr: {
+    headerLine: "BELOWMARK — SÖZLEŞME VE İŞLEM BELGESİ",
+    appendixLabel: "Kalıcı Veri Taşıyıcısında Sözleşme Belgeleri (AGB & Cayma Bilgilendirmesi)",
+    docCode: "BM-BELGE · SÖZLEŞME",
+    eyebrow: "Sözleşme ve İşlem Onayı",
+    manageLabel: "Hesap ve Abonelik",
+  },
+  en: {
+    headerLine: "BELOWMARK — CONTRACT & RECEIPT CONFIRMATION",
+    appendixLabel: "Contract Documents on a Durable Medium (Terms & Withdrawal Notice)",
+    docCode: "BM-RECEIPT · CONTRACT",
+    eyebrow: "Contract & Receipt Confirmation",
+    manageLabel: "Open Account & Plan",
+  },
+  fr: {
+    headerLine: "BELOWMARK — CONFIRMATION DE CONTRAT & REÇU",
+    appendixLabel: "Documents contractuels sur support durable (CGV & Droit de rétractation)",
+    docCode: "BM-REÇU · CONTRAT",
+    eyebrow: "Confirmation de Contrat & de Réception",
+    manageLabel: "Ouvrir Compte & Formule",
+  },
+  es: {
+    headerLine: "BELOWMARK — COMPROBANTE DE CONTRATO Y RECEPCIÓN",
+    appendixLabel: "Documentación contractual en soporte duradero (CGC y Derecho de desistimiento)",
+    docCode: "BM-RECIBO · CONTRATO",
+    eyebrow: "Confirmación de Contrato y Recepción",
+    manageLabel: "Abrir Cuenta y Plan",
+  },
+  it: {
+    headerLine: "BELOWMARK — RICEVUTA CONTRATTUALE E DI CONFERMA",
+    appendixLabel: "Documenti contrattuali su supporto durevole (CGV e Informativa sul recesso)",
+    docCode: "BM-RICEVUTA · CONTRATTO",
+    eyebrow: "Conferma di Contratto e Ricezione",
+    manageLabel: "Apri Account e Piano",
+  },
+  pl: {
+    headerLine: "BELOWMARK — POTWIERDZENIE UMOWY I WPŁYWU",
+    appendixLabel: "Dokumenty umowne na trwałym nośniku (Regulamin i Pouczenie o odstąpieniu)",
+    docCode: "BM-DOKUMENT · UMOWA",
+    eyebrow: "Potwierdzenie Umowy i Przyjęcia Zgłoszenia",
+    manageLabel: "Otwórz Konto i Plan",
+  },
+  cs: {
+    headerLine: "BELOWMARK — POTVRZENÍ SMLOUVY A PŘIJETÍ",
+    appendixLabel: "Smluvní dokumentace na trvalém nosiči dat (VOP a Poučení o odstoupení)",
+    docCode: "BM-DOKLAD · SMLOUVA",
+    eyebrow: "Potvrzení Smlouvy a Přijetí Podání",
+    manageLabel: "Otevřít Účet a Tarif",
+  },
+  nl: {
+    headerLine: "BELOWMARK — CONTRACT- & ONTVANGSTBEVESTIGING",
+    appendixLabel: "Contractdocumenten op een duurzame gegevensdrager (AV & Herroepingsrecht)",
+    docCode: "BM-BEWIJS · CONTRACT",
+    eyebrow: "Contract- & Ontvangstbevestiging",
+    manageLabel: "Account & Pakket openen",
+  },
+  sv: {
+    headerLine: "BELOWMARK — AVTALS- & MOTTAGNINGSBEKRÄFTELSE",
+    appendixLabel: "Avtalshandlingar på varaktigt medium (Allmänna villkor & Ångerrätt)",
+    docCode: "BM-UNDERLAG · AVTAL",
+    eyebrow: "Avtals- & Mottagningsbekräftelse",
+    manageLabel: "Öppna Konto & Paket",
+  },
+};
 
 const asHtml = (text: string): string => escapeHtml(text).replace(/\n/g, "<br>");
 
@@ -72,10 +155,11 @@ function renderBlockHtml(block: string): string {
  */
 export function renderBillingMail({ subject, blocks, appendix, signature, footer, lang }: BillingMailParts): RenderedMail {
   const C = MAIL_COLORS;
-  const isTr = lang === "tr";
+  const langKey = normalizeMailLang(lang);
+  const chrome = BILLING_MAIL_CHROME[langKey];
 
   const text = [
-    "BELOWMARK — VERTRAGS- & EINGANGSBELEG",
+    chrome.headerLine,
     "═".repeat(48),
     "",
     ...blocks.flatMap((block) => [block, ""]),
@@ -87,9 +171,7 @@ export function renderBillingMail({ subject, blocks, appendix, signature, footer
   ].join("\n");
 
   const bodyBlocks = blocks.map(renderBlockHtml).join("");
-  const appendixLabel = isTr
-    ? "Kalıcı Veri Taşıyıcısında Sözleşme Belgeleri (AGB & Cayma Bilgilendirmesi)"
-    : "Vertragsunterlagen auf dauerhaftem Datenträger (§ 312f Abs. 2 BGB)";
+  const appendixLabel = chrome.appendixLabel;
 
   const extra = appendix
     ? `
@@ -120,15 +202,15 @@ export function renderBillingMail({ subject, blocks, appendix, signature, footer
     ${extra}`;
 
   const html = renderMailFrame({
-    lang,
-    docCode: isTr ? "BM-BELGE · SÖZLEŞME" : "BM-BELEG · VERTRAG",
-    eyebrow: isTr ? "Sözleşme ve İşlem Onayı" : "Vertrags- & Eingangsbestätigung",
+    lang: langKey,
+    docCode: chrome.docCode,
+    eyebrow: chrome.eyebrow,
     subject,
     preheader: subject,
     bodyHtml,
     signature,
     footer,
-    manageLabel: isTr ? "Hesap ve Abonelik" : "Konto & Tarif öffnen",
+    manageLabel: chrome.manageLabel,
     manageUrl: "https://belowmark.com/konto",
   });
 

@@ -1,5 +1,7 @@
+import type { LocaleOption } from "@/lib/constants";
 import { escapeHtml, MAIL_COLORS, renderMailFrame } from "@/lib/mail/mailLayout";
 import { RenderedMail } from "@/lib/mail/renderAuthMail";
+import { normalizeMailLang } from "@/lib/mail/verifyReminderMailCopy";
 
 export interface DeadlineMailItem {
   /** "heute" / "in 3 Tagen" */
@@ -31,10 +33,115 @@ interface DeadlineMailParts {
   footer: string;
 }
 
+interface DeadlineMailChrome {
+  headerLine: string;
+  docCode: string;
+  eyebrow: string;
+  summaryBar: (sectionsCount: number, totalItems: number) => string;
+}
+
+const DEADLINE_MAIL_CHROME: Record<LocaleOption, DeadlineMailChrome> = {
+  de: {
+    headerLine: "BELOWMARK — TERMIN- & FRISTEN-BEGLEITER",
+    docCode: "BM-FRIST · TERMINBEGLEITER",
+    eyebrow: "Fristen- & Termin-Erinnerung",
+    summaryBar: (sectionsCount, totalItems) =>
+      `${sectionsCount} verfolgte Verfahren · ${totalItems} anstehende ${totalItems === 1 ? "Frist" : "Fristen"}`,
+  },
+  tr: {
+    headerLine: "BELOWMARK — SÜRE VE İHALE TAKİPÇİSİ",
+    docCode: "BM-SÜRE · HATIRLATICI",
+    eyebrow: "Süre ve İhale Hatırlatması",
+    summaryBar: (sectionsCount, totalItems) =>
+      `${sectionsCount} takip edilen dosya · ${totalItems} yaklaşan süre`,
+  },
+  en: {
+    headerLine: "BELOWMARK — AUCTION DEADLINE COMPANION",
+    docCode: "BM-DEADLINE · TRACKER",
+    eyebrow: "Auction & Deadline Reminder",
+    summaryBar: (sectionsCount, totalItems) =>
+      `${sectionsCount} tracked ${sectionsCount === 1 ? "case" : "cases"} · ${totalItems} upcoming ${totalItems === 1 ? "deadline" : "deadlines"}`,
+  },
+  fr: {
+    headerLine: "BELOWMARK — SUIVI DES ÉCHÉANCES & AUDIENCES",
+    docCode: "BM-DÉLAI · ÉCHÉANCIER",
+    eyebrow: "Rappel d'Audiences & de Délais",
+    summaryBar: (sectionsCount, totalItems) =>
+      `${sectionsCount} ${sectionsCount === 1 ? "dossier suivi" : "dossiers suivis"} · ${totalItems} ${totalItems === 1 ? "échéance à venir" : "échéances à venir"}`,
+  },
+  es: {
+    headerLine: "BELOWMARK — SEGUIMIENTO DE PLAZOS Y SUBASTAS",
+    docCode: "BM-PLAZO · RECORDATORIO",
+    eyebrow: "Recordatorio de Plazos y Subastas",
+    summaryBar: (sectionsCount, totalItems) =>
+      `${sectionsCount} ${sectionsCount === 1 ? "expediente seguido" : "expedientes seguidos"} · ${totalItems} ${totalItems === 1 ? "plazo próximo" : "plazos próximos"}`,
+  },
+  it: {
+    headerLine: "BELOWMARK — SCADENZARIO ASTE E UDIENZE",
+    docCode: "BM-SCADENZA · PROMEMORIA",
+    eyebrow: "Promemoria Scadenze e Udienze",
+    summaryBar: (sectionsCount, totalItems) =>
+      `${sectionsCount} ${sectionsCount === 1 ? "procedura seguita" : "procedure seguite"} · ${totalItems} ${totalItems === 1 ? "scadenza imminente" : "scadenze imminenti"}`,
+  },
+  pl: {
+    headerLine: "BELOWMARK — ASYSTENT TERMINÓW I LICYTACJI",
+    docCode: "BM-TERMIN · PRZYPOMNIENIE",
+    eyebrow: "Przypomnienie o Terminach i Wadium",
+    summaryBar: (sectionsCount, totalItems) =>
+      `${sectionsCount} obserwowane sprawy · ${totalItems} nadchodzące terminy`,
+  },
+  cs: {
+    headerLine: "BELOWMARK — PRŮVODCE TERMÍNY A DRAŽBAMI",
+    docCode: "BM-TERMÍN · PŘIPOMÍNKA",
+    eyebrow: "Připomínka Dražebních Lhůt a Jistoty",
+    summaryBar: (sectionsCount, totalItems) =>
+      `${sectionsCount} sledované spisy · ${totalItems} blížící se lhůty`,
+  },
+  nl: {
+    headerLine: "BELOWMARK — TERMIJN- & VEILINGBEGELEIDER",
+    docCode: "BM-TERMIJN · HERINNERING",
+    eyebrow: "Herinnering voor Veilingen & Termijnen",
+    summaryBar: (sectionsCount, totalItems) =>
+      `${sectionsCount} gevolgde ${sectionsCount === 1 ? "dossier" : "dossiers"} · ${totalItems} aankomende ${totalItems === 1 ? "termijn" : "termijnen"}`,
+  },
+  sv: {
+    headerLine: "BELOWMARK — TIDSFRIST- & AUKTIONSBEVAKARE",
+    docCode: "BM-FRIST · PÅMINNELSE",
+    eyebrow: "Påminnelse om Auktionsdatum & Frister",
+    summaryBar: (sectionsCount, totalItems) =>
+      `${sectionsCount} bevakade ärenden · ${totalItems} kommande tidsfrister`,
+  },
+};
+
+const URGENT_WHEN_SET = new Set([
+  "heute",
+  "morgen",
+  "bugün",
+  "yarın",
+  "today",
+  "tomorrow",
+  "aujourd'hui",
+  "demain",
+  "hoy",
+  "mañana",
+  "oggi",
+  "domani",
+  "dzisiaj",
+  "dziś",
+  "jutro",
+  "dnes",
+  "zítra",
+  "vandaag",
+  "idag",
+  "i dag",
+  "imorgon",
+  "i morgon",
+]);
+
 function itemHtml(item: DeadlineMailItem, idx: number): string {
   const C = MAIL_COLORS;
-  const lower = item.when.toLowerCase();
-  const isUrgent = lower === "heute" || lower === "morgen" || lower === "bugün" || lower === "yarın";
+  const lower = item.when.trim().toLowerCase();
+  const isUrgent = URGENT_WHEN_SET.has(lower);
   const badgeStyle = isUrgent
     ? `background-color:${C.signal};color:${C.bright};border:1px solid ${C.signal};`
     : `background-color:${C.bright};color:${C.signal};border:1px solid ${C.signal};`;
@@ -122,11 +229,12 @@ function sectionText(section: DeadlineMailSection, openListing: string): string[
 /** Structured deadline & hearing reminder digest with plain-text twin. */
 export function renderDeadlineMail(parts: DeadlineMailParts): RenderedMail {
   const C = MAIL_COLORS;
-  const isTr = parts.lang === "tr";
+  const langKey = normalizeMailLang(parts.lang);
+  const chrome = DEADLINE_MAIL_CHROME[langKey];
   const totalItems = parts.sections.reduce((sum, s) => sum + s.items.length, 0);
 
   const text = [
-    "BELOWMARK — TERMIN- & FRISTEN-BEGLEITER",
+    chrome.headerLine,
     "═".repeat(48),
     "",
     parts.greeting,
@@ -141,9 +249,7 @@ export function renderDeadlineMail(parts: DeadlineMailParts): RenderedMail {
     parts.footer,
   ].join("\n");
 
-  const summaryBar = isTr
-    ? `${parts.sections.length} takip edilen dosya · ${totalItems} yaklaşan süre`
-    : `${parts.sections.length} verfolgte Verfahren · ${totalItems} anstehende ${totalItems === 1 ? "Frist" : "Fristen"}`;
+  const summaryBar = chrome.summaryBar(parts.sections.length, totalItems);
 
   const bodyHtml = `
     <tr>
@@ -158,9 +264,9 @@ export function renderDeadlineMail(parts: DeadlineMailParts): RenderedMail {
     </tr>`;
 
   const html = renderMailFrame({
-    lang: parts.lang,
-    docCode: isTr ? "BM-SÜRE · HATIRLATICI" : "BM-FRIST · TERMINBEGLEITER",
-    eyebrow: isTr ? "Süre ve İhale Hatırlatması" : "Fristen- & Termin-Erinnerung",
+    lang: langKey,
+    docCode: chrome.docCode,
+    eyebrow: chrome.eyebrow,
     subject: parts.subject,
     preheader: parts.preheader,
     bodyHtml,
