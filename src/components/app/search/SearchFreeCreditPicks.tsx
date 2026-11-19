@@ -2,6 +2,7 @@ import FreeUnlockButton from "@/components/app/listing/FreeUnlockButton";
 import { listingHref } from "@/lib/appConstants";
 import { TRIAL_COPY } from "@/lib/billing/trialCopy";
 import { LocaleOption } from "@/lib/constants";
+import { getLocalizedSegmentLabel } from "@/lib/listingDetailsCopy";
 import { Listing, ListingCountry } from "@/types/listing.types";
 
 interface SearchFreeCreditPicksProps {
@@ -65,7 +66,7 @@ export default function SearchFreeCreditPicks({ listings, country, locale }: Sea
           <div key={item.key} className="flex flex-col justify-between border border-ink bg-paper p-3">
             <div>
               <p className="truncate font-mono text-[10px] font-semibold uppercase tracking-wider text-signal">
-                {item.segmentLabel ?? item.authority}
+                {getLocalizedSegmentLabel(item.segment, locale)}
               </p>
               <p className="mt-0.5 line-clamp-1 font-display text-sm text-ink">{place}</p>
               <p className="truncate font-mono text-[11px] text-ink-soft">

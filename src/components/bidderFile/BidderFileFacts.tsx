@@ -1,6 +1,7 @@
 import BidderFileRow from "@/components/bidderFile/BidderFileRow";
 import { formatArea, formatMoney } from "@/lib/appFormat";
 import { LocaleOption } from "@/lib/constants";
+import { getLocalizedSegmentLabel } from "@/lib/listingDetailsCopy";
 import { getAddressLine } from "@/lib/listingLabels";
 import { IAppTranslation } from "@/translations/app/IAppTranslation";
 import { Listing } from "@/types/listing.types";
@@ -33,29 +34,29 @@ export default function BidderFileFacts({ listing, labels: L, locale }: BidderFi
       <BidderFileRow label={L.Authority[market]} value={listing.authority} missing={L.NotStated} />
       <BidderFileRow label={L.Region[market]} value={listing.region} missing={L.NotStated} />
       <BidderFileRow label={L.Address} value={getAddressLine(listing) || null} missing={L.NotStated} />
-      <BidderFileRow label={L.Segment} value={listing.segmentLabel} missing={L.NotStated} />
+      <BidderFileRow label={L.Segment} value={getLocalizedSegmentLabel(listing.segment, locale)} missing={L.NotStated} />
       <BidderFileRow label={L.FileYear} value={listing.fileYear ? String(listing.fileYear) : null} missing={L.NotStated} />
       <BidderFileRow label={L.Tr.BuildingArea} value={living === null ? null : formatArea(living, locale)} missing={L.NotStated} />
       {net !== null && net !== living && (
-        <BidderFileRow label={locale === "tr" ? "Net Alan" : "Nettofläche"} value={formatArea(net, locale)} missing={L.NotStated} />
+        <BidderFileRow label={L.Tr.NetArea} value={formatArea(net, locale)} missing={L.NotStated} />
       )}
       {usable !== null && usable !== living && (
-        <BidderFileRow label={locale === "tr" ? "Kullanım Alanı" : "Nutz-/Gewerbefläche"} value={formatArea(usable, locale)} missing={L.NotStated} />
+        <BidderFileRow label={L.Tr.UsableArea} value={formatArea(usable, locale)} missing={L.NotStated} />
       )}
       <BidderFileRow label={L.Tr.LandArea} value={land === null ? null : formatArea(land, locale)} missing={L.NotStated} />
-      {pricePerM2 && <BidderFileRow label={locale === "tr" ? "m² Birim Değeri" : "Richtwert / m²"} value={pricePerM2} missing={L.NotStated} />}
-      {rooms && <BidderFileRow label={locale === "tr" ? "Oda Sayısı" : "Zimmer"} value={rooms} missing={L.NotStated} />}
-      {yearBuilt && <BidderFileRow label={locale === "tr" ? "Yapım Yılı" : "Baujahr"} value={String(yearBuilt)} missing={L.NotStated} />}
+      {pricePerM2 && <BidderFileRow label={L.Tr.PricePerM2} value={pricePerM2} missing={L.NotStated} />}
+      {rooms && <BidderFileRow label={L.Tr.Rooms} value={rooms} missing={L.NotStated} />}
+      {yearBuilt && <BidderFileRow label={L.Tr.YearBuilt} value={String(yearBuilt)} missing={L.NotStated} />}
       {tr ? (
         <BidderFileRow
           label={L.Tr.Parcel}
-          value={tr.ada && tr.parsel ? `${tr.ada} / ${tr.parsel}${tr.unitNo ? ` · BB ${tr.unitNo}` : ""}` : listing.grundbuch ?? null}
+          value={tr.ada && tr.parsel ? `${tr.ada} / ${tr.parsel}${tr.unitNo ? ` · ${L.Tr.UnitNoPrefix} ${tr.unitNo}` : ""}` : listing.grundbuch ?? null}
           missing={L.NotStated}
         />
       ) : (
-        listing.grundbuch && <BidderFileRow label="Grundbuch" value={listing.grundbuch} missing={L.NotStated} />
+        listing.grundbuch && <BidderFileRow label={L.Tr.Grundbuch} value={listing.grundbuch} missing={L.NotStated} />
       )}
-      {tr?.arsaPayi && <BidderFileRow label="Arsa Payı" value={tr.arsaPayi} missing={L.NotStated} />}
+      {tr?.arsaPayi && <BidderFileRow label={L.Tr.ArsaPayi} value={tr.arsaPayi} missing={L.NotStated} />}
     </dl>
   );
 }

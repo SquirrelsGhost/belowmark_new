@@ -42,7 +42,7 @@ export default async function ListingPortalSections({
       <ListingOfficialDetails listing={listing} details={portalDetails} locale={locale} isLocked={isLocked} />
       <ListingReportArea listing={listing} userId={userId} locale={locale} isLocked={isLocked} attachments={portalDetails.attachments} />
       <ListingPlaceSection listing={listing} geo={geo} sprite={spriteHref} labels={locationLabels} />
-      <ListingMediaSection listing={listing} labels={mediaLabels} portalDetails={portalDetails} />
+      <ListingMediaSection listing={listing} labels={mediaLabels} portalDetails={portalDetails} locale={locale} />
     </>
   );
 }

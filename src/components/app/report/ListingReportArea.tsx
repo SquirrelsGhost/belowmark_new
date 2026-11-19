@@ -6,6 +6,7 @@ import ReportSection from "@/components/app/report/ReportSection";
 import ReportUploadForm from "@/components/app/report/ReportUploadForm";
 import RiskCheckPanel from "@/components/app/risk/RiskCheckPanel";
 import { LocaleOption } from "@/lib/constants";
+import { DIRECT_ANALYZE_COPY } from "@/lib/listingDetailsCopy";
 import { buildRiskCheck } from "@/lib/report/riskCheck";
 import { ReportService } from "@/services/ReportService";
 import { ReportTranslations } from "@/translations/report/ReportTranslations";
@@ -32,14 +33,7 @@ export default async function ListingReportArea({
   const labels = ReportTranslations[(locale.toUpperCase() as Locale)] ?? ReportTranslations[Locale.DE];
   const report = isLocked ? null : await ReportService.get(userId, listing.key);
   const { Report: R } = labels;
-  const directTitle =
-    locale === "tr"
-      ? "Resmî portal belgesini tek tıkla analiz et"
-      : "Amtliches Portaldokument mit 1 Klick auswerten";
-  const directLead =
-    locale === "tr"
-      ? "İndirip tekrar yüklemeye gerek yok: mahkeme portalındaki PDF doğrudan sunucuda çekilir ve incelenir."
-      : "Kein manuelles Herunter- und Hochladen nötig: Das hinterlegte PDF wird direkt vom Justizportal abgerufen und auf Risiken & Kennzahlen geprüft.";
+  const directCopy = DIRECT_ANALYZE_COPY[locale] ?? DIRECT_ANALYZE_COPY.en;
 
   return (
     <>
@@ -53,10 +47,11 @@ export default async function ListingReportArea({
             <ReportDirectAnalyzeButton
               listingId={listing.key}
               attachments={attachments}
-              title={directTitle}
-              lead={directLead}
+              title={directCopy.title}
+              lead={directCopy.lead}
               pendingLabel={R.Upload.Pending}
               errors={R.Upload.Errors}
+              locale={locale}
             />
             <ReportUploadForm
               listingId={listing.key}

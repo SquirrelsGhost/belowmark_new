@@ -57,7 +57,7 @@ export default function ListingMediaSection({ listing, labels, portalDetails, lo
           portalHref={portalHref}
           streetViewHref={streetViewHref}
           slotLabel={labels.Slot[market]}
-          isTr={locale === "tr"}
+          locale={locale}
         />
       }
     >

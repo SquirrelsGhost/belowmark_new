@@ -2,6 +2,7 @@ import type { FilterOption } from "@/components/app/search/FilterSelect";
 import { DAY_MS, MARKET_TIME_ZONES, SEARCH_PARAMS, VALUE_PRESETS, VIEW_VALUES } from "@/lib/appConstants";
 import { fill, formatCompactMoney, formatDayMonth, formatMoney, isoWeek } from "@/lib/appFormat";
 import { LocaleOption, MarketCode } from "@/lib/constants";
+import { REGION_GROUP_COPY } from "@/lib/listingDetailsCopy";
 import { SCOPE_KEYS, SEGMENT_KEYS, searchHref } from "@/lib/listingFilters";
 import { IAppTranslation } from "@/translations/app/IAppTranslation";
 import { CalendarWeek, ListingCountry, ListingFilters, RegionFacet } from "@/types/listing.types";
@@ -19,7 +20,7 @@ export function countryOptions(countries: readonly ListingCountry[], app: IAppTr
 export function regionOptions(regions: RegionFacet[], allLabel: string, locale: LocaleOption): FilterOption[] {
   const count = new Intl.NumberFormat(locale);
   const hasSubregions = regions.some((r) => /^(?:at|ch|it|es|fr|gb)-/.test(r.code));
-  const isTr = locale === "tr";
+  const groups = REGION_GROUP_COPY[locale] ?? REGION_GROUP_COPY.en;
 
   return [
     { value: "", label: allLabel },
@@ -27,19 +28,19 @@ export function regionOptions(regions: RegionFacet[], allLabel: string, locale: 
       let group: string | undefined;
       if (hasSubregions) {
         if (region.code.startsWith("at-")) {
-          group = isTr ? "Avusturya (Eyaletler)" : "Österreich (Bundesländer)";
+          group = groups.AT;
         } else if (region.code.startsWith("ch-")) {
-          group = isTr ? "İsviçre (Kantonlar)" : "Schweiz (Kantone)";
+          group = groups.CH;
         } else if (region.code.startsWith("it-")) {
-          group = isTr ? "İtalya (Bölgeler)" : "Italien (Regionen)";
+          group = groups.IT;
         } else if (region.code.startsWith("es-")) {
-          group = isTr ? "İspanya (Özerk Bölgeler)" : "Spanien (Comunidades)";
+          group = groups.ES;
         } else if (region.code.startsWith("fr-")) {
-          group = isTr ? "Fransa (Bölgeler)" : "Frankreich (Regionen)";
+          group = groups.FR;
         } else if (region.code.startsWith("gb-")) {
-          group = isTr ? "İngiltere / UK (Bölgeler)" : "England / UK (Regionen)";
+          group = groups.GB;
         } else {
-          group = isTr ? "Almanya (Eyaletler)" : "Deutschland (Bundesländer)";
+          group = groups.DE;
         }
       }
       return {

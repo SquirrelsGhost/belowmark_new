@@ -1,5 +1,6 @@
 import { fill, formatArea, formatMoney } from "@/lib/appFormat";
 import { LocaleOption } from "@/lib/constants";
+import { METRIC_CHIP_COPY } from "@/lib/listingDetailsCopy";
 import { IAppTranslation } from "@/translations/app/IAppTranslation";
 import { HearingStatus, Listing } from "@/types/listing.types";
 
@@ -89,6 +90,7 @@ export function getPropertyMetricsChips(listing: Listing, locale: LocaleOption):
   const chips: string[] = [];
   const isTr = listing.market === "TR";
   const tr = listing.tr;
+  const m = METRIC_CHIP_COPY[locale] ?? METRIC_CHIP_COPY.en;
 
   const living = listing.livingAreaM2 ?? tr?.buildingAreaM2 ?? null;
   const net = tr?.netAreaM2 ?? null;
@@ -96,18 +98,16 @@ export function getPropertyMetricsChips(listing: Listing, locale: LocaleOption):
   const land = listing.landAreaM2 ?? tr?.landAreaM2 ?? null;
 
   if (living && living > 0) {
-    const prefix = isTr ? (locale === "tr" ? "Brüt" : "Wohn-/Geb.") : locale === "tr" ? "Konut" : "Wfl.";
-    chips.push(`${prefix} ${formatArea(living, locale)}`);
+    chips.push(`${isTr ? m.building : m.living} ${formatArea(living, locale)}`);
   }
   if (net && net > 0 && net !== living) {
-    chips.push(`Net ${formatArea(net, locale)}`);
+    chips.push(`${m.net} ${formatArea(net, locale)}`);
   }
   if (usable && usable > 0 && usable !== living) {
-    chips.push(`${locale === "tr" ? "Kullanım" : "Nfl."} ${formatArea(usable, locale)}`);
+    chips.push(`${m.usable} ${formatArea(usable, locale)}`);
   }
   if (land && land > 0 && land !== living) {
-    const prefix = isTr ? (locale === "tr" ? "Arsa" : "Grundst.") : locale === "tr" ? "Arsa" : "Grundst.";
-    chips.push(`${prefix} ${formatArea(land, locale)}`);
+    chips.push(`${m.land} ${formatArea(land, locale)}`);
   }
 
   const primaryArea = living ?? net ?? usable ?? tr?.areaM2 ?? listing.areaM2 ?? land ?? null;
@@ -124,7 +124,7 @@ export function getPropertyMetricsChips(listing: Listing, locale: LocaleOption):
   if (tr?.floor) chips.push(tr.floor);
 
   const yearBuilt = listing.yearBuilt ?? tr?.yearBuilt ?? null;
-  if (yearBuilt) chips.push(`${locale === "tr" ? "Yapım" : "Bj."} ${yearBuilt}`);
+  if (yearBuilt) chips.push(`${m.yearBuilt} ${yearBuilt}`);
 
   if (isTr && tr?.ada && tr?.parsel) {
     chips.push(`Ada ${tr.ada} · Parsel ${tr.parsel}`);
@@ -132,6 +132,142 @@ export function getPropertyMetricsChips(listing: Listing, locale: LocaleOption):
 
   return chips;
 }
+
+interface PurchaseTermSet {
+  valuation: string;
+  marketRef: string;
+  minBid: string;
+  openingPrice: string;
+  guidePrice: string;
+  deposit: string;
+  limit75: string;
+  limit70: string;
+  limit67: string;
+  basePrice100: string;
+}
+
+const PURCHASE_TERMS: Record<LocaleOption, PurchaseTermSet> = {
+  de: {
+    valuation: "Schätzwert",
+    marketRef: "Marktreferenzwert",
+    minBid: "Geringstes Gebot",
+    openingPrice: "Ausrufpreis",
+    guidePrice: "Auktions-Richtpreis",
+    deposit: "Sicherheitsleistung",
+    limit75: "3/4-Grenze (75 %)",
+    limit70: "70-%-Zuschlagsschwelle",
+    limit67: "1. Termin 2/3-Grenze",
+    basePrice100: "Prezzo Base (100 %)",
+  },
+  tr: {
+    valuation: "Ekspertiz Değeri",
+    marketRef: "Piyasa Referans Değeri",
+    minBid: "Asgari Teklif",
+    openingPrice: "Açılış Fiyatı",
+    guidePrice: "Katalog Başlangıç",
+    deposit: "İhale Teminatı",
+    limit75: "3/4 Sınırı (%75)",
+    limit70: "%70 İhale Sınırı",
+    limit67: "I. İhale Sınırı (2/3)",
+    basePrice100: "Mahkeme Baz Değeri (%100)",
+  },
+  en: {
+    valuation: "Appraised Value",
+    marketRef: "Market Reference Value",
+    minBid: "Minimum Bid",
+    openingPrice: "Opening Price",
+    guidePrice: "Guide Price",
+    deposit: "Auction Deposit",
+    limit75: "75% Threshold",
+    limit70: "70% Award Threshold",
+    limit67: "1st Round 2/3 Threshold",
+    basePrice100: "Base Price (100%)",
+  },
+  it: {
+    valuation: "Valore di Stima",
+    marketRef: "Valore di Riferimento",
+    minBid: "Offerta Minima",
+    openingPrice: "Prezzo di Partenza",
+    guidePrice: "Prezzo Indicativo",
+    deposit: "Deposito Cauzionale",
+    limit75: "Soglia 3/4 (75%)",
+    limit70: "Soglia Aggiudicazione (70%)",
+    limit67: "1° Esperimento 2/3",
+    basePrice100: "Prezzo Base (100%)",
+  },
+  es: {
+    valuation: "Valor de Tasación",
+    marketRef: "Valor de Referencia",
+    minBid: "Puja Mínima",
+    openingPrice: "Precio de Salida",
+    guidePrice: "Precio Orientativo",
+    deposit: "Depósito Judicial",
+    limit75: "Umbral 3/4 (75%)",
+    limit70: "Umbral de Adjudicación (70%)",
+    limit67: "1.ª Subasta 2/3",
+    basePrice100: "Precio Base (100%)",
+  },
+  fr: {
+    valuation: "Valeur d'Estimation",
+    marketRef: "Référence de Marché",
+    minBid: "Enchère Minimale",
+    openingPrice: "Mise à Prix",
+    guidePrice: "Prix Indicatif",
+    deposit: "Consignation / Caution",
+    limit75: "Seuil 3/4 (75 %)",
+    limit70: "Seuil d'Adjudication (70 %)",
+    limit67: "1re Audience 2/3",
+    basePrice100: "Prix de Base (100 %)",
+  },
+  pl: {
+    valuation: "Suma Oszacowania",
+    marketRef: "Wartość Referencyjna",
+    minBid: "Cena Wywołania",
+    openingPrice: "Cena Wywołania",
+    guidePrice: "Cena Orientacyjna",
+    deposit: "Rękojmia / Wadium",
+    limit75: "I Licytacja (3/4 = 75%)",
+    limit70: "Próg Przybicia (70%)",
+    limit67: "I Termin (2/3)",
+    basePrice100: "Cena Bazowa (100%)",
+  },
+  cs: {
+    valuation: "Odhadní Cena",
+    marketRef: "Tržní Referenční Cena",
+    minBid: "Nejnižší Podání",
+    openingPrice: "Vyvolávací Cena",
+    guidePrice: "Orientační Cena",
+    deposit: "Dražební Jistota",
+    limit75: "Hranice 3/4 (75 %)",
+    limit70: "Hranice Příklepu (70 %)",
+    limit67: "1. Kolo (2/3)",
+    basePrice100: "Základní Cena (100 %)",
+  },
+  nl: {
+    valuation: "Taxatiewaarde",
+    marketRef: "Marktreferentiewaarde",
+    minBid: "Minimumbod",
+    openingPrice: "Inzetprijs",
+    guidePrice: "Richtprijs",
+    deposit: "Waarborgsom",
+    limit75: "3/4-Grens (75%)",
+    limit70: "70%-Gunningsgrens",
+    limit67: "1e Ronde 2/3-Grens",
+    basePrice100: "Basisprijs (100%)",
+  },
+  sv: {
+    valuation: "Värderat Marknadsvärde",
+    marketRef: "Marknadsreferens",
+    minBid: "Lägsta Bud",
+    openingPrice: "Utgångspris",
+    guidePrice: "Riktpris",
+    deposit: "Handpenning",
+    limit75: "3/4-Gräns (75 %)",
+    limit70: "70 %-Tröskel",
+    limit67: "1:a Utrop 2/3-Gräns",
+    basePrice100: "Baspris (100 %)",
+  },
+};
 
 export function getDachPurchaseLabels(
   listing: Listing,
@@ -155,81 +291,84 @@ export function getDachPurchaseLabels(
   const isPl = listing.country === "PL" || listing.key.startsWith("pl-");
   const isCz = listing.country === "CZ" || listing.key.startsWith("cz-");
   const isSe = listing.country === "SE" || listing.key.startsWith("se-");
-  const isTr = locale === "tr";
+  const t = PURCHASE_TERMS[locale] ?? PURCHASE_TERMS.en;
+
   return {
     isCh: isCh || isFr || isGb || isNl || isSe,
     valueLabel: isAt
-      ? isTr ? "Ekspertiz Değeri (§ 140 EO)" : "Schätzwert (§ 140 EO)"
+      ? `${t.valuation} (§ 140 EO)`
       : isCh
-        ? isTr ? "Tahmini Değer (SchKG)" : "Betreibungsamtliche Schätzung (SchKG)"
+        ? `${t.valuation} (SchKG)`
         : isIt
-          ? isTr ? "Mahkeme Baz Değeri (Prezzo Base)" : "Prezzo Base d'Asta (Gerichtswert)"
+          ? `${t.valuation} (Prezzo Base)`
           : isEs
-            ? isTr ? "İhale / Ekspertiz Değeri (BOE)" : "Valor de Subasta / Tasación (BOE)"
+            ? `${t.valuation} (BOE)`
             : isFr
-              ? isTr ? "Bölge Piyasa Referansı (DVF)" : "Lokaler Marktreferenzwert (DVF/m²)"
+              ? `${t.marketRef} (DVF/m²)`
               : isGb
-                ? isTr ? "Piyasa Referans Değeri (RICS)" : "Marktreferenzwert (RICS Schätzung)"
+                ? `${t.marketRef} (RICS)`
                 : isNl
-                  ? isTr ? "Piyasa Referans Değeri (NL)" : "Marktreferenzwert (Kadaster / Veiling)"
+                  ? `${t.marketRef} (Kadaster)`
                   : isPl
-                    ? isTr ? "Ekspertiz Değeri (Suma oszacowania)" : "Suma oszacowania (Gerichtsschätzwert)"
+                    ? `${t.valuation} (KPC)`
                     : isCz
-                      ? isTr ? "Ekspertiz Değeri (Odhadní cena)" : "Odhadní cena (Znalecký posudek)"
+                      ? `${t.valuation} (OSŘ)`
                       : isSe
-                        ? isTr ? "Piyasa Değeri (Uppskattat värde)" : "Uppskattat marknadsvärde (Kronofogden)"
+                        ? `${t.valuation} (Kronofogden)`
                         : L.Value[listing.market],
     halfLabel: isAt
-      ? isTr ? "Asgari Teklif (§ 151 EO)" : "Geringstes Gebot (§ 151 EO)"
+      ? `${t.minBid} (§ 151 EO)`
       : isCh
-        ? isTr ? "Tahmini Başlangıç (SchKG)" : "Richtwert Einstieg (SchKG)"
+        ? `${t.guidePrice} (SchKG)`
         : isIt
-          ? isTr ? "Asgari Teklif (Offerta Minima 75%)" : "Offerta Minima (Art. 571 c.p.c. · 75 %)"
+          ? `${t.minBid} (75 %)`
           : isEs
-            ? isTr ? "Asgari Teklif / Alacak (BOE)" : "Puja Mínima / Richtwert (70 % LEC)"
+            ? `${t.minBid} (70 % LEC)`
             : isFr
-              ? isTr ? "Açılış Fiyatı (Mise à prix)" : "Mise à prix (Ausrufpreis TJ)"
+              ? `${t.openingPrice} (Mise à prix)`
               : isGb
-                ? isTr ? "Katalog Başlangıç (Guide Price)" : "Guide Price (Auktions-Richtpreis)"
+                ? `${t.guidePrice} (UK)`
                 : isNl
-                  ? isTr ? "Açılış Fiyatı (Inzet / Afslag)" : "Inzet- / Richtpreis (Art. 3:268 BW)"
+                  ? `${t.openingPrice} (Art. 3:268 BW)`
                   : isPl
-                    ? isTr ? "Açılış Fiyatı (Cena wywołania)" : "Cena wywołania (3/4 bzw. 2/3 KPC)"
+                    ? `${t.openingPrice} (3/4 · 2/3 KPC)`
                     : isCz
-                      ? isTr ? "Asgari Teklif (Nejnižší podání)" : "Nejnižší podání (2/3 odhadu · § 336e OSŘ)"
+                      ? `${t.minBid} (2/3 · § 336e OSŘ)`
                       : isSe
-                        ? isTr ? "Hedef Teklif (Skyddsbelopp)" : "Richtgebot (12 kap. UB · unter Marktwert)"
+                        ? `${t.guidePrice} (12 kap. UB)`
                         : L.Half,
     depositLabel: isAt
-      ? isTr ? "Teminat / Vadium (§ 147 EO)" : "Vadium (§ 147 EO · 10 %)"
+      ? `${t.deposit} (§ 147 EO · 10 %)`
       : isCh
-        ? isTr ? "Teminat / Peşinat (SchKG)" : "Sicherheitsleistung / Anzahlung"
+        ? `${t.deposit} (SchKG)`
         : isIt
-          ? isTr ? "Teminat (Cauzione 10%)" : "Deposito Cauzionale (10 %)"
+          ? `${t.deposit} (10 %)`
           : isEs
-            ? isTr ? "BOE Teminatı (%5)" : "Depósito Judicial BOE (5 %)"
+            ? `${t.deposit} (BOE · 5 %)`
             : isFr
-              ? isTr ? "Avukat Teminatı (Consignation)" : "Consignation préalable (Chèque de banque)"
+              ? `${t.deposit} (Consignation)`
               : isGb
-                ? isTr ? "İhale Teminatı (10% Exchange Deposit)" : "Exchange Deposit (10 % bei Zuschlag)"
+                ? `${t.deposit} (10 %)`
                 : isNl
-                  ? isTr ? "Noter Teminatı (10% Waarborgsom)" : "Waarborgsom (10 % Notariskonto)"
+                  ? `${t.deposit} (10 %)`
                   : isPl
-                    ? isTr ? "İhale Teminatı (Rękojmia 10%)" : "Rękojmia / Wadium (Art. 962 KPC · 10 %)"
+                    ? `${t.deposit} (Art. 962 KPC · 10 %)`
                     : isCz
-                      ? isTr ? "İhale Teminatı (Dražební jistota)" : "Dražební jistota (§ 336e OSŘ)"
+                      ? `${t.deposit} (§ 336e OSŘ)`
                       : isSe
-                        ? isTr ? "İhale Teminatı (10% Handpenning)" : "Handpenning (10 % vid klubbslag)"
+                        ? `${t.deposit} (10 %)`
                         : L.Deposit,
-    secondLimitLabel: isAt || isIt
-      ? isTr ? "3/4 Sınırı (75%)" : isIt ? "Prezzo Base (100 %)" : "3/4-Überbotsgrenze (§ 195 EO)"
-      : isEs
-        ? isTr ? "%70 İhale Sınırı (Art. 670 LEC)" : "70-%-Zuschlagsschwelle (Art. 670 LEC)"
-        : isPl
-          ? isTr ? "I. İhale Sınırı (3/4 = 75%)" : "I. Termin 3/4-Grenze (Art. 965 KPC · 75 %)"
-          : isCz
-            ? isTr ? "I. İhale Sınırı (2/3 = 66,7%)" : "1. Dražební kolo 2/3-Grenze (§ 336e OSŘ)"
-            : L.SevenTenths,
+    secondLimitLabel: isAt
+      ? `${t.limit75} (§ 195 EO)`
+      : isIt
+        ? t.basePrice100
+        : isEs
+          ? `${t.limit70} (Art. 670 LEC)`
+          : isPl
+            ? `${t.limit75} (Art. 965 KPC)`
+            : isCz
+              ? `${t.limit67} (§ 336e OSŘ)`
+              : L.SevenTenths,
     secondLimitVal: (value, sevenTenths) =>
       isAt || isPl ? Math.round(value * 0.75) : isCz ? Math.round((value * 2) / 3) : isIt ? value : isEs ? Math.round(value * 0.7) : sevenTenths,
   };

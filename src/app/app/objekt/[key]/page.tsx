@@ -244,7 +244,7 @@ export default async function ListingPage({ params }: PageProps<"/app/objekt/[ke
             <FactRow label={L.Authority[market]} value={listing.authority} notStated={L.NotStated} />
             <FactRow label={L.Region[market]} value={listing.region} notStated={L.NotStated} />
             <FactRow label={L.Address} value={getAddressLine(listing) || null} notStated={L.NotStated} />
-            <FactRow label={L.Segment} value={listing.segmentLabel} notStated={L.NotStated} />
+            <FactRow label={L.Segment} value={app.Segments[listing.segment]} notStated={L.NotStated} />
             <FactRow label={L.Tr.BuildingArea} value={livingArea === null ? null : formatArea(livingArea, locale)} notStated={L.NotStated} mono />
             {netArea !== null && netArea !== livingArea && (
               <FactRow label={L.Tr.NetArea} value={formatArea(netArea, locale)} notStated={L.NotStated} mono />

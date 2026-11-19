@@ -1,5 +1,6 @@
 import { formatArea, formatMoney } from "@/lib/appFormat";
 import { LocaleOption } from "@/lib/constants";
+import { OFFICIAL_DETAILS_COPY } from "@/lib/listingDetailsCopy";
 import { getEntryBid } from "@/lib/listingMath";
 import { Listing, OfficialPortalDetails } from "@/types/listing.types";
 
@@ -17,14 +18,8 @@ const LABEL_CLASSES = "font-narrow text-[11px] font-semibold tracking-[0.14em] t
 const VALUE_CLASSES = "mt-1 text-sm leading-relaxed text-ink";
 const MONO_VALUE_CLASSES = "mt-1 font-mono text-xs leading-relaxed text-ink";
 
-const LABELS = {
-  tr: { title: "Resmî İlan, Yüzölçümü & Tapu Detayları", description: "Taşınmaz & Bilirkişi Özeti", area: "Yüzölçümü & m² Değerleri", meta: "Bağımsız Bölüm & Yapı Bilgileri", grundbuch: "Tapu / Ada & Parsel", proceeding: "Satış Türü", hearingPlace: "İhale Mecrası", zoning: "İmar Durumu", creditor: "Alacaklı / Kurum" },
-  de: { title: "Amtliche Bekanntmachung, Flächen & Gerichtsdaten", description: "Amtliche Objektbeschreibung", area: "Flächenangaben & Richtwerte / m²", meta: "Objektmerkmale & Ausstattung", grundbuch: "Grundbuch & Flurstück", proceeding: "Art der Versteigerung", hearingPlace: "Versteigerungsort & Saal", zoning: "Bauplanungsrecht", creditor: "Gläubiger / Ansprechpartner" },
-} as const;
-
 export default function ListingOfficialDetails({ listing, details, locale, isLocked = false }: ListingOfficialDetailsProps) {
-  const isTr = locale === "tr";
-  const L = isTr ? LABELS.tr : LABELS.de;
+  const L = OFFICIAL_DETAILS_COPY[locale] ?? OFFICIAL_DETAILS_COPY.en;
   const living = details.livingAreaM2 ?? listing.livingAreaM2 ?? listing.tr?.buildingAreaM2 ?? null;
   const net = details.netAreaM2 ?? listing.tr?.netAreaM2 ?? null;
   const usable = details.usableAreaM2 ?? listing.usableAreaM2 ?? null;
@@ -42,27 +37,27 @@ export default function ListingOfficialDetails({ listing, details, locale, isLoc
   const arsaPayi = details.arsaPayi ?? listing.tr?.arsaPayi ?? null;
 
   const areaLines = [
-    living ? `${isTr ? "Brüt / Bina Alanı" : "Wohnfläche"}: ${formatArea(living, locale)}` : null,
-    net && net !== living ? `${isTr ? "Net Alan" : "Nettofläche"}: ${formatArea(net, locale)}` : null,
-    usable && usable !== living ? `${isTr ? "Kullanım Alanı" : "Nutz-/Gewerbefläche"}: ${formatArea(usable, locale)}` : null,
-    land ? `${isTr ? "Arsa Yüzölçümü" : "Grundstücksfläche"}: ${formatArea(land, locale)}` : null,
-    pricePerM2 ? `${isTr ? "Muhammen / m²" : "Verkehrswert / m²"}: ${formatMoney(pricePerM2, listing.market, locale, listing.currency)}/m²` : null,
-    entryPerM2 ? `${isTr ? "Başlangıç / m²" : "5/10-Grenze / m²"}: ${formatMoney(entryPerM2, listing.market, locale, listing.currency)}/m²` : null,
+    living ? `${L.living}: ${formatArea(living, locale)}` : null,
+    net && net !== living ? `${L.net}: ${formatArea(net, locale)}` : null,
+    usable && usable !== living ? `${L.usable}: ${formatArea(usable, locale)}` : null,
+    land ? `${L.land}: ${formatArea(land, locale)}` : null,
+    pricePerM2 ? `${L.pricePerM2}: ${formatMoney(pricePerM2, listing.market, locale, listing.currency)}/m²` : null,
+    entryPerM2 ? `${L.entryPerM2}: ${formatMoney(entryPerM2, listing.market, locale, listing.currency)}/m²` : null,
   ].filter(Boolean);
 
   const objectMetaLines = [
-    rooms ? `${isTr ? "Oda Sayısı" : "Zimmer"}: ${rooms}` : null,
-    floor ? `${isTr ? "Bulunduğu Kat" : "Etage"}: ${floor}` : null,
-    yearBuilt ? `${isTr ? "Yapım Yılı" : "Baujahr"}: ${yearBuilt}` : null,
-    unitNo ? `${isTr ? "Bağımsız Bölüm No" : "Einheit Nr."}: ${unitNo}` : null,
-    arsaPayi ? `${isTr ? "Arsa Payı" : "Miteigentumsanteil"}: ${arsaPayi}` : null,
-    details.ownershipShare ? `${isTr ? "Hisse Oranı" : "Eigentumsanteil"}: ${details.ownershipShare}` : null,
+    rooms ? `${L.rooms}: ${rooms}` : null,
+    floor ? `${L.floor}: ${floor}` : null,
+    yearBuilt ? `${L.yearBuilt}: ${yearBuilt}` : null,
+    unitNo ? `${L.unitNo}: ${unitNo}` : null,
+    arsaPayi ? `${L.arsaPayi}: ${arsaPayi}` : null,
+    details.ownershipShare ? `${L.ownershipShare}: ${details.ownershipShare}` : null,
   ].filter(Boolean);
 
   const hasContent = Boolean(details.description || details.grundbuch || details.hearingPlace || details.proceedingKind || details.creditor) || areaLines.length > 0 || objectMetaLines.length > 0;
   if (!hasContent) return null;
 
-  const sub = isTr ? `Kaynak: ${details.sourcePortal} · Resmî satış şartnamesi verileri` : `Direktabruf: ${details.sourcePortal} · ${listing.authority}`;
+  const sub = `${L.sourcePrefix}: ${details.sourcePortal} · ${listing.authority}`;
 
   return (
     <section className={SECTION_CLASSES}>

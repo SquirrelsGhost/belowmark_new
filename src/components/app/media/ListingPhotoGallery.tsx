@@ -3,6 +3,8 @@
 
 import { useState } from "react";
 import PhotoSlot from "@/components/app/media/PhotoSlot";
+import { LocaleOption } from "@/lib/constants";
+import { PHOTO_GALLERY_COPY } from "@/lib/listingDetailsCopy";
 
 interface ListingPhotoGalleryProps {
   galleryUrls: string[];
@@ -10,7 +12,7 @@ interface ListingPhotoGalleryProps {
   portalHref: string;
   streetViewHref: string;
   slotLabel: string;
-  isTr: boolean;
+  locale: LocaleOption;
 }
 
 const FRAME_CLASSES = "relative flex aspect-[4/3] w-full flex-col justify-between overflow-hidden border-2 border-ink bg-ink";
@@ -22,29 +24,7 @@ const BADGE_CLASSES = "bg-ink/85 px-2 py-0.5 font-mono text-[10px] tracking-[0.1
 const NAV_BTN = "flex size-8 cursor-pointer items-center justify-center border border-paper-bright/40 bg-ink/80 font-mono text-sm text-paper-bright transition-colors hover:bg-signal";
 const STREET_VIEW_LABEL = "Street View & 3D ↗";
 
-const COPY_TR = {
-  title: "Taşınmaz fotoğrafı",
-  badge: "RESMÎ DOSYA FOTOĞRAFI",
-  fullscreen: "Tam Ekran ↗",
-  prevPhoto: "Önceki fotoğraf",
-  nextPhoto: "Sonraki fotoğraf",
-  source: "Kaynak: Resmî İhale Dosyası",
-  aerialTab: "Uydu & Hava Görünümü",
-  aerialHint: "Taşınmaz çevresi uydu görünümü · Tıklayınca Sokak Görünümü açılır",
-} as const;
-
-const COPY_DE = {
-  title: "Objektfoto",
-  badge: "AMTLICHES OBJEKTFOTO",
-  fullscreen: "Vollbild ↗",
-  prevPhoto: "Vorheriges Foto",
-  nextPhoto: "Nächstes Foto",
-  source: "Quelle: Gutachten / Exposé / Justizportal",
-  aerialTab: "Luftbild & Satellit",
-  aerialHint: "Orthofoto des Zielgebiets · Klick öffnet Google Street View & 3D-Ansicht",
-} as const;
-
-export default function ListingPhotoGallery({ galleryUrls, aerialTiles, portalHref, streetViewHref, slotLabel, isTr }: ListingPhotoGalleryProps) {
+export default function ListingPhotoGallery({ galleryUrls, aerialTiles, portalHref, streetViewHref, slotLabel, locale }: ListingPhotoGalleryProps) {
   const hasPhotos = galleryUrls.length > 0;
   const hasAerial = aerialTiles.length === 4;
   const [mode, setMode] = useState<"photos" | "aerial">(hasPhotos ? "photos" : "aerial");
@@ -54,11 +34,11 @@ export default function ListingPhotoGallery({ galleryUrls, aerialTiles, portalHr
     return <PhotoSlot label={slotLabel} href={portalHref} />;
   }
 
-  const copy = isTr ? COPY_TR : COPY_DE;
+  const copy = PHOTO_GALLERY_COPY[locale] ?? PHOTO_GALLERY_COPY.en;
   const activeMode = mode === "photos" && hasPhotos ? "photos" : "aerial";
   const safeIndex = hasPhotos ? index % galleryUrls.length : 0;
   const currentPhoto = galleryUrls[safeIndex];
-  const photoTabLabel = isTr ? `Taşınmaz Fotoğrafları (${galleryUrls.length})` : `Objektfotos (${galleryUrls.length})`;
+  const photoTabLabel = copy.photoTab(galleryUrls.length);
   const aerialTabLabel = copy.aerialTab;
 
   return (

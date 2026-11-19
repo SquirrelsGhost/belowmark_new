@@ -7,6 +7,7 @@ import Stamp from "@/components/ui/Stamp";
 import { listingHref, SEARCH } from "@/lib/appConstants";
 import { formatMoney, getDateParts } from "@/lib/appFormat";
 import { LocaleOption } from "@/lib/constants";
+import { ROW_BADGE_COPY } from "@/lib/listingDetailsCopy";
 import { getAddressLine, getListingSourceTag, getPlaceTitle, getPropertyMetricsChips, getRoundLabel, getStatusLabel } from "@/lib/listingLabels";
 import { getEntryBid } from "@/lib/listingMath";
 import { getAerialTileUrl } from "@/lib/locationLinks";
@@ -29,7 +30,6 @@ interface ListingRowProps {
 /** Comparisons are only shown when the old pipeline rated them as solid enough. */
 const SHOWN_CONFIDENCE = ["belastbar", "mittel"];
 const HIGH_DISCOUNT_PCT = 25;
-const CONFIDENCE_TR: Record<string, string> = { belastbar: "güvenilir", mittel: "orta" };
 
 /** One proceeding on the board: date sheet, map stamp, place and file, figures, watch button. */
 export default function ListingRow({ listing, status, labels, segmentLabel, locale, isSaved, isNew, isLocked, locator }: ListingRowProps) {
@@ -39,14 +39,15 @@ export default function ListingRow({ listing, status, labels, segmentLabel, loca
   const discount = listing.tr?.discountPct;
   const rawConfidence = listing.tr?.confidence ?? "";
   const showComparison = discount !== null && discount !== undefined && SHOWN_CONFIDENCE.includes(rawConfidence);
-  const confidenceLabel = locale === "tr" ? (CONFIDENCE_TR[rawConfidence] ?? rawConfidence) : rawConfidence;
+  const badgeCopy = ROW_BADGE_COPY[locale] ?? ROW_BADGE_COPY.en;
+  const confidenceLabel = badgeCopy.confidence[rawConfidence] ?? rawConfidence;
   const round = getRoundLabel(listing, status, labels);
   const href = listingHref(listing.key);
   const hasPdf = Boolean(listing.documentUrl || listing.exposeUrl);
   const metricChips = getPropertyMetricsChips(listing, locale);
   const thumbUrl = listing.imageUrl ?? (listing.geo ? getAerialTileUrl(listing.geo.lat, listing.geo.lng, listing.geo.precision === "postcode" ? 16 : 14) : null);
   const isDirectPhoto = Boolean(listing.imageUrl);
-  const thumbBadge = isDirectPhoto ? "FOTO" : locale === "tr" ? "UYDU" : "LUFTBILD";
+  const thumbBadge = isDirectPhoto ? badgeCopy.photo : badgeCopy.aerial;
   const sourceTag = getListingSourceTag(listing);
 
   return (

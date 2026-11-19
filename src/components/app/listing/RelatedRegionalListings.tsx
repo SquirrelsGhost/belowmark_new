@@ -2,6 +2,7 @@ import Link from "next/link";
 import { listingHref } from "@/lib/appConstants";
 import { formatMoney } from "@/lib/appFormat";
 import { LocaleOption } from "@/lib/constants";
+import { getLocalizedSegmentLabel } from "@/lib/listingDetailsCopy";
 import { Listing } from "@/types/listing.types";
 
 interface RelatedRegionalListingsProps {
@@ -123,7 +124,7 @@ export default function RelatedRegionalListings({
             >
               <div>
                 <span className="inline-block bg-paper-deep px-2 py-0.5 font-mono text-[10px] uppercase text-ink-soft">
-                  {item.segmentLabel}
+                  {getLocalizedSegmentLabel(item.segment, locale)}
                 </span>
                 <h3 className="mt-2 line-clamp-2 font-display text-base leading-snug text-ink group-hover:text-signal">
                   {item.place || item.region || item.authority}

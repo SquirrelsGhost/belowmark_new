@@ -1,5 +1,6 @@
 import { formatArea } from "@/lib/appFormat";
 import { LocaleOption } from "@/lib/constants";
+import { getLocalizedSegmentLabel } from "@/lib/listingDetailsCopy";
 import { ExposeBase, ExposeBaseFact } from "@/types/expose.types";
 import { Listing, OfficialPortalDetails } from "@/types/listing.types";
 import { GutachtenReport, ReportFactKey } from "@/types/report.types";
@@ -68,7 +69,7 @@ export function buildExposeBase(listing: Listing, portal: OfficialPortalDetails 
     street: listing.market === "DE" ? listing.street : null,
     postcode: listing.postcode,
     mahalle: tr?.mahalle ?? null,
-    segmentLabel: listing.segmentLabel,
+    segmentLabel: getLocalizedSegmentLabel(listing.segment, locale),
     facts: [...noticeFacts(listing, portal, locale), ...reportFacts(report)],
     reportDate: report?.facts.find((fact) => fact.key === "valuationDate")?.value ?? null,
     isShare: share !== null && share !== WHOLE_SHARE,
