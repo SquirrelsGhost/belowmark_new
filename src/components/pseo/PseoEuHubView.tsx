@@ -8,7 +8,6 @@ import { BELOWMARK_ORIGIN } from "@/lib/blog/blogSeo";
 import { ROUTES } from "@/lib/constants";
 import { EU_MARKET_COPY } from "@/lib/pseo/euMarketCopy";
 import { EU_MARKET_META } from "@/lib/pseo/euMarketRegions";
-import { buildPreviewCardListingHref } from "@/lib/pseo/publicListingUrls";
 import { EuMarketCatalog, EuPseoMarketCode } from "@/types/pseo.types";
 
 interface PseoEuHubViewProps {
@@ -107,7 +106,7 @@ export default function PseoEuHubView({ catalog }: PseoEuHubViewProps) {
           item: {
             "@type": "RealEstateListing",
             name: `${item.title} — ${item.segmentLabel} in ${item.place} (${item.authority})`,
-            url: `${BELOWMARK_ORIGIN}${buildPreviewCardListingHref(item, catalog.locale)}`,
+            url: canonicalUrl,
             ...(item.minimumBid || item.appraisedValue
               ? {
                   offers: {

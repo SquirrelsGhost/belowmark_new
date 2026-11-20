@@ -134,7 +134,7 @@ export default function PseoMarketComparisonTable({ listings, locale, heading }:
               return (
                 <tr key={`tbl-${item.key}`} className="hover:bg-paper">
                   <td className="px-3 py-2.5 font-sans font-medium text-ink">
-                    <Link href={detailHref} className="block hover:text-signal hover:underline">
+                    <Link href={detailHref} rel="nofollow" prefetch={false} className="block hover:text-signal hover:underline">
                       <span className="block font-mono text-[10px] font-semibold uppercase text-signal">{item.segmentLabel}</span>
                       <span>{item.postcode ? `${item.postcode} ` : ""}{item.place}</span>
                     </Link>
@@ -151,7 +151,12 @@ export default function PseoMarketComparisonTable({ listings, locale, heading }:
                     {fmt(item.depositAmount, item.currency, locale, C.tbc)}
                   </td>
                   <td className="px-3 py-2.5 text-right">
-                    <Link href={`${detailHref}#unlock-dossier`} className="font-semibold text-ink underline hover:text-signal">
+                    <Link
+                      href={`${detailHref}#unlock-dossier`}
+                      rel="nofollow"
+                      prefetch={false}
+                      className="font-semibold text-ink underline hover:text-signal"
+                    >
                       {C.unlock}
                     </Link>
                   </td>

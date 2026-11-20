@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { BELOWMARK_ORIGIN, DEFAULT_BLOG_OG, marketCalcAlternates, marketHubAlternates } from "@/lib/blog/blogSeo";
 import { EU_MARKET_COPY } from "@/lib/pseo/euMarketCopy";
 import { EU_MARKET_META } from "@/lib/pseo/euMarketRegions";
+import { isEuLocationIndexable } from "@/lib/pseo/seoIndexPolicy";
 import { buildSwissAlternates } from "@/lib/pseo/swissMultilangCopy";
 import { MetaTagService } from "@/services/MetaTagService";
 import { PseoService } from "@/services/PseoService";
@@ -197,6 +198,7 @@ export async function buildEuEntryMetadata(market: EuPseoMarketCode, slug: strin
   if (!entry) {
     notFound();
   }
+  const shouldIndex = isEuLocationIndexable(entry);
   return {
     ...MetaTagService.CreateMetaTags({
       title: copy.entryMetaTitle(entry),
@@ -205,8 +207,8 @@ export async function buildEuEntryMetadata(market: EuPseoMarketCode, slug: strin
       tags: [entry.name, entry.nativeRegionName, copy.hubEyebrow, "Belowmark"],
       url: `${BELOWMARK_ORIGIN}${catalog.hubPath}/${entry.slug}`,
     }),
-    ...(market === "CH" ? { alternates: buildSwissAlternates(entry.slug, entry) } : {}),
-    ...(entry.totalCount === 0 ? { robots: { index: false, follow: true } } : {}),
+    ...(market === "CH" && shouldIndex ? { alternates: buildSwissAlternates(entry.slug, entry) } : {}),
+    ...(shouldIndex ? {} : { robots: { index: false, follow: true } }),
   };
 }
 

@@ -222,24 +222,32 @@ if (gscToken) {
 boosts.updatedAt = new Date().toISOString();
 writeFileSync(BOOSTS_FILE, `${JSON.stringify(boosts, null, 2)}\n`, "utf8");
 
-// 3. IndexNow Push (top/learned pages + hubs)
+// 3. IndexNow Push (clean canonical URLs from /sitemap.xml only; never push noindex URLs)
 let indexNowStatus = "skipped";
 if (shouldPushIndexNow) {
-  const urlList = Array.from(
-    new Set([
-      `${ORIGIN}/`,
-      `${ORIGIN}/zwangsversteigerungen`,
-      `${ORIGIN}/atlas`,
-      `${ORIGIN}/oesterreich/ediktsdatei`,
-      `${ORIGIN}/schweiz/shab-versteigerungen`,
-      `${ORIGIN}/tr/icra-ihale`,
-      `${ORIGIN}/it/aste-giudiziarie`,
-      `${ORIGIN}/es/subastas-boe`,
-      `${ORIGIN}/fr/encheres-immobilieres`,
-      `${ORIGIN}/en/uk-property-auctions`,
-      ...Object.keys(boosts.pages).slice(0, 200).map((p) => `${ORIGIN}${p}`),
-    ]),
-  );
+  const coreHubUrls = [
+    `${ORIGIN}/`,
+    `${ORIGIN}/zwangsversteigerungen`,
+    `${ORIGIN}/atlas`,
+    `${ORIGIN}/oesterreich/ediktsdatei`,
+    `${ORIGIN}/schweiz/shab-versteigerungen`,
+    `${ORIGIN}/tr/icra-ihale`,
+    `${ORIGIN}/it/aste-giudiziarie`,
+    `${ORIGIN}/es/subastas-boe`,
+    `${ORIGIN}/fr/encheres-immobilieres`,
+    `${ORIGIN}/en/uk-property-auctions`,
+  ];
+  let sitemapUrls = [];
+  try {
+    const smRes = await fetch(`${ORIGIN}/sitemap.xml`, { signal: AbortSignal.timeout(10_000) });
+    if (smRes.ok) {
+      const xml = await smRes.text();
+      sitemapUrls = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
+    }
+  } catch {
+    // fallback to core hubs
+  }
+  const urlList = Array.from(new Set(sitemapUrls.length > 0 ? sitemapUrls : coreHubUrls)).slice(0, 500);
   try {
     const res = await fetch("https://api.indexnow.org/indexnow", {
       method: "POST",

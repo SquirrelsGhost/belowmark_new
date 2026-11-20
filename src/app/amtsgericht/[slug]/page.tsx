@@ -5,6 +5,7 @@ import PseoDirectoryView from "@/components/pseo/PseoDirectoryView";
 import { BELOWMARK_ORIGIN, DEFAULT_BLOG_OG } from "@/lib/blog/blogSeo";
 import { formatEuro, formatNumber } from "@/lib/format";
 import { resolveDeCourtOrDormant } from "@/lib/pseo/euPageHelpers";
+import { isDeCourtIndexable } from "@/lib/pseo/seoIndexPolicy";
 import { MetaTagService } from "@/services/MetaTagService";
 import { PseoService } from "@/services/PseoService";
 
@@ -50,7 +51,7 @@ export async function generateMetadata({ params }: AmtsgerichtPageProps): Promis
       ],
       url: `${BELOWMARK_ORIGIN}/amtsgericht/${entity.slug}`,
     }),
-    ...(entity.totalCount === 0 ? { robots: { index: false, follow: true } } : {}),
+    ...(isDeCourtIndexable(entity) ? {} : { robots: { index: false, follow: true } }),
   };
 }
 

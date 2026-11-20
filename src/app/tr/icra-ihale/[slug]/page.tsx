@@ -5,6 +5,7 @@ import PseoDirectoryView from "@/components/pseo/PseoDirectoryView";
 import { BELOWMARK_ORIGIN, DEFAULT_BLOG_OG } from "@/lib/blog/blogSeo";
 import { formatNumber } from "@/lib/format";
 import { resolveTrEntityOrDormant } from "@/lib/pseo/euPageHelpers";
+import { isTrLocationIndexable } from "@/lib/pseo/seoIndexPolicy";
 import { MetaTagService } from "@/services/MetaTagService";
 import { PseoService } from "@/services/PseoService";
 
@@ -50,7 +51,7 @@ export async function generateMetadata({ params }: TrIcraEntityPageProps): Promi
   const compactTitle = isCategory
     ? `${entity.name}: ${entity.totalCount} Aktif İhale`
     : `${entity.name} İcradan Satılık: ${entity.totalCount} İhale${minBidStr}`;
-  const isThinEntry = entity.totalCount <= 1 && entity.kind !== "province";
+  const shouldIndex = isTrLocationIndexable(entity);
   return {
     ...MetaTagService.CreateMetaTags({
       title: fullTitle.length <= 68 ? fullTitle : compactTitle,
@@ -68,7 +69,7 @@ export async function generateMetadata({ params }: TrIcraEntityPageProps): Promi
       ],
       url: `${BELOWMARK_ORIGIN}/tr/icra-ihale/${entity.slug}`,
     }),
-    ...(isThinEntry ? { robots: { index: false, follow: true } } : {}),
+    ...(shouldIndex ? {} : { robots: { index: false, follow: true } }),
   };
 }
 

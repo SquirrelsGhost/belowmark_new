@@ -144,7 +144,7 @@ export default function PseoDirectoryView({
             "@type": "RealEstateListing",
             name: `${item.title} — ${item.segmentLabel} in ${item.postcode ? `${item.postcode} ` : ""}${item.place} (${item.authority})`,
             description: `${item.segmentLabel} in ${item.postcode ? `${item.postcode} ` : ""}${item.place}, ${item.region} · ${item.authority}${item.hearingAt ? ` · Versteigerungstermin: ${item.hearingAt.slice(0, 10)}` : ""}`,
-            url: `${BELOWMARK_ORIGIN}${buildPreviewCardListingHref(item, locale)}`,
+            url: canonicalUrl,
             ...(item.hearingAt ? { datePosted: item.hearingAt.slice(0, 10) } : {}),
             ...(item.minimumBid || item.appraisedValue
               ? {

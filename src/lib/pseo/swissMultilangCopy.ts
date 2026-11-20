@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import { BELOWMARK_ORIGIN, DEFAULT_BLOG_OG } from "@/lib/blog/blogSeo";
+import { isSwissMultilangIndexable } from "@/lib/pseo/seoIndexPolicy";
 import { MetaTagService } from "@/services/MetaTagService";
 import { EuMarketLocationEntry } from "@/types/pseo.types";
 
@@ -11,13 +12,8 @@ export const SWISS_HUB_PATHS = {
   it: "/it/svizzera/aste-ufficio-esecuzione-fosc",
 } as const;
 
-const ROMANDIE_REGION_SLUGS = new Set(["genf", "waadt", "neuenburg", "jura", "freiburg", "wallis", "bern"]);
-const ITALIAN_CH_REGION_SLUGS = new Set(["tessin", "graubuenden"]);
-
 export function isSwissMultilangEligible(entry: EuMarketLocationEntry, lang: SwissAltLang): boolean {
-  if (entry.kind === "region") return entry.totalCount > 0;
-  if (entry.totalCount === 0) return false;
-  return lang === "fr" ? ROMANDIE_REGION_SLUGS.has(entry.regionSlug) : ITALIAN_CH_REGION_SLUGS.has(entry.regionSlug);
+  return isSwissMultilangIndexable(entry, lang);
 }
 
 export function buildSwissAlternates(subSlug?: string, entry?: EuMarketLocationEntry) {
@@ -191,10 +187,14 @@ export function buildSwissMultilangMetadata(params: {
       tags: [locName, "FOSC", "FUSC", "SHAB", "CHF", "Belowmark"],
       url: `${BELOWMARK_ORIGIN}${canonicalPath}`,
     }),
-    alternates: {
-      canonical: shouldIndex ? `${BELOWMARK_ORIGIN}${canonicalPath}` : alts.canonical,
-      languages: alts.languages,
-    },
+    alternates: shouldIndex
+      ? {
+          canonical: `${BELOWMARK_ORIGIN}${canonicalPath}`,
+          languages: alts.languages,
+        }
+      : {
+          canonical: `${BELOWMARK_ORIGIN}${canonicalPath}`,
+        },
     ...(shouldIndex ? {} : { robots: { index: false, follow: true } }),
   };
 }

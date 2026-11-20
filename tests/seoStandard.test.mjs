@@ -68,6 +68,19 @@ const { resolvePseoCanonicalRedirect } = await import("../src/lib/pseo/legacyPse
 const { humanizePseoSlug, isValidDormantPseoSlug, resolveEuEntryOrDormant } = await import(
   "../src/lib/pseo/euPageHelpers.ts"
 );
+const {
+  isDeCityIndexable,
+  isDeCourtIndexable,
+  isDeStateIndexable,
+  isEuLocationIndexable,
+  isSwissMultilangIndexable,
+  isTrLocationIndexable,
+} = await import("../src/lib/pseo/seoIndexPolicy.ts");
+const robotsMod = await import("../src/app/robots.ts");
+const sitemapHubsMod = await import("../src/app/sitemap-hubs.xml/route.ts");
+const sitemapBlogMod = await import("../src/app/sitemap-blog.xml/route.ts");
+const sitemapEuListingsMod = await import("../src/app/sitemap-listings-eu.xml/route.ts");
+const sitemapTrListingsMod = await import("../src/app/sitemap-listings-tr.xml/route.ts");
 
 test("nextConfig.htmlLimitedBots targets SEO & AI crawlers without matching regular browsers", () => {
   const re = nextConfig.htmlLimitedBots;
@@ -161,4 +174,47 @@ test("Option A blog & market SEO seals translated blog clones while keeping all 
   assert.equal(hubAlt.languages["cs-CZ"], "https://www.belowmark.com/cz/drazby-nemovitosti");
   assert.equal(hubAlt.languages["nl-NL"], "https://www.belowmark.com/nl/executieveiling");
   assert.equal(hubAlt.languages["sv-SE"], "https://www.belowmark.com/se/exekutiv-auktion");
+});
+
+test("seoIndexPolicy enforces recovery-mode density thresholds across DE, TR, EU and CH", () => {
+  assert.equal(isDeStateIndexable({ totalCount: 1 }), true);
+  assert.equal(isDeStateIndexable({ totalCount: 0 }), false);
+
+  assert.equal(isDeCityIndexable({ slug: "berlin", totalCount: 15 }), true);
+  assert.equal(isDeCityIndexable({ slug: "berlin", totalCount: 14 }), false);
+  assert.equal(isDeCityIndexable({ slug: "essen-ot-werden", totalCount: 20 }), false);
+
+  assert.equal(isDeCourtIndexable({ totalCount: 15 }), true);
+  assert.equal(isDeCourtIndexable({ totalCount: 14 }), false);
+
+  assert.equal(isTrLocationIndexable({ kind: "province", totalCount: 10 }), true);
+  assert.equal(isTrLocationIndexable({ kind: "province", totalCount: 9 }), false);
+  assert.equal(isTrLocationIndexable({ kind: "district", totalCount: 200 }), false);
+  assert.equal(isTrLocationIndexable({ kind: "court", totalCount: 200 }), false);
+  assert.equal(isTrLocationIndexable({ kind: "category", totalCount: 500 }), false);
+
+  assert.equal(isEuLocationIndexable({ kind: "region", totalCount: 5 }), true);
+  assert.equal(isEuLocationIndexable({ kind: "region", totalCount: 4 }), false);
+  assert.equal(isEuLocationIndexable({ kind: "city", totalCount: 50 }), false);
+  assert.equal(isEuLocationIndexable({ kind: "court", totalCount: 50 }), false);
+
+  assert.equal(isSwissMultilangIndexable({ kind: "region", slug: "waadt", totalCount: 5 }, "fr"), true);
+  assert.equal(isSwissMultilangIndexable({ kind: "region", slug: "waadt", totalCount: 4 }, "fr"), false);
+  assert.equal(isSwissMultilangIndexable({ kind: "region", slug: "tessin", totalCount: 5 }, "it"), true);
+  assert.equal(isSwissMultilangIndexable({ kind: "region", slug: "zuerich", totalCount: 20 }, "fr"), false);
+  assert.equal(
+    isSwissMultilangIndexable({ kind: "city", slug: "lausanne", regionSlug: "waadt", totalCount: 20 }, "fr"),
+    false,
+  );
+});
+
+test("robots.ts exposes only sitemap.xml and all 4 retired sitemaps return 410 Gone", async () => {
+  const robotsConfig = robotsMod.default();
+  assert.deepEqual(robotsConfig.sitemap, ["https://www.belowmark.com/sitemap.xml"]);
+
+  for (const mod of [sitemapHubsMod, sitemapBlogMod, sitemapEuListingsMod, sitemapTrListingsMod]) {
+    const res = await mod.GET();
+    assert.equal(res.status, 410);
+    assert.equal(res.headers.get("x-robots-tag"), "noindex");
+  }
 });

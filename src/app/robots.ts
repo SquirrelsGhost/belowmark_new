@@ -43,10 +43,6 @@ export default function robots(): MetadataRoute.Robots {
       },
     ],
     host: BELOWMARK_ORIGIN,
-    sitemap: [
-      `${BELOWMARK_ORIGIN}/sitemap.xml`,
-      `${BELOWMARK_ORIGIN}/sitemap-hubs.xml`,
-      `${BELOWMARK_ORIGIN}/sitemap-blog.xml`,
-    ],
+    sitemap: [`${BELOWMARK_ORIGIN}/sitemap.xml`],
   };
 }

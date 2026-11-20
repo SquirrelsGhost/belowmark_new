@@ -104,7 +104,7 @@ export default function PseoListingPreviewCard({ item, locale }: PseoListingPrev
         </div>
 
         <h3 className="mt-3 font-display text-xl leading-snug text-ink">
-          <Link href={detailHref} className="hover:text-signal hover:underline">
+          <Link href={detailHref} rel="nofollow" prefetch={false} className="hover:text-signal hover:underline">
             {item.title}
           </Link>
         </h3>
@@ -145,6 +145,8 @@ export default function PseoListingPreviewCard({ item, locale }: PseoListingPrev
       <div className="mt-5 pt-2">
         <Link
           href={unlockHref}
+          rel="nofollow"
+          prefetch={false}
           className="inline-flex w-full items-center justify-between border-2 border-ink bg-paper-deep px-3.5 py-2 font-narrow text-[11px] font-semibold uppercase tracking-[0.07em] text-ink transition-colors hover:bg-ink hover:text-paper-bright"
         >
           <span>{L.cta}</span>

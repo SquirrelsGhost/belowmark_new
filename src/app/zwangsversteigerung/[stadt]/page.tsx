@@ -5,6 +5,7 @@ import PseoDirectoryView from "@/components/pseo/PseoDirectoryView";
 import { BELOWMARK_ORIGIN, DEFAULT_BLOG_OG } from "@/lib/blog/blogSeo";
 import { formatEuro, formatNumber } from "@/lib/format";
 import { resolveDeCityOrDormant } from "@/lib/pseo/euPageHelpers";
+import { isDeCityIndexable } from "@/lib/pseo/seoIndexPolicy";
 import { MetaTagService } from "@/services/MetaTagService";
 import { PseoService } from "@/services/PseoService";
 
@@ -29,7 +30,7 @@ export async function generateMetadata({ params }: StadtPageProps): Promise<Meta
   const minBidStr = minBidVal ? ` ab ${formatEuro(minBidVal, "de")}` : "";
   const fullCityTitle = `Zwangsversteigerung ${entity.name}: ${entity.totalCount} Immobilien & Termine${minBidStr}`;
   const compactCityTitle = `Zwangsversteigerung ${entity.name}: ${entity.totalCount} Termine${minBidStr}`;
-  const isThinSuburb = entity.totalCount === 0 || entity.slug.includes("-ot-");
+  const shouldIndex = isDeCityIndexable(entity);
   return {
     ...MetaTagService.CreateMetaTags({
       title: fullCityTitle.length <= 65 ? fullCityTitle : compactCityTitle,
@@ -45,7 +46,7 @@ export async function generateMetadata({ params }: StadtPageProps): Promise<Meta
       ],
       url: `${BELOWMARK_ORIGIN}/zwangsversteigerung/${entity.slug}`,
     }),
-    ...(isThinSuburb ? { robots: { index: false, follow: true } } : {}),
+    ...(shouldIndex ? {} : { robots: { index: false, follow: true } }),
   };
 }
 

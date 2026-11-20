@@ -706,12 +706,11 @@ async function sendAbandonedCheckoutFollowUps() {
 }
 
 async function pushAllUrlsToIndexNow() {
-  // Only indexable Hub & Editorial Guide sitemaps belong in Google Search Console (never 29k ephemeral single-lot URLs)
-  const gscCanonicalSitemaps = [
+  // Recovery Mode: only the single canonical sitemap belongs in Google Search Console & IndexNow
+  const gscCanonicalSitemaps = [`${ORIGIN}/sitemap.xml`];
+  const deprecatedGscSitemaps = [
     `${ORIGIN}/sitemap-hubs.xml`,
     `${ORIGIN}/sitemap-blog.xml`,
-  ];
-  const deprecatedGscSitemaps = [
     `${ORIGIN}/sitemap-listings-eu.xml`,
     `${ORIGIN}/sitemap-listings-tr.xml`,
   ];
@@ -749,7 +748,7 @@ async function pushAllUrlsToIndexNow() {
       );
       gscSitemaps.push({ sitemap: oldSm, action: "DELETE", httpStatus: r.status });
     }
-    for (const sm of [`${ORIGIN}/sitemap.xml`, ...gscCanonicalSitemaps]) {
+    for (const sm of gscCanonicalSitemaps) {
       const r = await fetch(
         `https://www.googleapis.com/webmasters/v3/sites/${encodeURIComponent(GSC_SITE)}/sitemaps/${encodeURIComponent(sm)}`,
         { method: "PUT", headers: { Authorization: `Bearer ${gscToken}` } },

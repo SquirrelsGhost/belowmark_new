@@ -63,6 +63,8 @@ export default function PseoStickyDossierBar({
         </div>
         <Link
           href={targetHref}
+          rel="nofollow"
+          prefetch={false}
           className="inline-flex shrink-0 items-center justify-center border-2 border-ink bg-signal px-4 py-2 font-mono text-xs font-semibold uppercase tracking-wider text-paper-bright shadow-[2px_2px_0_0_var(--color-ink)] transition-transform hover:-translate-y-0.5"
         >
           {c.cta}
